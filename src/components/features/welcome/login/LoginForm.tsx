@@ -58,12 +58,17 @@ const LoginForm = ({
       <View style={styles.card}>
         <View style={styles.cardContent}>
           {/* <Image style={styles.logo} source={logoNovyse} /> */}
-          <Typography style={styles.title} translationKey="auth.login.title" />
           <Typography
-            style={styles.subtitle}
+            size="hero"
+            weight="semibold"
+            color={LoginColors[loginTheme].title}
+            translationKey="auth.login.title"
+          />
+          <Typography
+            size="sm"
+            color={LoginColors[loginTheme].subtitle}
             translationKey="auth.login.subtitle"
           />
-          <View style={{ width: 300 }}></View>
           <>
             {/* Username */}
             <TextInput
@@ -124,11 +129,14 @@ const LoginForm = ({
 
             <View style={styles.opaqueLink}>
               <Typography
-                style={styles.opaqueLinkText}
+                size="sm"
+                color={LoginColors[loginTheme].subtitle}
                 translationKey="auth.login.securedBy"
               />
               <LinkTypography
-                style={styles.opaqueLinkTextBold}
+                size="sm"
+                weight="semibold"
+                color={LoginColors[loginTheme].title}
                 text="OPAQUE"
                 href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
               />
@@ -188,12 +196,15 @@ const LoginForm = ({
           {/* Signup link */}
           <View style={styles.link}>
             <Typography
-              style={styles.linkText}
+              size="sm"
+              color={LoginColors[loginTheme].subtitle}
               translationKey="auth.login.dontHaveAccount"
             />
             <LinkTypography
+              size="sm"
+              weight="semibold"
+              color={LoginColors[loginTheme].title}
               onPress={onSignup}
-              style={styles.linkTextBold}
               translationKey="auth.welcome.signup"
             />
           </View>
@@ -209,10 +220,10 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      padding: isSmallScreen ? 0 : 24,
+      padding: isSmallScreen ? 0 : 25,
     },
     card: {
-      padding: isSmallScreen ? 16 : 24,
+      padding: isSmallScreen ? 15 : 25,
       borderRadius: isSmallScreen ? 0 : 25,
       overflow: "hidden",
       backgroundColor: LoginColors[loginTheme].backgroundCard,
@@ -225,33 +236,12 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       justifyContent: isSmallScreen ? undefined : "center",
       alignContent: "center",
       alignItems: "center",
-    },
-    logo: {
-      alignSelf: "center",
-      height: 150,
-      width: 150,
-      marginBottom: 20,
-    },
-    title: {
-      fontSize: 42,
-      fontWeight: "600",
-      color: LoginColors[loginTheme].title,
-      textAlign: "center",
-      marginBottom: 8,
-    },
-    subtitle: {
-      fontSize: 14,
-      color: LoginColors[loginTheme].subtitle,
-      textAlign: "center",
-      marginBottom: 32,
-      lineHeight: 20,
-      paddingHorizontal: 20,
+      gap: 15,
     },
     textInput: {
       paddingVertical: 10,
       paddingHorizontal: 15,
       borderRadius: 25,
-      marginBottom: 12,
       fontSize: 16,
       width: "100%",
       maxWidth: 300,
@@ -295,7 +285,7 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
     buttonRow: {
       flexDirection: "row",
       justifyContent: "center",
-      gap: 12,
+      gap: 25,
       width: "100%",
       maxWidth: 300,
     },
@@ -308,7 +298,6 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       alignItems: "center",
     },
     link: {
-      marginTop: 20,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
@@ -320,25 +309,6 @@ function createStyles(loginTheme: LoginTheme, isSmallScreen: boolean) {
       justifyContent: "center",
       width: "100%",
       maxWidth: 300,
-      marginBottom: 20,
-      marginTop: 5,
-    },
-    linkText: {
-      fontSize: 14,
-      color: LoginColors[loginTheme].subtitle,
-    },
-    opaqueLinkText: {
-      fontSize: 11,
-      color: LoginColors[loginTheme].subtitle2,
-    },
-    linkTextBold: {
-      color: LoginColors[loginTheme].title,
-      fontWeight: "600",
-      fontSize: 14,
-    },
-    opaqueLinkTextBold: {
-      fontWeight: "600",
-      fontSize: 11,
     },
   });
 }

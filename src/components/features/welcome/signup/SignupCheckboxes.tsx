@@ -1,6 +1,6 @@
-import { Platform, Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
-import * as Linking from "expo-linking";
+import LinkTypography from "@/src/components/ui/typography/LinkTypography";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 import { PRIVACY_POLICY_URL, TOS_URL } from "@/app.config";
 
@@ -10,7 +10,7 @@ interface Props {
   ageConfirmed: boolean;
   onTogglePrivacyTos: () => void;
   onToggleAge: () => void;
-  loginTheme?: string;
+  loginTheme?: LoginTheme;
 }
 
 export default function SignupCheckboxes({
@@ -20,13 +20,7 @@ export default function SignupCheckboxes({
   onToggleAge,
   loginTheme = "default",
 }: Props) {
-  const colors = LoginColors[loginTheme as LoginTheme];
-  const styles = createStyles(colors);
-
-  const openUrl = (url: string) => {
-    if (Platform.OS === "web") window.open(url, "_blank");
-    else Linking.openURL(url);
-  };
+  const styles = createStyles(loginTheme);
 
   const Checkbox = ({
     checked,
@@ -37,17 +31,13 @@ export default function SignupCheckboxes({
   }) => (
     <Pressable
       onPress={onPress}
-      style={[
-        styles.checkbox,
-        {
-          borderColor: checked ? colors.backgroundSubmitButton : "#ccc",
-          backgroundColor: checked ? colors.backgroundSubmitButton : "#fff",
-        },
-      ]}
+      style={[styles.checkbox, checked && styles.checkboxChecked]}
     >
       {checked && (
         <Typography
-          style={[styles.tick, { color: colors.checkboxTick }]}
+          size="xs"
+          weight="bold"
+          color={LoginColors[loginTheme].checkboxTick}
           text="✓"
         />
       )}
@@ -58,39 +48,67 @@ export default function SignupCheckboxes({
     <View style={styles.container}>
       <View style={styles.row}>
         <Checkbox checked={privacyAccepted} onPress={onTogglePrivacyTos} />
-        <Typography style={styles.text}>
-          <Typography style={styles.text} translationKey="auth.signupStep.iAccept" />{" "}
+        <View style={styles.textWrap}>
           <Typography
-            translationKey="auth.signupStep.privacyPolicy"
-            style={{ color: colors.link }}
-            onPress={() => openUrl(PRIVACY_POLICY_URL)}
-          />{" "}
-          <Typography style={styles.text} translationKey="auth.signupStep.and" />{" "}
-          <Typography
-            translationKey="auth.signupStep.termsOfService"
-            style={{ color: colors.link }}
-            onPress={() => openUrl(TOS_URL)}
+            size="sm"
+            color={LoginColors[loginTheme].subtitle}
+            translationKey="auth.signupStep.iAccept"
           />
-        </Typography>
+          <LinkTypography
+            size="sm"
+            weight="semibold"
+            color={LoginColors[loginTheme].title}
+            translationKey="auth.signupStep.privacyPolicy"
+            href={PRIVACY_POLICY_URL}
+          />
+          <Typography
+            size="sm"
+            color={LoginColors[loginTheme].subtitle}
+            translationKey="auth.signupStep.and"
+          />
+          <LinkTypography
+            size="sm"
+            weight="semibold"
+            color={LoginColors[loginTheme].title}
+            translationKey="auth.signupStep.termsOfService"
+            href={TOS_URL}
+          />
+        </View>
       </View>
 
-      <View style={[styles.row, { marginTop: 10 }]}>
+      <View style={styles.row}>
         <Checkbox checked={ageConfirmed} onPress={onToggleAge} />
-        <Typography style={styles.text} translationKey="auth.signupStep.iAm16" />
+        <Typography
+          size="sm"
+          color={LoginColors[loginTheme].subtitle}
+          translationKey="auth.signupStep.iAm16"
+        />
       </View>
     </View>
   );
 }
 
-const createStyles = (colors: any) =>
-  StyleSheet.create({
+function createStyles(loginTheme: LoginTheme) {
+  return StyleSheet.create({
     container: {
       marginBottom: 16,
       maxWidth: 300,
       width: "100%",
       alignSelf: "center",
+      gap: 10,
     },
-    row: { flexDirection: "row", alignItems: "flex-start", width: "100%" },
+    row: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      width: "100%",
+    },
+    textWrap: {
+      flex: 1,
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "center",
+      gap: 4,
+    },
     checkbox: {
       width: 18,
       height: 18,
@@ -100,7 +118,12 @@ const createStyles = (colors: any) =>
       alignItems: "center",
       marginRight: 8,
       marginTop: 1,
+      borderColor: LoginColors[loginTheme].borderTextInput,
+      backgroundColor: LoginColors[loginTheme].backgroundTextInput,
     },
-    tick: { fontWeight: "bold", fontSize: 12 },
-    text: { fontSize: 14, lineHeight: 20, flex: 1, color: colors.subtitle },
+    checkboxChecked: {
+      borderColor: LoginColors[loginTheme].backgroundSubmitButton,
+      backgroundColor: LoginColors[loginTheme].backgroundSubmitButton,
+    },
   });
+}

@@ -1,5 +1,3 @@
-import React from "react";
-import { StyleSheet } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 
@@ -17,23 +15,19 @@ const WelcomeButtonText = ({
   translationKey,
 }: WelcomeButtonTextProps) => {
   const loginTheme: LoginTheme = "default";
-  const styles = createStyles(loginTheme, type);
 
   return (
-    <Typography style={styles.text} text={label} translationKey={translationKey} />
-  );
-};
-
-function createStyles(loginTheme: LoginTheme, type: WelcomeButtonTextType) {
-  return StyleSheet.create({
-    text: {
-      fontSize: 16,
-      color:
+    <Typography
+      weight="semibold"
+      color={
         type === "submit"
           ? LoginColors[loginTheme].submitButtonTextColor
-          : LoginColors[loginTheme].backButtonTextColor,
-    },
-  });
-}
+          : LoginColors[loginTheme].backButtonTextColor
+      }
+      text={label}
+      translationKey={translationKey}
+    />
+  );
+};
 
 export default WelcomeButtonText;

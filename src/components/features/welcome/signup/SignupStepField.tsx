@@ -1,16 +1,14 @@
-import React from "react";
 import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Typography from "@/src/components/ui/typography/Typography";
-import { LoginColors } from "@/constants/LoginColors";
+import { LoginColors, LoginTheme } from "@/constants/LoginColors";
 import { validate } from "@/src/utils/welcome/validator";
 import Icon from "@/src/components/ui/icon/Icon";
-import LinkTypography from "@/src/components/ui/typography/Typography";
+import LinkTypography from "@/src/components/ui/typography/LinkTypography";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 
 interface Props {
   currentStep: number;
-
   form: {
     name: string;
     password: string;
@@ -25,7 +23,7 @@ interface Props {
   onChangeField: (field: string, value: string) => void;
   onTogglePassword: () => void;
   onToggleConfirmPassword: () => void;
-  loginTheme?: string;
+  loginTheme?: LoginTheme;
 }
 
 export default function SignupStepField({
@@ -42,53 +40,43 @@ export default function SignupStepField({
   loginTheme = "default",
 }: Props) {
   const { t } = useTranslation();
-  const colors = (LoginColors as any)[loginTheme];
-  const styles = createStyles(colors);
+  const styles = createStyles(loginTheme);
 
   const inputBorder = (
     valid: { success: boolean; error?: string } | null,
     value: string,
   ) => {
-    if (!value) return {};
-    return valid?.success
-      ? {
-          borderColor: colors.successBorder,
-          backgroundColor: colors.successBackground,
-        }
-      : valid?.success === false
-        ? {
-            borderColor: colors.errorBorder,
-            backgroundColor: colors.errorBackground,
-          }
-        : {};
+    if (!value) return null;
+    if (valid?.success) return styles.inputSuccess;
+    if (valid?.success === false) return styles.inputError;
+    return null;
   };
 
   if (currentStep === 0) {
-    const field = "name";
-    const validation = validate.user.name(form[field as keyof typeof form]);
+    const validation = validate.user.name(form.name);
     return (
       <View style={styles.group}>
         <View style={styles.inputGroup}>
           <Typography
-            style={[styles.label, { color: colors.subtitle }]}
+            size="sm"
+            weight="medium"
+            color={LoginColors[loginTheme].subtitle}
             translationKey="auth.signupStep.displayName"
           />
           <View
             style={[
               styles.inputContainer,
-              {
-                borderColor: colors.borderTextInput,
-                backgroundColor: colors.backgroundTextInput,
-              },
-              inputBorder(validation, form[field as keyof typeof form]),
+              inputBorder(validation, form.name),
             ]}
           >
             <TextInput
-              style={[styles.textInput, { color: colors.text }]}
-              value={form[field as keyof typeof form]}
+              style={styles.textInput}
+              value={form.name}
               placeholder={t("auth.signupStep.displayNamePlaceholder")}
-              placeholderTextColor={colors.placeholderTextInput}
-              onChangeText={(v) => onChangeField(field, v)}
+              placeholderTextColor={
+                LoginColors[loginTheme].placeholderTextInput
+              }
+              onChangeText={(v) => onChangeField("name", v)}
               autoCapitalize="sentences"
             />
           </View>
@@ -109,56 +97,50 @@ export default function SignupStepField({
       <View style={styles.group}>
         <View style={styles.inputGroup}>
           <Typography
-            style={[styles.label, { color: colors.subtitle }]}
+            size="sm"
+            weight="medium"
+            color={LoginColors[loginTheme].subtitle}
             translationKey="auth.signupStep.username"
           />
           <View
             style={[
               styles.inputContainer,
-              {
-                borderColor: colors.borderTextInput,
-                backgroundColor: colors.backgroundTextInput,
-              },
               handleError
-                ? {
-                    borderColor: colors.errorBorder,
-                    backgroundColor: colors.errorBackground,
-                  }
+                ? styles.inputError
                 : handleAvailable === true && form.handle
-                  ? {
-                      borderColor: colors.successBorder,
-                      backgroundColor: colors.successBackground,
-                    }
-                  : {},
+                  ? styles.inputSuccess
+                  : null,
             ]}
           >
             <TextInput
-              style={[styles.textInput, { color: colors.text }]}
+              style={styles.textInput}
               value={form.handle}
               placeholder={t("auth.signupStep.usernamePlaceholder")}
-              placeholderTextColor={colors.placeholderTextInput}
+              placeholderTextColor={
+                LoginColors[loginTheme].placeholderTextInput
+              }
               onChangeText={(v) => onChangeField("handle", v.toLowerCase())}
               autoCapitalize="none"
             />
             {isLoading ? (
               <ActivityIndicator
                 size="small"
-                color={colors.iconLoading}
-                style={{ marginRight: 10 }}
+                color={LoginColors[loginTheme].iconLoading}
+                style={styles.fieldStatus}
               />
             ) : handleAvailable === true && !handleError ? (
               <Icon
                 name="Tick01Icon"
-                color={colors.signupReqGreen}
+                color={LoginColors[loginTheme].signupReqGreen}
                 size={18}
-                style={{ marginRight: 10 }}
+                style={styles.fieldStatus}
               />
             ) : handleAvailable === false && !handleError ? (
               <Icon
                 name="Cancel01Icon"
-                color={colors.signupReqRed}
+                color={LoginColors[loginTheme].signupReqRed}
                 size={18}
-                style={{ marginRight: 10 }}
+                style={styles.fieldStatus}
               />
             ) : null}
           </View>
@@ -168,11 +150,8 @@ export default function SignupStepField({
             )}
             {!!(handleAvailable === true && !handleError && form.handle) && (
               <Typography
-                style={{
-                  color: colors.signupReqGreen,
-                  fontSize: 13,
-                  marginTop: 4,
-                }}
+                size="sm"
+                color={LoginColors[loginTheme].signupReqGreen}
                 translationKey="common.auth.signupStep.available"
               />
             )}
@@ -201,31 +180,31 @@ export default function SignupStepField({
       <View style={styles.group}>
         <View style={styles.inputGroup}>
           <Typography
-            style={[styles.label, { color: colors.subtitle }]}
+            size="sm"
+            weight="medium"
+            color={LoginColors[loginTheme].subtitle}
             translationKey="auth.signupStep.password"
           />
           <View
             style={[
               styles.inputContainer,
-              {
-                borderColor: colors.borderTextInput,
-                backgroundColor: colors.backgroundTextInput,
-              },
               inputBorder(validate.user.password(form.password), form.password),
             ]}
           >
             <TextInput
-              style={[styles.textInput, { color: colors.text }]}
+              style={styles.textInput}
               value={form.password}
               placeholder={t("auth.signupStep.password")}
-              placeholderTextColor={colors.placeholderTextInput}
+              placeholderTextColor={
+                LoginColors[loginTheme].placeholderTextInput
+              }
               secureTextEntry={showPassword}
               onChangeText={(v) => onChangeField("password", v)}
               autoCapitalize="none"
             />
             <Icon
               name={showPassword ? "ViewIcon" : "ViewOffIcon"}
-              color={colors.iconShowHideField}
+              color={LoginColors[loginTheme].iconShowHideField}
               style={styles.eyeButton}
               onPress={onTogglePassword}
             />
@@ -234,16 +213,14 @@ export default function SignupStepField({
 
         <View style={styles.inputGroup}>
           <Typography
-            style={[styles.label, { color: colors.subtitle }]}
+            size="sm"
+            weight="medium"
+            color={LoginColors[loginTheme].subtitle}
             translationKey="auth.signupStep.confirmPassword"
           />
           <View
             style={[
               styles.inputContainer,
-              {
-                borderColor: colors.borderTextInput,
-                backgroundColor: colors.backgroundTextInput,
-              },
               inputBorder(
                 passwordsMatch
                   ? { success: true }
@@ -255,17 +232,19 @@ export default function SignupStepField({
             ]}
           >
             <TextInput
-              style={[styles.textInput, { color: colors.text }]}
+              style={styles.textInput}
               value={form.confirmPassword}
               placeholder={t("auth.signupStep.confirmPasswordPlaceholder")}
-              placeholderTextColor={colors.placeholderTextInput}
+              placeholderTextColor={
+                LoginColors[loginTheme].placeholderTextInput
+              }
               secureTextEntry={showConfirmPassword}
               onChangeText={(v) => onChangeField("confirmPassword", v)}
               autoCapitalize="none"
             />
             <Icon
               name={showConfirmPassword ? "ViewIcon" : "ViewOffIcon"}
-              color={colors.iconShowHideField}
+              color={LoginColors[loginTheme].iconShowHideField}
               style={styles.eyeButton}
               onPress={onToggleConfirmPassword}
             />
@@ -273,66 +252,68 @@ export default function SignupStepField({
         </View>
 
         {passwordErrors.length > 0 && (
-          <View
-            style={{
-              width: "100%",
-              maxWidth: 300,
-              marginBottom: 16,
-              marginTop: -8,
-            }}
-          >
+          <View style={styles.containerStatus}>
             <StatusMessage type="danger" content={passwordErrors} />
           </View>
         )}
 
         <View style={styles.opaqueLink}>
           <Typography
-            style={styles.opaqueLinkText}
+            size="sm"
+            color={LoginColors[loginTheme].subtitle}
             translationKey="auth.login.securedBy"
           />
           <LinkTypography
-            style={styles.opaqueLinkTextBold}
-            href="https://opaque-auth.com/"
-          >
-            OPAQUE
-          </LinkTypography>
+            size="sm"
+            weight="semibold"
+            color={LoginColors[loginTheme].title}
+            text="OPAQUE"
+            href="https://blog.cloudflare.com/it-it/opaque-oblivious-passwords/"
+          />
         </View>
       </View>
     );
   }
 }
 
-const createStyles = (colors: any) => {
+function createStyles(loginTheme: LoginTheme) {
   return StyleSheet.create({
     group: {
       width: "100%",
       alignItems: "center",
     },
-
     inputGroup: {
       marginBottom: 16,
       width: "100%",
       maxWidth: 300,
-    },
-    label: {
-      fontSize: 14,
-      marginBottom: 8,
-      fontWeight: "500",
+      gap: 8,
     },
     inputContainer: {
       flexDirection: "row",
       alignItems: "center",
+      width: "100%",
       borderRadius: 25,
       borderWidth: 1.5,
       minHeight: 45,
       overflow: "hidden",
+      backgroundColor: LoginColors[loginTheme].backgroundTextInput,
+      borderColor: LoginColors[loginTheme].borderTextInput,
     },
     textInput: {
       flex: 1,
       paddingVertical: 10,
       paddingHorizontal: 15,
       fontSize: 16,
+      color: LoginColors[loginTheme].text,
       outlineStyle: "none" as any,
+    },
+    inputError: {
+      borderColor: LoginColors[loginTheme].errorBorder,
+      backgroundColor: LoginColors[loginTheme].errorBackground,
+    },
+    inputSuccess: {
+      borderColor: LoginColors[loginTheme].successBorder,
+      backgroundColor: LoginColors[loginTheme].successBackground,
     },
     eyeButton: {
       width: 40,
@@ -340,23 +321,24 @@ const createStyles = (colors: any) => {
       justifyContent: "center",
       alignItems: "center",
     },
+    fieldStatus: {
+      marginRight: 10,
+    },
     requirements: {
-      marginTop: 4,
       width: "100%",
       maxWidth: 300,
     },
-    opaqueLink: {
-      marginBottom: 20,
-      marginTop: 5,
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
+    containerStatus: {
+      width: "100%",
+      maxWidth: 300,
+      marginBottom: 16,
     },
-    opaqueLinkText: { fontSize: 11, color: colors.subtitle2 },
-    opaqueLinkTextBold: {
-      color: colors.title,
-      fontWeight: "600",
-      fontSize: 11,
+    opaqueLink: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      width: "100%",
+      maxWidth: 300,
     },
   });
-};
+}

@@ -8,7 +8,7 @@ interface Props {
   currentStep: number;
   completedSteps: Set<number>;
   onStepPress: (index: number) => void;
-  loginTheme?: string;
+  loginTheme?: LoginTheme;
 }
 
 export default function SignupTimeline({
@@ -18,6 +18,8 @@ export default function SignupTimeline({
   onStepPress,
   loginTheme = "default",
 }: Props) {
+  const styles = createStyles(loginTheme);
+
   return (
     <View style={styles.timeline}>
       {steps.map((step, index) => {
@@ -33,55 +35,23 @@ export default function SignupTimeline({
                 style={[
                   styles.circle,
                   isCompleted
-                    ? {
-                        backgroundColor:
-                          LoginColors[loginTheme as LoginTheme]
-                            .completedBackground,
-                        borderColor:
-                          LoginColors[loginTheme as LoginTheme].completedBorder,
-                      }
+                    ? styles.circleCompleted
                     : isCurrent
-                      ? {
-                          backgroundColor:
-                            LoginColors[loginTheme as LoginTheme]
-                              .currentBackground,
-                          borderColor:
-                            LoginColors[loginTheme as LoginTheme].currentBorder,
-                        }
-                      : {
-                          backgroundColor:
-                            LoginColors[loginTheme as LoginTheme]
-                              .pendingBackground,
-                          borderColor:
-                            LoginColors[loginTheme as LoginTheme].pendingBorder,
-                        },
+                      ? styles.circleCurrent
+                      : styles.circlePending,
                 ]}
                 onPress={isAccessible ? () => onStepPress(index) : undefined}
                 disabled={!isAccessible}
               >
                 <Typography
-                  style={[
-                    styles.number,
-                    {
-                      color:
-                        LoginColors[loginTheme as LoginTheme].timelineNumber,
-                    },
-                  ]}
+                  size="md"
+                  weight="bold"
+                  color={LoginColors[loginTheme].timelineNumber}
                   text={String(step.id)}
                 />
               </Pressable>
             </View>
-            {!isLast && (
-              <View
-                style={[
-                  styles.line,
-                  {
-                    backgroundColor:
-                      LoginColors[loginTheme as LoginTheme].backgroundTimeline,
-                  },
-                ]}
-              />
-            )}
+            {!isLast && <View style={styles.line} />}
           </React.Fragment>
         );
       })}
@@ -89,35 +59,46 @@ export default function SignupTimeline({
   );
 }
 
-const styles = StyleSheet.create({
-  timeline: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-around",
-    width: "100%",
-    marginBottom: 32,
-    maxWidth: 300,
-  },
-  dotContainer: {
-    alignItems: "center",
-    gap: 6,
-  },
-  circle: {
-    width: 45,
-    height: 45,
-    borderRadius: 999,
-    borderWidth: 4,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  number: {
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  line: {
-    flex: 1,
-    height: 2,
-    marginHorizontal: 8,
-    marginTop: 22,
-  },
-});
+function createStyles(loginTheme: LoginTheme) {
+  return StyleSheet.create({
+    timeline: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-around",
+      width: "100%",
+      marginBottom: 32,
+      maxWidth: 300,
+    },
+    dotContainer: {
+      alignItems: "center",
+      gap: 6,
+    },
+    circle: {
+      width: 45,
+      height: 45,
+      borderRadius: 999,
+      borderWidth: 4,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    circleCompleted: {
+      backgroundColor: LoginColors[loginTheme].completedBackground,
+      borderColor: LoginColors[loginTheme].completedBorder,
+    },
+    circleCurrent: {
+      backgroundColor: LoginColors[loginTheme].currentBackground,
+      borderColor: LoginColors[loginTheme].currentBorder,
+    },
+    circlePending: {
+      backgroundColor: LoginColors[loginTheme].pendingBackground,
+      borderColor: LoginColors[loginTheme].pendingBorder,
+    },
+    line: {
+      flex: 1,
+      height: 2,
+      marginHorizontal: 8,
+      marginTop: 22,
+      backgroundColor: LoginColors[loginTheme].backgroundTimeline,
+    },
+  });
+}

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import Typography from "./Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
+import type { TypographySize, TypographyWeight } from "@/constants/typography";
 
 const AnimatedTypography = Animated.createAnimatedComponent(Typography);
 
@@ -22,6 +23,9 @@ interface LinkTextProps {
   href?: string;
   style?: StyleProp<TextStyle>;
   activeOpacity?: number;
+  size?: TypographySize;
+  weight?: TypographyWeight;
+  color?: string;
 }
 
 export default function LinkText({
@@ -33,6 +37,9 @@ export default function LinkText({
   href,
   style,
   activeOpacity = 0.4,
+  size,
+  weight,
+  color,
 }: LinkTextProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
@@ -77,12 +84,14 @@ export default function LinkText({
         text={text}
         translationKey={translationKey}
         translationOptions={translationOptions}
+        size={size}
+        weight={weight}
+        color={color ?? theme.textLink}
         style={[
           styles.base,
           showUnderline && styles.underline,
           { opacity },
           style,
-          { color: theme.textLink },
         ]}
         // @ts-ignore - onMouseEnter/onMouseLeave are web-only props
         onMouseEnter={() => setIsHovered(true)}
