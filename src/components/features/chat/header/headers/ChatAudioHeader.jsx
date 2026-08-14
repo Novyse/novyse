@@ -11,6 +11,10 @@ import Animated, {
   cancelAnimation,
 } from "react-native-reanimated";
 
+import AppHeaderRow, {
+  headerIconButtonStyle,
+} from "@/src/components/features/header/AppHeaderRow";
+
 import { formatTime } from "@/src/utils/storage/file/utils";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { AudioPlayerContext } from "@/src/context/AudioPlayerContext";
@@ -34,7 +38,6 @@ const AudioHeader = () => {
   } = useContext(AudioPlayerContext);
 
   const user = getUser(audioInfo.senderUUID);
-  const senderName = user ? user.name : "Unknown User";
 
   const isValidDuration = duration && Number.isFinite(duration) && duration > 0;
   const safeDuration = isValidDuration ? duration : 0;
@@ -69,53 +72,50 @@ const AudioHeader = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.mainContent}>
-        {/* Play/Pause Button */}
-        <HoverAndPressedButton
-          style={styles.playButton}
-          activeOpacity={0.8}
-          onPress={() => handlePlayPause(currentUri)}
-        >
-          <Icon
-            name={isPlaying ? "PauseIcon" : "PlayIcon"}
-            size={20}
-            color={theme.text}
-          />
-        </HoverAndPressedButton>
-
-        {/* Info Section */}
-        <View style={styles.infoContainer}>
-          <Typography
-            style={styles.senderName}
-            numberOfLines={1}
-            text={senderName}
-          />
-          <View style={styles.statusRow}>
-            <Typography style={styles.timeText}>
-              {`${formatTime(currentTime)} / ${formatTime(safeDuration)}`}
-            </Typography>
+      <AppHeaderRow
+        left={
+          <View style={styles.headerLeft}>
+            <Icon
+              name={isPlaying ? "PauseIcon" : "PlayIcon"}
+              onPress={() => handlePlayPause(currentUri)}
+              style={headerIconButtonStyle.iconButton}
+            />
+            <View style={styles.headerLeftSender}>
+              <Typography
+                weight="semibold"
+                numberOfLines={1}
+                text={user?.name}
+                translationKey="chat.unknownUser"
+              />
+              <Typography
+                size="xs"
+                variant="subtitle"
+                numberOfLines={1}
+                text={`${formatTime(currentTime)} / ${formatTime(safeDuration)}`}
+              />
+            </View>
           </View>
-        </View>
-
-        {/* Right Controls */}
-        <View style={styles.rightControls}>
-          <HoverAndPressedButton
-            style={styles.controlButton}
-            onPress={() => handleChangePlaybackRate()}
-          >
-            <Typography text={`${playbackRate}x`} style={styles.rateText} />
-          </HoverAndPressedButton>
-
-          <HoverAndPressedButton
-            style={styles.controlButton}
-            onPress={removeAudio}
-          >
-            <Icon name="Cancel01Icon" size={20} color={theme.text} />
-          </HoverAndPressedButton>
-        </View>
-      </View>
-
-      {/* Modern Visual Progress Bar */}
+        }
+        right={
+          <>
+            <HoverAndPressedButton
+              style={headerIconButtonStyle.iconButton}
+              onPress={() => handleChangePlaybackRate()}
+            >
+              <Typography
+                size="xs"
+                weight="semibold"
+                text={`${playbackRate}x`}
+              />
+            </HoverAndPressedButton>
+            <Icon
+              name="Cancel01Icon"
+              onPress={removeAudio}
+              style={headerIconButtonStyle.iconButton}
+            />
+          </>
+        }
+      />
       <View style={styles.progressTrack}>
         <Animated.View style={[styles.progressFill, animatedProgressStyle]} />
       </View>
@@ -127,61 +127,15 @@ function createStyle(theme) {
   return StyleSheet.create({
     container: {
       width: "100%",
-      backgroundColor: "transparent",
-      paddingTop: 8,
-      paddingBottom: 2,
-      position: "relative",
     },
-    mainContent: {
+    headerLeftSender: {
+      flexDirection: "column",
+      // justifyContent: "center",
+      minWidth: 0,
+    },
+    headerLeft: {
       flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 12,
-      paddingBottom: 10,
-    },
-    playButton: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: theme.primary + "20",
-      justifyContent: "center",
-      alignItems: "center",
-      marginRight: 12,
-    },
-    infoContainer: {
-      flex: 1,
-      justifyContent: "center",
-    },
-    senderName: {
-      fontSize: 15,
-      fontWeight: "700",
-      color: theme.text,
-      marginBottom: 2,
-    },
-    statusRow: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    timeText: {
-      fontSize: 12,
-      color: theme.subtitle,
-      fontVariant: ["tabular-nums"],
-    },
-    rateText: {
-      fontSize: 12,
-      color: theme.primary,
-      fontWeight: "600",
-    },
-    rightControls: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 4,
-    },
-    controlButton: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      justifyContent: "center",
-      alignItems: "center",
+      gap: 5,
     },
     progressTrack: {
       position: "absolute",
@@ -189,13 +143,14 @@ function createStyle(theme) {
       left: 0,
       right: 0,
       height: 3,
-      backgroundColor: theme.border,
+      borderRadius: 10,
       overflow: "hidden",
     },
     progressFill: {
       height: "100%",
+      borderRadius: 10,
+      overflow: "hidden",
       backgroundColor: theme.primary,
-      borderRadius: 2,
     },
   });
 }

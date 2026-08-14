@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, Pressable } from "react-native";
+import { StyleSheet, Pressable } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 
 import Animated, {
@@ -8,16 +8,15 @@ import Animated, {
 } from "react-native-reanimated";
 
 import Icon from "@/src/components/ui/icon/Icon";
+import AppHeaderRow, {
+  headerIconButtonStyle,
+} from "@/src/components/features/header/AppHeaderRow";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
 import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
-import {
-  HEADER_ROW_HEIGHT,
-  ICON_BUTTON_SIZE,
-} from "@/constants/headers";
 
 interface CommsHeaderProps {
   connected: boolean;
@@ -39,23 +38,13 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
     (state) => state.setSelectedChatUUID,
   );
   const setContentView = useActiveChatStore((state) => state.setContentView);
-  const styles = createStyle(theme, connected);
 
   const localIdentity = room?.localParticipant?.identity;
   const isSpeaking = localIdentity ? isSpeakingMap.get(localIdentity) : false;
 
-  const animatedMicStyle = useAnimatedStyle(() => {
-    return {
-      opacity: withTiming(isSpeaking ? 1 : 0, { duration: 150 }),
-    };
-  });
 
-  if (!connected && !roomName) {
-    return null;
-  }
-
-  const chatUUID = roomName.split("_")[0];
-  const sub = roomName.split("_")[1];
+  const chatUUID = roomName?.split("_")[0] ?? "";
+  const sub = roomName?.split("_")[1] ?? "";
   const {
     isAudioEnabled,
     isVideoEnabled,
@@ -73,51 +62,46 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
     setSelectedChatUUID(chatUUID);
   };
 
-  return (
-    <Pressable style={styles.headerMainRow} onPress={handlePress}>
-      <View style={styles.headerLeft}>
-        <Icon name="UserGroupIcon" onPress={()=>{}} />
-        <Typography
-          style={styles.participantsText}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-          translationKey="chat.comms.participantsInCall"
-          translationOptions={{ count: participantsCount }}
-        />
-      </View>
+  if (!connected && !roomName) {
+    return null;
+  }
 
-      <View style={styles.headerRight}>
-        {connected ? (
+  return (
+    <AppHeaderRow
+      left={
+        <Pressable onPress={handlePress} style={styles.headerLeft}>
+          <Icon
+            name="UserGroupIcon"
+            onPress={handlePress}
+            style={headerIconButtonStyle.iconButton}
+          />
+          <Typography
+            weight="semibold"
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            translationKey="chat.comms.participantsInCall"
+            translationOptions={{ count: participantsCount }}
+          />
+        </Pressable>
+      }
+      right={
+        connected ? (
           <>
             <Icon
               name={isVideoEnabled ? "Video02Icon" : "VideoOffIcon"}
-              style={styles.iconButton}
+              style={headerIconButtonStyle.iconButton}
               onPress={toggleVideo}
             />
-            <Pressable style={styles.iconButton} onPress={toggleAudio}>
-              <Icon name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"} />
-              <Animated.View
-                style={[
-                  StyleSheet.absoluteFill,
-                  animatedMicStyle,
-                  {
-                    pointerEvents: "none",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  },
-                ]}
-              >
-                <Icon
-                  name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
-                  color={theme.iconSuccess}
-                />
-              </Animated.View>
-            </Pressable>
             <Icon
-              name={"Call02Icon"}
+              name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
+              style={headerIconButtonStyle.iconButton}
+              onPress={toggleAudio}
+            />
+            <Icon
+              name="Call02Icon"
               color={theme.iconDanger}
               hoverColor={theme.iconDanger}
-              style={styles.iconButton}
+              style={headerIconButtonStyle.iconButton}
               onPress={leave}
             />
           </>
@@ -126,57 +110,22 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
             name="Call02Icon"
             color={theme.iconSuccess}
             hoverColor={theme.iconSuccess}
-            style={styles.iconButton}
+            style={headerIconButtonStyle.iconButton}
             onPress={() => join()}
           />
-        )}
-      </View>
-    </Pressable>
+        )
+      }
+    />
   );
 };
 
-function createStyle(theme: any, connected: boolean) {
-  return StyleSheet.create({
-    headerMainRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      height: HEADER_ROW_HEIGHT,
-      width: "100%",
-      // paddingHorizontal: 6,
-      backgroundColor: "transparent",
-      overflow: "hidden",
-    },
-    headerLeft: {
-      flex: 1,
-      flexShrink: 1,
-      minWidth: 0,
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-      paddingLeft: 4,
-      overflow: "hidden",
-    },
-    headerRight: {
-      flexShrink: 0,
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 4,
-    },
-    iconButton: {
-      width: ICON_BUTTON_SIZE,
-      height: ICON_BUTTON_SIZE,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    participantsText: {
-      flex: 1,
-      flexShrink: 1,
-      fontSize: 15,
-      color: theme.text,
-      fontWeight: "600",
-    },
-  });
-}
+const styles = StyleSheet.create({
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    minWidth: 0,
+  },
+});
 
 export default CommsHeader;

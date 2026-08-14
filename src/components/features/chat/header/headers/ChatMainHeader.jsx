@@ -34,7 +34,7 @@ const MainHeader = ({
   const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const { isSmallScreen, isMediumScreen } = useScreen();
-  const styles = createStyle(theme);
+  const styles = createStyle();
 
   const canSendText = ["MIXED", "TEXT", "ANNOUNCE"].includes(subType);
   const canEnterVocal = ["MIXED", "VOCAL"].includes(subType);
@@ -59,13 +59,14 @@ const MainHeader = ({
           />
           <View style={styles.headerCenterText}>
             <Typography
-              style={styles.chatTitle}
+              weight="semibold"
               numberOfLines={1}
               text={selectedChatName}
             />
             {memberActivityData && memberActivityData.length > 0 ? (
               <Typography
-                style={styles.chatSubtitle}
+                size="xs"
+                variant="subtitle"
                 numberOfLines={1}
                 text={chatUtils.formatActivity(memberActivityData, chatType)}
               />
@@ -75,14 +76,16 @@ const MainHeader = ({
                   onlineMembersCount === 1 &&
                   lastAccessAt && (
                     <Typography
-                      style={styles.chatSubtitle}
+                      size="xs"
+                      variant="subtitle"
                       numberOfLines={1}
                       text={`${t("chat.header.lastSeen")}: ${chatUtils.formatLastSeen(lastAccessAt)}`}
                     />
                   )}
                 {chatType === "GROUP" && (
                   <Typography
-                    style={styles.chatSubtitle}
+                    size="xs"
+                    variant="subtitle"
                     numberOfLines={1}
                     text={`${t("chat.header.members", { count: memberCount })}${onlineMembersCount > 0 ? `, ${t("chat.header.online", { count: onlineMembersCount })}` : ""}`}
                   />
@@ -131,10 +134,10 @@ const MainHeader = ({
   );
 };
 
-function createStyle(theme) {
+function createStyle() {
   return StyleSheet.create({
     headerCenter: {
-      gap: 10,
+      gap: 5,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
@@ -143,19 +146,6 @@ function createStyle(theme) {
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-    },
-    chatTitle: {
-      fontSize: 15,
-      color: theme.text,
-      fontWeight: "600",
-      textAlign: "center",
-      flexShrink: 1,
-    },
-    chatSubtitle: {
-      fontSize: 12,
-      color: theme.text,
-      textAlign: "center",
-      flexShrink: 1,
     },
   });
 }
