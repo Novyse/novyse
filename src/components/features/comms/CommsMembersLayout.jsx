@@ -10,6 +10,7 @@ import useLayout from "@/src/hooks/comms/useLayout";
 
 import UserCard from "./UserCard";
 import CommsMenu from "./CommsContextMenu";
+import PulseEmptyState from "@/src/components/features/animations/pulse/PulseEmptyState";
 
 const PADDING_TOP = 160;
 const PADDING_BOTTOM = 110;
@@ -237,7 +238,24 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
             })}
           </>
         ) : (
-          <Typography size="xl" translationKey="chat.comms.noParticipants" />
+          <View
+            style={[
+              styles.emptyState,
+              containerDimensions.height > 0 && {
+                height: Math.max(
+                  containerDimensions.height - PADDING_TOP - PADDING_BOTTOM,
+                  1,
+                ),
+              },
+            ]}
+          >
+            {/* <PulseEmptyState> */}
+              <Typography
+                size="xl"
+                translationKey="chat.comms.noParticipants"
+              />
+            {/* </PulseEmptyState> */}
+          </View>
         )}
       </View>
       <CommsMenu
@@ -297,6 +315,14 @@ const createStyles = (theme) =>
         position: "relative",
         zIndex: 1,
       }),
+    },
+    emptyState: {
+      width: "100%",
+      flexGrow: 1,
+      position: "relative",
+      alignItems: "center",
+      justifyContent: "center",
+      overflow: "visible",
     },
   });
 
