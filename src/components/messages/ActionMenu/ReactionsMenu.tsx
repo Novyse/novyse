@@ -1,6 +1,5 @@
 import React, { useState, useRef } from "react";
 import { StyleSheet, Animated, View } from "react-native";
-import { useThemeContext } from "@/src/context/ThemeContext";
 import { EmojiPicker } from "@/src/components/features/chat/content/emoji/EmojiPicker";
 import BlurredView from "@/src/components/layout/BlurredView";
 
@@ -11,7 +10,6 @@ interface ReactionMenuProps {
 }
 
 const ReactionMenu: React.FC<ReactionMenuProps> = ({ onReaction }) => {
-  const { theme } = useThemeContext();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const animHeight = useRef(new Animated.Value(44)).current;
@@ -46,7 +44,7 @@ const ReactionMenu: React.FC<ReactionMenuProps> = ({ onReaction }) => {
     ]).start();
   };
 
-  const styles = createStyle(theme, animHeight, animOpacity, animScale);
+  const styles = createStyle( animHeight, animOpacity, animScale);
 
   return (
     <View style={styles.wrapper}>
@@ -70,7 +68,6 @@ const ReactionMenu: React.FC<ReactionMenuProps> = ({ onReaction }) => {
 export default ReactionMenu;
 
 const createStyle = (
-  theme: any,
   animHeight: Animated.Value,
   animOpacity: Animated.Value,
   animScale: Animated.Value,
@@ -82,9 +79,9 @@ const createStyle = (
       zIndex: 2000,
     },
     placeholder: {
-      height: 44,
       width: 175,
-      marginBottom: 8,
+      marginBottom: 10,
+      height: 44,
     },
     container: {
       position: "absolute",
@@ -94,7 +91,7 @@ const createStyle = (
       width: 175,
       zIndex: 2000,
       overflow: "hidden",
-      borderRadius: 10,
+      borderRadius: 25,
       height: animHeight,
       opacity: animOpacity,
       transform: [{ scale: animScale }],

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   View,
   Pressable,
@@ -25,7 +25,10 @@ export interface ContextMenuProps {
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  header?: React.ReactNode;
+  footer?: React.ReactNode;
   position?: ContextMenuPosition;
+  /** Optional override. If omitted, bounds are measured from the overlay parent. */
   containerBounds?: ContainerBounds;
   width?: number;
   estimatedHeight?: number;
@@ -77,21 +80,40 @@ const ContextMenu = ({
   visible,
   onClose,
   children,
+  header,
+  footer,
   position,
-  containerBounds = DEFAULT_BOUNDS,
+  containerBounds,
   width = 220,
   estimatedHeight,
   style,
 }: ContextMenuProps) => {
+  const overlayRef = useRef<View>(null);
+  const [measuredBounds, setMeasuredBounds] =
+    useState<ContainerBounds>(DEFAULT_BOUNDS);
+
+  const updateBounds = useCallback(() => {
+    overlayRef.current?.measureInWindow((x, y, measuredWidth, measuredHeight) => {
+      if (measuredWidth > 0 && measuredHeight > 0) {
+        setMeasuredBounds({ x, y, width: measuredWidth, height: measuredHeight });
+      }
+    });
+  }, []);
+
+  const resolvedBounds =
+    containerBounds && containerBounds.width > 0
+      ? containerBounds
+      : measuredBounds;
+
   const menuPosition = useMemo(
     () =>
       getContextMenuPosition({
         position,
-        containerBounds,
+        containerBounds: resolvedBounds,
         width,
         estimatedHeight,
       }),
-    [position, containerBounds, width, estimatedHeight],
+    [position, resolvedBounds, width, estimatedHeight],
   );
 
   if (!visible) {
@@ -99,7 +121,11 @@ const ContextMenu = ({
   }
 
   return (
-    <View style={styles.overlay}>
+    <View
+      ref={overlayRef}
+      style={styles.overlay}
+      onLayout={updateBounds}
+    >
       <Pressable
         style={styles.backdrop}
         onPress={onClose}
@@ -115,7 +141,9 @@ const ContextMenu = ({
           { top: menuPosition.y, left: menuPosition.x, width },
         ]}
       >
+        {header}
         <BlurredView style={[styles.menuContainer, style]}>{children}</BlurredView>
+        {footer}
       </View>
     </View>
   );

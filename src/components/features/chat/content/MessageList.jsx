@@ -18,7 +18,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 
 import MessageBase from "@/src/components/messages/MessageBase";
 import MessageSystem from "@/src/components/messages/MessageSystem";
-import ActionMenu from "@/src/components/messages/ActionMenu";
+import ActionMenu from "@/src/components/messages/ActionMenu/ActionMenuContextMenu";
 import BlurredView from "@/src/components/layout/BlurredView";
 import Icon from "@/src/components/ui/icon/Icon";
 

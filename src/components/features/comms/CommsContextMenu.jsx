@@ -23,7 +23,6 @@ const CommsContextMenu = ({
   isScreenShare: propIsScreenShare,
   isLocal: propIsLocal,
   position,
-  containerBounds = { x: 0, y: 0, width: 0, height: 0 },
 }) => {
   const { theme } = useThemeContext();
   const router = useRouter();
@@ -131,7 +130,6 @@ const CommsContextMenu = ({
       visible={visible}
       onClose={onClose}
       position={displayData.position}
-      containerBounds={containerBounds}
       width={MENU_WIDTH}
       estimatedHeight={estimatedHeight}
     >

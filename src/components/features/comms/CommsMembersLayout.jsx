@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useContext, useRef, useEffect } from "react";
+import { useState, useCallback, useMemo, useContext, useRef } from "react";
 import { View, StyleSheet, Platform, Modal, Dimensions } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 
@@ -31,18 +31,6 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
   } = useCommsContext();
 
   const containerRef = useRef(null);
-  const [containerBounds, setContainerBounds] = useState({
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-  });
-
-  const updateContainerBounds = useCallback(() => {
-    containerRef.current?.measureInWindow((x, y, width, height) => {
-      setContainerBounds({ x, y, width, height });
-    });
-  }, []);
 
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
@@ -68,20 +56,10 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
   } = useLayout(room, participants, adjustedDimensions, containerRef);
 
   // Layout Handler
-  const onContainerLayout = useCallback(
-    (event) => {
-      const { width, height } = event.nativeEvent.layout;
-      setContainerDimensions({ width, height });
-      updateContainerBounds();
-    },
-    [updateContainerBounds],
-  );
-
-  useEffect(() => {
-    if (triggeredStream) {
-      updateContainerBounds();
-    }
-  }, [triggeredStream, updateContainerBounds]);
+  const onContainerLayout = useCallback((event) => {
+    const { width, height } = event.nativeEvent.layout;
+    setContainerDimensions({ width, height });
+  }, []);
 
   const speakingStates = useMemo(() => {
     const map = {};
@@ -267,7 +245,6 @@ const CommsMembersLayout = ({ participants = [], room, chatUUID, sub }) => {
         isScreenShare={triggeredStream?.isScreenShare}
         isLocal={triggeredStream?.isLocal}
         position={triggeredPosition}
-        containerBounds={containerBounds}
       />
     </View>
   );
