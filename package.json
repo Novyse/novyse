@@ -8,7 +8,7 @@
     "url": "https://www.novyse.com"
   },
   "scripts": {
-    "dev": "expo start",
+    "dev": "expo start -c",
     "prebuild": "expo prebuild --clean",
     "android": "expo run:android",
     "ios": "expo run:ios",

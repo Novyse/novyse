@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { View, StyleSheet, TextInput, ActivityIndicator } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
@@ -167,7 +167,9 @@ const SearchHeader = ({ onClose }) => {
           />
         ) : hasQuery ? (
           <Typography
-            style={styles.counter}
+            size="sm"
+            weight="semibold"
+            variant="subtitle"
             text={hasResults ? `${currentIndex + 1}/${results.length}` : "0/0"}
           />
         ) : null}
@@ -212,7 +214,7 @@ function createStyle(theme) {
     headerRight: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 2,
+      gap: 5,
     },
     input: {
       marginLeft: 5,
@@ -220,12 +222,6 @@ function createStyle(theme) {
       fontSize: 16,
       color: theme.text,
       outlineStyle: "none",
-    },
-    counter: {
-      fontSize: 14,
-      color: theme.subtitle,
-      minWidth: 34,
-      textAlign: "center",
     },
     iconButton: {
       width: ICON_BUTTON_SIZE,

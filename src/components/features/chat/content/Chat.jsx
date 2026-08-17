@@ -203,10 +203,10 @@ const ChatContent = () => {
       const user = allUsers[m.uuid];
       return {
         ...m,
-        handle: user.handle,
-        name: user.name,
+        handle: user?.handle,
+        name: user?.name,
         surname: user?.surname || "",
-        profilePictureUUID: user.profilePictureUUID,
+        profilePictureUUID: user?.profilePictureUUID,
       };
     });
   }, [chat?.members, allUsers]);
@@ -440,13 +440,13 @@ const ChatContent = () => {
     [setMessageToDelete],
   );
 
-  const onChangeMention = useCallback(
-    ({ indicator, text }) => {
+  const applyMentionQuery = useCallback(
+    (text = "") => {
       if (chat?.type === "DM") {
         setMentionMembers([]);
         return;
       }
-      const query = text.toLowerCase();
+      const query = String(text || "").toLowerCase();
       const filtered = members.filter(
         (m) =>
           m.uuid !== myUUID &&
@@ -456,6 +456,18 @@ const ChatContent = () => {
       setMentionMembers(filtered);
     },
     [members, myUUID, chat?.type],
+  );
+
+  const onStartMention = useCallback(() => {
+    applyMentionQuery("");
+  }, [applyMentionQuery]);
+
+  const onChangeMention = useCallback(
+    (event) => {
+      const payload = event?.nativeEvent ?? event ?? {};
+      applyMentionQuery(payload.text);
+    },
+    [applyMentionQuery],
   );
 
   const onEndMention = useCallback(() => {
@@ -783,6 +795,7 @@ const ChatContent = () => {
                 onCancelEdit={handleCancelEdit}
                 mentionMembers={mentionMembers}
                 onSelectMention={onSelectMention}
+                onStartMention={onStartMention}       // ! MatteoMagnani7 e @SamueleOrazioDurante da rimuovere quando web avrà la stessa textinput di markdown e logica allegata
                 onChangeMention={onChangeMention}
                 onEndMention={onEndMention}
                 onRecordingActivityChange={emitRecording}

@@ -142,7 +142,8 @@ const FilesBar = () => {
           <View style={styles.accent} />
           <View style={styles.headerMeta}>
             <Typography
-              style={[styles.headerTitle, { color: theme.icon }]}
+              size="sm"
+              weight="semibold"
               numberOfLines={1}
               text={t(
                 `chat.bottomBar.files.${files.length === 1 ? "one" : "other"}`,
@@ -150,7 +151,8 @@ const FilesBar = () => {
               )}
             />
             <Typography
-              style={[styles.headerSub, isNearLimit && styles.headerSubDanger]}
+              size="sm"
+              variant={isNearLimit ? "danger" : "subtitle"}
               numberOfLines={1}
               text={`${formatFileSize(totalSize)} / ${formatFileSize(maxTotalSize)}`}
             />
@@ -201,17 +203,16 @@ const FilesBar = () => {
                       size={18}
                       color={isInvalid ? theme.dangerText : theme.icon}
                     />
-                    <View style={styles.chipText}>
+                    <View style={styles.chipTextContainer}>
                       <Typography
-                        style={[
-                          styles.chipName,
-                          isInvalid && styles.chipNameInvalid,
-                        ]}
+                        size="xs"
+                        variant={isInvalid ? "danger" : "default"}
                         numberOfLines={1}
                         text={name || t("chat.bottomBar.files.file")}
                       />
                       <Typography
-                        style={styles.chipSize}
+                        size="xs"
+                        variant="subtitle"
                         text={formatFileSize(fileSize)}
                       />
                     </View>
@@ -229,7 +230,8 @@ const FilesBar = () => {
                 </View>
                 {isInvalid && (
                   <Typography
-                    style={styles.dangerText}
+                    size="xs"
+                    variant="danger"
                     numberOfLines={1}
                     text={invalidInfo.errors[0]}
                   />
@@ -265,10 +267,10 @@ const createStyle = (theme: any) =>
   StyleSheet.create({
     container: {
       marginBottom: 5,
-      borderRadius: 20,
+      borderRadius: 25,
       paddingHorizontal: 10,
       paddingVertical: 10,
-      gap: 8,
+      gap: 10,
     },
     header: {
       flexDirection: "row",
@@ -284,67 +286,39 @@ const createStyle = (theme: any) =>
     headerMeta: {
       flex: 1,
     },
-    headerTitle: {
-      fontWeight: "600",
-      fontSize: 13,
-    },
-    headerSub: {
-      fontSize: 13,
-      color: theme.subtitle,
-    },
-    headerSubDanger: {
-      color: theme.dangerText,
-    },
     divider: {
       height: StyleSheet.hairlineWidth,
       backgroundColor: theme.border,
       marginHorizontal: -15,
     },
     scrollContent: {
-      gap: 8,
+      gap: 10,
       alignItems: "flex-start",
     },
     chipOuter: {
-      gap: 3,
+      gap: 5,
     },
     chip: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 7,
-      borderRadius: 10,
+      gap: 10,
+      borderRadius: 25,
       paddingHorizontal: 10,
-      paddingVertical: 6,
+      paddingVertical: 5,
       overflow: "hidden",
     },
     chipContent: {
       flex: 1,
       flexDirection: "row",
       alignItems: "center",
-      gap: 7,
+      gap: 10,
     },
     chipInvalid: {
       borderColor: theme.dangerText,
     },
-    chipText: {
+    chipTextContainer: {
       flex: 1,
       maxWidth: 130,
-    },
-    chipName: {
-      fontSize: 12,
-      fontWeight: "500",
-      color: theme.text,
-    },
-    chipNameInvalid: {
-      color: theme.dangerText,
-    },
-    chipSize: {
-      fontSize: 11,
-      color: theme.subtitle,
-    },
-    dangerText: {
-      fontSize: 11,
-      color: theme.dangerText,
-      paddingHorizontal: 4,
     },
   });
 

@@ -48,11 +48,17 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ message, onCancel }) => {
       <View style={styles.actionAccent} />
       <View style={{ flex: 1 }}>
         <Typography
-          style={styles.actionName}
+          size="sm"
+          weight="semibold"
           numberOfLines={1}
           text={senderName}
         />
-        <Typography style={styles.actionText} numberOfLines={1} text={content} />
+        <Typography
+          size="sm"
+          variant="subtitle"
+          numberOfLines={1}
+          text={content}
+        />
       </View>
       <Icon
         name="Cancel01Icon"
@@ -88,18 +94,12 @@ const ReplyBar: React.FC<ReplyBarProps> = ({ replyingTo, onCancelReply }) => {
   );
 };
 
-interface Styles {
-  listContainer: ViewStyle;
-  actionContainer: ViewStyle;
-  actionAccent: ViewStyle;
-  actionName: TextStyle;
-  actionText: TextStyle;
-}
 
-const createStyle = (theme: any): Styles =>
+
+const createStyle = (theme: any) =>
   StyleSheet.create({
     listContainer: {
-      borderRadius: 20,
+      borderRadius: 25,
       marginBottom: 5,
       overflow: "hidden",
       paddingVertical: 10,
@@ -116,15 +116,6 @@ const createStyle = (theme: any): Styles =>
       borderRadius: 2,
       alignSelf: "stretch",
       backgroundColor: theme.icon,
-    },
-    actionName: {
-      color: theme.text,
-      fontWeight: "600",
-      fontSize: 13,
-    },
-    actionText: {
-      color: theme.subtitle,
-      fontSize: 13,
     },
   });
 

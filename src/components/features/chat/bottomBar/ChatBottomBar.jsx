@@ -25,6 +25,7 @@ const ChatBottomBar = ({
   onCancelEdit,
   mentionMembers,
   onSelectMention,
+  onStartMention,
   onChangeMention,
   onEndMention,
   onRecordingActivityChange,
@@ -64,6 +65,7 @@ const ChatBottomBar = ({
           onCancelEdit={onCancelEdit}
           mentionMembers={mentionMembers}
           onSelectMention={onSelectMention}
+          onStartMention={onStartMention}
           onChangeMention={onChangeMention}
           onEndMention={onEndMention}
           onRecordingActivityChange={onRecordingActivityChange}

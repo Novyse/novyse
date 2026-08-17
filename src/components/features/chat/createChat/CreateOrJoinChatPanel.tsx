@@ -64,43 +64,54 @@ const CreateOrJoinChatPanel = ({
             <Avatar
               uuid={chat?.profilePictureUUID}
               size={120}
-              style={styles.avatar}
             />
 
-            <Typography style={styles.title} text={displayName} />
-            <Typography style={styles.handle} text={`@${chat?.handle}`} />
+            <Typography size="xxl" weight="semibold" text={displayName} />
+            <Typography size="lg" weight="semibold" text={`@${chat?.handle}`} />
           </View>
 
           <View style={styles.infoBox}>
-            <Icon name="InformationCircleIcon" />
-            <Typography
-              style={styles.infoText}
-              translationKey={
-                isUser
-                  ? "chat.joinCreate.joinUserDesc"
-                  : "chat.joinCreate.joinChatDesc"
-              }
-            />
+            <View style={styles.iconSlot}>
+              <Icon name="InformationCircleIcon" size={20} />
+            </View>
+            <View style={styles.textSlot}>
+              <Typography
+                size="sm"
+                translationKey={
+                  isUser
+                    ? "chat.joinCreate.joinUserDesc"
+                    : "chat.joinCreate.joinChatDesc"
+                }
+              />
+            </View>
           </View>
 
           <View style={styles.extraInfoContainer}>
             <View style={styles.extraInfoItem}>
-              <Icon name="Shield01Icon" size={20} />
-              <Typography
-                style={styles.extraInfoText}
-                translationKey={
-                  isUser
-                    ? "chat.joinCreate.securityWip"
-                    : "chat.joinCreate.publicChannelDesc"
-                }
-              />
+              <View style={styles.iconSlot}>
+                <Icon name="Shield01Icon" size={20} />
+              </View>
+              <View style={styles.textSlot}>
+                <Typography
+                  size="sm"
+                  translationKey={
+                    isUser
+                      ? "chat.joinCreate.securityWip"
+                      : "chat.joinCreate.publicChannelDesc"
+                  }
+                />
+              </View>
             </View>
             <View style={styles.extraInfoItem}>
-              <Icon name="NotificationOff01Icon" size={20} />
-              <Typography
-                style={styles.extraInfoText}
-                translationKey="chat.joinCreate.notificationMuteDesc"
-              />
+              <View style={styles.iconSlot}>
+                <Icon name="NotificationOff01Icon" size={20} />
+              </View>
+              <View style={styles.textSlot}>
+                <Typography
+                  size="sm"
+                  translationKey="chat.joinCreate.notificationMuteDesc"
+                />
+              </View>
             </View>
           </View>
 
@@ -124,68 +135,43 @@ const createStyles = (theme: any) =>
       flexGrow: 1,
       justifyContent: "center",
       alignItems: "center",
-      padding: 20,
+      padding: 25,
     },
     content: {
       width: "100%",
       maxWidth: 400,
+      gap: 25
     },
     userInfo: {
       alignContent: "center",
       alignItems: "center",
-      flex: 1
-    },
-    avatar: {
-      marginBottom: 25,
-    },
-    title: {
-      fontSize: 25,
-      fontWeight: "bold",
-      color: theme.text,
-      marginBottom: 10,
-      textAlign: "center",
-    },
-    handle: {
-      fontSize: 18,
-      color: theme.icon,
-      marginBottom: 30,
-      textAlign: "center",
+      flex: 1,
     },
     infoBox: {
       flexDirection: "row",
       alignItems: "center",
+      gap: 15,
       backgroundColor: theme.backgroundMain,
       padding: 15,
       borderRadius: 25,
-      marginBottom: 20,
       width: "100%",
-    },
-    infoText: {
-      flex: 1,
-      color: theme.text,
-      fontSize: 14,
-      lineHeight: 20,
-      marginLeft: 12,
     },
     extraInfoContainer: {
       width: "100%",
-      marginBottom: 30,
-      gap: 15,
-      paddingHorizontal: 10,
+      gap: 25,
+      paddingHorizontal: 15,
     },
     extraInfoItem: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 10,
+      gap: 15,
     },
-    extraInfoText: {
+    iconSlot: {
+      flexShrink: 0,
+    },
+    textSlot: {
       flex: 1,
-      color: theme.icon,
-      fontSize: 13,
-      lineHeight: 18,
-    },
-    buttonPressed: {
-      opacity: 0.8,
+      minWidth: 0,
     },
   });
 

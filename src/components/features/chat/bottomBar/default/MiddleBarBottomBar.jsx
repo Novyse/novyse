@@ -44,15 +44,13 @@ const MiddleBarBottomBar = ({
   const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);
+  const isNativeEnriched =
+    getPlatform() === "mobile" && !!EnrichedMarkdownTextInput;
 
   const lastValueRef = useRef(newMessageText);
 
   useEffect(() => {
-    if (
-      Platform !== "web" &&
-      EnrichedMarkdownTextInput &&
-      textInputRef?.current
-    ) {
+    if (isNativeEnriched && textInputRef?.current) {
       if (newMessageText !== lastValueRef.current) {
         textInputRef.current.setValue(newMessageText || "");
         lastValueRef.current = newMessageText;
@@ -156,7 +154,45 @@ const MiddleBarBottomBar = ({
     <>
       {!isRecording ? (
         <BlurredView style={styles.container}>
-          {Platform === "web" || !EnrichedMarkdownTextInput ? (
+          {isNativeEnriched ? (
+            <EnrichedMarkdownTextInput
+              ref={textInputRef}
+              style={styles.textInput}
+              maxLength={2000}
+              multiline={true}
+              numberOfLines={1}
+              defaultValue={newMessageText}
+              onChangeMarkdown={handleTextChange}
+              placeholder={t("chat.bottomBar.placeholder")}
+              placeholderTextColor={theme.placeholderText}
+              cursorColor={theme.placeholderText}
+              markdownStyle={getMarkdownStyle(theme)}
+              onFocus={onInputFocus}
+              mentionIndicators={chatType !== "DM" ? ["@"] : []}
+              onStartMention={onStartMention}
+              onChangeMention={onChangeMention}
+              onEndMention={onEndMention}
+              onKeyPress={(e) => {
+                const key = e.nativeEvent?.key || e.key;
+                const isShift = e.nativeEvent?.shiftKey || e.shiftKey;
+                if (key === "Enter" && getPlatform() !== "mobile") {
+                  if (!isShift) {
+                    e.preventDefault();
+                    onSendMessage("message", newMessageText.trimStart());
+                    return;
+                  }
+                }
+                handleChatShortcuts(e, {
+                  editingMessage,
+                  replyingTo,
+                  onCancelEdit,
+                  onCancelReply,
+                  onPressArrowUp,
+                  isInputEmpty: newMessageText === "",
+                });
+              }}
+            />
+          ) : (
             <TextInput
               ref={textInputRef}
               style={styles.textInput}
@@ -192,43 +228,6 @@ const MiddleBarBottomBar = ({
                 });
               }}
             />
-          ) : (
-            <EnrichedMarkdownTextInput
-              ref={textInputRef}
-              style={styles.textInput}
-              maxLength={2000}
-              multiline={true}
-              numberOfLines={1}
-              defaultValue={newMessageText}
-              onChangeMarkdown={handleTextChange}
-              placeholder={t("chat.bottomBar.placeholder")}
-              placeholderTextColor={theme.placeholderText}
-              cursorColor={theme.placeholderText}
-              markdownStyle={getMarkdownStyle(theme)}
-              onFocus={onInputFocus}
-              mentionIndicators={chatType !== "DM" ? ["@"] : []}
-              onChangeMention={onChangeMention}
-              onEndMention={onEndMention}
-              onKeyPress={(e) => {
-                const key = e.nativeEvent?.key || e.key;
-                const isShift = e.nativeEvent?.shiftKey || e.shiftKey;
-                if (key === "Enter" && getPlatform() !== "mobile") {
-                  if (!isShift) {
-                    e.preventDefault();
-                    onSendMessage("message", newMessageText.trimStart());
-                    return;
-                  }
-                }
-                handleChatShortcuts(e, {
-                  editingMessage,
-                  replyingTo,
-                  onCancelEdit,
-                  onCancelReply,
-                  onPressArrowUp,
-                  isInputEmpty: newMessageText === "",
-                });
-              }}
-            />
           )}
 
           <Icon
@@ -248,6 +247,7 @@ const MiddleBarBottomBar = ({
               <RecordingDot isRecording={!isPaused} />
 
               <Typography
+                size="sm"
                 style={styles.durationText}
                 text={Duration.fromMillis(
                   recorderState?.durationMillis || 0,
@@ -335,8 +335,6 @@ const createStyle = (theme) =>
       alignItems: "center",
     },
     durationText: {
-      color: theme.text,
-      fontSize: 14,
       marginHorizontal: 10,
       fontFamily: "monospace",
       fontVariant: ["tabular-nums"],

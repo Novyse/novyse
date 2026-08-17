@@ -5,15 +5,13 @@ import Platform from "@/src/utils/device/type";
 interface ScreenRecordingPreviewProps {
   isScreenRecording: boolean;
   activeStream: any;
-  theme: any;
 }
 
 const ScreenRecordingPreview: React.FC<ScreenRecordingPreviewProps> = ({
   isScreenRecording,
   activeStream,
-  theme,
 }) => {
-  const styles = createStyle(theme);
+  const styles = createStyle();
 
   if (
     !isScreenRecording ||
@@ -44,7 +42,7 @@ const ScreenRecordingPreview: React.FC<ScreenRecordingPreviewProps> = ({
   );
 };
 
-const createStyle = (theme: any) =>
+const createStyle = () =>
   StyleSheet.create({
     container: {
       width: "100%",

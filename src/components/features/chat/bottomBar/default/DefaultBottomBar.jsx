@@ -35,6 +35,7 @@ const DefaultBottomBar = ({
   onCancelEdit,
   mentionMembers,
   onSelectMention,
+  onStartMention,
   onChangeMention,
   onEndMention,
   onRecordingActivityChange,
@@ -84,7 +85,6 @@ const DefaultBottomBar = ({
       <ScreenRecordingPreview
         isScreenRecording={isScreenRecording}
         activeStream={screenRecordingState?.activeStream}
-        theme={theme}
       />
       {/* Mention Bar */}
       {mentionMembers && mentionMembers.length > 0 && (
@@ -138,6 +138,7 @@ const DefaultBottomBar = ({
           onCancelEdit={onCancelEdit}
           replyingTo={replyingTo}
           onPressArrowUp={onPressArrowUp}
+          onStartMention={onStartMention}
           onChangeMention={onChangeMention}
           onEndMention={onEndMention}
         />

@@ -19,6 +19,7 @@ import { t } from "i18next";
 import TextInput from "@/src/components/ui/input/TextInput";
 import { ScrollBar } from "@/constants/ScrollBar";
 import { useThemeContext } from "@/src/context/ThemeContext";
+import Label from "@/src/components/ui/label/Label";
 import Typography from "@/src/components/ui/typography/Typography";
 import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
 
@@ -192,8 +193,7 @@ export const GifPicker: React.FC<GifPickerProps> = ({ onSelectGif }) => {
       if (item.type === "header") {
         return (
           <View style={styles.sectionHeaderContainer}>
-            <Typography
-              style={styles.sectionHeader}
+            <Label
               translationKey={item.titleKey}
             />
           </View>
@@ -256,12 +256,12 @@ export const GifPicker: React.FC<GifPickerProps> = ({ onSelectGif }) => {
         </View>
       ) : error && listData.length === 0 ? (
         <View style={styles.center}>
-          <Typography style={styles.errorText} text={error} />
+          <Typography variant="danger" text={error} />
         </View>
       ) : listData.length === 0 ? (
         <View style={styles.center}>
           <Typography
-            style={styles.emptyText}
+            variant="subtitle"
             translationKey={"chat.gifCategories.noResults"}
           />
         </View>
@@ -326,18 +326,11 @@ const createStyle = (theme: any) =>
     },
     listContent: {
       paddingBottom: 5,
-      paddingHorizontal: 5
+      paddingHorizontal: 5,
     },
     sectionHeaderContainer: {
       width: "100%",
       paddingHorizontal: 10,
-    },
-    sectionHeader: {
-      fontSize: 13,
-      fontWeight: "600",
-      color: theme.text,
-      marginVertical: 10,
-      marginLeft: 5,
     },
     gifCellWrapper: {
       padding: 3,

@@ -38,15 +38,18 @@ const MentionBar: React.FC<MentionBarProps> = ({ members, onSelectMember }) => {
       style={styles.memberItem}
       onPress={() => onSelectMember(item)}
     >
-      <Avatar size={32} uuid={item.profilePictureUUID}/>
+      <Avatar size={32} uuid={item.profilePictureUUID} />
       <View style={styles.memberInfo}>
         <Typography
-          style={styles.memberName}
+          size="sm"
+          weight="semibold"
           numberOfLines={1}
           text={`${item.name} ${item.surname}`}
         />
         <Typography
-          style={styles.memberHandle}
+          size="sm"
+          weight="semibold"
+          variant="subtitle"
           numberOfLines={1}
           text={`@${item.handle}`}
         />
@@ -73,21 +76,11 @@ const MentionBar: React.FC<MentionBarProps> = ({ members, onSelectMember }) => {
   );
 };
 
-interface Styles {
-  container: ViewStyle;
-  listContent: ViewStyle;
-  memberItem: ViewStyle;
-  memberInfo: ViewStyle;
-  memberName: TextStyle;
-  memberHandle: TextStyle;
-  separator: ViewStyle;
-}
-
-const createStyle = (theme: any): Styles =>
+const createStyle = (theme: any) =>
   StyleSheet.create({
     container: {
       maxHeight: 220,
-      borderRadius: 20,
+      borderRadius: 25,
       marginBottom: 5,
       overflow: "hidden",
     },
@@ -107,15 +100,6 @@ const createStyle = (theme: any): Styles =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-    },
-    memberName: {
-      color: theme.text,
-      fontWeight: "600",
-      fontSize: 14,
-    },
-    memberHandle: {
-      color: theme.subtitle,
-      fontSize: 14,
     },
     separator: {
       height: 1,

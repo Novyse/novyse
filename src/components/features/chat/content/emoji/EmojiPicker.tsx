@@ -26,7 +26,7 @@ import { useThemeContext } from "@/src/context/ThemeContext";
 import TextInput from "@/src/components/ui/input/TextInput";
 import Icon from "@/src/components/ui/icon/Icon";
 import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
-import Typography from "@/src/components/ui/typography/Typography";
+import Label from "@/src/components/ui/label/Label";
 
 interface EmojiPickerProps {
   mode: "quick" | "full";
@@ -307,10 +307,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
       if (item.type === "header") {
         return (
           <View style={styles.sectionHeaderContainer}>
-            <Typography
-              style={styles.sectionHeader}
-              translationKey={item.titleKey}
-            />
+            <Label translationKey={item.titleKey} />
           </View>
         );
       }
@@ -453,13 +450,6 @@ const createStyle = (
     sectionHeaderContainer: {
       width: "100%",
       paddingHorizontal: 10,
-    },
-    sectionHeader: {
-      fontSize: 13,
-      fontWeight: "600",
-      color: theme.text,
-      marginVertical: 10,
-      marginLeft: 5,
     },
     emojiGrid: {
       flexDirection: "row",

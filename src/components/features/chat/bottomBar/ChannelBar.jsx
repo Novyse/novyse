@@ -23,10 +23,8 @@ const ChannelBar = () => {
           color={isMuted ? theme.subtitle : theme.primary}
         />
         <Typography
-          style={[
-            styles.text,
-            { color: isMuted ? theme.subtitle : theme.primary },
-          ]}
+          weight="semibold"
+          variant="primary"
           text={isMuted ? "Enable notifications" : "Mute notifications"}
         />
       </HoverAndPressedButton>

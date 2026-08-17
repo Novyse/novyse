@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import { StyleSheet, View } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
@@ -7,8 +7,6 @@ import Icon from "@/src/components/ui/icon/Icon";
 import AppHeaderRow, {
   headerIconButtonStyle,
 } from "@/src/components/features/header/AppHeaderRow";
-
-import { ThemeContext } from "@/src/context/ThemeContext";
 import PlatformType from "@/src/utils/device/type";
 import useShare from "@/src/hooks/chat/useShare";
 
@@ -28,8 +26,7 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
   onReply,
 }) => {
   const { t } = useTranslation();
-  const { theme } = useContext(ThemeContext);
-  const styles = createStyle(theme);
+  const styles = createStyle();
   const { shareMessage } = useShare();
 
   const handleClose = () => {
@@ -50,7 +47,7 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
             style={headerIconButtonStyle.iconButton}
           />
           <Typography
-            style={styles.chatTitle}
+            weight="semibold"
             numberOfLines={1}
             text={t("chat.header.selected", { count: selectedCount })}
           />
@@ -79,7 +76,6 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
           />
           <Icon
             name="Delete02Icon"
-            color={theme.iconDanger}
             style={headerIconButtonStyle.iconButton}
             onPress={onDelete}
           />
@@ -89,17 +85,12 @@ const SelectedHeader: React.FC<SelectedHeaderProps> = ({
   );
 };
 
-function createStyle(theme: any) {
+function createStyle() {
   return StyleSheet.create({
     headerLeft: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 12,
-    },
-    chatTitle: {
-      fontSize: 16,
-      color: theme.text,
-      fontWeight: "600",
+      gap: 5,
     },
   });
 }

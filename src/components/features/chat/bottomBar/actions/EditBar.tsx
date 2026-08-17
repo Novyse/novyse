@@ -27,40 +27,31 @@ const EditBar: React.FC<EditBarProps> = ({ editingMessage, onCancelEdit }) => {
       <View style={styles.actionAccent} />
       <View style={{ flex: 1 }}>
         <Typography
-          style={[styles.actionName, { color: theme.icon }]}
+          size="sm"
+          weight="semibold"
           numberOfLines={1}
           translationKey="chat.bottomBar.editing"
         />
         <Typography
-          style={styles.actionText}
+          size="sm"
+          variant="subtitle"
           numberOfLines={1}
           text={editingMessage.content ?? ""}
         />
       </View>
-      <Icon
-        name="Cancel01Icon"
-        size={18}
-        onPress={onCancelEdit}
-      />
+      <Icon name="Cancel01Icon" size={18} onPress={onCancelEdit} />
     </BlurredView>
   );
 };
 
-interface Styles {
-  actionContainer: ViewStyle;
-  actionAccent: ViewStyle;
-  actionName: TextStyle;
-  actionText: TextStyle;
-}
-
-const createStyle = (theme: any): Styles =>
+const createStyle = (theme: any) =>
   StyleSheet.create({
     actionContainer: {
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: 10,
       paddingVertical: 10,
-      borderRadius: 20,
+      borderRadius: 25,
       marginBottom: 5,
       gap: 10,
     },
@@ -69,15 +60,6 @@ const createStyle = (theme: any): Styles =>
       borderRadius: 2,
       alignSelf: "stretch",
       backgroundColor: theme.icon,
-    },
-    actionName: {
-      color: theme.text,
-      fontWeight: "600",
-      fontSize: 13,
-    },
-    actionText: {
-      color: theme.subtitle,
-      fontSize: 13,
     },
   });
 
