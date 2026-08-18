@@ -1,4 +1,3 @@
-import React from "react";
 import Icon from "@/src/components/ui/icon/Icon";
 
 import queueManager from "@/src/utils/chat/queueManager";

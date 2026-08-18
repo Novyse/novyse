@@ -10,8 +10,8 @@ import FileSizeProgress from "./FileSizeProgress";
 
 import { formatTime, formatDuration } from "@/src/utils/storage/file/utils";
 
-import SmoothSlider from "../ui/slider/SmoothSlider";
-import PlayButton from "./Button";
+import SmoothSlider from "@/src/components/ui/slider/SmoothSlider";
+import PlayButton from "./Button/MessageButton";
 
 const MessageAudio = ({
   audioRef,

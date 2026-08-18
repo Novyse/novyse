@@ -10,7 +10,7 @@ import BlurredView from "@/src/components/layout/BlurredView";
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import ContextMenu from "@/src/components/features/contextMenu/ContextMenu";
 import ContextMenuItem from "@/src/components/features/contextMenu/ContextMenuItem";
-import ReactionMenu from "@/src/components/messages/ActionMenu/ReactionsMenu";
+import ReactionMenu from "@/src/components/features/messages/ActionMenu/ReactionsMenu";
 
 const MENU_WIDTH = 175;
 

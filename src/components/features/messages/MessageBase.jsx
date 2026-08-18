@@ -25,11 +25,11 @@ import Icon from "@/src/components/ui/icon/Icon";
 
 import useMessageGestures from "@/src/hooks/chat/useMessageGestures";
 
-import BlurredView from "../layout/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 import { getFileType } from "@/src/utils/storage/file/type";
 import { defaultWaveform } from "@/src/utils/storage/file/media";
 
-import Avatar from "../ui/avatar/Avatar";
+import Avatar from "@/src/components/ui/avatar/Avatar";
 
 import MessageText from "./MessageText";
 import MessageMedia from "./MessageMedia";

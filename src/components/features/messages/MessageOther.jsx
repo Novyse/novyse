@@ -6,7 +6,7 @@ import { ThemeContext } from "@/src/context/ThemeContext";
 import useOpenFile from "@/src/hooks/file/useOpenFile";
 import FileSizeProgress from "./FileSizeProgress";
 
-import FileButton from "./Button";
+import FileButton from "./Button/MessageButton";
 
 const MessageOther = ({ fileRef, uuid, mimeType, size, name, isPending }) => {
   const { theme } = useContext(ThemeContext);
@@ -30,7 +30,7 @@ const MessageOther = ({ fileRef, uuid, mimeType, size, name, isPending }) => {
       />
       <View style={styles.detailsContainer}>
         <Typography numberOfLines={1} text={name} />
-        <FileSizeProgress uuid={uuid} size={size} style={styles.fileSize} />
+        <FileSizeProgress uuid={uuid} size={size} />
       </View>
     </Pressable>
   );
@@ -46,10 +46,6 @@ const createStyle = (theme) =>
     },
     detailsContainer: {
       flex: 1,
-    },
-    fileSize: {
-      fontSize: 12,
-      color: theme.text,
     },
   });
 

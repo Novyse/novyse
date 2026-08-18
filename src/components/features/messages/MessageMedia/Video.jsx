@@ -1,11 +1,11 @@
-import React, { useContext, useState, useEffect, useCallback } from "react";
+import { useContext, useState, useEffect, useCallback } from "react";
 import { StyleSheet, Pressable, View } from "react-native";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
-import FileButton from "@/src/components/messages/Button";
+import FileButton from "@/src/components/features/messages/Button/MessageButton";
 import VideoViewer from "@/src/components/features/modalSheets/viewer/VideoViewer";
-import FileSizeProgress from "@/src/components/messages/FileSizeProgress";
+import FileSizeProgress from "@/src/components/features/messages/FileSizeProgress";
 
 // Simple session cache to remember ratios without DB persistence
 const ratioCache = new Map();
@@ -34,7 +34,8 @@ const Video = ({
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const newRatio = propAspectRatio || (width && height ? width / height : null);
+    const newRatio =
+      propAspectRatio || (width && height ? width / height : null);
     if (newRatio) {
       setCurrentRatio(newRatio);
       ratioCache.set(uuid, newRatio);
@@ -101,7 +102,9 @@ const Video = ({
             />
           </View>
         </View>
-        <FileSizeProgress uuid={uuid} size={size} style={styles.fileSize} />
+        <View style={styles.videoSizeOverlay}>
+          <FileSizeProgress uuid={uuid} size={size} />
+        </View>
       </Pressable>
       <VideoViewer
         visible={visible}
@@ -132,14 +135,14 @@ const createStyle = (theme, isSingle, aspectRatio) =>
       justifyContent: "center",
       alignItems: "center",
     },
-    fileSize: {
+    videoSizeOverlay: {
       position: "absolute",
-      bottom: 6,
-      left: 6,
-      color: theme.text,
+      top: 5,
+      left: 5,
+      borderRadius: 25,
+      backgroundColor: theme.backgroundModalOverlay,
       paddingHorizontal: 4,
-      borderRadius: 5,
-      fontSize: 11,
+      paddingVertical: 1,
     },
   });
 

@@ -1,9 +1,8 @@
-import React from "react";
 import Typography from "@/src/components/ui/typography/Typography";
 import useFileProgress from "@/src/hooks/file/useFileProgress";
 import { formatFileSize } from "@/src/utils/storage/file/utils";
 
-const FileSizeProgress = ({ uuid, size, style }) => {
+const FileSizeProgress = ({ uuid, size }) => {
   const progress = useFileProgress(uuid);
 
   let displayedSize = formatFileSize(size);
@@ -11,7 +10,7 @@ const FileSizeProgress = ({ uuid, size, style }) => {
     displayedSize = `${formatFileSize(progress.loaded)} / ${formatFileSize(progress.total)}`;
   }
 
-  return <Typography style={style} text={displayedSize} />;
+  return <Typography size="xs" variant="subtitle" text={displayedSize} />;
 };
 
 export default FileSizeProgress;

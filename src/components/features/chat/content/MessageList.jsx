@@ -16,9 +16,9 @@ import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 import useChatStore from "@/src/store/ChatStore";
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-import MessageBase from "@/src/components/messages/MessageBase";
-import MessageSystem from "@/src/components/messages/MessageSystem";
-import ActionMenu from "@/src/components/messages/ActionMenu/ActionMenuContextMenu";
+import MessageBase from "@/src/components/features/messages/MessageBase";
+import MessageSystem from "@/src/components/features/messages/MessageSystem";
+import ActionMenu from "@/src/components/features/messages/ActionMenu/ActionMenuContextMenu";
 import BlurredView from "@/src/components/layout/BlurredView";
 import Icon from "@/src/components/ui/icon/Icon";
 

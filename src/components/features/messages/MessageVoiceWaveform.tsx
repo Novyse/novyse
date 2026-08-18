@@ -150,7 +150,7 @@ export default function MessageVoiceWaveform({
                     minHeight: 3,
                     backgroundColor: isPlayed ? theme.primary : theme.subtitle,
                     marginHorizontal: 0.5,
-                    borderRadius: 10,
+                    borderRadius: 25,
                   }}
                 />
               );

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useContext } from "react";
+import { useRef, useEffect, useContext } from "react";
 import { Pressable, View, StyleSheet } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import Avatar from "@/src/components/ui/avatar/Avatar";
@@ -65,7 +65,7 @@ export const ReactionPill = ({
       style={styles.reactionPill}
       onPress={() => onReaction(message, reactionObj.emoji)}
     >
-      <Typography style={styles.reactionPillText} text={reactionObj.emoji} />
+      <Typography size="xs" text={reactionObj.emoji} />
       <View style={styles.reactionAvatars}>
         {avatars.map((uUUID, i) => (
           <View
@@ -75,18 +75,12 @@ export const ReactionPill = ({
               i > 0 && styles.reactionAvatarOverlap,
             ]}
           >
-            <Avatar
-              uuid={getUser(uUUID)?.profilePictureUUID}
-              size={16}
-            />
+            <Avatar uuid={getUser(uUUID)?.profilePictureUUID} size={16} />
           </View>
         ))}
       </View>
       {reactionObj.userUUIDs.length > 2 && (
-        <Typography
-          style={styles.reactionPillText}
-          text={`+${reactionObj.userUUIDs.length - 2}`}
-        />
+        <Typography size="xs" text={`+${reactionObj.userUUIDs.length - 2}`} />
       )}
       <ReactionParticles ref={particleRef} />
     </Pressable>
@@ -96,20 +90,14 @@ export const ReactionPill = ({
 const createStyles = (theme: any) =>
   StyleSheet.create({
     reactionPill: {
-      backgroundColor: theme.backgroundSecondary,
-      borderRadius: 12,
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      borderWidth: 1,
-      borderColor: theme.borderColor,
+      backgroundColor: theme.primary,
+      borderRadius: 25,
+      paddingHorizontal: 3,
+      paddingVertical: 3,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       gap: 4,
-    },
-    reactionPillText: {
-      fontSize: 12,
-      color: theme.text,
     },
     reactionAvatars: {
       flexDirection: "row",

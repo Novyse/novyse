@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUserStore from "@/src/store/UserStore";
-import BlurredView from "../layout/BlurredView";
+import BlurredView from "@/src/components/layout/BlurredView";
 import messageUtils from "@/src/utils/chat/messageFormat";
 
 const MessageSystem = ({ type, data }) => {

@@ -1,11 +1,11 @@
-import React, { useContext, useState, useCallback, useEffect } from "react";
+import { useContext, useState, useCallback, useEffect } from "react";
 import { StyleSheet, Pressable, View } from "react-native";
 import { Image as ExpoImage } from "expo-image";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
-import FileButton from "@/src/components/messages/Button";
+import FileButton from "@/src/components/features/messages/Button/MessageButton";
 import ImageViewer from "@/src/components/features/modalSheets/viewer/ImageViewer";
-import FileSizeProgress from "@/src/components/messages/FileSizeProgress";
+import FileSizeProgress from "@/src/components/features/messages/FileSizeProgress";
 
 // Session cache to remember image ratios during the session
 const imageRatioCache = new Map();
@@ -33,7 +33,8 @@ const Image = ({
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const newRatio = propAspectRatio || (width && height ? width / height : null);
+    const newRatio =
+      propAspectRatio || (width && height ? width / height : null);
     if (newRatio) {
       setComputedRatio(newRatio);
       imageRatioCache.set(uuid, newRatio);
@@ -79,7 +80,9 @@ const Image = ({
             />
           </View>
         </View>
-        <FileSizeProgress uuid={uuid} size={size} style={styles.fileSize} />
+        <View style={styles.imageSizeOverlay}>
+          <FileSizeProgress uuid={uuid} size={size} />
+        </View>
       </Pressable>
       <ImageViewer
         visible={visible}
@@ -111,14 +114,14 @@ const createStyle = (theme, isSingle, aspectRatio) =>
       justifyContent: "center",
       alignItems: "center",
     },
-    fileSize: {
+    imageSizeOverlay: {
       position: "absolute",
-      bottom: 6,
-      left: 6,
-      color: theme.text,
+      top: 5,
+      left: 5,
+      borderRadius: 25,
+      backgroundColor: theme.backgroundModalOverlay,
       paddingHorizontal: 4,
-      borderRadius: 5,
-      fontSize: 11,
+      paddingVertical: 1,
     },
   });
 

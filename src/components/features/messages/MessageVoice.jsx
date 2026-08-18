@@ -10,7 +10,7 @@ import FileSizeProgress from "./FileSizeProgress";
 
 import { formatTime, formatDuration } from "@/src/utils/storage/file/utils";
 import SmoothWaveform from "./MessageVoiceWaveform";
-import PlayButton from "./Button";
+import PlayButton from "./Button/MessageButton";
 
 const MessageVoice = ({
   audioRef,
@@ -83,10 +83,12 @@ const MessageVoice = ({
         </View>
         <View style={styles.textContainer}>
           <Typography
+            size="xs"
+            variant="subtitle"
             style={styles.durationText}
             text={`${formatTime(thisCurrentTime)} / ${formatDuration(duration)}`}
           />
-          <FileSizeProgress uuid={uuid} size={size} style={styles.sizeText} />
+          <FileSizeProgress uuid={uuid} size={size} />
         </View>
       </View>
     </View>
@@ -118,17 +120,7 @@ function createStyle(theme) {
       alignItems: "center",
     },
     durationText: {
-      fontSize: 12,
-      color: theme.text,
-      textAlign: "left",
       fontVariant: ["tabular-nums"],
-      opacity: 0.8,
-    },
-    sizeText: {
-      fontSize: 12,
-      color: theme.text,
-      textAlign: "right",
-      opacity: 0.8,
     },
   });
 }

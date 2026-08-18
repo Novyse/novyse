@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from "react";
+import { useEffect, useContext } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
 import Icon from "@/src/components/ui/icon/Icon";
 import Svg, { Circle } from "react-native-svg";
