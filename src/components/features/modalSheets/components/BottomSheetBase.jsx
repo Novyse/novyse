@@ -21,7 +21,6 @@ const BottomSheetBase = forwardRef(
       enableOverDrag = false,
       enableDynamicSizing = false,
       hideOverlay = false,
-      hideCloseX = false,
       title,
       titleTranslationKey,
       titleTranslationOptions,
@@ -63,8 +62,8 @@ const BottomSheetBase = forwardRef(
     const Container = scrollable ? BottomSheetScrollView : BottomSheetView;
     const insets = useSafeAreaInsets();
     const contentPadding = {
-      padding: 10,
-      paddingBottom: insets.bottom + 10,
+      padding: 25,
+      paddingBottom: insets.bottom + 25,
     };
 
     return (
@@ -93,7 +92,7 @@ const BottomSheetBase = forwardRef(
             title={title}
             titleTranslationKey={titleTranslationKey}
             titleTranslationOptions={titleTranslationOptions}
-            hideCloseX={hideCloseX}
+            hideCloseX={true}
             onClose={onClose}
           />
           {children}

@@ -31,17 +31,13 @@ const ModalBase = ({
   scrollable = true,
   fullscreen = false,
   hideOverlay = false,
-  popover = false,
   title,
   titleTranslationKey,
   titleTranslationOptions,
 }) => {
   const { isSmallScreen } = useScreen();
-  const shouldUseFullscreen = fullscreen && isSmallScreen && !popover;
-  const styles = createStyle(theme, shouldUseFullscreen, {
-    hideOverlay,
-    popover,
-  });
+  const shouldUseFullscreen = fullscreen && isSmallScreen;
+  const styles = createStyle(shouldUseFullscreen);
 
   const [isRendered, setIsRendered] = useState(visible);
   const scaleValue = useRef(new Animated.Value(0)).current;
@@ -52,20 +48,13 @@ const ModalBase = ({
     if (visible) {
       setIsRendered(true);
       wasVisibleRef.current = true;
-      scaleValue.setValue(popover ? 1 : 0);
+      scaleValue.setValue(0);
       opacityValue.setValue(0);
 
-      const animations = [
+      Animated.parallel([
+        Animated.spring(scaleValue, { toValue: 1, ...OPEN_SPRING }),
         Animated.timing(opacityValue, { toValue: 1, ...OPEN_FADE }),
-      ];
-
-      if (!popover) {
-        animations.unshift(
-          Animated.spring(scaleValue, { toValue: 1, ...OPEN_SPRING }),
-        );
-      }
-
-      Animated.parallel(animations).start();
+      ]).start();
       return;
     }
 
@@ -75,20 +64,15 @@ const ModalBase = ({
 
     wasVisibleRef.current = false;
 
-    const animations = [
+    Animated.parallel([
+      Animated.timing(scaleValue, CLOSE_SCALE),
       Animated.timing(opacityValue, { toValue: 0, ...CLOSE_FADE }),
-    ];
-
-    if (!popover) {
-      animations.unshift(Animated.timing(scaleValue, CLOSE_SCALE));
-    }
-
-    Animated.parallel(animations).start(() => {
+    ]).start(() => {
       setIsRendered(false);
       scaleValue.setValue(0);
       opacityValue.setValue(0);
     });
-  }, [visible, popover, scaleValue, opacityValue]);
+  }, [visible, scaleValue, opacityValue]);
 
   if (!visible && !isRendered) {
     return null;
@@ -122,37 +106,6 @@ const ModalBase = ({
     </View>
   );
 
-  const content = (
-    <View style={styles.overlay}>
-      <Pressable style={StyleSheet.absoluteFill} onPress={onClose}>
-        <Animated.View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: backdropColor, opacity: opacityValue },
-          ]}
-        />
-      </Pressable>
-      <Pressable style={styles.modalAnchor} onPress={() => {}}>
-        <Animated.View
-          style={
-            popover
-              ? { opacity: opacityValue }
-              : {
-                  opacity: opacityValue,
-                  transform: [{ scale: scaleValue }],
-                }
-          }
-        >
-          <BlurredView style={styles.container}>{renderBody()}</BlurredView>
-        </Animated.View>
-      </Pressable>
-    </View>
-  );
-
-  if (popover) {
-    return <View style={styles.popoverRoot}>{content}</View>;
-  }
-
   return (
     <Modal
       visible={visible || isRendered}
@@ -160,47 +113,57 @@ const ModalBase = ({
       onRequestClose={onClose}
       animationType="none"
     >
-      {content}
+      <View style={styles.overlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose}>
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: backdropColor, opacity: opacityValue },
+            ]}
+          />
+        </Pressable>
+        <Pressable style={styles.modalAnchor} onPress={() => {}}>
+          <Animated.View
+            style={{
+              opacity: opacityValue,
+              transform: [{ scale: scaleValue }],
+            }}
+          >
+            <BlurredView style={styles.container}>{renderBody()}</BlurredView>
+          </Animated.View>
+        </Pressable>
+      </View>
     </Modal>
   );
 };
 
-function createStyle(theme, shouldUseFullscreen, options = {}) {
-  const { popover = false } = options;
-
+function createStyle(shouldUseFullscreen) {
   return StyleSheet.create({
-    popoverRoot: {
-      ...StyleSheet.absoluteFillObject,
-      zIndex: 1000,
-      elevation: 1000,
-    },
     overlay: {
       flex: 1,
-      justifyContent: popover ? "flex-end" : "center",
-      alignItems: popover ? "flex-start" : "center",
+      justifyContent: "center",
+      alignItems: "center",
       paddingVertical: shouldUseFullscreen ? 0 : 24,
-      paddingHorizontal: shouldUseFullscreen ? 0 : popover ? 0 : 10,
+      paddingHorizontal: shouldUseFullscreen ? 0 : 10,
     },
     modalAnchor: {
-      width: shouldUseFullscreen ? "100%" : popover ? undefined : "100%",
-      maxWidth: shouldUseFullscreen ? "100%" : popover ? undefined : 520,
-      maxHeight: popover ? undefined : "100%",
-      flexShrink: popover ? 0 : 1,
-      alignSelf: popover ? "flex-end" : "center",
-      marginRight: 0,
-      marginBottom: popover ? 45 : 0,
+      width: "100%",
+      maxWidth: shouldUseFullscreen ? "100%" : 520,
+      maxHeight: "100%",
+      flexShrink: 1,
+      alignSelf: "center",
     },
     container: {
       borderRadius: shouldUseFullscreen ? 0 : 25,
       elevation: 5,
       width: shouldUseFullscreen ? "100%" : undefined,
-      maxHeight: popover ? undefined : "100%",
-      flexShrink: popover ? 0 : 1,
+      maxHeight: "100%",
+      flexShrink: 1,
     },
     inner: {
       padding: 25,
-      maxHeight: popover ? undefined : "100%",
-      flexShrink: popover ? 0 : 1,
+      maxHeight: "100%",
+      flexShrink: 1,
     },
     scrollView: {
       flexShrink: 1,
@@ -209,7 +172,7 @@ function createStyle(theme, shouldUseFullscreen, options = {}) {
       flexGrow: 1,
     },
     body: {
-      flexShrink: popover ? 0 : 1,
+      flexShrink: 1,
     },
   });
 }

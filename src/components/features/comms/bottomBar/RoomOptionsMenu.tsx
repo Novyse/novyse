@@ -55,7 +55,6 @@ export const RoomOptionsMenu: React.FC<RoomOptionsMenuProps> = ({
       mode="adaptive"
       scrollable={showAudioOutput}
       hideCloseX={true}
-      popover={true}
     >
       <View style={styles.content}>
         {showAudioOutput && (

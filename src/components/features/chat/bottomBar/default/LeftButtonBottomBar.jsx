@@ -37,9 +37,17 @@ const LeftButtonBottomBar = ({
     }).start();
   }, [isAttachMenuOpen, isRecording]);
 
+  const handlePress = () => {
+    if (isRecording) {
+      onCancelVocal();
+      return;
+    }
+    onToggleAttachMenu?.();
+  };
+
   return (
     <BlurredView style={styles.container}>
-      <Pressable onPress={isRecording ? onCancelVocal : onToggleAttachMenu}>
+      <Pressable onPress={handlePress}>
         <Animated.View style={animatedStyle}>
           <Icon name="PlusSignIcon" style={styles.icon} />
         </Animated.View>

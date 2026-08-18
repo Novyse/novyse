@@ -4,7 +4,11 @@ import Typography from "@/src/components/ui/typography/Typography";
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import Icon from "@/src/components/ui/icon/Icon";
 import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
+import ContextMenu from "@/src/components/features/contextMenu/ContextMenu";
+import ContextMenuItem from "@/src/components/features/contextMenu/ContextMenuItem";
 import Platform from "@/src/utils/device/type";
+
+const MENU_WIDTH = 220;
 
 const MENU_ITEMS = [
   {
@@ -57,10 +61,13 @@ const UploadFileOverlay = ({
   onMenuItemPress,
   onFileSelected,
   theme,
+  bottomOffset = 70,
 }) => {
   const styles = createStyle(theme);
+  const isMobile = Platform === "mobile";
 
   const handleMenuItemPress = async (action) => {
+    onClose();
     const files = await onMenuItemPress(action);
     if (files && (action === "Media" || action === "File")) {
       onFileSelected(files);
@@ -68,8 +75,29 @@ const UploadFileOverlay = ({
   };
 
   const filteredMenuItems = MENU_ITEMS.filter(
-    (item) => !(item.action === "Recording" && Platform === "mobile"),
+    (item) => !(item.action === "Recording" && isMobile),
   );
+
+  if (!isMobile) {
+    return (
+      <ContextMenu
+        visible={visible}
+        onClose={onClose}
+        width={MENU_WIDTH}
+        style={{ left: 10, bottom: bottomOffset }}
+      >
+        {filteredMenuItems.map((item) => (
+          <ContextMenuItem
+            key={item.action}
+            iconName={item.iconName}
+            translationKey={item.translationKey}
+            disabled={item.disabled}
+            onPress={() => handleMenuItemPress(item.action)}
+          />
+        ))}
+      </ContextMenu>
+    );
+  }
 
   return (
     <AdaptiveModal
@@ -80,8 +108,6 @@ const UploadFileOverlay = ({
       snapPoints={["60%"]}
       scrollable={false}
       hideCloseX={true}
-      hideOverlay={true}
-      popover={true}
     >
       <View style={styles.content}>
         <View style={styles.menuRow}>
@@ -93,10 +119,7 @@ const UploadFileOverlay = ({
               disabled={item.disabled}
             >
               <Icon name={item.iconName} size={32} color={theme.icon} />
-              <Typography
-                size="xs"
-                translationKey={item.translationKey}
-              />
+              <Typography size="xs" translationKey={item.translationKey} />
             </HoverAndPressedButton>
           ))}
         </View>
@@ -107,8 +130,7 @@ const UploadFileOverlay = ({
 
 const createStyle = (theme) =>
   StyleSheet.create({
-    content: {
-    },
+    content: {},
     menuRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -117,7 +139,7 @@ const createStyle = (theme) =>
     menuItem: {
       alignItems: "center",
       borderRadius: 10,
-      gap: 5
+      gap: 5,
     },
   });
 

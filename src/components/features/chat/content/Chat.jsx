@@ -657,7 +657,7 @@ const ChatContent = () => {
   return (
     <View style={styles.container}>
       <WebDropZone onFilesDropped={handleAppendFilesToDraft} />
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={{ flex: 1, position: "relative" }}>
         <Animated.View style={[StyleSheet.absoluteFill, listAnimatedStyle]}>
           {isForum ? (
             <View style={{ flex: 1, flexDirection: "row" }}>
@@ -826,6 +826,7 @@ const ChatContent = () => {
           onMenuItemPress={handleAttachMenuItemPress}
           onFileSelected={handleAppendFilesToDraft}
           theme={theme}
+          bottomOffset={bottomBarHeight}
         />
 
         <DeleteMessageModal

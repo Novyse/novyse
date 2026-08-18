@@ -28,7 +28,6 @@ export interface ContextMenuProps {
   header?: React.ReactNode;
   footer?: React.ReactNode;
   position?: ContextMenuPosition;
-  /** Optional override. If omitted, bounds are measured from the overlay parent. */
   containerBounds?: ContainerBounds;
   width?: number;
   estimatedHeight?: number;
@@ -93,11 +92,18 @@ const ContextMenu = ({
     useState<ContainerBounds>(DEFAULT_BOUNDS);
 
   const updateBounds = useCallback(() => {
-    overlayRef.current?.measureInWindow((x, y, measuredWidth, measuredHeight) => {
-      if (measuredWidth > 0 && measuredHeight > 0) {
-        setMeasuredBounds({ x, y, width: measuredWidth, height: measuredHeight });
-      }
-    });
+    overlayRef.current?.measureInWindow(
+      (x, y, measuredWidth, measuredHeight) => {
+        if (measuredWidth > 0 && measuredHeight > 0) {
+          setMeasuredBounds({
+            x,
+            y,
+            width: measuredWidth,
+            height: measuredHeight,
+          });
+        }
+      },
+    );
   }, []);
 
   const resolvedBounds =
@@ -121,11 +127,7 @@ const ContextMenu = ({
   }
 
   return (
-    <View
-      ref={overlayRef}
-      style={styles.overlay}
-      onLayout={updateBounds}
-    >
+    <View ref={overlayRef} style={styles.overlay} onLayout={updateBounds}>
       <Pressable
         style={styles.backdrop}
         onPress={onClose}
@@ -138,11 +140,13 @@ const ContextMenu = ({
       <View
         style={[
           styles.wrapper,
-          { top: menuPosition.y, left: menuPosition.x, width },
+          { width },
+          position ? { top: menuPosition.y, left: menuPosition.x } : null,
+          style,
         ]}
       >
         {header}
-        <BlurredView style={[styles.menuContainer, style]}>{children}</BlurredView>
+        <BlurredView style={styles.menuContainer}>{children}</BlurredView>
         {footer}
       </View>
     </View>
