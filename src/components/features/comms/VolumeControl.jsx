@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View, StyleSheet } from "react-native";
-import Slider from "@react-native-community/slider";
+import Slider from "@/src/components/ui/slider/Slider";
 import Typography from "@/src/components/ui/typography/Typography";
 import Icon from "@/src/components/ui/icon/Icon";
 import { useCommsContext } from "@/src/context/CommsContext";
@@ -42,17 +42,11 @@ const VolumeControl = ({ volKey, isScreenShare }) => {
         />
       </View>
       <Slider
-        key={volKey}
-        minimumValue={0}
-        maximumValue={60}
-        step={1}
+        style={styles.slider}
         value={localDb + 30}
-        onValueChange={handleValueChange}
-        onSlidingComplete={handleSlidingComplete}
-        minimumTrackTintColor={theme.text}
-        maximumTrackTintColor={theme.secondary}
-        thumbTintColor={theme.text}
-        tapToSeek
+        maxValue={60}
+        onSeekChange={handleValueChange}
+        onSeekComplete={handleSlidingComplete}
       />
     </View>
   );
@@ -72,6 +66,9 @@ const createStyles = (theme) =>
     sliderHeaderLeft: {
       flexDirection: "row",
       gap: 10,
+    },
+    slider: {
+      width: "100%",
     },
   });
 

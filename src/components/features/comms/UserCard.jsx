@@ -315,7 +315,7 @@ const createStyles = (theme) =>
   StyleSheet.create({
     profile: {
       backgroundColor: "transparent",
-      borderRadius: 10,
+      borderRadius: 25,
       overflow: "hidden",
       position: "relative",
     },
@@ -337,19 +337,13 @@ const createStyles = (theme) =>
     },
     controlsBlurred: {
       margin: 5,
-      borderRadius: 40,
+      borderRadius: 25,
       overflow: "hidden",
     },
     controlsRow: {
       flexDirection: "row",
       justifyContent: "flex-end",
       padding: 5,
-    },
-    controlButton: {
-      marginLeft: 5,
-      padding: 5,
-      borderRadius: 5,
-      backgroundColor: theme.backgroundModalOverlay,
     },
     fullscreenContainer: {
       position: "absolute",
@@ -366,7 +360,7 @@ const createStyles = (theme) =>
       left: 0,
       right: 0,
       bottom: 0,
-      borderRadius: 10,
+      borderRadius: 25,
       pointerEvents: "none",
       zIndex: 10,
       borderWidth: 0,
@@ -384,21 +378,20 @@ const createStyles = (theme) =>
         shadowColor: theme.successText,
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.8,
-        shadowRadius: 8,
+        shadowRadius: 25,
       }),
     },
     videoContainer: {
       width: "100%",
       height: "100%",
       overflow: "hidden",
-      borderRadius: 8,
+      borderRadius: 25,
       position: "relative",
-      backgroundColor: theme.shadowColor,
     },
     videoStream: {
       width: "100%",
       height: "100%",
-      borderRadius: 8,
+      borderRadius: 25,
     },
   });
 

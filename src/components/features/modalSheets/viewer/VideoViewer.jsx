@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Typography from "@/src/components/ui/typography/Typography";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { useEvent } from "expo";
-import Slider from "@react-native-community/slider";
+import Slider from "@/src/components/ui/slider/Slider";
 import Icon from "@/src/components/ui/icon/Icon";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { useWindowDimensions } from "react-native";
@@ -78,6 +78,7 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
   const setupPlayer = useCallback((p) => {
     p.loop = false;
     p.timeUpdateEventInterval = 0.1;
+    p.seekTolerance = { toleranceBefore: 0, toleranceAfter: 0 };
   }, []);
 
   const player = useVideoPlayer(uri, setupPlayer);
@@ -177,6 +178,18 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
     if (!player) return;
     player.currentTime = Math.min(duration, (player.currentTime || 0) + 10);
     handleUserActivity();
+  };
+
+  const setScrubbingEnabled = (enabled) => {
+    if (!player) return;
+    try {
+      player.scrubbingModeOptions = { scrubbingModeEnabled: enabled };
+      player.seekTolerance = enabled
+        ? { toleranceBefore: 1, toleranceAfter: 1 }
+        : { toleranceBefore: 0, toleranceAfter: 0 };
+    } catch {
+      // web: scrubbingModeOptions is not supported
+    }
   };
 
   const cycleSpeed = () => {
@@ -299,21 +312,28 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                     />
                     <Slider
                       style={styles.slider}
-                      minimumValue={0}
-                      maximumValue={duration}
                       value={isSeeking ? seekTime : currentTime}
-                      onSlidingStart={() => {
+                      maxValue={duration}
+                      onSeekStart={() => {
+                        wasPlayingBeforeSeek.current =
+                          isPlaying || player.playing;
                         setIsSeeking(true);
                         setSeekTime(currentTime);
                         player.pause();
+                        setScrubbingEnabled(true);
                       }}
-                      onValueChange={(v) => {
+                      onSeekChange={(v) => {
                         setSeekTime(v);
-                      }}
-                      onSlidingComplete={(v) => {
                         player.currentTime = v;
+                      }}
+                      onSeekComplete={(v) => {
+                        player.currentTime = v;
+                        setSeekTime(v);
+                        setScrubbingEnabled(false);
                         setIsSeeking(false);
-                        player.play();
+                        if (wasPlayingBeforeSeek.current) {
+                          player.play();
+                        }
                       }}
                       minimumTrackTintColor={theme.primary}
                       thumbTintColor={theme.primary}
@@ -347,17 +367,17 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
                       />
                       <Slider
                         style={styles.volumeSlider}
-                        minimumValue={0}
-                        maximumValue={1}
                         value={isAdjustingVolume ? localVolume : volume}
-                        onSlidingStart={() => {
+                        maxValue={1}
+                        onSeekStart={() => {
                           setIsAdjustingVolume(true);
                           setLocalVolume(volume);
                         }}
-                        onValueChange={(v) => {
+                        onSeekChange={(v) => {
                           setLocalVolume(v);
+                          player.volume = v;
                         }}
-                        onSlidingComplete={(v) => {
+                        onSeekComplete={(v) => {
                           player.volume = v;
                           setIsAdjustingVolume(false);
                         }}
@@ -470,7 +490,7 @@ const createStyle = (
       },
       footerContainer: { paddingBottom: 20, paddingHorizontal: 20 },
       sliderRow: { flexDirection: "row", alignItems: "center" },
-      slider: { flex: 1, marginHorizontal: 10, height: 40 },
+      slider: { flex: 1, marginHorizontal: 10 },
       bottomActionsRow: {
         flexDirection: "row",
         justifyContent: "space-between",

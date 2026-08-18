@@ -44,8 +44,24 @@ const Video = ({
 
   const player = useVideoPlayer(uri, (p) => {
     p.loop = true;
-    p.play();
+    p.muted = true;
   });
+
+  useEffect(() => {
+    if (!player) return;
+    if (visible) {
+      player.pause();
+      return;
+    }
+    player.play();
+    return () => {
+      try {
+        player.pause();
+      } catch {
+        // player already released
+      }
+    };
+  }, [player, visible]);
 
   const updateRatio = useCallback(
     (newRatio) => {

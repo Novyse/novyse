@@ -10,7 +10,7 @@ import FileSizeProgress from "./FileSizeProgress";
 
 import { formatTime, formatDuration } from "@/src/utils/storage/file/utils";
 
-import SmoothSlider from "@/src/components/ui/slider/SmoothSlider";
+import Slider from "@/src/components/ui/slider/Slider";
 import PlayButton from "./Button/MessageButton";
 
 const MessageAudio = ({
@@ -24,7 +24,6 @@ const MessageAudio = ({
 }) => {
   const {
     isPlaying,
-    playBackRate,
     currentTime,
     didJustFinish,
     currentUri,
@@ -73,13 +72,14 @@ const MessageAudio = ({
       <View style={{ flexDirection: "column" }}>
         <Typography text={name} />
         <View style={styles.progressContainer}>
-          <SmoothSlider
-            currentValue={thisCurrentTime}
-            maxValue={duration}
-            playbackRate={playBackRate}
-            onSeek={handleSeek}
-            reset={!isThisLoaded || didJustFinish}
-            isMoving={isThisPlaying}
+          <Slider
+            style={styles.slider}
+            value={thisCurrentTime}
+            maxValue={duration || 1}
+            onSeekComplete={handleSeek}
+            minimumTrackTintColor={theme.primary}
+            maximumTrackTintColor={theme.secondary}
+            thumbTintColor={theme.primary}
           />
           <View>
             <Typography
@@ -105,6 +105,9 @@ function createStyle() {
       flex: 1,
       flexDirection: "column",
       justifyContent: "center",
+    },
+    slider: {
+      width: "100%",
     },
   });
 }

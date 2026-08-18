@@ -1,6 +1,6 @@
 import React, { useRef, useContext, useEffect } from "react";
 import { View, StyleSheet, Pressable, Animated, Platform } from "react-native";
-import Slider from "@react-native-community/slider";
+import Slider from "@/src/components/ui/slider/Slider";
 import Typography from "@/src/components/ui/typography/Typography";
 import Icon from "@/src/components/ui/icon/Icon";
 import { ThemeContext } from "@/src/context/ThemeContext";
@@ -386,13 +386,16 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
 
           <Slider
             style={styles.timelineSlider}
-            minimumValue={0}
-            maximumValue={duration || 100}
             value={currentTime}
+            maxValue={duration || 1}
             minimumTrackTintColor={theme.primary}
             maximumTrackTintColor={theme.borderColor}
             thumbTintColor={theme.primary}
-            onSlidingComplete={(value) => {
+            onSeekChange={(value) => {
+              throttledSeek(value);
+              showControlsAndResetTimer();
+            }}
+            onSeekComplete={(value) => {
               triggerSeek(value);
               showControlsAndResetTimer();
             }}
@@ -455,7 +458,7 @@ const createStyles = (theme: any) =>
     },
     timelineSlider: {
       flex: 1,
-      height: 30,
+      minWidth: 0,
     },
     timeWrapper: {
       justifyContent: "center",
