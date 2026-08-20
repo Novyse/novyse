@@ -119,8 +119,8 @@ const Welcome = () => {
                           style={{
                             width: 45,
                             height: 45,
-                            resizeMode: "contain",
                           }}
+                          resizeMode="contain"
                         />
                       </View>
                     }

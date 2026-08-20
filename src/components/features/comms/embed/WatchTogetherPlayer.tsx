@@ -362,8 +362,13 @@ export const WatchTogetherPlayer: React.FC<WatchTogetherPlayerProps> = ({
       {/* 2. Sleek Custom Synchronization Controls Overlay */}
       {(parsedVideo.type === "youtube" || parsedVideo.type === "direct") && (
         <Animated.View
-          style={[styles.controlsContainer, { opacity: opacityAnim }]}
-          pointerEvents={controlsVisible ? "auto" : "none"}
+          style={[
+            styles.controlsContainer,
+            {
+              opacity: opacityAnim,
+              pointerEvents: controlsVisible ? "auto" : "none",
+            },
+          ]}
           onTouchStart={showControlsAndResetTimer}
         >
           <Pressable

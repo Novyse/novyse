@@ -41,16 +41,17 @@ const BottomSheetBase = forwardRef(
       [hideOverlay],
     );
 
+    const insets = useSafeAreaInsets();
+    const sheetGap = insets.bottom;
+    const bottomInset = insets.bottom;
+
     const renderBackground = useCallback(
       ({ style }) => (
         <BlurredView
           style={[
             style,
             {
-              borderTopLeftRadius: 25,
-              borderTopRightRadius: 25,
-              borderBottomLeftRadius: 0,
-              borderBottomRightRadius: 0,
+              borderRadius: 25,
             },
           ]}
           isBorderActive={false}
@@ -60,10 +61,9 @@ const BottomSheetBase = forwardRef(
     );
 
     const Container = scrollable ? BottomSheetScrollView : BottomSheetView;
-    const insets = useSafeAreaInsets();
     const contentPadding = {
       padding: 25,
-      paddingBottom: insets.bottom + 25,
+      paddingBottom: 25,
     };
 
     return (
@@ -74,9 +74,15 @@ const BottomSheetBase = forwardRef(
         enablePanDownToClose={enablePanDownToClose}
         enableOverDrag={enableOverDrag}
         enableDynamicSizing={enableDynamicSizing}
+        detached
+        bottomInset={bottomInset}
+        style={{ marginHorizontal: sheetGap }}
         backdropComponent={renderBackdrop}
         backgroundComponent={renderBackground}
-        backgroundStyle={{ backgroundColor: "transparent" }}
+        backgroundStyle={{
+          backgroundColor: "transparent",
+          borderRadius: 25,
+        }}
         handleIndicatorStyle={{
           backgroundColor: theme.icon,
           width: 40,

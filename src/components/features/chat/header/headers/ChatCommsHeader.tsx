@@ -154,7 +154,6 @@ const CommsHeader: React.FC<CommsHeaderProps> = ({
     <View style={styles.container} onLayout={onHeaderLayout}>
       {headerWidth > 0 && (
         <Animated.View
-          pointerEvents="none"
           style={[styles.waveSvgContainer, waveOverlayStyle]}
         >
           <Svg height={HEADER_ROW_HEIGHT} width={headerWidth}>
@@ -268,6 +267,7 @@ const styles = StyleSheet.create({
   waveSvgContainer: {
     ...StyleSheet.absoluteFill,
     zIndex: 0,
+    pointerEvents: "none",
   },
   headerRow: {
     zIndex: 1,

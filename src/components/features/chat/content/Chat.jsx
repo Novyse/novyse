@@ -734,8 +734,11 @@ const ChatContent = () => {
         </Animated.View>
         {Platform === "mobile" && (
           <Animated.View
-            style={[styles.emojiPanelContainer, panelAnimatedStyle]}
-            pointerEvents={isEmojiPickerVisible ? "auto" : "none"}
+            style={[
+              styles.emojiPanelContainer,
+              panelAnimatedStyle,
+              { pointerEvents: isEmojiPickerVisible ? "auto" : "none" },
+            ]}
           >
             <EmojiMenuOverlay
               isVisible={isEmojiPickerVisible}

@@ -49,7 +49,8 @@ const AddAuthenticator = ({
             >
               <Image
                 source={QRLogo}
-                style={{ width: 35, height: 35, resizeMode: "contain" }}
+                style={{ width: 35, height: 35 }}
+                resizeMode="contain"
               />
             </View>
           }

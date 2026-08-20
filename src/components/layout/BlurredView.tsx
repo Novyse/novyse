@@ -48,7 +48,6 @@ const BlurredView = ({
   const overlay = color ? (
     <View
       style={[styles.blurBackground, { backgroundColor: color }, radiusStyle]}
-      pointerEvents="none"
     />
   ) : null;
 
@@ -61,7 +60,6 @@ const BlurredView = ({
             { backgroundColor: color ?? theme.backgroundMain },
             radiusStyle,
           ]}
-          pointerEvents="none"
         />
         {children}
       </View>
@@ -75,7 +73,6 @@ const BlurredView = ({
         intensity={intensity}
         tint={isDark ? "dark" : "light"}
         style={[styles.blurBackground, radiusStyle]}
-        pointerEvents="none"
       />
       {overlay}
       {children}
@@ -99,6 +96,7 @@ const createStyles = (
     blurBackground: {
       ...StyleSheet.absoluteFill,
       zIndex: -1,
+      pointerEvents: "none",
     },
   });
 

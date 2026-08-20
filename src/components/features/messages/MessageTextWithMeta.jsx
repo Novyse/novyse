@@ -233,7 +233,6 @@ const MessageTextWithMeta = ({
 
       {!isWebLike && plain.length > 0 && (
         <Text
-          pointerEvents="none"
           selectable={false}
           style={[styles.measurer, { width: measureCap }]}
           onTextLayout={(e) => applyNativeLayout(e.nativeEvent.lines || [])}
@@ -299,6 +298,7 @@ const styles = StyleSheet.create({
     lineHeight: LINE_HEIGHT,
     zIndex: -1,
     includeFontPadding: false,
+    pointerEvents: "none"
   },
   meta: {
     position: "absolute",

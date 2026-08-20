@@ -158,8 +158,8 @@ const UserCard = memo(
             style={[
               styles.controlsContainer,
               !controlsVisible && styles.controlsHidden,
+              { pointerEvents: controlsVisible ? "auto" : "none" },
             ]}
-            pointerEvents={controlsVisible ? "auto" : "none"}
           >
             <BlurredView style={styles.controlsBlurred}>
               <View style={styles.controlsRow}>
@@ -371,15 +371,7 @@ const createStyles = (theme) =>
       borderWidth: 2,
       borderColor: theme.successText,
       opacity: 1,
-      ...(Platform.OS === "web" && {
-        boxShadow: `inset 0 0 15px ${theme.successText}, 0 0 20px ${theme.successText}`,
-      }),
-      ...(Platform.OS === "ios" && {
-        shadowColor: theme.successText,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.8,
-        shadowRadius: 25,
-      }),
+      boxShadow: `inset 0 0 15px ${theme.successText}, 0 0 20px ${theme.successText}`,
     },
     videoContainer: {
       width: "100%",

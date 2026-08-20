@@ -243,6 +243,8 @@ const MessageBase = ({
     backgroundColor: theme.primary,
     opacity: highlightOpacity.value * 0.4,
     ...StyleSheet.absoluteFill,
+    pointerEvents: "none",
+    zIndex: -1
   }));
 
   const groupBy = (array, callback) => {
@@ -501,8 +503,7 @@ const MessageBase = ({
     <>
       <View style={styles.container}>
         <Reanimated.View
-          style={[animatedHighlightStyle, { zIndex: -1 }]}
-          pointerEvents="none"
+          style={animatedHighlightStyle}
         />
         {isSmallScreen ? (
           <ReanimatedSwipeable

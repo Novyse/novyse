@@ -205,36 +205,40 @@ export default function RootLayout() {
         style={{ flex: 1, backgroundColor: "transparent", overflow: "hidden" }}
       >
         <Animated.View
-          style={{
-            flex: 1,
-            opacity: slideAnim.interpolate({
-              inputRange: [0, 0.15, 1],
-              outputRange: [1, 0, 0],
-            }),
-          }}
-          pointerEvents={isDetailOpen ? "none" : "auto"}
+          style={[
+            {
+              flex: 1,
+              opacity: slideAnim.interpolate({
+                inputRange: [0, 0.15, 1],
+                outputRange: [1, 0, 0],
+              }),
+              pointerEvents: isDetailOpen ? "none" : "auto",
+            },
+          ]}
         >
           <TabNavigator />
         </Animated.View>
         <Animated.View
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "transparent",
-            transform: [
-              {
-                translateX: slideAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [width, 0],
-                }),
-              },
-            ],
-            zIndex: 1,
-          }}
-          pointerEvents={isDetailOpen ? "auto" : "none"}
+          style={[
+            {
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "transparent",
+              transform: [
+                {
+                  translateX: slideAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [width, 0],
+                  }),
+                },
+              ],
+              zIndex: 1,
+              pointerEvents: isDetailOpen ? "auto" : "none",
+            },
+          ]}
         >
           <Slot />
         </Animated.View>

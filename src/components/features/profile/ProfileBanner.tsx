@@ -22,6 +22,7 @@ const ProfileBanner = React.memo(
           uri: uri || "https://www.novyse.com/images/banner/default.jpg",
         }}
         style={styles.bannerImage}
+        resizeMode="cover"
       />
     );
 
@@ -52,7 +53,6 @@ const createStyles = (height: number) =>
     bannerImage: {
       width: "100%",
       height: height,
-      resizeMode: "cover",
     },
     hoverButtonContainer: { padding: 0, borderRadius: 0 },
 

@@ -163,13 +163,9 @@ export const ReactionParticles = forwardRef<ReactionParticlesRef, {}>(
     };
 
     return (
-      <View style={styles.container} pointerEvents="none">
+      <View style={styles.container}>
         {bursts.map((burst) => (
-          <View
-            key={burst.id}
-            style={StyleSheet.absoluteFill}
-            pointerEvents="none"
-          >
+          <View key={burst.id} style={styles.burst}>
             {burst.particles.map((p, index) => (
               <ParticleItem
                 key={p.id}
@@ -193,8 +189,13 @@ export const ReactionParticles = forwardRef<ReactionParticlesRef, {}>(
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 9999,
+    pointerEvents: "none",
+  },
+  burst: {
+    ...StyleSheet.absoluteFill,
+    pointerEvents: "none",
   },
   particle: {
     position: "absolute",

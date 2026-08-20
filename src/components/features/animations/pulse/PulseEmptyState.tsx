@@ -63,10 +63,9 @@ const PulseEmptyState = ({ children }: PulseEmptyStateProps) => {
     <View style={styles.root} onLayout={onLayout}>
       {width > 0 && height > 0 && (
         <Svg
-          pointerEvents="none"
           width={width}
           height={height}
-          style={StyleSheet.absoluteFill}
+          style={[StyleSheet.absoluteFill, { pointerEvents: "none" }]}
         >
           <PulseBlob
             id="pulse-blob-1"
@@ -136,7 +135,7 @@ const PulseEmptyState = ({ children }: PulseEmptyStateProps) => {
         </Svg>
       )}
       {children ? (
-        <View pointerEvents="box-none" style={styles.content}>
+        <View style={styles.content}>
           {children}
         </View>
       ) : null}
@@ -155,6 +154,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
     alignItems: "center",
     justifyContent: "center",
+    pointerEvents: "box-none",
   },
 });
 

@@ -73,7 +73,8 @@ const ProfileQRCodeModal = ({
               >
                 <Image
                   source={logoForQR}
-                  style={{ width: 40, height: 40, resizeMode: "contain" }}
+                  style={{ width: 40, height: 40 }}
+                  resizeMode="contain"
                 />
               </View>
             }

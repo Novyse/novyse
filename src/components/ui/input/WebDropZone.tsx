@@ -145,8 +145,11 @@ const WebDropZoneWeb: React.FC<WebDropZoneProps> = ({
   return (
     <View
       ref={containerRef}
-      pointerEvents={isDraggingOver ? "auto" : "none"}
-      style={[styles.overlay, style]}
+      style={[
+        styles.overlay,
+        style,
+        { pointerEvents: isDraggingOver ? "auto" : "none" },
+      ]}
     >
       {children}
     </View>

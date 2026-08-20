@@ -145,6 +145,7 @@ const ScreenShareSelector = ({
             <Image
               source={{ uri: source.thumbnail }}
               style={styles.thumbnail}
+              resizeMode="cover"
             />
           ) : (
             <View style={styles.thumbnailPlaceholder} />
@@ -327,7 +328,6 @@ function createStyle(theme: any) {
     thumbnail: {
       width: "100%",
       height: "100%",
-      resizeMode: "cover",
     },
     thumbnailPlaceholder: {
       width: "100%",

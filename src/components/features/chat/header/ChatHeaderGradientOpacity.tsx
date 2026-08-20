@@ -36,7 +36,6 @@ const ChatHeaderBackdrop = ({ height }: ChatHeaderBackdropProps) => {
     <LinearGradient
       colors={gradientColors}
       style={[styles.backdrop, { height: height + FADE_EXTENSION }]}
-      pointerEvents="none"
     />
   );
 };
@@ -48,6 +47,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     width: "100%",
+    pointerEvents: "none",
   },
 });
 

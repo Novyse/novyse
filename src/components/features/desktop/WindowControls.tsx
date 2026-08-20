@@ -110,7 +110,7 @@ const WindowControls: React.FC = () => {
   const closePressedBg = theme.dangerText;
 
   return (
-    <View style={[styles.toolbar, dragStyle]} pointerEvents="box-none">
+    <View style={[styles.toolbar, dragStyle]}>
       <View style={[styles.buttonsContainer, noDragStyle]}>
         <WindowButton
           onPress={() => api.minimize()}
@@ -154,6 +154,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     backgroundColor: "transparent",
     zIndex: 9999,
+    pointerEvents: "box-none",
   },
   buttonsContainer: {
     flexDirection: "row",
