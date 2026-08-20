@@ -139,6 +139,7 @@
       "actions": {
         "settings": "Settings",
         "block": "Block",
+        "starred_messages": "Starred messages",
         "leave": "Leave"
       },
       "errors": {

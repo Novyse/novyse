@@ -15,10 +15,7 @@ const SettingsSection = ({ titleKey, children }: SettingsSectionProps) => {
     <View style={sectionStyles.container}>
       {titleKey && <Label translationKey={titleKey} />}
       <View
-        style={[
-          sectionStyles.card,
-          { backgroundColor: theme.backgroundMain },
-        ]}
+        style={[sectionStyles.card, { backgroundColor: theme.backgroundMain }]}
       >
         {children}
       </View>
