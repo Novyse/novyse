@@ -138,7 +138,7 @@
       "actions": {
         "settings": "Impostazioni",
         "block": "Blocca",
-        "starred_messages":"Messaggi salvati",
+        "favourite_messages":"Messaggi preferiti",
         "leave": "Abbandona"
       },
       "errors": {

@@ -345,7 +345,7 @@ const ChatOverview = () => {
           />
           <SettingsRow
             iconName="StarIcon"
-            labelKey="chat.overview.actions.starred_messages"
+            labelKey="chat.overview.actions.favourite_messages"
             onPress={() => {}}
           />
           <SettingsRow

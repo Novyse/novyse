@@ -139,7 +139,7 @@
       "actions": {
         "settings": "Settings",
         "block": "Block",
-        "starred_messages": "Starred messages",
+        "favourite_messages": "Favuorite messages",
         "leave": "Leave"
       },
       "errors": {
