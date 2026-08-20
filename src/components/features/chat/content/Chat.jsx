@@ -675,12 +675,13 @@ const ChatContent = () => {
                   height: "100%",
                   minWidth: isSmallScreen ? 0 : CHAT_MIN,
                   position: "relative",
-                  overflow: "hidden",
+                  zIndex: 1,
                 }}
               >
                 {!isSmallScreen && (
                   <PanelResizeHandle panHandlers={subListResizerHandlers} />
                 )}
+                <View style={{ flex: 1, overflow: "hidden" }}>
                 <MessageList
                   ref={flatListRef}
                   preparedMessages={preparedMessages}
@@ -704,6 +705,7 @@ const ChatContent = () => {
                   onLoadMore={() => loadMoreMessages(selectedChatUUID)}
                   bottomBarHeight={bottomBarHeight}
                 />
+                </View>
               </View>
             </View>
           ) : (

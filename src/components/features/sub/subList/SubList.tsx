@@ -16,6 +16,7 @@ import VocalSubSubtitle from "./VocalSubSubtitle";
 import useCommsAction from "@/src/hooks/comms/useCommsAction";
 import { useCommsContext } from "@/src/context/CommsContext";
 import BlurredView from "@/src/components/layout/BlurredView";
+import { ScrollBar } from "@/constants/ScrollBar";
 
 const SubList = ({
   chat,
@@ -142,6 +143,7 @@ const SubList = ({
         extraData={{ selectedSub, isCollapsed }}
         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
         contentContainerStyle={{ padding: 10 }}
+        style={styles.list}
       />
 
       {canManageSub && (
@@ -170,8 +172,13 @@ function createStyle(theme: any) {
       flexGrow: 0,
       flexShrink: 0,
       position: "relative",
+      zIndex: 0,
       borderRadius: 25,
       overflow: "hidden",
+    },
+    list: {
+      flex: 1,
+      ...ScrollBar(theme),
     },
     avatar: {
       width: 45,

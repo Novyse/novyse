@@ -26,7 +26,7 @@ export default function PanelResizeHandle({
   return (
     <View {...panHandlers} {...webHover} style={styles.hitArea}>
       {hovered && (
-        <View pointerEvents="none" style={styles.pill}>
+        <View style={styles.pill}>
           <Icon name="ArrowLeft01Icon" size={12} color={theme.icon} />
         </View>
       )}
@@ -38,11 +38,11 @@ function createStyles(theme: Theme) {
   return StyleSheet.create({
     hitArea: {
       position: "absolute",
-      left: -12,
+      left: -6,
       top: 0,
       bottom: 0,
-      width: 24,
-      zIndex: 10,
+      width: 10,
+      zIndex: 100,
       justifyContent: "center",
       alignItems: "flex-end",
       ...(Platform.OS === "web" && ({ cursor: "ew-resize" } as object)),
@@ -57,10 +57,8 @@ function createStyles(theme: Theme) {
       alignItems: "center",
       justifyContent: "center",
       marginRight: -2,
-      shadowColor: theme.shadowColor,
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.25,
-      shadowRadius: 2,
+      pointerEvents: "none",
+      boxShadow: `0px 2px 3px ${theme.shadowColor}`,
     },
   });
 }

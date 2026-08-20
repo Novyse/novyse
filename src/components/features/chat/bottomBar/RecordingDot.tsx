@@ -45,13 +45,7 @@ const RecordingDot = ({ isRecording = false }: RecordingDotProps) => {
 const styles = (opacityAnim: Animated.Value, theme: any) =>
   StyleSheet.create({
     dot: {
-      shadowColor: theme.shadowColor,
-      shadowOffset: {
-        width: 0,
-        height: 1,
-      },
-      shadowOpacity: 0.22,
-      shadowRadius: 2.22,
+      boxShadow: `0px 2px 3px ${theme.shadowColor}`,
       elevation: 3,
       width: 10,
       height: 10,

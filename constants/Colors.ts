@@ -30,7 +30,7 @@ export const Colors = {
     secondary: "#0f90e6",
     borderColor: "rgba(255,255,255,0.05)",
     badgeColor: "#20566e",                            // TODO: strano utilizzo, sistemarlo
-    shadowColor: "#000000",
+    shadowColor: "#00000025",
 
     // Gradients
     backgroundMain: "#013480",

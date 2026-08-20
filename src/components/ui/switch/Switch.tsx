@@ -214,10 +214,7 @@ const createStyles = (theme: any) =>
       height: THUMB_SIZE,
       borderRadius: 20,
       backgroundColor: theme.text,
-      shadowColor: theme.shadowColor,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 3,
+      boxShadow: `0px 2px 3px ${theme.shadowColor}`,
     },
   });
 

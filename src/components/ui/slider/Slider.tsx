@@ -39,6 +39,7 @@ const Slider = ({
   style,
 }: SliderProps) => {
   const { theme } = useContext(ThemeContext);
+  const styles = createStyles(theme);
   const fillColor = minimumTrackTintColor ?? theme.primary;
   const trackColor = maximumTrackTintColor ?? theme.text + 20;
   const thumbColor = thumbTintColor ?? theme.primary;
@@ -187,31 +188,29 @@ const Slider = ({
   );
 };
 
-const styles = StyleSheet.create({
-  hitArea: {
-    height: HIT_HEIGHT,
-    justifyContent: "center",
-    minWidth: 0,
-  },
-  track: {
-    width: "100%",
-    borderRadius: 4,
-    overflow: "hidden",
-  },
-  fill: {
-    height: "100%",
-  },
-  thumb: {
-    position: "absolute",
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
-    borderRadius: THUMB_SIZE / 2,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-});
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    hitArea: {
+      height: HIT_HEIGHT,
+      justifyContent: "center",
+      minWidth: 0,
+    },
+    track: {
+      width: "100%",
+      borderRadius: 4,
+      overflow: "hidden",
+    },
+    fill: {
+      height: "100%",
+    },
+    thumb: {
+      position: "absolute",
+      width: THUMB_SIZE,
+      height: THUMB_SIZE,
+      borderRadius: THUMB_SIZE / 2,
+      boxShadow: `0px 2px 3px ${theme.shadowColor}`,
+      elevation: 4,
+    },
+  });
 
 export default Slider;

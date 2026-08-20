@@ -26,6 +26,7 @@ export interface ButtonProps {
   weight?: TypographyWeight;
   text?: string;
   translationKey?: string;
+  translationOptions?: Record<string, unknown>;
   onPress?: () => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -40,6 +41,7 @@ export default function Button({
   weight = "semibold",
   text,
   translationKey,
+  translationOptions,
   onPress,
   disabled = false,
   style,
@@ -83,6 +85,7 @@ export default function Button({
         <Typography
           text={text}
           translationKey={translationKey}
+          translationOptions={translationOptions}
           size={size}
           weight={weight}
           variant={resolvedTextVariant}

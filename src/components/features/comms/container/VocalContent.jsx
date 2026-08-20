@@ -48,7 +48,14 @@ const VocalContent = () => {
             bottomBarHeight={60}
           />
         )}
-        <View style={{ flex: 1, height: "100%", position: "relative" }}>
+        <View
+          style={{
+            flex: 1,
+            height: "100%",
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
           {showSubList && !isSmallScreen && (
             <PanelResizeHandle panHandlers={subListResizerHandlers} />
           )}

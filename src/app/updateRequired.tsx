@@ -1,21 +1,21 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
   Linking,
-  TouchableOpacity,
   Image,
   ActivityIndicator,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import * as Device from "expo-device";
 import * as FileSystem from "expo-file-system";
 import * as FileSystemLegacy from "expo-file-system/legacy";
 import * as IntentLauncher from "expo-intent-launcher";
 
-import { useThemeContext } from "@/src/context/ThemeContext";
-
+import { useThemeContext, type Theme } from "@/src/context/ThemeContext";
 import Typography from "@/src/components/ui/typography/Typography";
+import LinkTypography from "@/src/components/ui/typography/LinkTypography";
+import Button from "@/src/components/ui/button/Button";
 
 import { APP_VERSION, BRANCH } from "../../app.config";
 import Platform, {
@@ -24,6 +24,8 @@ import Platform, {
   type InstallSource,
 } from "@/src/utils/device/type";
 import { updaterRpc } from "@/src/utils/electron/system";
+import logoNovyse from "@/assets/images/logo-novyse.png";
+
 
 // --- Store URLs ---
 // TODO: Replace placeholder IDs with actual store listing IDs
@@ -41,7 +43,6 @@ const GITHUB_URL =
     ? "https://github.com/Novyse/novyse/releases/latest"
     : "https://github.com/Novyse/novyse/releases";
 
-// --- Button label translation keys by install source ---
 const BUTTON_KEYS: Partial<Record<InstallSource, string>> = {
   "play-store": "layout.updateRequired.openPlayStore",
   "app-store": "layout.updateRequired.openAppStore",
@@ -68,7 +69,6 @@ type UpdaterStatus =
 export default function UpdateRequiredScreen() {
   const { theme } = useThemeContext();
   const { minVersion } = useLocalSearchParams();
-  const router = useRouter();
   const styles = createStyle(theme);
 
   const [installSource, setInstallSource] = useState<InstallSource>("unknown");
@@ -259,24 +259,19 @@ export default function UpdateRequiredScreen() {
             setUpdaterStatus("error");
           }
           return;
-        } else {
-          // download flow per desktop
-          setUpdaterStatus("checking");
-          setUpdaterError(null);
-          updaterRpc.check();
-          return;
         }
+
+        setUpdaterStatus("checking");
+        setUpdaterError(null);
+        updaterRpc.check();
+        return;
       }
-      // If currently checking or downloading, button is disabled (no-op)
       return;
     }
-
     // Not auto-updatable: open the correct store or GitHub
-    let url = STORE_URLS[installSource] || GITHUB_URL;
-    Linking.openURL(url);
+    Linking.openURL(STORE_URLS[installSource] ?? GITHUB_URL);
   }, [installSource, canAutoUpdate, updaterStatus]);
 
-  // Determine the primary button text
   const getPrimaryButtonKey = (): string => {
     if (canAutoUpdate) {
       switch (updaterStatus) {
@@ -288,7 +283,7 @@ export default function UpdateRequiredScreen() {
           return "layout.updateRequired.installing";
         case "error":
           return (
-            BUTTON_KEYS[installSource] ||
+            BUTTON_KEYS[installSource] ??
             "layout.updateRequired.downloadLatestVersion"
           );
         default:
@@ -296,7 +291,7 @@ export default function UpdateRequiredScreen() {
       }
     }
     return (
-      BUTTON_KEYS[installSource] ||
+      BUTTON_KEYS[installSource] ??
       "layout.updateRequired.downloadLatestVersion"
     );
   };
@@ -315,221 +310,124 @@ export default function UpdateRequiredScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Logo */}
-      <View style={styles.logoContainer}>
-        <Image
-          source={require("@/assets/images/logo-novyse.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-      </View>
-      {/* Text content */}
+      <Image source={logoNovyse} style={styles.logo} resizeMode="contain" />
+
       <Typography
-        style={styles.title}
+        size="xxl"
+        weight="bold"
+        style={styles.centered}
         translationKey="layout.updateRequired.title"
       />
       <Typography
+        size="sm"
+        variant="subtitle"
         style={styles.subtitle}
         translationKey="layout.updateRequired.subtitle"
       />
-      {/* Version Info */}
-      <View style={styles.versionContainer}>
+
+      <View style={styles.versions}>
         <Typography
-          style={styles.versionText}
+          size="xs"
+          weight="semibold"
           translationKey="layout.updateRequired.currentVersion"
-          translationOptions={{
-            version: APP_VERSION,
-          }}
+          translationOptions={{ version: APP_VERSION }}
         />
-        {minVersion && (
+        {minVersion ? (
           <Typography
-            style={styles.versionText}
+            size="xs"
+            weight="semibold"
             translationKey="layout.updateRequired.requiredVersion"
-            translationOptions={{
-              version: minVersion,
-            }}
+            translationOptions={{ version: minVersion }}
           />
-        )}
+        ) : null}
       </View>
 
-      {/* Progress bar for auto-update download */}
-      {canAutoUpdate && updaterStatus === "downloading" && (
-        <View style={styles.progressBarContainer}>
+      {canAutoUpdate && updaterStatus === "downloading" ? (
+        <View style={styles.progressTrack}>
           <View
-            style={[styles.progressBarFill, { width: `${downloadPercent}%` }]}
+            style={[styles.progressFill, { width: `${downloadPercent}%` }]}
           />
         </View>
-      )}
+      ) : null}
 
-      {/* Error message */}
-      {updaterError && (
+      {updaterError ? (
         <Typography
-          style={styles.errorText}
+          size="sm"
+          variant="danger"
+          style={styles.error}
           translationKey="layout.updateRequired.autoUpdateError"
         />
-      )}
+      ) : null}
 
-      {/* CTA Button — context-aware */}
-      <TouchableOpacity
-        style={[styles.button, isPrimaryDisabled && styles.buttonDisabled]}
+      <Button
+        translationKey={getPrimaryButtonKey()}
+        translationOptions={{ percent: Math.round(downloadPercent) }}
         onPress={handlePrimaryPress}
-        activeOpacity={0.85}
         disabled={isPrimaryDisabled}
-      >
-        {isPrimaryDisabled && (
-          <ActivityIndicator
-            size="small"
-            color={theme.text}
-            style={styles.buttonSpinner}
-          />
-        )}
-        <Typography
-          style={styles.buttonText}
-          translationKey={getPrimaryButtonKey()}
-          translationOptions={{
-            percent: downloadPercent,
-          }}
-        />
-      </TouchableOpacity>
+        weight="bold"
+        style={styles.cta}
+        textStyle={{ color: theme.text }}
+      />
 
-      {/* Fallback GitHub link for auto-update errors */}
-      {canAutoUpdate && updaterStatus === "error" && (
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          onPress={() => Linking.openURL(GITHUB_URL)}
-          activeOpacity={0.7}
-        >
-          <Typography
-            style={styles.secondaryButtonText}
-            translationKey="layout.updateRequired.openGitHub"
-          />
-        </TouchableOpacity>
-      )}
+      {canAutoUpdate && updaterStatus === "error" ? (
+        <LinkTypography
+          size="sm"
+          weight="semibold"
+          href={GITHUB_URL}
+          translationKey="layout.updateRequired.openGitHub"
+        />
+      ) : null}
     </View>
   );
 }
 
-const createStyle = (theme: any) =>
+const createStyle = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
       padding: 32,
-    },
-    logoContainer: {
-      marginBottom: 32,
+      gap: 16,
     },
     logo: {
       width: 72,
       height: 72,
+      marginBottom: 8,
     },
-    iconBadge: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: theme.backgroundCard,
-      borderWidth: 1.5,
-      borderColor: theme.borderColor,
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: 28,
-    },
-    iconBadgeText: {
-      fontSize: 24,
-      color: theme.text,
-      fontWeight: "700",
-    },
-    title: {
-      fontSize: 26,
-      fontWeight: "700",
-      color: theme.text,
-      marginBottom: 14,
+    centered: {
       textAlign: "center",
-      letterSpacing: 0.3,
     },
     subtitle: {
-      fontSize: 15,
-      color: theme.subtitle,
       textAlign: "center",
-      marginBottom: 20,
-      lineHeight: 22,
       maxWidth: 320,
     },
-    versionContainer: {
+    versions: {
       flexDirection: "row",
       gap: 16,
-      marginBottom: 24,
       backgroundColor: theme.backgroundMain,
       paddingVertical: 6,
       paddingHorizontal: 12,
       borderRadius: 20,
     },
-    versionText: {
-      fontSize: 12,
-      color: theme.text,
-      fontWeight: "600",
-    },
-    progressBarContainer: {
+    progressTrack: {
       width: "80%",
       maxWidth: 300,
       height: 6,
       borderRadius: 3,
       backgroundColor: theme.backgroundCard,
-      marginBottom: 20,
       overflow: "hidden",
     },
-    progressBarFill: {
+    progressFill: {
       height: "100%",
       borderRadius: 3,
       backgroundColor: theme.primary,
     },
-    errorText: {
-      fontSize: 13,
-      color: theme.error || "#e74c3c",
+    error: {
       textAlign: "center",
-      marginBottom: 12,
-      paddingHorizontal: 20,
     },
-    button: {
+    cta: {
+      alignSelf: "center",
       backgroundColor: theme.primary,
-      paddingVertical: 15,
-      paddingHorizontal: 36,
-      borderRadius: 12,
-      shadowColor: theme.shadowColor,
-      shadowOpacity: 0.25,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 6,
-      marginBottom: 20,
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 10,
-    },
-    buttonDisabled: {
-      opacity: 0.7,
-    },
-    buttonSpinner: {
-      marginRight: 4,
-    },
-    buttonText: {
-      color: theme.text,
-      fontWeight: "700",
-      fontSize: 16,
-      letterSpacing: 0.2,
-    },
-    secondaryButton: {
-      paddingVertical: 10,
-      paddingHorizontal: 20,
-    },
-    secondaryButtonText: {
-      color: theme.text,
-      fontWeight: "600",
-      fontSize: 14,
-      textDecorationLine: "underline",
-    },
-    linkText: {
-      color: theme.textLink,
-      textDecorationLine: "underline",
     },
   });

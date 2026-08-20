@@ -191,9 +191,7 @@ const createStyles = (
       borderColor: theme.borderColor,
       borderRadius: 25,
       overflow: "hidden",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.25,
-      shadowRadius: 5,
+      boxShadow: `0px 2px 3px ${theme.shadowColor}`,
       elevation: 5,
     },
   });
