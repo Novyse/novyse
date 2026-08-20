@@ -46,6 +46,7 @@ const Slider = ({
 
   const trackWidth = useSharedValue(1);
   const progress = useSharedValue(0);
+  const hoverRatio = useSharedValue(0);
   const isDragging = useSharedValue(false);
   const isHovered = useSharedValue(false);
   const lastJsEmit = useSharedValue(0);
@@ -133,8 +134,15 @@ const Slider = ({
   });
 
   const hoverGesture = Gesture.Hover()
-    .onStart(() => {
+    .onStart((e) => {
       isHovered.value = true;
+      hoverRatio.value = ratioFromX(e.x);
+    })
+    .onUpdate((e) => {
+      hoverRatio.value = ratioFromX(e.x);
+    })
+    .onChange((e) => {
+      hoverRatio.value = ratioFromX(e.x);
     })
     .onFinalize(() => {
       isHovered.value = false;
@@ -148,6 +156,17 @@ const Slider = ({
   const fillStyle = useAnimatedStyle(() => ({
     width: progress.value * trackWidth.value,
   }));
+
+  const hoverPreviewStyle = useAnimatedStyle(() => {
+    const start = Math.min(progress.value, hoverRatio.value);
+    const end = Math.max(progress.value, hoverRatio.value);
+    const show = isHovered.value && !isDragging.value;
+    return {
+      left: start * trackWidth.value,
+      width: show ? (end - start) * trackWidth.value : 0,
+      opacity: show ? 0.35 : 0,
+    };
+  });
 
   const thumbStyle = useAnimatedStyle(() => {
     const active = isDragging.value || isHovered.value;
@@ -179,6 +198,14 @@ const Slider = ({
           <Animated.View
             style={[styles.fill, fillStyle, { backgroundColor: fillColor }]}
           />
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.hoverPreview,
+              hoverPreviewStyle,
+              { backgroundColor: theme.text },
+            ]}
+          />
         </Animated.View>
         <Animated.View
           style={[styles.thumb, thumbStyle, { backgroundColor: thumbColor }]}
@@ -202,6 +229,11 @@ const createStyles = (theme: any) =>
     },
     fill: {
       height: "100%",
+    },
+    hoverPreview: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
     },
     thumb: {
       position: "absolute",
