@@ -7,6 +7,8 @@ interface SettingsCardProps {
   style?: StyleProp<ViewStyle>;
 }
 
+// ! Will be deprecated with the new settings
+
 const SettingsCard = ({ children, style }: SettingsCardProps) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyle(theme);

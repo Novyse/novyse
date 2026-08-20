@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
 import { StyleSheet, View, TouchableOpacity } from "react-native";
 import Typography from "@/src/components/ui/typography/Typography";
 import { router } from "expo-router";
@@ -18,6 +18,10 @@ import { usesNativeAudioRouting } from "@/src/utils/comms/nativeAudio";
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
 import SettingsCard from "@/src/components/features/settings/SettingsCard";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
+import SettingsSection from "@/src/components/features/settings/SettingsSection";
+import SettingsRow from "@/src/components/features/settings/SettingsRow";
+import SpeakerSelector from "@/src/components/features/comms/bottomBar/SpeakerSelector";
+import SettingsSelectGroup from "@/src/components/features/settings/SettingsSelectGroup";
 
 export default function CommsRoute() {
   const { t } = useTranslation();
@@ -30,6 +34,7 @@ export default function CommsRoute() {
   const [videoDevices, setVideoDevices] = useState<any[]>([]);
   const [devicesLoading, setDevicesLoading] = useState(true);
   const [micModalVisible, setMicModalVisible] = useState(false);
+  const [speakerModalVisible, setSpeakerModalVisible] = useState(false);
   const [cameraModalVisible, setCameraModalVisible] = useState(false);
   const styles = createStyle(theme);
 
@@ -91,10 +96,26 @@ export default function CommsRoute() {
   }));
 
   const entryModeOptions = [
-    { label: t("settings.comms.off"), value: "OFF" },
-    { label: t("settings.comms.audioOnly"), value: "AUDIO_ONLY" },
-    { label: t("settings.comms.videoOnly"), value: "VIDEO_ONLY" },
-    { label: t("settings.comms.both"), value: "BOTH" },
+    {
+      iconName: "Remove01Icon",
+      labelText: t("settings.comms.off"),
+      value: "OFF",
+    },
+    {
+      iconName: "AudioWave01Icon",
+      labelText: t("settings.comms.audioOnly"),
+      value: "AUDIO_ONLY",
+    },
+    {
+      iconName: "Camera01Icon",
+      labelText: t("settings.comms.videoOnly"),
+      value: "VIDEO_ONLY",
+    },
+    {
+      iconName: "SlidersVerticalIcon",
+      labelText: t("settings.comms.both"),
+      value: "BOTH",
+    },
   ];
 
   const qualityOptions = [
@@ -205,80 +226,45 @@ export default function CommsRoute() {
           translationKey="common.developerNote"
           closable={false}
         />
-        <SettingsCard>
-          <Typography
-            style={styles.sectionTitle}
-            translationKey="settings.comms.inputDevices"
-          />
-          <StatusMessage
-            type="warning"
-            translationKey="settings.comms.inputDevicesWarning"
-            closable={false}
-          />
+        <StatusMessage
+          type="warning"
+          translationKey="settings.comms.inputDevicesWarning"
+          closable={false}
+        />
 
-          {devicesLoading ? (
-            <View style={styles.disabledField}>
-              <Typography translationKey="settings.comms.loadingDevices" />
-            </View>
-          ) : (
-            <>
-              {!usesNativeAudioRouting && (
-                <>
-                  <Label translationKey="settings.comms.microphone" />
-                  <Button
-                    text={
-                      audioDeviceOptions.find(
-                        (o) => o.value === audioSettings.microphoneDeviceId,
-                      )?.label || t("settings.comms.microphone")
-                    }
-                    onPress={() => setMicModalVisible(true)}
-                    style={{ width: "100%", marginBottom: 15 }}
-                  />
-                </>
-              )}
-
-              <Label translationKey="settings.comms.webcam" />
-              <Button
-                text={
-                  videoDeviceOptions.find(
-                    (o) => o.value === audioSettings.webcamDeviceId,
-                  )?.label || t("settings.comms.webcam")
-                }
-                onPress={() => setCameraModalVisible(true)}
-                style={{ width: "100%", marginBottom: 15 }}
-              />
-
-              {!usesNativeAudioRouting && (
-                <MicrophoneSelector
-                  visible={micModalVisible}
-                  onClose={() => setMicModalVisible(false)}
-                  currentDeviceId={
-                    audioSettings.microphoneDeviceId || "default"
-                  }
-                  onMicrophoneSelected={(deviceId) =>
-                    updateSetting("microphoneDeviceId", deviceId)
-                  }
-                />
-              )}
-
-              <CameraSelector
-                visible={cameraModalVisible}
-                onClose={() => setCameraModalVisible(false)}
-                currentDeviceId={audioSettings.webcamDeviceId || "default"}
-                onCameraSelected={(deviceId) =>
-                  updateSetting("webcamDeviceId", deviceId)
-                }
-              />
-            </>
+        <SettingsSection titleKey="settings.comms.inputDevices">
+          {!usesNativeAudioRouting && (
+            <SettingsRow
+              iconName="Mic02Icon"
+              labelKey="settings.comms.microphone"
+              type="MODAL"
+              onPress={() => setMicModalVisible(true)}
+            />
+          )}
+          {!usesNativeAudioRouting && (
+            <SettingsRow
+              iconName="VolumeHighIcon"
+              labelKey="settings.comms.speaker"
+              type="MODAL"
+              onPress={() => setSpeakerModalVisible(true)}
+            />
           )}
 
-          <SegmentedSwitch
-            labelTranslationKey="settings.comms.entryMode"
+          <SettingsRow
+            iconName="Camera01Icon"
+            labelKey="settings.comms.webcam"
+            type="MODAL"
+            onPress={() => setCameraModalVisible(true)}
+          />
+        </SettingsSection>
+
+        <SettingsSection titleKey="settings.comms.entryMode">
+          <SettingsSelectGroup
             options={entryModeOptions}
             value={audioSettings.entryMode || "AUDIO_ONLY"}
             onChange={(value) => updateSetting("entryMode", value)}
           />
-        </SettingsCard>
+        </SettingsSection>
 
         <SettingsCard>
           <Typography
@@ -373,6 +359,37 @@ export default function CommsRoute() {
             onChange={(value) => updateSetting("typingAttenuationLevel", value)}
           />
         </SettingsCard>
+
+        {!usesNativeAudioRouting && (
+          <MicrophoneSelector
+            visible={micModalVisible}
+            onClose={() => setMicModalVisible(false)}
+            currentDeviceId={audioSettings.microphoneDeviceId || "default"}
+            onMicrophoneSelected={(deviceId) =>
+              updateSetting("microphoneDeviceId", deviceId)
+            }
+          />
+        )}
+
+        {!usesNativeAudioRouting && (
+          <SpeakerSelector
+            visible={speakerModalVisible}
+            onClose={() => setSpeakerModalVisible(false)}
+            currentDeviceId={audioSettings.speakerDeviceId || "default"}
+            onSpeakerSelected={(deviceId) =>
+              updateSetting("speakerDeviceId", deviceId)
+            }
+          />
+        )}
+
+        <CameraSelector
+          visible={cameraModalVisible}
+          onClose={() => setCameraModalVisible(false)}
+          currentDeviceId={audioSettings.webcamDeviceId || "default"}
+          onCameraSelected={(deviceId) =>
+            updateSetting("webcamDeviceId", deviceId)
+          }
+        />
 
         {__DEV__ && (
           <SettingsCard>

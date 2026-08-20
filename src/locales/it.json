@@ -412,6 +412,7 @@
       "inputDevicesWarning": "⚠️ Attenzione: Le modifiche ai dispositivi di input non influenzeranno attualmente le funzionalità della chat.",
       "loadingDevices": "Caricamento dispositivi...",
       "microphone": "Microfono",
+      "speaker":"Autoparlante",
       "webcam": "Webcam",
       "entryMode": "Modalità di Ingresso",
       "videoSettings": "Impostazioni Video",

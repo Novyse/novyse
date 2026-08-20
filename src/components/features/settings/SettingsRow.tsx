@@ -72,7 +72,7 @@ const SettingsRow = ({
             { backgroundColor: rowColor + 15 },
           ]}
         >
-          <Icon name={iconName} color={rowColor} size={20} />
+          <Icon name={iconName} color={rowColor}/>
         </View>
       ) : null}
 
@@ -139,7 +139,7 @@ const SettingsRow = ({
           case "MODAL":
           default:
             return onPress ? (
-              <Icon name={rightIconName} color={theme.subtitle} size={20} />
+              <Icon name={rightIconName} color={theme.subtitle}/>
             ) : null;
         }
       })()}

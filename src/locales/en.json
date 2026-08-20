@@ -414,6 +414,7 @@
       "inputDevicesWarning": "⚠️ Warning: Changes to input devices will not affect chat functionality at the moment.",
       "loadingDevices": "Loading devices...",
       "microphone": "Microphone",
+      "speaker": "Speaker",
       "webcam": "Webcam",
       "entryMode": "Entry Mode",
       "videoSettings": "Video Settings",

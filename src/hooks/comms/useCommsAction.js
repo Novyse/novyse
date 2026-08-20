@@ -141,6 +141,7 @@ const useCommsAction = (chatUUID, sub) => {
   const clearError = () => setError(null);
 
   const [microphoneDevice, setMicrophoneDevice] = useState(null);
+  // future speaker state
   const [cameraDevice, setCameraDevice] = useState(null);
   const runCameraOperation = useRef(createCameraOperationQueue()).current;
 
