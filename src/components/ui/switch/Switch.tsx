@@ -15,6 +15,8 @@ interface SwitchProps {
 
 const TRACK_TRAVEL = 20;
 const TOGGLE_THRESHOLD = TRACK_TRAVEL / 2;
+const THUMB_SIZE = 19;
+const THUMB_STRETCH_EXTRA = 8;
 const THUMB_SCALE_PRESSED = 0.88;
 const THUMB_SCALE_TOGGLE = 0.72;
 
@@ -23,12 +25,21 @@ const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
   const styles = createStyles(theme);
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
   const thumbScale = useRef(new Animated.Value(1)).current;
+  const thumbStretch = useRef(new Animated.Value(0)).current;
   const isEnabledRef = useRef<boolean>(value);
 
   const animateToValue = useCallback(
     (enabled: boolean, { pulse = true }: { pulse?: boolean } = {}) => {
       animatedValue.stopAnimation();
       thumbScale.stopAnimation();
+      thumbStretch.stopAnimation();
+
+      const stretchRelease = Animated.timing(thumbStretch, {
+        toValue: 0,
+        duration: 110,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      });
 
       const positionAnimation = Animated.spring(animatedValue, {
         toValue: enabled ? 1 : 0,
@@ -40,6 +51,7 @@ const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
       if (!pulse) {
         Animated.parallel([
           positionAnimation,
+          stretchRelease,
           Animated.spring(thumbScale, {
             toValue: 1,
             useNativeDriver: false,
@@ -51,6 +63,7 @@ const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
       }
 
       Animated.parallel([
+        stretchRelease,
         Animated.timing(thumbScale, {
           toValue: THUMB_SCALE_TOGGLE,
           duration: 70,
@@ -74,7 +87,7 @@ const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
         ]),
       ]).start();
     },
-    [animatedValue, thumbScale],
+    [animatedValue, thumbScale, thumbStretch],
   );
 
   useEffect(() => {
@@ -106,12 +119,21 @@ const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
       onPanResponderGrant: () => {
         animatedValue.stopAnimation();
         thumbScale.stopAnimation();
+        thumbStretch.stopAnimation();
 
-        Animated.timing(thumbScale, {
-          toValue: THUMB_SCALE_PRESSED,
-          duration: 80,
-          useNativeDriver: false,
-        }).start();
+        Animated.parallel([
+          Animated.timing(thumbScale, {
+            toValue: THUMB_SCALE_PRESSED,
+            duration: 80,
+            useNativeDriver: false,
+          }),
+          Animated.timing(thumbStretch, {
+            toValue: 1,
+            duration: 90,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: false,
+          }),
+        ]).start();
       },
 
       onPanResponderMove: (_, gestureState: PanResponderGestureState) => {
@@ -140,10 +162,21 @@ const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
     }),
   ).current;
 
-  const translateX = animatedValue.interpolate({
+  const thumbWidth = thumbStretch.interpolate({
     inputRange: [0, 1],
-    outputRange: [3, 23],
+    outputRange: [THUMB_SIZE, THUMB_SIZE + THUMB_STRETCH_EXTRA],
   });
+
+  const translateX = Animated.add(
+    3,
+    Animated.multiply(
+      animatedValue,
+      Animated.subtract(
+        TRACK_TRAVEL,
+        Animated.multiply(thumbStretch, THUMB_STRETCH_EXTRA),
+      ),
+    ),
+  );
 
   const backgroundColor = animatedValue.interpolate({
     inputRange: [0, 1],
@@ -158,7 +191,10 @@ const Switch: React.FC<SwitchProps> = ({ value, onValueChange }) => {
       <Animated.View
         style={[
           styles.thumb,
-          { transform: [{ translateX }, { scale: thumbScale }] },
+          {
+            width: thumbWidth,
+            transform: [{ translateX }, { scale: thumbScale }],
+          },
         ]}
       />
     </Animated.View>
@@ -174,8 +210,8 @@ const createStyles = (theme: any) =>
       justifyContent: "center",
     },
     thumb: {
-      width: 19,
-      height: 19,
+      width: THUMB_SIZE,
+      height: THUMB_SIZE,
       borderRadius: 20,
       backgroundColor: theme.text,
       shadowColor: theme.shadowColor,
