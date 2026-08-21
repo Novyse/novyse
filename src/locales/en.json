@@ -52,6 +52,23 @@
         "alreadyInUse": "Already in use",
         "passwordsMismatch": "Passwords do not match"
       }
+    },
+    "inputs": {
+      "select_placeholder": "Select an option",
+      "no_options": "No options",
+      "select_date": "Select date",
+      "select_time": "Select time",
+      "select_datetime": "Select date and time",
+      "select_date_range": "Select date range",
+      "select_dates": "Select dates",
+      "tab_date": "Date",
+      "tab_time": "Time",
+      "from": "From",
+      "to": "To",
+      "clear": "Clear",
+      "confirm": "Confirm",
+      "multipleHint": "Tap a day to start, the same day again to add it, or another day to add a range. Tap a selected day to remove it.",
+      "selectedCount": "{{count}} selected"
     }
   },
   "chat": {

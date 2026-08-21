@@ -10,7 +10,7 @@ import Label from "@/src/components/ui/label/Label";
 import SectionHeader from "@/src/components/features/settings/account/modify-profile/modifyProfileForm/SectionHeader";
 import TextInput from "@/src/components/ui/input/TextInput";
 import SelectInput from "@/src/components/ui/input/SelectInput";
-import DateInput from "@/src/components/ui/input/DateInput";
+import DateTimeInput from "@/src/components/ui/input/DateTimeInput";
 
 interface PersonalInfoProps {
   initialValues: {
@@ -120,12 +120,16 @@ export default function PersonalInfo({
         </View>
         <View style={styles.halfInput}>
           <Label translationKey="settings.modifyProfile.birthday" />
-          <DateInput
+          <DateTimeInput
             placeholder={t("settings.modifyProfile.birthdayFormat")}
             value={birthdayVal}
-            disabled={true}
+            // disabled={true}
             onChange={(val) =>
-              handleFieldChange("birthday", val, setBirthdayVal)
+              handleFieldChange(
+                "birthday",
+                typeof val === "string" ? val : "",
+                setBirthdayVal,
+              )
             }
           />
         </View>

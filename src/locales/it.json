@@ -52,6 +52,23 @@
         "alreadyInUse": "Già in uso",
         "passwordsMismatch": "Le password non coincidono"
       }
+    },
+    "inputs": {
+      "select_placeholder": "Seleziona un'opzione",
+      "no_options": "Nessuna opzione",
+      "select_date": "Seleziona data",
+      "select_time": "Seleziona orario",
+      "select_datetime": "Seleziona data e orario",
+      "select_date_range": "Seleziona un intervallo",
+      "select_dates": "Seleziona date",
+      "tab_date": "Data",
+      "tab_time": "Orario",
+      "from": "Da",
+      "to": "A",
+      "clear": "Cancella",
+      "confirm": "Conferma",
+      "multipleHint": "Tocca un giorno per iniziare, di nuovo lo stesso per aggiungerlo, oppure un altro giorno per un intervallo. Tocca un giorno già selezionato per rimuoverlo.",
+      "selectedCount": "{{count}} selezionati"
     }
   },
   "chat": {
@@ -138,7 +155,7 @@
       "actions": {
         "settings": "Impostazioni",
         "block": "Blocca",
-        "favourite_messages":"Messaggi preferiti",
+        "favourite_messages": "Messaggi preferiti",
         "leave": "Abbandona"
       },
       "errors": {
@@ -412,7 +429,7 @@
       "inputDevicesWarning": "⚠️ Attenzione: Le modifiche ai dispositivi di input non influenzeranno attualmente le funzionalità della chat.",
       "loadingDevices": "Caricamento dispositivi...",
       "microphone": "Microfono",
-      "speaker":"Autoparlante",
+      "speaker": "Autoparlante",
       "webcam": "Webcam",
       "entryMode": "Modalità di Ingresso",
       "videoSettings": "Impostazioni Video",
