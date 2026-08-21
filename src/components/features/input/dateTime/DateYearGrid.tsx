@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Platform, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { DateTime } from "luxon";
-import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 
 import Typography from "@/src/components/ui/typography/Typography";
 import HoverAndPressedButton from "@/src/components/ui/button/HoverAndPressedButton";
 import { Theme } from "@/src/context/ThemeContext";
 
 const YEAR_ROW_HEIGHT = 48;
-const YearScroll = Platform.OS === "web" ? ScrollView : BottomSheetScrollView;
 
 type DateYearGridProps = {
   selectedYear: number;
@@ -46,8 +44,8 @@ const DateYearGrid = ({
   }, [selectedYear, years]);
 
   return (
-    <YearScroll
-      ref={scrollRef as any}
+    <ScrollView
+      ref={scrollRef}
       style={styles.scroll}
       nestedScrollEnabled
       showsVerticalScrollIndicator={false}
@@ -75,7 +73,7 @@ const DateYearGrid = ({
           );
         })}
       </View>
-    </YearScroll>
+    </ScrollView>
   );
 };
 

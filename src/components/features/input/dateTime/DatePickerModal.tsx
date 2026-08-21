@@ -169,9 +169,9 @@ const DatePickerModal = ({
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      snapPoints={["75%"]}
       titleTranslationKey={title}
-      scrollable={!pickingYear && panel !== "time" && mode !== "time"}
+      scrollable={false}
+      enableContentPanningGesture={!pickingYear}
     >
       <View style={styles.body}>
         {mode === "datetime" ? (

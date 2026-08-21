@@ -257,7 +257,6 @@ const ScreenShareSelector = ({
       visible={visible}
       onClose={onClose}
       mode="adaptive"
-      snapPoints={hasNativeScreenShareMenu ? ["35%"] : ["90%"]}
       scrollable={false}
       titleTranslationKey="chat.comms.selectors.screenshare.title"
     >

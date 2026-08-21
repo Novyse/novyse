@@ -45,7 +45,6 @@ const ProfileQRCodeModal = ({
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      snapPoints={["90%"]}
     >
       <View style={styles.container}>
         <View style={styles.qrcodeContainer}>

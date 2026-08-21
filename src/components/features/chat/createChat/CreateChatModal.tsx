@@ -60,8 +60,6 @@ const CreateChatModal = ({ visible, onClose }: CreateChatModalProps) => {
   const [handleError, setHandleError] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
 
-  const snapPoints = useMemo(() => ["85%"], []);
-
   const privacyOptions = useMemo<ToggleOption<PrivacyType>[]>(
     () => [
       {
@@ -320,7 +318,6 @@ const CreateChatModal = ({ visible, onClose }: CreateChatModalProps) => {
       visible={visible}
       onClose={onClose}
       mode="adaptive"
-      snapPoints={snapPoints}
       titleTranslationKey="modals.create_chat.title"
     >
       {ModalContent}

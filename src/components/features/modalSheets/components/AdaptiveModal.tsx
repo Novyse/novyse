@@ -25,14 +25,12 @@ export interface AdaptiveModalProps {
   onClose: () => void;
   children: React.ReactNode;
   mode?: AdaptiveModalMode;
-  snapPoints?: (string | number)[];
   scrollable?: boolean;
   fullscreen?: boolean;
   hideCloseX?: boolean;
   hideOverlay?: boolean;
   enablePanDownToClose?: boolean;
-  enableOverDrag?: boolean;
-  enableDynamicSizing?: boolean;
+  enableContentPanningGesture?: boolean;
   title?: string;
   titleTranslationKey?: string;
   titleTranslationOptions?: Record<string, unknown>;
@@ -45,14 +43,12 @@ const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
       onClose,
       children,
       mode = "adaptive",
-      snapPoints = ["50%"],
       scrollable = true,
       fullscreen = false,
       hideCloseX = false,
       hideOverlay = false,
       enablePanDownToClose = true,
-      enableOverDrag = false,
-      enableDynamicSizing = false,
+      enableContentPanningGesture = true,
       title,
       titleTranslationKey,
       titleTranslationOptions,
@@ -60,7 +56,6 @@ const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
     ref,
   ) => {
     const { theme } = useContext(ThemeContext);
-
     const useBottomSheetPresentation =
       mode === "bottomsheet" || (mode === "adaptive" && Platform.OS !== "web");
 
@@ -112,7 +107,6 @@ const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
       return (
         <BottomSheetBase
           ref={bottomSheetRef}
-          snapPoints={snapPoints}
           onClose={handleSheetDismiss}
           theme={theme}
           scrollable={scrollable}
@@ -121,8 +115,7 @@ const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
           titleTranslationKey={titleTranslationKey}
           titleTranslationOptions={titleTranslationOptions}
           enablePanDownToClose={enablePanDownToClose}
-          enableOverDrag={enableOverDrag}
-          enableDynamicSizing={enableDynamicSizing}
+          enableContentPanningGesture={enableContentPanningGesture}
         >
           {children}
         </BottomSheetBase>

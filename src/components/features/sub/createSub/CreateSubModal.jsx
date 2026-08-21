@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -18,8 +18,6 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
 
   const [name, setName] = useState("");
   const [error, setError] = useState(null);
-
-  const snapPoints = useMemo(() => ["50%"], []);
 
   const [type, setType] = useState("MIXED");
 
@@ -96,7 +94,6 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
       visible={visible}
       onClose={onClose}
       mode="adaptive"
-      snapPoints={snapPoints}
       title="Create Sub"
     >
       {ModalContent}

@@ -13,7 +13,6 @@ export interface SettingsSelectModalProps<T extends string = string> {
   titleText?: string;
   loading?: boolean;
   loadingKey?: string;
-  snapPoints?: string[];
   mode?: "adaptive" | "modal" | "bottomsheet";
 }
 
@@ -27,7 +26,6 @@ function SettingsSelectModal<T extends string = string>({
   titleText,
   loading = false,
   loadingKey,
-  snapPoints = ["50%"],
   mode = "adaptive",
 }: SettingsSelectModalProps<T>) {
   const styles = createStyle();
@@ -42,7 +40,6 @@ function SettingsSelectModal<T extends string = string>({
       visible={visible}
       onClose={onClose}
       mode={mode}
-      snapPoints={snapPoints}
       title={titleText}
       titleTranslationKey={titleKey}
     >

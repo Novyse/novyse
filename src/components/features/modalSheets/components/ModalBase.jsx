@@ -168,9 +168,7 @@ function createStyle(shouldUseFullscreen) {
     scrollView: {
       flexShrink: 1,
     },
-    scrollContent: {
-      flexGrow: 1,
-    },
+    scrollContent: {},
     body: {
       flexShrink: 1,
     },

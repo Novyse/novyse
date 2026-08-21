@@ -103,7 +103,6 @@ const UploadFileOverlay = ({
       visible={visible}
       onClose={onClose}
       mode="adaptive"
-      snapPoints={["60%"]}
       scrollable={false}
       hideCloseX={true}
     >

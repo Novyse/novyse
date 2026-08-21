@@ -1,4 +1,5 @@
-import React, { forwardRef, useCallback } from "react";
+import { forwardRef, useCallback } from "react";
+import { useWindowDimensions } from "react-native";
 import {
   BottomSheetModal,
   BottomSheetView,
@@ -13,21 +14,22 @@ const BottomSheetBase = forwardRef(
   (
     {
       children,
-      snapPoints = ["50%"],
       onClose,
       theme,
       scrollable = true,
-      enablePanDownToClose = true,
-      enableOverDrag = false,
-      enableDynamicSizing = false,
       hideOverlay = false,
+      enablePanDownToClose = true,
+      enableContentPanningGesture = true,
       title,
       titleTranslationKey,
       titleTranslationOptions,
-      ...props
     },
     ref,
   ) => {
+    const insets = useSafeAreaInsets();
+    const { height: windowHeight } = useWindowDimensions();
+    const sheetGap = insets.bottom;
+
     const renderBackdrop = useCallback(
       (backdropProps) => (
         <BottomSheetBackdrop
@@ -41,41 +43,53 @@ const BottomSheetBase = forwardRef(
       [hideOverlay],
     );
 
-    const insets = useSafeAreaInsets();
-    const sheetGap = insets.bottom;
-    const bottomInset = insets.bottom;
-
     const renderBackground = useCallback(
       ({ style }) => (
         <BlurredView
-          style={[
-            style,
-            {
-              borderRadius: 25,
-            },
-          ]}
+          style={[style, { borderRadius: 25 }]}
           isBorderActive={false}
         />
       ),
       [],
     );
 
-    const Container = scrollable ? BottomSheetScrollView : BottomSheetView;
-    const contentPadding = {
-      padding: 25,
-      paddingBottom: 25,
-    };
+    const contentPadding = { padding: 25, paddingBottom: 25 };
+
+    const header = (
+      <ModalHeader
+        title={title}
+        titleTranslationKey={titleTranslationKey}
+        titleTranslationOptions={titleTranslationOptions}
+        hideCloseX
+        onClose={onClose}
+      />
+    );
+
+    const body = scrollable ? (
+      <BottomSheetScrollView
+        contentContainerStyle={contentPadding}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
+      >
+        {header}
+        {children}
+      </BottomSheetScrollView>
+    ) : (
+      <BottomSheetView style={contentPadding}>
+        {header}
+        {children}
+      </BottomSheetView>
+    );
 
     return (
       <BottomSheetModal
         ref={ref}
-        index={0}
-        snapPoints={snapPoints}
         enablePanDownToClose={enablePanDownToClose}
-        enableOverDrag={enableOverDrag}
-        enableDynamicSizing={enableDynamicSizing}
+        enableContentPanningGesture={enableContentPanningGesture}
+        maxDynamicContentSize={windowHeight * 0.85}
         detached
-        bottomInset={bottomInset}
+        bottomInset={sheetGap}
         style={{ marginHorizontal: sheetGap }}
         backdropComponent={renderBackdrop}
         backgroundComponent={renderBackground}
@@ -88,21 +102,8 @@ const BottomSheetBase = forwardRef(
           width: 40,
         }}
         onDismiss={onClose}
-        {...props}
       >
-        <Container
-          style={scrollable ? { flex: 1 } : contentPadding}
-          contentContainerStyle={scrollable ? contentPadding : undefined}
-        >
-          <ModalHeader
-            title={title}
-            titleTranslationKey={titleTranslationKey}
-            titleTranslationOptions={titleTranslationOptions}
-            hideCloseX={true}
-            onClose={onClose}
-          />
-          {children}
-        </Container>
+        {body}
       </BottomSheetModal>
     );
   },
