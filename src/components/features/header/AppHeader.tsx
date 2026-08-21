@@ -26,7 +26,6 @@ interface AppHeaderProps {
   footer?: React.ReactNode;
   /** Rendered below the blurred panel (e.g. status banner). */
   belowBlur?: React.ReactNode;
-  expanded?: boolean;
   collapsed?: boolean;
   fullWidthBackdrop?: boolean;
   onLayout?: (height: number) => void;
@@ -41,7 +40,6 @@ const AppHeader = ({
   children,
   footer,
   belowBlur,
-  expanded = false,
   collapsed = false,
   fullWidthBackdrop = false,
   onLayout,
@@ -60,7 +58,7 @@ const AppHeader = ({
     [onLayout],
   );
 
-  const borderRadius = expanded ? 25 : 100;
+  const borderRadius = !!footer ? 25 : 100;
   const rowContent =
     children ??
     (collapsed ? (

@@ -70,7 +70,7 @@ const ChatHeader = ({
     ? room.roomInfo.name.split("_")[0]
     : null;
   const hasComms = connected && commsRoomChatUUID === chatUUIDorHandle;
-  const isHeaderExpanded = hasPinnedMessage || hasComms || isVoiceActive;
+  const hasHeaderSubItems = hasPinnedMessage || hasComms || isVoiceActive;
 
   const handleContentLayout = React.useCallback(
     (height) => {
@@ -115,11 +115,10 @@ const ChatHeader = ({
 
   return (
     <AppHeader
-      expanded={isHeaderExpanded}
       fullWidthBackdrop={useFullWidthBackdrop}
       onLayout={handleContentLayout}
       footer={
-        isHeaderExpanded ? (
+        hasHeaderSubItems ? (
           <>
             {hasPinnedMessage && (
               <PinnedMessageHeader pinnedMessages={pinnedMessages} />
