@@ -54,7 +54,7 @@ const DatePickerModal = ({
 }: DatePickerModalProps) => {
   const { t, i18n } = useTranslation();
   const locale = i18n.language || "en";
-  const styles = createStyles(theme);
+  const styles = createStyles();
 
   const [draft, setDraft] = useState<DateDraft>(emptyDraft);
   const [visibleMonth, setVisibleMonth] = useState(() => DateTime.now());
@@ -169,7 +169,6 @@ const DatePickerModal = ({
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      theme={theme}
       snapPoints={["75%"]}
       titleTranslationKey={title}
       scrollable={!pickingYear}
@@ -261,7 +260,7 @@ const DatePickerModal = ({
   );
 };
 
-const createStyles = (theme: Theme) =>
+const createStyles = () =>
   StyleSheet.create({
     body: {
       gap: 16,

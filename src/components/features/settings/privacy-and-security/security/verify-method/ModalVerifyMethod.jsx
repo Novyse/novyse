@@ -16,7 +16,6 @@ import Typography from "@/src/components/ui/typography/Typography";
 const ModalVerifyMethod = ({
   visible,
   onClose,
-  theme,
   token,
   verificationType,
   secret,
@@ -77,7 +76,6 @@ const ModalVerifyMethod = ({
         setError(null);
         onClose();
       }}
-      theme={theme}
       mode="modal"
       titleTranslationKey={getFormattedVerificationTypeKey()}
     >

@@ -1,5 +1,4 @@
 import { View, StyleSheet } from "react-native";
-import { useThemeContext } from "@/src/context/ThemeContext";
 import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import SettingsSelectGroup, { SelectOption } from "./SettingsSelectGroup";
 import Typography from "@/src/components/ui/typography/Typography";
@@ -31,7 +30,6 @@ function SettingsSelectModal<T extends string = string>({
   snapPoints = ["50%"],
   mode = "adaptive",
 }: SettingsSelectModalProps<T>) {
-  const { theme } = useThemeContext();
   const styles = createStyle();
 
   const handleSelect = (val: T) => {
@@ -43,7 +41,6 @@ function SettingsSelectModal<T extends string = string>({
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      theme={theme}
       mode={mode}
       snapPoints={snapPoints}
       title={titleText}

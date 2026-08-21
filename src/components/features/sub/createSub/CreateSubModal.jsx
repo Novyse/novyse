@@ -1,10 +1,9 @@
-import { useState, useContext, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import Button from "@/src/components/ui/button/Button";
 import TextInput from "@/src/components/ui/input/TextInput";
-import { ThemeContext } from "@/src/context/ThemeContext";
 import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import Typography from "@/src/components/ui/typography/Typography";
@@ -14,9 +13,8 @@ import eventEmitter from "@/src/utils/global/Events/EventEmitter";
 import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
 
 const CreateSubModal = ({ visible, onClose, chatUUID }) => {
-  const { theme } = useContext(ThemeContext);
   const { t } = useTranslation();
-  const styles = createStyle(theme);
+  const styles = createStyle();
 
   const [name, setName] = useState("");
   const [error, setError] = useState(null);
@@ -83,7 +81,6 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
         visible={!!error}
         content={error}
         onClose={() => setError(null)}
-        theme={theme}
       />
 
       <Button
@@ -98,7 +95,6 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      theme={theme}
       mode="adaptive"
       snapPoints={snapPoints}
       title="Create Sub"
@@ -108,7 +104,7 @@ const CreateSubModal = ({ visible, onClose, chatUUID }) => {
   );
 };
 
-function createStyle(theme) {
+function createStyle() {
   return StyleSheet.create({
     container: {
       gap: 25,

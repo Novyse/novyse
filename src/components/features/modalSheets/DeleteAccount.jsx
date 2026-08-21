@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
@@ -10,17 +10,15 @@ import LinkText from "@/src/components/ui/typography/Typography";
 import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 
-import { ThemeContext } from "@/src/context/ThemeContext";
 import useUserStore from "@/src/store/UserStore";
 
 import authBackend from "@/src/utils/backend-services/auth";
 import auth from "@/src/utils/welcome/auth";
 
 const DeleteAccount = ({ visible, onClose }) => {
-  const { theme } = useContext(ThemeContext);
   const { t } = useTranslation();
   const router = useRouter();
-  const styles = createStyles(theme);
+  const styles = createStyles();
 
   const myUUID = useUserStore((state) => state.localUserUUID);
   const username = useUserStore((state) => state.users[myUUID]?.handle);
@@ -77,7 +75,6 @@ const DeleteAccount = ({ visible, onClose }) => {
         onClose={() => setError(null)}
         content={[error]}
         type="danger"
-        theme={theme}
       />
 
       <View style={styles.footer}>
@@ -96,7 +93,6 @@ const DeleteAccount = ({ visible, onClose }) => {
     <AdaptiveModal
       visible={visible}
       onClose={handleClose}
-      theme={theme}
       mode="adaptive"
       titleTranslationKey="modals.delete_account.title"
     >
@@ -105,7 +101,7 @@ const DeleteAccount = ({ visible, onClose }) => {
   );
 };
 
-const createStyles = (theme) =>
+const createStyles = () =>
   StyleSheet.create({
     container: {
       gap: 25,

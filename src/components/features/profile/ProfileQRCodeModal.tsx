@@ -45,7 +45,6 @@ const ProfileQRCodeModal = ({
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      theme={theme}
       snapPoints={["90%"]}
     >
       <View style={styles.container}>
@@ -107,7 +106,6 @@ const ProfileQRCodeModal = ({
             <Icon
               name={copied ? "Tick01Icon" : "Copy01Icon"}
               size={20}
-              color={theme.text}
             />
           </HoverAndPressedButton>
         </View>

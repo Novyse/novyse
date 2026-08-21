@@ -119,10 +119,7 @@ const StatusMessage = ({
           exiting={FadeOutDown.duration(200)}
           style={styles.container}
         >
-          <BlurredView
-            color={colors.bg}
-            style={styles.blur}
-          >
+          <BlurredView color={colors.bg} style={styles.blur}>
             <View style={[styles.inner, iconOnly && styles.innerCompact]}>
               <View
                 style={[
@@ -159,7 +156,9 @@ const StatusMessage = ({
                         let lastIndex = 0;
                         let match;
 
-                        while ((match = linkRegex.exec(formattedText)) !== null) {
+                        while (
+                          (match = linkRegex.exec(formattedText)) !== null
+                        ) {
                           if (match.index > lastIndex) {
                             parts.push(
                               formattedText.substring(lastIndex, match.index),

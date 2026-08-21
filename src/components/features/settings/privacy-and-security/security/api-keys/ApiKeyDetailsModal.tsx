@@ -26,7 +26,6 @@ export default function ApiKeyDetailsModal({
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      theme={theme}
       mode="modal"
       titleTranslationKey="settings.privacyAndSecurity.apiKeys.detailsModal.title"
     >

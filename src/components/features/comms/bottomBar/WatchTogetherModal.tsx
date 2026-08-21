@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
-import { ThemeContext } from "@/src/context/ThemeContext";
 import { useCommsContext } from "@/src/context/CommsContext";
 import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -20,9 +19,8 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
   onClose,
 }) => {
   const { t } = useTranslation();
-  const { theme } = useContext(ThemeContext);
   const { room } = useCommsContext();
-  const styles = createStyles(theme);
+  const styles = createStyles();
 
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -114,7 +112,6 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      theme={theme}
       mode="adaptive"
       titleTranslationKey={
         isVideoActive
@@ -156,7 +153,7 @@ export const WatchTogetherModal: React.FC<WatchTogetherModalProps> = ({
   );
 };
 
-const createStyles = (theme: any) =>
+const createStyles = () =>
   StyleSheet.create({
     container: {
       gap: 25,

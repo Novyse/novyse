@@ -60,10 +60,9 @@ const UploadFileOverlay = ({
   onClose,
   onMenuItemPress,
   onFileSelected,
-  theme,
   bottomOffset = 70,
 }) => {
-  const styles = createStyle(theme);
+  const styles = createStyle();
   const isMobile = Platform === "mobile";
 
   const handleMenuItemPress = async (action) => {
@@ -103,7 +102,6 @@ const UploadFileOverlay = ({
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      theme={theme}
       mode="adaptive"
       snapPoints={["60%"]}
       scrollable={false}
@@ -118,7 +116,7 @@ const UploadFileOverlay = ({
               onPress={() => handleMenuItemPress(item.action)}
               disabled={item.disabled}
             >
-              <Icon name={item.iconName} size={32} color={theme.icon} />
+              <Icon name={item.iconName} size={32}/>
               <Typography size="xs" translationKey={item.translationKey} />
             </HoverAndPressedButton>
           ))}
@@ -128,7 +126,7 @@ const UploadFileOverlay = ({
   );
 };
 
-const createStyle = (theme) =>
+const createStyle = () =>
   StyleSheet.create({
     content: {},
     menuRow: {

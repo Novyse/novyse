@@ -139,7 +139,6 @@ const UploadProfilePicture = ({ visible, onClose }) => {
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      theme={theme}
       mode="modal"
       hideCloseX={true}
     >

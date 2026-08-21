@@ -51,7 +51,6 @@ export const RoomOptionsMenu: React.FC<RoomOptionsMenuProps> = ({
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      theme={theme}
       mode="adaptive"
       scrollable={showAudioOutput}
       hideCloseX={true}

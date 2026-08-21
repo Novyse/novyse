@@ -183,7 +183,6 @@ export default function ApiKeysRoute() {
         onClose={() => setShowCreateModal(false)}
         onConfirm={handleCreateKey}
         isLoading={isLoading}
-        theme={theme}
       />
 
       <ApiKeyDetailsModal

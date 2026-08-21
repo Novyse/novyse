@@ -12,7 +12,7 @@ import SegmentedSwitch, {
   type ToggleOption,
 } from "@/src/components/ui/switch/SegmentedSwitch";
 
-import { useThemeContext, type Theme } from "@/src/context/ThemeContext";
+import { useThemeContext } from "@/src/context/ThemeContext";
 import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 
 import AdaptiveModal from "@/src/components/features/modalSheets/components/AdaptiveModal";
@@ -319,7 +319,6 @@ const CreateChatModal = ({ visible, onClose }: CreateChatModalProps) => {
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      theme={theme}
       mode="adaptive"
       snapPoints={snapPoints}
       titleTranslationKey="modals.create_chat.title"

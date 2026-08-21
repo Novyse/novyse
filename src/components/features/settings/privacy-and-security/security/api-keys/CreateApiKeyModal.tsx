@@ -11,7 +11,6 @@ interface CreateApiKeyModalProps {
   onClose: () => void;
   onConfirm: (name: string) => void;
   isLoading: boolean;
-  theme: any;
 }
 
 export default function CreateApiKeyModal({
@@ -19,7 +18,6 @@ export default function CreateApiKeyModal({
   onClose,
   onConfirm,
   isLoading,
-  theme,
 }: CreateApiKeyModalProps) {
   const [name, setName] = useState("");
   const { t } = useTranslation();
@@ -36,7 +34,6 @@ export default function CreateApiKeyModal({
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      theme={theme}
       mode="modal"
       titleTranslationKey="settings.privacyAndSecurity.apiKeys.createModal.title"
     >

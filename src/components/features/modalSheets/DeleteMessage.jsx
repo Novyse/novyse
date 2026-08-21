@@ -23,7 +23,6 @@ const DeleteMessage = ({
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      theme={theme}
       mode="modal"
       fullscreen={fullscreen}
       hideCloseX

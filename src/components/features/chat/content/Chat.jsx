@@ -830,7 +830,6 @@ const ChatContent = () => {
           onClose={() => setIsAttachMenuOpen(false)}
           onMenuItemPress={handleAttachMenuItemPress}
           onFileSelected={handleAppendFilesToDraft}
-          theme={theme}
           bottomOffset={bottomBarHeight}
         />
 

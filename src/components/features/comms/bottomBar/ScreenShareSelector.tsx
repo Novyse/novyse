@@ -256,7 +256,6 @@ const ScreenShareSelector = ({
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      theme={theme}
       mode="adaptive"
       snapPoints={hasNativeScreenShareMenu ? ["35%"] : ["90%"]}
       scrollable={false}

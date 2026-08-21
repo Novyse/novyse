@@ -38,7 +38,6 @@ const ModalBackupCodes = ({ visible, onClose, theme }) => {
     <AdaptiveModal
       visible={visible}
       onClose={onClose}
-      theme={theme}
       mode="adaptive"
       titleTranslationKey="modals.backup_codes.title"
     >

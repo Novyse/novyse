@@ -4,13 +4,14 @@ import React, {
   useCallback,
   forwardRef,
   useImperativeHandle,
+  useContext,
 } from "react";
 import { Platform } from "react-native";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 
 import ModalBase from "./ModalBase";
 import BottomSheetBase from "./BottomSheetBase";
-import type { Theme } from "@/src/context/ThemeContext";
+import { ThemeContext } from "@/src/context/ThemeContext";
 
 export type AdaptiveModalMode = "modal" | "bottomsheet" | "adaptive";
 
@@ -23,7 +24,6 @@ export interface AdaptiveModalProps {
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
-  theme: Theme;
   mode?: AdaptiveModalMode;
   snapPoints?: (string | number)[];
   scrollable?: boolean;
@@ -44,7 +44,6 @@ const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
       visible,
       onClose,
       children,
-      theme,
       mode = "adaptive",
       snapPoints = ["50%"],
       scrollable = true,
@@ -60,6 +59,8 @@ const AdaptiveModal = forwardRef<AdaptiveModalRef, AdaptiveModalProps>(
     },
     ref,
   ) => {
+    const { theme } = useContext(ThemeContext);
+
     const useBottomSheetPresentation =
       mode === "bottomsheet" || (mode === "adaptive" && Platform.OS !== "web");
 
