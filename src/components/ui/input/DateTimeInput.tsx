@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import Typography from "@/src/components/ui/typography/Typography";
 import Label from "@/src/components/ui/label/Label";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import DatePickerModal from "../../features/input/date/DatePickerModal";
+import DatePickerModal from "../../features/input/dateTime/DatePickerModal";
 import {
   clampDateTime,
   defaultMaxDate,

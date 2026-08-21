@@ -171,7 +171,7 @@ const DatePickerModal = ({
       onClose={onClose}
       snapPoints={["75%"]}
       titleTranslationKey={title}
-      scrollable={!pickingYear}
+      scrollable={!pickingYear && panel !== "time" && mode !== "time"}
     >
       <View style={styles.body}>
         {mode === "datetime" ? (
