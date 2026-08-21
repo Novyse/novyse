@@ -85,7 +85,7 @@ const AppHeader = ({
           styles.content,
           collapsed && styles.contentCollapsed,
           fullWidthBackdrop
-            ? { paddingTop: insets.top }
+            ? { paddingTop: insets.top + HEADER_SHELL_PADDING }
             : { paddingTop: HEADER_SHELL_PADDING },
         ]}
         onLayout={handleContentLayout}
