@@ -9,7 +9,6 @@ interface MicrophoneArrowButtonProps {
 }
 
 const MicrophoneArrowButton = ({
-
   onPress,
   isMobile = false,
 }: MicrophoneArrowButtonProps) => {

@@ -7,16 +7,12 @@ import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 
-import SegmentedSwitch from "@/src/components/ui/switch/SegmentedSwitch";
 import CameraSelector from "@/src/components/features/comms/bottomBar/CameraSelector";
 import MicrophoneSelector from "@/src/components/features/comms/bottomBar/MicrophoneSelector";
-import Button from "@/src/components/ui/button/Button";
 import settingsManager from "@/src/utils/global/SettingsManager";
-import Label from "@/src/components/ui/label/Label";
 import { usesNativeAudioRouting } from "@/src/utils/comms/nativeAudio";
 
 import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
-import SettingsCard from "@/src/components/features/settings/SettingsCard";
 import StatusMessage from "@/src/components/features/status/StatusMessage";
 import SettingsSection from "@/src/components/features/settings/SettingsSection";
 import SettingsRow from "@/src/components/features/settings/SettingsRow";
@@ -145,33 +141,11 @@ export default function CommsRoute() {
     { label: t("settings.comms.high"), value: "HIGH" },
   ];
 
-  const expanderOptions = [
-    { label: t("settings.comms.off"), value: "OFF" },
-    { label: t("settings.comms.low"), value: "LOW" },
-    { label: t("settings.comms.medium"), value: "MEDIUM" },
-    { label: t("settings.comms.high"), value: "HIGH" },
-  ];
-
   const noiseGateOptions = [
     { label: t("settings.comms.off"), value: "OFF" },
     { label: t("settings.comms.adaptive"), value: "ADAPTIVE" },
     { label: t("settings.comms.hybrid"), value: "HYBRID" },
     { label: t("settings.comms.manual"), value: "MANUAL" },
-  ];
-
-  // Threshold expressed as string options (dB steps)
-  const noiseGateThresholdOptions = [
-    { label: "-60 dB", value: "-60" },
-    { label: "-40 dB", value: "-40" },
-    { label: "-20 dB", value: "-20" },
-    { label: "0 dB", value: "0" },
-  ];
-
-  const typingAttenuationOptions = [
-    { label: t("settings.comms.off"), value: "OFF" },
-    { label: t("settings.comms.low"), value: "LOW" },
-    { label: t("settings.comms.medium"), value: "MEDIUM" },
-    { label: t("settings.comms.high"), value: "HIGH" },
   ];
 
   if (isLoading) {
@@ -266,99 +240,53 @@ export default function CommsRoute() {
           />
         </SettingsSection>
 
-        <SettingsCard>
-          <Typography
-            style={styles.sectionTitle}
-            translationKey="settings.comms.videoSettings"
+        <SettingsSection titleKey="settings.comms.videoSettings">
+          <SettingsRow
+            iconName="Camera01Icon"
+            labelKey="settings.comms.webcamQuality"
+            type="MODAL"
+            // onPress={() => setCameraQualityModalVisible(true)}
           />
-          <SegmentedSwitch
-            labelTranslationKey="settings.comms.webcamQuality"
-            options={qualityOptions}
-            value={audioSettings.webcamQuality || "HD"}
-            onChange={(value) => updateSetting("webcamQuality", value)}
+          <SettingsRow
+            iconName="Camera01Icon"
+            labelKey="settings.comms.webcamFPS"
+            type="MODAL"
+            // onPress={() => setCameraFpsModalVisible(true)}
           />
-          <SegmentedSwitch
-            labelTranslationKey="settings.comms.webcamFPS"
-            options={fpsOptions}
-            value={String(audioSettings.webcamFPS || 30)}
-            onChange={(value) => updateSetting("webcamFPS", Number(value))}
-          />
-        </SettingsCard>
+        </SettingsSection>
 
-        <SettingsCard>
-          <Typography
-            style={styles.sectionTitle}
-            translationKey="settings.comms.screenShareSettings"
+        <SettingsSection titleKey="settings.comms.screenShareSettings">
+          <SettingsRow
+            iconName="ComputerScreenShareIcon"
+            labelKey="settings.comms.screenShareQuality"
+            type="MODAL"
+            // onPress={() => setScreenShareQualityModalVisible(true)}
           />
-          <SegmentedSwitch
-            labelTranslationKey="settings.comms.screenShareQuality"
-            options={qualityOptions}
-            value={audioSettings.screenShareQuality || "HD"}
-            onChange={(value) => updateSetting("screenShareQuality", value)}
+          <SettingsRow
+            iconName="ComputerScreenShareIcon"
+            labelKey="settings.comms.screenShareFPS"
+            type="MODAL"
+            // onPress={() => setScreenShareFpsModalVisible(true)}
           />
-          <SegmentedSwitch
-            labelTranslationKey="settings.comms.screenShareFPS"
-            options={fpsOptions}
-            value={String(audioSettings.screenShareFPS || 30)}
-            onChange={(value) => updateSetting("screenShareFPS", Number(value))}
+          <SettingsRow
+            iconName="ComputerScreenShareIcon"
+            labelKey="settings.comms.screenShareAudio"
+            type="SWITCH"
           />
-          <SegmentedSwitch
-            labelTranslationKey="settings.comms.screenShareAudio"
-            options={audioOptions}
-            value={audioSettings.screenShareAudio ? "ON" : "OFF"}
-            onChange={(value) =>
-              updateSetting("screenShareAudio", value === "ON")
-            }
-          />
-        </SettingsCard>
+        </SettingsSection>
 
-        <SettingsCard>
-          <Typography
-            style={styles.sectionTitle}
-            translationKey="settings.comms.audioProcessing"
+        <SettingsSection titleKey="settings.comms.audioProcessing">
+          <SettingsRow
+            iconName="AudioWave01Icon"
+            labelKey="settings.comms.noiseSuppression"
+            type="SWITCH"
           />
-          <SegmentedSwitch
-            labelTranslationKey="settings.comms.noiseSuppression"
-            options={noiseSuppressionOptions}
-            value={audioSettings.noiseSuppressionLevel || "MEDIUM"}
-            onChange={(value) => updateSetting("noiseSuppressionLevel", value)}
+          <SettingsRow
+            iconName="AudioWave01Icon"
+            labelKey="settings.comms.noiseGate"
+            type="SWITCH"
           />
-
-          <SegmentedSwitch
-            labelTranslationKey="settings.comms.expander"
-            options={expanderOptions}
-            value={audioSettings.expanderLevel || "MEDIUM"}
-            onChange={(value) => updateSetting("expanderLevel", value)}
-          />
-
-          <SegmentedSwitch
-            labelTranslationKey="settings.comms.noiseGate"
-            options={noiseGateOptions}
-            value={audioSettings.noiseGateType || "ADAPTIVE"}
-            onChange={(value) => updateSetting("noiseGateType", value)}
-          />
-
-          {(audioSettings.noiseGateType === "HYBRID" ||
-            audioSettings.noiseGateType === "MANUAL") && (
-            <>
-              <SegmentedSwitch
-                labelTranslationKey="settings.comms.noiseGateThreshold"
-                options={noiseGateThresholdOptions}
-                value={String(audioSettings.noiseGateThreshold || -20)}
-                onChange={(value) =>
-                  updateSetting("noiseGateThreshold", Number(value))
-                }
-              />
-            </>
-          )}
-
-          <SegmentedSwitch
-            labelTranslationKey="settings.comms.typingAttenuation"
-            options={typingAttenuationOptions}
-            value={audioSettings.typingAttenuationLevel || "MEDIUM"}
-            onChange={(value) => updateSetting("typingAttenuationLevel", value)}
-          />
-        </SettingsCard>
+        </SettingsSection>
 
         {!usesNativeAudioRouting && (
           <MicrophoneSelector
@@ -392,7 +320,19 @@ export default function CommsRoute() {
         />
 
         {__DEV__ && (
-          <SettingsCard>
+          <View
+            style={{
+              backgroundColor: theme.backgroundMain,
+              padding: 25,
+              borderRadius: 25,
+            }}
+          >
+            <Typography
+              size="lg"
+              weight="semibold"
+              text="DEV UI"
+              variant="danger"
+            />
             <Typography
               style={styles.debugTitle}
               translationKey="settings.comms.currentSettings"
@@ -400,7 +340,7 @@ export default function CommsRoute() {
             <Typography style={styles.debugText}>
               {JSON.stringify(audioSettings, null, 2)}
             </Typography>
-          </SettingsCard>
+          </View>
         )}
       </SettingsPageScrollview>
     </>

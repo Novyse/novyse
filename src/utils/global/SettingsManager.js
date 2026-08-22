@@ -1,6 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const SETTINGS_KEY = '@app_settings';
+const SETTINGS_KEY = "@app_settings";
 
 class SettingsManager {
   constructor() {
@@ -20,14 +20,9 @@ class SettingsManager {
           screenShareAudio: false, // true, false
 
           noiseSuppressionLevel: "MEDIUM", // OFF, LOW, MEDIUM, HIGH
-          expanderLevel: "MEDIUM", // OFF, LOW, MEDIUM, HIGH
           noiseGateType: "ADAPTIVE", // OFF, MANUAL, HYBRYD, ADAPTIVE
-          noiseGateThreshold: -20, // ONLY IF TYPE = MANUAL | HYBRYD
-          typingAttenuationLevel: "MEDIUM", // OFF, LOW, MEDIUM, HIGH
-
-
-        }
-      }
+        },
+      },
     };
   }
 
@@ -38,24 +33,23 @@ class SettingsManager {
   async loadSettings() {
     try {
       const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
-      
+
       if (savedSettings) {
         const parsed = JSON.parse(savedSettings);
         // Merge con le impostazioni di default per aggiungere eventuali nuove chiavi
         return this._mergeWithDefaults(parsed);
       }
-      
+
       // Se non ci sono impostazioni salvate, usa quelle di default
       const defaultWithTimestamp = {
         ...this.defaultSettings,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
-      
+
       await this.saveSettings(defaultWithTimestamp);
       return defaultWithTimestamp;
-      
     } catch (error) {
-      console.error('SettingsManager: Error loading settings:', error);
+      console.error("SettingsManager: Error loading settings:", error);
       return this.defaultSettings;
     }
   }
@@ -69,13 +63,16 @@ class SettingsManager {
     try {
       const settingsWithTimestamp = {
         ...settings,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
-      
-      await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(settingsWithTimestamp, null, 2));
+
+      await AsyncStorage.setItem(
+        SETTINGS_KEY,
+        JSON.stringify(settingsWithTimestamp, null, 2),
+      );
       return true;
     } catch (error) {
-      console.error('SettingsManager: Error saving settings:', error);
+      console.error("SettingsManager: Error saving settings:", error);
       return false;
     }
   }
@@ -90,7 +87,7 @@ class SettingsManager {
       const settings = await this.loadSettings();
       return this._getValueByPath(settings, path);
     } catch (error) {
-      console.error('SettingsManager: Error getting single parameter:', error);
+      console.error("SettingsManager: Error getting single parameter:", error);
       return this._getValueByPath(this.defaultSettings, path);
     }
   }
@@ -100,19 +97,19 @@ class SettingsManager {
    * @param {string} pagePath - Percorso della pagina (default: "settings.vocalChat")
    * @returns {Object} I parametri della pagina vocalChat
    */
-   async getPageParameters(pagePath) {
+  async getPageParameters(pagePath) {
     try {
       const settings = await this.loadSettings();
       const pageSettings = this._getValueByPath(settings, pagePath);
-      
-      if (typeof pageSettings === 'object' && pageSettings !== null) {
+
+      if (typeof pageSettings === "object" && pageSettings !== null) {
         return pageSettings;
       }
-      
+
       // Fallback ai default
       return this._getValueByPath(this.defaultSettings, pagePath) || {};
     } catch (error) {
-      console.error('SettingsManager: Error getting page parameters:', error);
+      console.error("SettingsManager: Error getting page parameters:", error);
       return this._getValueByPath(this.defaultSettings, pagePath) || {};
     }
   }
@@ -129,7 +126,7 @@ class SettingsManager {
       const updatedSettings = this._setValueByPath(settings, path, value);
       return await this.saveSettings(updatedSettings);
     } catch (error) {
-      console.error('SettingsManager: Error setting single parameter:', error);
+      console.error("SettingsManager: Error setting single parameter:", error);
       return false;
     }
   }
@@ -142,11 +139,18 @@ class SettingsManager {
     try {
       const settings = await this.loadSettings();
       const defaultVocalChat = this.defaultSettings.settings.vocalChat;
-      
-      const updatedSettings = this._setValueByPath(settings, 'settings.vocalChat', defaultVocalChat);
+
+      const updatedSettings = this._setValueByPath(
+        settings,
+        "settings.vocalChat",
+        defaultVocalChat,
+      );
       return await this.saveSettings(updatedSettings);
     } catch (error) {
-      console.error('SettingsManager: Error resetting vocalChat settings:', error);
+      console.error(
+        "SettingsManager: Error resetting vocalChat settings:",
+        error,
+      );
       return false;
     }
   }
@@ -154,48 +158,52 @@ class SettingsManager {
   // Metodi privati di utilità
 
   _getValueByPath(obj, path) {
-    return path.split('.').reduce((current, key) => {
+    return path.split(".").reduce((current, key) => {
       return current && current[key] !== undefined ? current[key] : undefined;
     }, obj);
   }
 
   _setValueByPath(obj, path, value) {
-    const keys = path.split('.');
+    const keys = path.split(".");
     const lastKey = keys.pop();
-    
+
     // Crea una copia profonda dell'oggetto
     const result = JSON.parse(JSON.stringify(obj));
-    
+
     // Naviga fino al livello padre
     let current = result;
     for (const key of keys) {
-      if (!current[key] || typeof current[key] !== 'object') {
+      if (!current[key] || typeof current[key] !== "object") {
         current[key] = {};
       }
       current = current[key];
     }
-    
+
     // Imposta il valore
     current[lastKey] = value;
-    
+
     return result;
   }
 
   _mergeWithDefaults(savedSettings) {
     const merge = (target, source) => {
       const result = { ...target };
-      
+
       for (const key in source) {
-        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+        if (
+          source[key] &&
+          typeof source[key] === "object" &&
+          !Array.isArray(source[key])
+        ) {
           result[key] = merge(target[key] || {}, source[key]);
         } else if (target[key] === undefined) {
           result[key] = source[key];
         }
       }
-      
+
       return result;
     };
-    
+
     return merge(savedSettings, this.defaultSettings);
   }
 }
