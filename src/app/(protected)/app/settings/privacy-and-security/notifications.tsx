@@ -101,7 +101,7 @@ export default function NotificationsRoute() {
               pressed && styles.addButtonPressed,
             ]}
           >
-            <Icon name="PlusSign" />
+            <Icon name="PlusSignIcon" />
             <Typography
               style={styles.addButtonText}
               translationKey="settings.privacyAndSecurity.addNotificationMethod"

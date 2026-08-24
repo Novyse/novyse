@@ -152,7 +152,7 @@ export default function MfaRoute() {
                         pressed && styles.addButtonPressed,
                       ]}
                     >
-                      <Icon name="PlusSign" />
+                      <Icon name="PlusSignIcon" />
                       <Typography
                         style={styles.addButtonText}
                         translationKey="settings.privacyAndSecurity.add"
