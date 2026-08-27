@@ -162,7 +162,7 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
               <Icon
                 onPress={toggleAudio}
                 name={isAudioEnabled ? "Mic02Icon" : "MicOff02Icon"}
-                style={styles.icon}
+                style={[styles.icon, {backgroundColor: !isAudioEnabled && theme.iconDanger}]}
               />
               {showMicrophoneSelectorUI && (
                 <MicrophoneArrowButton
@@ -204,7 +204,7 @@ const CommsBottomBar = ({ chatUUID, sub }) => {
             <Icon
               onPress={toggleAudioOutput}
               name={isAudioOutputEnabled ? "VolumeHighIcon" : "VolumeOffIcon"}
-              style={styles.icon}
+              style={[styles.icon, {backgroundColor: !isAudioOutputEnabled && theme.iconDanger}]}
             />
 
             {showSpeakerOutputSelector && (
@@ -301,10 +301,9 @@ const createStyle = (theme, isDesktop) =>
       position: "absolute",
       bottom: 30,
       alignSelf: "center",
-      borderRadius: 30,
-      height: 60,
+      // height: 60,
       minWidth: isDesktop ? 280 : 200,
-      maxWidth: isDesktop ? 520 : 360,
+      // maxWidth: isDesktop ? 520 : 360,
       zIndex: 100,
     },
     statusWrapper: {
@@ -316,15 +315,16 @@ const createStyle = (theme, isDesktop) =>
     },
     blurredContainer: {
       flex: 1,
-      borderRadius: 40,
+      borderRadius: 100,
       width: "100%",
       height: "100%",
       flexDirection: "row",
       justifyContent: "space-evenly",
       alignItems: "center",
       alignSelf: "center",
-      paddingHorizontal: 8,
+      paddingHorizontal: 5,
       paddingVertical: 5,
+      gap: 5
     },
     blurredContainerDesktop: {
       overflow: "visible",
