@@ -45,7 +45,7 @@ const useOpenFile = () => {
   const openFile = useCallback(
     async ({ uuid, fileRef, uri, mimeType, name }) => {
       try {
-        // 1. Handle Desktop (Electrobun / Electron filesRpc)
+        // 1. Handle Desktop (Electron filesRpc)
         if (Platform === "desktop") {
           const targetRef =
             fileRef ||
