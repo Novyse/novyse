@@ -64,7 +64,7 @@ export default {
     name: `${APP_NAME}${devSuffix}`,
     slug: APP_SLUG,
     version: APP_VERSION,
-    orientation: "portrait",
+    orientation: "default",
     icon: "./assets/images/novyse-icon-logo.png",
     scheme: `${APP_SLUG}${devSuffix}`,
     owner: EXPO_OWNER,
@@ -220,6 +220,12 @@ export default {
             NSExtensionActivationSupportsFileWithMaxCount: 5,
           },
           androidIntentFilters: ["*/*"],
+        },
+      ],
+      [
+        "expo-screen-orientation",
+        {
+          initialOrientation: "DEFAULT",
         },
       ],
       "expo-font",

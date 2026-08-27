@@ -75,9 +75,7 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
           ScreenOrientation.OrientationLock.LANDSCAPE,
         );
       } else {
-        await ScreenOrientation.lockAsync(
-          ScreenOrientation.OrientationLock.PORTRAIT_UP,
-        );
+        await ScreenOrientation.unlockAsync();
       }
     }
   };
@@ -96,9 +94,7 @@ const ImageViewer = ({ visible, onClose, uri, theme, uuid }) => {
     if (isFullscreen && PlatformType !== "web") {
       setIsFullscreen(false);
       StatusBar.setHidden(false, "fade");
-      ScreenOrientation.lockAsync(
-        ScreenOrientation.OrientationLock.PORTRAIT_UP,
-      );
+      ScreenOrientation.unlockAsync();
     }
     onClose();
   };

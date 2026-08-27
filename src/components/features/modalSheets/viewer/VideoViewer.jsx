@@ -103,6 +103,12 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
     }
   }, [status, player]);
 
+  useEffect(() => {
+    if (visible || getPlatform() === "web") return;
+    StatusBar.setHidden(false, "fade");
+    ScreenOrientation.unlockAsync();
+  }, [visible]);
+
   // Gestione Fullscreen e Orientamento
   useEffect(() => {
     if (getPlatform() === "web") {
@@ -144,9 +150,7 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
           ScreenOrientation.OrientationLock.LANDSCAPE,
         );
       } else {
-        await ScreenOrientation.lockAsync(
-          ScreenOrientation.OrientationLock.PORTRAIT_UP,
-        );
+        await ScreenOrientation.unlockAsync();
       }
     }
   };
