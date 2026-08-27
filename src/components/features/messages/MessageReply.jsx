@@ -37,7 +37,8 @@ const MessageReply = ({
   return (
     <Pressable
       style={styles.container}
-      onPress={() =>
+      onPress={(e) => {
+        e?.stopPropagation?.();
         navigateToMessageWithHistory(
           chatUUID,
           messageID,
@@ -45,8 +46,8 @@ const MessageReply = ({
           oldMessageID,
           rangeStart,
           rangeEnd,
-        )
-      }
+        );
+      }}
     >
       <View style={styles.innerContainer}>
         <View style={styles.accent} />

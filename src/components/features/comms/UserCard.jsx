@@ -1,11 +1,4 @@
-import {
-  memo,
-  useMemo,
-  useEffect,
-  useRef,
-  useContext,
-  useState,
-} from "react";
+import { memo, useMemo, useEffect, useRef, useContext, useState } from "react";
 import { View, StyleSheet, Platform, Pressable } from "react-native";
 
 import { getPlatform } from "@/src/utils/device/type";
@@ -149,10 +142,11 @@ const UserCard = memo(
         {isLocalMuted && (
           <View style={styles.muteIndicatorContainer}>
             <View style={styles.controlsRow}>
-              <Icon name="MicOff02Icon" size={20} color={theme.iconDanger} />
+              <Icon name="MicOff02Icon" />
             </View>
           </View>
         )}
+
         {hasControls && (
           <View
             style={[
@@ -331,8 +325,8 @@ const createStyles = (theme) =>
     },
     muteIndicatorContainer: {
       position: "absolute",
-      bottom: 0,
-      right: 0,
+      bottom: 10,
+      right: 10,
       zIndex: 20,
     },
     controlsBlurred: {
