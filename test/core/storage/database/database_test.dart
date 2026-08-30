@@ -58,10 +58,13 @@ void main() {
       expect(tableNames, contains('pending_file'));
       expect(tableNames, contains('bot'));
       expect(tableNames, contains('handle'));
+      expect(tableNames, contains('queue_job'));
       expect(tableNames, contains('pinned_chat'));
 
       // Check system user
-      final systemUser = await db.user.get.byUUID('00000000-0000-0000-0000-000000000000');
+      final systemUser = await db.user.get.byUUID(
+        '00000000-0000-0000-0000-000000000000',
+      );
       expect(systemUser, isNotNull);
       expect(systemUser!['name'], 'System');
     });
@@ -133,7 +136,11 @@ void main() {
     });
 
     test('retrieves all event IDs for synchronization', () async {
-      await db.user.add({'uuid': 'user-sync', 'name': 'SyncUser', 'handle': 'syncuser'});
+      await db.user.add({
+        'uuid': 'user-sync',
+        'name': 'SyncUser',
+        'handle': 'syncuser',
+      });
       await db.event.user.profile.update('user-sync', 42);
 
       await db.chat.add({
@@ -148,10 +155,14 @@ void main() {
       expect(eventIDs['chats'], isNotEmpty);
       expect(eventIDs['users'], isNotEmpty);
 
-      final chatSync = (eventIDs['chats'] as List).firstWhere((c) => c['chatUUID'] == 'chat-sync');
+      final chatSync = (eventIDs['chats'] as List).firstWhere(
+        (c) => c['chatUUID'] == 'chat-sync',
+      );
       expect(chatSync['eventID'], 99);
 
-      final userSync = (eventIDs['users'] as List).firstWhere((u) => u['userUUID'] == 'user-sync');
+      final userSync = (eventIDs['users'] as List).firstWhere(
+        (u) => u['userUUID'] == 'user-sync',
+      );
       expect(userSync['profileEventID'], 42);
     });
   });
@@ -201,14 +212,23 @@ void main() {
         'name': 'My Group',
         'handle': 'mygroup',
         'members': [
-          {'uuid': 'u1', 'roleIDs': [1]},
+          {
+            'uuid': 'u1',
+            'roleIDs': [1],
+          },
           {'uuid': 'u2', 'roleIDs': []},
         ],
         'roles': [
-          {'id': 1, 'name': 'Admin', 'permission': 'ALL', 'level': 100, 'color': '#FF0000'}
+          {
+            'id': 1,
+            'name': 'Admin',
+            'permission': 'ALL',
+            'level': 100,
+            'color': '#FF0000',
+          },
         ],
         'subs': [
-          {'id': 0, 'name': 'General', 'type': 'DEFAULT'}
+          {'id': 0, 'name': 'General', 'type': 'DEFAULT'},
         ],
       });
       expect(success, isTrue);
@@ -239,25 +259,42 @@ void main() {
         'members': ['u1'],
       });
 
-      await db.chat.sub.add('forum-1', {'id': 10, 'name': 'Dev', 'type': 'CHANNEL'});
+      await db.chat.sub.add('forum-1', {
+        'id': 10,
+        'name': 'Dev',
+        'type': 'CHANNEL',
+      });
       await db.chat.sub.update('forum-1', 10, {'name': 'Flutter Dev'});
 
       final chats = await db.chat.get.all();
       final chat = chats.firstWhere((c) => c['uuid'] == 'forum-1');
       final subs = chat['subs'] as List;
-      expect(subs.any((s) => s['id'] == 10 && s['name'] == 'Flutter Dev'), isTrue);
+      expect(
+        subs.any((s) => s['id'] == 10 && s['name'] == 'Flutter Dev'),
+        isTrue,
+      );
 
       await db.chat.sub.remove('forum-1', 10);
       final updatedChats = await db.chat.get.all();
-      final updatedChat = updatedChats.firstWhere((c) => c['uuid'] == 'forum-1');
+      final updatedChat = updatedChats.firstWhere(
+        (c) => c['uuid'] == 'forum-1',
+      );
       expect((updatedChat['subs'] as List).any((s) => s['id'] == 10), isFalse);
     });
   });
 
   group('MessageRepository Tests', () {
     test('adds message with replyTos, reactions, reads, files', () async {
-      await db.user.add({'uuid': 'sender-1', 'name': 'Sender', 'handle': 'sender'});
-      await db.user.add({'uuid': 'reader-1', 'name': 'Reader', 'handle': 'reader'});
+      await db.user.add({
+        'uuid': 'sender-1',
+        'name': 'Sender',
+        'handle': 'sender',
+      });
+      await db.user.add({
+        'uuid': 'reader-1',
+        'name': 'Reader',
+        'handle': 'reader',
+      });
       await db.chat.add({
         'uuid': 'msg-chat',
         'type': 'DM',
@@ -271,16 +308,27 @@ void main() {
         'senderUUID': 'sender-1',
         'content': 'Hello world!',
         'replyTos': [
-          {'chatUUID': 'msg-chat', 'subID': 0, 'messageID': 0, 'rangeStart': 0, 'rangeEnd': 5}
+          {
+            'chatUUID': 'msg-chat',
+            'subID': 0,
+            'messageID': 0,
+            'rangeStart': 0,
+            'rangeEnd': 5,
+          },
         ],
         'files': [
-          {'uuid': 'file-m1', 'name': 'doc.pdf', 'mimeType': 'application/pdf', 'size': 1024}
+          {
+            'uuid': 'file-m1',
+            'name': 'doc.pdf',
+            'mimeType': 'application/pdf',
+            'size': 1024,
+          },
         ],
         'reactions': [
-          {'reaction': '👍', 'userUUID': 'reader-1'}
+          {'reaction': '👍', 'userUUID': 'reader-1'},
         ],
         'reads': [
-          {'userUUID': 'reader-1', 'readAt': DateTime.now().toIso8601String()}
+          {'userUUID': 'reader-1', 'readAt': DateTime.now().toIso8601String()},
         ],
       });
       expect(success, isTrue);
@@ -295,7 +343,10 @@ void main() {
       expect((msg['readBy'] as List).isNotEmpty, isTrue);
 
       // Search
-      final searchResults = await db.message.search('world', chatUUID: 'msg-chat');
+      final searchResults = await db.message.search(
+        'world',
+        chatUUID: 'msg-chat',
+      );
       expect(searchResults.length, 1);
       expect(searchResults.first['id'], 1);
 
@@ -305,7 +356,13 @@ void main() {
       expect(editedMsg!['content'], 'Edited content');
 
       // Pin
-      await db.message.pin.add('msg-chat', 0, 1, DateTime.now().toIso8601String(), 'reader-1');
+      await db.message.pin.add(
+        'msg-chat',
+        0,
+        1,
+        DateTime.now().toIso8601String(),
+        'reader-1',
+      );
       final pins = await db.message.pin.get('msg-chat');
       expect(pins.length, 1);
       expect(pins.first['messageID'], 1);
@@ -350,51 +407,72 @@ void main() {
 
       // Bob hasn't read any messages
       final chatsForBob = await db.chat.get.all('bob');
-      final chatForBob = chatsForBob.firstWhere((c) => c['uuid'] == 'chat-unread');
+      final chatForBob = chatsForBob.firstWhere(
+        (c) => c['uuid'] == 'chat-unread',
+      );
       expect(chatForBob['unreadCount'], 2);
 
       // Bob reads message 1
-      await db.message.read.add('chat-unread', 0, 1, 'bob', '2026-01-02T10:30:00Z');
+      await db.message.read.add(
+        'chat-unread',
+        0,
+        1,
+        'bob',
+        '2026-01-02T10:30:00Z',
+      );
       final updatedChatsForBob = await db.chat.get.all('bob');
-      final updatedChatForBob = updatedChatsForBob.firstWhere((c) => c['uuid'] == 'chat-unread');
+      final updatedChatForBob = updatedChatsForBob.firstWhere(
+        (c) => c['uuid'] == 'chat-unread',
+      );
       expect(updatedChatForBob['unreadCount'], 1);
     });
   });
 
   group('GlobalEventEmitter Database Integration Tests', () {
-    test('emitter.message.add persists to DB and emits MessageNewEvent', () async {
-      await db.user.add({'uuid': 'u-emitter', 'name': 'UEmitter', 'handle': 'uemitter'});
-      await db.chat.add({
-        'uuid': 'chat-emitter',
-        'type': 'GROUP',
-        'members': ['u-emitter'],
-      });
+    test(
+      'emitter.message.add persists to DB and emits MessageNewEvent',
+      () async {
+        await db.user.add({
+          'uuid': 'u-emitter',
+          'name': 'UEmitter',
+          'handle': 'uemitter',
+        });
+        await db.chat.add({
+          'uuid': 'chat-emitter',
+          'type': 'GROUP',
+          'members': ['u-emitter'],
+        });
 
-      MessageNewEvent? receivedEvent;
-      final sub = eventBus.on<MessageNewEvent>().listen((e) => receivedEvent = e);
+        MessageNewEvent? receivedEvent;
+        final sub = eventBus.on<MessageNewEvent>().listen(
+          (e) => receivedEvent = e,
+        );
 
-      await emitter.message.add({
-        'id': 100,
-        'chatUUID': 'chat-emitter',
-        'subID': 0,
-        'senderUUID': 'u-emitter',
-        'content': 'Emitted message',
-      });
+        await emitter.message.add({
+          'id': 100,
+          'chatUUID': 'chat-emitter',
+          'subID': 0,
+          'senderUUID': 'u-emitter',
+          'content': 'Emitted message',
+        });
 
-      await Future.delayed(const Duration(milliseconds: 10));
-      expect(receivedEvent, isNotNull);
-      expect(receivedEvent!.message['content'], 'Emitted message');
+        await Future.delayed(const Duration(milliseconds: 10));
+        expect(receivedEvent, isNotNull);
+        expect(receivedEvent!.message['content'], 'Emitted message');
 
-      final saved = await db.message.get.by.id('chat-emitter', 0, 100);
-      expect(saved, isNotNull);
-      expect(saved!['content'], 'Emitted message');
+        final saved = await db.message.get.by.id('chat-emitter', 0, 100);
+        expect(saved, isNotNull);
+        expect(saved!['content'], 'Emitted message');
 
-      await sub.cancel();
-    });
+        await sub.cancel();
+      },
+    );
 
     test('emitter.chat.add persists chat, messages and users', () async {
       ChatNewEvent? receivedChatEvent;
-      final sub = eventBus.on<ChatNewEvent>().listen((e) => receivedChatEvent = e);
+      final sub = eventBus.on<ChatNewEvent>().listen(
+        (e) => receivedChatEvent = e,
+      );
 
       await emitter.chat.add(
         {
@@ -412,7 +490,7 @@ void main() {
               'subID': 0,
               'senderUUID': 'user-e1',
               'content': 'Welcome!',
-            }
+            },
           ],
         },
         [
@@ -436,10 +514,16 @@ void main() {
     });
 
     test('emitter.user.profile.update persists fields and emits UserProfileUpdateEvent', () async {
-      await db.user.add({'uuid': 'u-prof', 'name': 'Original', 'handle': 'uprof'});
+      await db.user.add({
+        'uuid': 'u-prof',
+        'name': 'Original',
+        'handle': 'uprof',
+      });
 
       UserProfileUpdateEvent? receivedEvent;
-      final sub = eventBus.on<UserProfileUpdateEvent>().listen((e) => receivedEvent = e);
+      final sub = eventBus.on<UserProfileUpdateEvent>().listen(
+        (e) => receivedEvent = e,
+      );
 
       await emitter.user.profile.update({
         'userUUID': 'u-prof',
@@ -458,5 +542,58 @@ void main() {
 
       await sub.cancel();
     });
+  });
+
+  group('QueueJobRepository Tests', () {
+    test(
+      'saves, updates status/payload and retrieves pending queue jobs',
+      () async {
+        await db.chat.add({
+          'uuid': 'chat-q1',
+          'type': 'DM',
+          'name': 'Queue Chat',
+        });
+
+        // 1. Save Job
+        final saved = await db.job.save({
+          'id': 'job-1',
+          'chat_uuid': 'chat-q1',
+          'sub_id': 0,
+          'job_type': 'OUTGOING_MESSAGE',
+          'priority': 50,
+          'status': 'PENDING',
+          'payload': {'content': 'Hello queue'},
+        });
+        expect(saved, isTrue);
+
+        // 2. Retrieve Job
+        final job = await db.job.get('job-1');
+        expect(job, isNotNull);
+        expect(job!['chat_uuid'], 'chat-q1');
+        expect(job['priority'], 50);
+        expect(job['payload'], {'content': 'Hello queue'});
+
+        // 3. Update status & progress
+        await db.job.updateStatus('job-1', 'PROCESSING', progress: 0.5);
+        final updatedJob = await db.job.get('job-1');
+        expect(updatedJob!['status'], 'PROCESSING');
+        expect(updatedJob['progress'], 0.5);
+
+        // 4. Update payload
+        await db.job.updatePayload('job-1', {'content': 'Edited message'});
+        final editedJob = await db.job.get('job-1');
+        expect(editedJob!['payload'], {'content': 'Edited message'});
+
+        // 5. Test resetProcessingToPending
+        await db.job.resetProcessingToPending();
+        final resetJob = await db.job.get('job-1');
+        expect(resetJob!['status'], 'PENDING');
+
+        // 6. Delete
+        await db.job.delete('job-1');
+        final deletedJob = await db.job.get('job-1');
+        expect(deletedJob, isNull);
+      },
+    );
   });
 }

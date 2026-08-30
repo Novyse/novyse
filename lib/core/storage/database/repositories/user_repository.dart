@@ -165,12 +165,10 @@ class UserGetRepository {
   /// Get all users with their handle.
   Future<List<Map<String, dynamic>>> all() async {
     try {
-      final rows = await _repo.db.rawQuery(
-        '''
+      final rows = await _repo.db.rawQuery('''
         SELECT u.*, h.handle FROM user u
         LEFT JOIN handle h ON u.uuid = h.userUUID AND h.type = 'USER';
-        ''',
-      );
+        ''');
       return rows.map((r) => Map<String, dynamic>.from(r)).toList();
     } catch (e) {
       debugPrint('Error retrieving all users: $e');
@@ -212,19 +210,15 @@ class UserUpdateRepository {
   /// Get all event IDs for synchronization.
   Future<Map<String, dynamic>> getAllEventsIDs() async {
     try {
-      final chatRows = await _repo.db.rawQuery(
-        '''
+      final chatRows = await _repo.db.rawQuery('''
         SELECT uuid as chatUUID, COALESCE(eventID, 0) as eventID FROM chat;
-        ''',
-      );
+        ''');
 
-      final subRows = await _repo.db.rawQuery(
-        '''
+      final subRows = await _repo.db.rawQuery('''
         SELECT chatUUID, subID, COALESCE(MAX(id), 0) as messageID
         FROM message
         GROUP BY chatUUID, subID;
-        ''',
-      );
+        ''');
 
       final subsByChat = <String, List<Map<String, dynamic>>>{};
       for (final row in subRows) {
@@ -244,17 +238,17 @@ class UserUpdateRepository {
         };
       }).toList();
 
-      final userRows = await _repo.db.rawQuery(
-        '''
+      final userRows = await _repo.db.rawQuery('''
         SELECT uuid as userUUID, COALESCE(profileEventID, 0) as profileEventID FROM user;
-        ''',
-      );
+        ''');
 
       final users = userRows
-          .map((u) => {
-                'userUUID': u['userUUID'],
-                'profileEventID': u['profileEventID'],
-              })
+          .map(
+            (u) => {
+              'userUUID': u['userUUID'],
+              'profileEventID': u['profileEventID'],
+            },
+          )
           .toList();
 
       return {'chats': chats, 'users': users};
@@ -277,7 +271,9 @@ class ProfileRepository {
   DatabaseExecutor get db {
     final database = _db;
     if (database == null) {
-      throw StateError('ProfileRepository: database is not set or initialized.');
+      throw StateError(
+        'ProfileRepository: database is not set or initialized.',
+      );
     }
     return database;
   }

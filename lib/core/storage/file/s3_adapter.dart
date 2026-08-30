@@ -1,62 +1,73 @@
 import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:novyse/core/storage/file/file_storage.dart';
 import 'package:novyse/core/storage/file/file_type.dart';
 
-typedef TransferProgressCallback = void Function({required int loaded, required int total});
+typedef TransferProgressCallback = void Function({
+  required int loaded,
+  required int total,
+});
 
 /// S3 upload and download adapter using presigned URLs and Dio.
 class S3Adapter {
+  static final S3Adapter instance = S3Adapter();
   static final Map<String, CancelToken> _activeTransfers = {};
   final Dio _dio;
   final FileStorage _storage;
 
   S3Adapter({Dio? dio, FileStorage? storage})
-      : _dio = dio ?? Dio(),
-        _storage = storage ?? FileStorage.instance;
+    : _dio = dio ?? Dio(),
+      _storage = storage ?? FileStorage.instance;
 
-  /// Uploads a file to an S3 bucket using a presigned PUT URL with progress tracking.
-  Future<bool> upload(
-    String presignedUrl,
-    String fileUriOrRef,
-    String fileUUID, {
-    TransferProgressCallback? onProgress,
-    String? contentType,
+  /// Uploads a file or byte array to an S3 bucket using a presigned PUT URL with progress tracking.
+  Future<bool> upload({
+    required String uploadURL,
+    required String fileUUID,
+    String? fileUriOrRef,
+    Uint8List? bytes,
+    String? mimeType,
+    CancelToken? cancelToken,
+    void Function(int sent, int total)? onProgress,
   }) async {
-    if (presignedUrl.isEmpty || fileUriOrRef.isEmpty) {
-      throw ArgumentError('Presigned URL and file URI are required.');
+    if (uploadURL.isEmpty) {
+      throw ArgumentError('Presigned uploadURL is required.');
     }
 
-    final bytes = await _storage.getBytes(fileUriOrRef);
-    if (bytes == null || bytes.isEmpty) {
-      debugPrint('S3Adapter: Could not retrieve bytes for file: $fileUriOrRef');
+    final fileBytes =
+        bytes ??
+        (fileUriOrRef != null ? await _storage.getBytes(fileUriOrRef) : null);
+    if (fileBytes == null || fileBytes.isEmpty) {
+      debugPrint('S3Adapter: Could not retrieve bytes for file: $fileUUID');
       return false;
     }
 
-    final cancelToken = CancelToken();
-    _activeTransfers[fileUUID] = cancelToken;
+    final token = cancelToken ?? CancelToken();
+    _activeTransfers[fileUUID] = token;
 
-    final resolvedMime = contentType ?? getMimeType(fileUriOrRef);
+    final resolvedMime =
+        mimeType ??
+        (fileUriOrRef != null ? getMimeType(fileUriOrRef) : defaultMimeType);
 
     try {
       if (onProgress != null) {
-        onProgress(loaded: 0, total: bytes.length);
+        onProgress(0, fileBytes.length);
       }
 
       final response = await _dio.put(
-        presignedUrl,
-        data: Stream.fromIterable([bytes]),
+        uploadURL,
+        data: Stream.fromIterable([fileBytes]),
         options: Options(
           headers: {
             'Content-Type': resolvedMime,
-            'Content-Length': bytes.length.toString(),
+            'Content-Length': fileBytes.length.toString(),
           },
         ),
-        cancelToken: cancelToken,
+        cancelToken: token,
         onSendProgress: (sent, total) {
           if (onProgress != null) {
-            onProgress(loaded: sent, total: total > 0 ? total : bytes.length);
+            onProgress(sent, total > 0 ? total : fileBytes.length);
           }
         },
       );
@@ -80,26 +91,27 @@ class S3Adapter {
   }
 
   /// Downloads a file from S3 using a presigned GET URL with progress tracking.
-  Future<Uint8List?> download(
-    String presignedUrl,
-    String fileUUID, {
-    TransferProgressCallback? onProgress,
+  Future<Uint8List> download({
+    required String downloadURL,
+    required String fileUUID,
+    CancelToken? cancelToken,
+    void Function(int loaded, int total)? onProgress,
   }) async {
-    if (presignedUrl.isEmpty) {
-      throw ArgumentError('Presigned URL is required.');
+    if (downloadURL.isEmpty) {
+      throw ArgumentError('Presigned downloadURL is required.');
     }
 
-    final cancelToken = CancelToken();
-    _activeTransfers[fileUUID] = cancelToken;
+    final token = cancelToken ?? CancelToken();
+    _activeTransfers[fileUUID] = token;
 
     try {
       final response = await _dio.get<List<int>>(
-        presignedUrl,
+        downloadURL,
         options: Options(responseType: ResponseType.bytes),
-        cancelToken: cancelToken,
+        cancelToken: token,
         onReceiveProgress: (received, total) {
           if (onProgress != null) {
-            onProgress(loaded: received, total: total > 0 ? total : 0);
+            onProgress(received, total > 0 ? total : 0);
           }
         },
       );
@@ -111,17 +123,19 @@ class S3Adapter {
         final data = response.data!;
         return data is Uint8List ? data : Uint8List.fromList(data);
       }
-      return null;
+      throw Exception(
+        'Failed to download file from S3: status ${response.statusCode}',
+      );
     } on DioException catch (e) {
       if (CancelToken.isCancel(e)) {
         debugPrint('S3Adapter download cancelled for: $fileUUID');
-        return null;
+        throw Exception('Download cancelled');
       }
       debugPrint('S3Adapter download error for $fileUUID: $e');
-      return null;
+      rethrow;
     } catch (e) {
       debugPrint('S3Adapter download error: $e');
-      return null;
+      rethrow;
     } finally {
       _activeTransfers.remove(fileUUID);
     }

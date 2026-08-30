@@ -6,10 +6,7 @@ class InvalidFileData {
 
   InvalidFileData({required this.index, required this.errors});
 
-  Map<String, dynamic> toMap() => {
-        'index': index,
-        'errors': errors,
-      };
+  Map<String, dynamic> toMap() => {'index': index, 'errors': errors};
 }
 
 class FileValidationResult {

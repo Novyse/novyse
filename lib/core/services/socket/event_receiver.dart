@@ -99,7 +99,10 @@ class EventReceiver {
         final subID = data['subID'] as int?;
         final messageID = data['messageID'] as String?;
         final action = data['action'] as String?;
-        if (chatUUID != null && subID != null && messageID != null && action != null) {
+        if (chatUUID != null &&
+            subID != null &&
+            messageID != null &&
+            action != null) {
           await emitter.message.update(
             chatUUID,
             subID,
@@ -118,10 +121,7 @@ class EventReceiver {
         final chatRaw = data['chat'];
         final usersRaw = data['users'];
         if (chatRaw is Map && usersRaw is List) {
-          await emitter.chat.add(
-            Map<String, dynamic>.from(chatRaw),
-            usersRaw,
-          );
+          await emitter.chat.add(Map<String, dynamic>.from(chatRaw), usersRaw);
         }
       }
     });
@@ -167,11 +167,7 @@ class EventReceiver {
         final userUUID = data['userUUID'] as String?;
         final action = data['action'] as String?;
         if (chatUUID != null && userUUID != null && action != null) {
-          await emitter.chat.member.activity(
-            chatUUID,
-            userUUID,
-            action,
-          );
+          await emitter.chat.member.activity(chatUUID, userUUID, action);
         }
       }
     });

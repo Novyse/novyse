@@ -7,7 +7,9 @@ void main() {
       final userRoles = [
         {
           'id': DefaultRoles.user,
-          'permission': (ChatPermissions.readMessage | ChatPermissions.sendMessage).toString(),
+          'permission':
+              (ChatPermissions.readMessage | ChatPermissions.sendMessage)
+                  .toString(),
           'level': 1,
         },
       ];
@@ -22,7 +24,11 @@ void main() {
       final regularUserRoles = [
         {
           'id': DefaultRoles.user,
-          'permission': (ChatPermissions.readMessage | ChatPermissions.sendMessage | ChatPermissions.attachFileMessage).toString(),
+          'permission':
+              (ChatPermissions.readMessage |
+                      ChatPermissions.sendMessage |
+                      ChatPermissions.attachFileMessage)
+                  .toString(),
           'level': 1,
         },
       ];
@@ -30,21 +36,52 @@ void main() {
       final adminRoles = [
         {
           'id': DefaultRoles.admin,
-          'permission': (ChatPermissions.readMessage | ChatPermissions.sendMessage | ChatPermissions.attachFileMessage).toString(),
+          'permission':
+              (ChatPermissions.readMessage |
+                      ChatPermissions.sendMessage |
+                      ChatPermissions.attachFileMessage)
+                  .toString(),
           'level': 50,
         },
       ];
 
       // In regular chat, regular user can send
-      expect(hasPermission(regularUserRoles, ChatPermissions.sendMessage), isTrue);
+      expect(
+        hasPermission(regularUserRoles, ChatPermissions.sendMessage),
+        isTrue,
+      );
 
       // In ANNOUNCE subType, regular user CANNOT send or attach files
-      expect(hasPermission(regularUserRoles, ChatPermissions.sendMessage, 'ANNOUNCE'), isFalse);
-      expect(hasPermission(regularUserRoles, ChatPermissions.attachFileMessage, 'ANNOUNCE'), isFalse);
-      expect(hasPermission(regularUserRoles, ChatPermissions.readMessage, 'ANNOUNCE'), isTrue);
+      expect(
+        hasPermission(
+          regularUserRoles,
+          ChatPermissions.sendMessage,
+          'ANNOUNCE',
+        ),
+        isFalse,
+      );
+      expect(
+        hasPermission(
+          regularUserRoles,
+          ChatPermissions.attachFileMessage,
+          'ANNOUNCE',
+        ),
+        isFalse,
+      );
+      expect(
+        hasPermission(
+          regularUserRoles,
+          ChatPermissions.readMessage,
+          'ANNOUNCE',
+        ),
+        isTrue,
+      );
 
       // Admin CAN send in ANNOUNCE
-      expect(hasPermission(adminRoles, ChatPermissions.sendMessage, 'ANNOUNCE'), isTrue);
+      expect(
+        hasPermission(adminRoles, ChatPermissions.sendMessage, 'ANNOUNCE'),
+        isTrue,
+      );
     });
 
     test('getEffectiveLevel returns max role level', () {
@@ -61,9 +98,13 @@ void main() {
 
   group('Message Format & GIF Tests', () {
     test('extractGifUrls and stripGifUrls', () {
-      const text = 'Check this out http://example.com/fun.gif and https://cdn.com/cat.gif pretty cool';
+      const text =
+          'Check this out http://example.com/fun.gif and https://cdn.com/cat.gif pretty cool';
       final gifs = extractGifUrls(text);
-      expect(gifs, equals(['https://example.com/fun.gif', 'https://cdn.com/cat.gif']));
+      expect(
+        gifs,
+        equals(['https://example.com/fun.gif', 'https://cdn.com/cat.gif']),
+      );
 
       final stripped = stripGifUrls(text);
       expect(stripped, equals('Check this out and pretty cool'));
@@ -86,7 +127,11 @@ void main() {
         'type': 'message',
         'content': '',
         'files': [
-          {'mimeType': 'audio/m4a', 'name': 'novyse_vocal_123.m4a', 'duration': 75},
+          {
+            'mimeType': 'audio/m4a',
+            'name': 'novyse_vocal_123.m4a',
+            'duration': 75,
+          },
         ],
       });
 
@@ -122,24 +167,18 @@ void main() {
       });
       expect(created['content'], equals('Chat created'));
 
-      final joined = formatMessage(
-        {
-          'type': 'system',
-          'system_action': 'USER_JOINED',
-          'content': 'user-123',
-        },
-        getUser: (uuid) => {'name': 'Alice'},
-      );
+      final joined = formatMessage({
+        'type': 'system',
+        'system_action': 'USER_JOINED',
+        'content': 'user-123',
+      }, getUser: (uuid) => {'name': 'Alice'});
       expect(joined['content'], equals('Alice joined the chat'));
 
-      final youJoined = formatMessage(
-        {
-          'type': 'system',
-          'system_action': 'USER_JOINED',
-          'content': 'me-uuid',
-        },
-        localUserUUID: 'me-uuid',
-      );
+      final youJoined = formatMessage({
+        'type': 'system',
+        'system_action': 'USER_JOINED',
+        'content': 'me-uuid',
+      }, localUserUUID: 'me-uuid');
       expect(youJoined['content'], equals('You joined the chat'));
     });
 
@@ -150,40 +189,43 @@ void main() {
         'u3': {'name': 'Charlie'},
       };
 
-      final oneTyping = formatActivity(
-        [
-          {'action': 'TYPING', 'userUUID': 'u1'},
-        ],
-        getUser: (uuid) => users[uuid],
-      );
+      final oneTyping = formatActivity([
+        {'action': 'TYPING', 'userUUID': 'u1'},
+      ], getUser: (uuid) => users[uuid]);
       expect(oneTyping, equals('Alice is typing...'));
 
-      final twoTyping = formatActivity(
-        [
-          {'action': 'TYPING', 'userUUID': 'u1'},
-          {'action': 'TYPING', 'userUUID': 'u2'},
-        ],
-        getUser: (uuid) => users[uuid],
-      );
+      final twoTyping = formatActivity([
+        {'action': 'TYPING', 'userUUID': 'u1'},
+        {'action': 'TYPING', 'userUUID': 'u2'},
+      ], getUser: (uuid) => users[uuid]);
       expect(twoTyping, equals('Alice and Bob are typing...'));
 
-      final threeTyping = formatActivity(
-        [
-          {'action': 'TYPING', 'userUUID': 'u1'},
-          {'action': 'TYPING', 'userUUID': 'u2'},
-          {'action': 'TYPING', 'userUUID': 'u3'},
-        ],
-        getUser: (uuid) => users[uuid],
-      );
+      final threeTyping = formatActivity([
+        {'action': 'TYPING', 'userUUID': 'u1'},
+        {'action': 'TYPING', 'userUUID': 'u2'},
+        {'action': 'TYPING', 'userUUID': 'u3'},
+      ], getUser: (uuid) => users[uuid]);
       expect(threeTyping, equals('Alice, Bob and 1 others are typing...'));
     });
 
     test('formats last seen relative dates', () {
       final now = DateTime.now();
-      expect(formatLastSeen(now.subtract(const Duration(seconds: 5))), equals('Just now'));
-      expect(formatLastSeen(now.subtract(const Duration(seconds: 30))), equals('30s ago'));
-      expect(formatLastSeen(now.subtract(const Duration(minutes: 5))), equals('5m ago'));
-      expect(formatLastSeen(now.subtract(const Duration(hours: 3))), equals('3h ago'));
+      expect(
+        formatLastSeen(now.subtract(const Duration(seconds: 5))),
+        equals('Just now'),
+      );
+      expect(
+        formatLastSeen(now.subtract(const Duration(seconds: 30))),
+        equals('30s ago'),
+      );
+      expect(
+        formatLastSeen(now.subtract(const Duration(minutes: 5))),
+        equals('5m ago'),
+      );
+      expect(
+        formatLastSeen(now.subtract(const Duration(hours: 3))),
+        equals('3h ago'),
+      );
     });
   });
 }

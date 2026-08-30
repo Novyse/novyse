@@ -9,20 +9,51 @@ import 'package:novyse/core/storage/database/database.dart';
 /// Handles database writes first, then broadcasts an event on the [EventBus]
 /// so the UI / other services can react.
 class GlobalEventEmitter {
+  static final GlobalEventEmitter instance = GlobalEventEmitter(
+    EventBus.instance,
+    AppDatabase.instance,
+  );
+
   final EventBus _bus;
   final AppDatabase _db;
+  final Map<String, List<void Function(dynamic)>> _namedListeners = {};
+
   late final MessageEmitter message;
   late final UserEmitter user;
   late final ChatEmitter chat;
 
   GlobalEventEmitter(this._bus, [AppDatabase? db])
-      : _db = db ?? AppDatabase.instance {
+    : _db = db ?? AppDatabase.instance {
     message = MessageEmitter(_bus, _db);
     user = UserEmitter(_bus, _db);
     chat = ChatEmitter(_bus, _db);
   }
 
-  // ── file ──
+  /// Registers a callback for named events (e.g. 'message:sent', 'message:new').
+  void on(String eventName, void Function(dynamic) listener) {
+    _namedListeners.putIfAbsent(eventName, () => []).add(listener);
+  }
+
+  /// Unregisters a callback for a named event.
+  void off(String eventName, void Function(dynamic) listener) {
+    _namedListeners[eventName]?.remove(listener);
+  }
+
+  /// Emits a named event to registered callbacks.
+  void emit(String eventName, [dynamic data]) {
+    final listeners = _namedListeners[eventName];
+    if (listeners != null) {
+      for (final listener in List.of(listeners)) {
+        try {
+          listener(data);
+        } catch (_) {}
+      }
+    }
+  }
+
+  EventBus get bus => _bus;
+
+  //  file
 
   Future<void> fileReady(String fileUUID, [String? uri]) async {
     if (uri != null) {
@@ -32,7 +63,7 @@ class GlobalEventEmitter {
   }
 }
 
-// ── Message sub-emitter ──
+//  Message sub-emitter
 
 class MessageEmitter {
   final EventBus _bus;
@@ -74,19 +105,49 @@ class MessageEmitter {
         break;
       case 'reaction_add':
         final emoji = (data['reaction'] ?? data['emoji']) as String? ?? '';
-        final at = (data['reactedAt'] ?? data['at'] ?? DateTime.now().toIso8601String()) as String;
-        final userUUID = (data['userUUID'] ?? data['user_uuid']) as String? ?? '';
-        await _db.message.reaction.add(chatUUID, subID, messageID, emoji, at, userUUID);
+        final at =
+            (data['reactedAt'] ??
+                    data['at'] ??
+                    DateTime.now().toIso8601String())
+                as String;
+        final userUUID =
+            (data['userUUID'] ?? data['user_uuid']) as String? ?? '';
+        await _db.message.reaction.add(
+          chatUUID,
+          subID,
+          messageID,
+          emoji,
+          at,
+          userUUID,
+        );
         break;
       case 'reaction_remove':
         final emoji = (data['reaction'] ?? data['emoji']) as String? ?? '';
-        final userUUID = (data['userUUID'] ?? data['user_uuid']) as String? ?? '';
-        await _db.message.reaction.remove(chatUUID, subID, messageID, emoji, userUUID);
+        final userUUID =
+            (data['userUUID'] ?? data['user_uuid']) as String? ?? '';
+        await _db.message.reaction.remove(
+          chatUUID,
+          subID,
+          messageID,
+          emoji,
+          userUUID,
+        );
         break;
       case 'read':
-        final userUUID = (data['userUUID'] ?? data['user_uuid']) as String? ?? '';
-        final readAt = (data['readAt'] ?? data['read_at'] ?? DateTime.now().toIso8601String()) as String;
-        await _db.message.read.add(chatUUID, subID, messageID, userUUID, readAt);
+        final userUUID =
+            (data['userUUID'] ?? data['user_uuid']) as String? ?? '';
+        final readAt =
+            (data['readAt'] ??
+                    data['read_at'] ??
+                    DateTime.now().toIso8601String())
+                as String;
+        await _db.message.read.add(
+          chatUUID,
+          subID,
+          messageID,
+          userUUID,
+          readAt,
+        );
         break;
     }
 
@@ -94,17 +155,19 @@ class MessageEmitter {
       await _db.event.chat.update(chatUUID, eventID);
     }
 
-    _bus.emit(MessageUpdateEvent(
-      chatUUID: chatUUID,
-      subID: subID,
-      messageID: messageID,
-      action: action,
-      data: data,
-    ));
+    _bus.emit(
+      MessageUpdateEvent(
+        chatUUID: chatUUID,
+        subID: subID,
+        messageID: messageID,
+        action: action,
+        data: data,
+      ),
+    );
   }
 }
 
-// ── User sub-emitter ──
+//  User sub-emitter
 
 class UserEmitter {
   final EventBus _bus;
@@ -132,24 +195,46 @@ class UserProfileEmitter {
     final name = data['name'] as String?;
     final surname = data['surname'] as String?;
     final biography = data['biography'] as String?;
-    final profilePictureUUID = (data['profilePictureUUID'] ?? data['profilePictureUuid']) as String?;
-    final bannerPictureUUID = (data['bannerPictureUUID'] ?? data['bannerPictureUuid']) as String?;
+    final profilePictureUUID =
+        (data['profilePictureUUID'] ?? data['profilePictureUuid']) as String?;
+    final bannerPictureUUID =
+        (data['bannerPictureUUID'] ?? data['bannerPictureUuid']) as String?;
     final birthday = data['birthday'];
     final region = data['region'] as String?;
     final country = data['country'] as String?;
     final color = data['color'];
     final handle = data['handle'] as String?;
 
-    if (name != null) await _db.user.profile.name.update(userUUID, name);
-    if (surname != null) await _db.user.profile.surname.update(userUUID, surname);
-    if (biography != null) await _db.user.profile.biography.update(userUUID, biography);
-    if (profilePictureUUID != null) await _db.user.profile.picture.update(userUUID, profilePictureUUID);
-    if (birthday != null) await _db.user.profile.birthday.update(userUUID, birthday);
-    if (region != null) await _db.user.profile.region.update(userUUID, region);
-    if (country != null) await _db.user.profile.country.update(userUUID, country);
-    if (bannerPictureUUID != null) await _db.user.profile.banner.update(userUUID, bannerPictureUUID);
-    if (color != null) await _db.user.profile.color.update(userUUID, color);
-    if (handle != null) await _db.handle.update.user(userUUID, handle);
+    if (name != null) {
+      await _db.user.profile.name.update(userUUID, name);
+    }
+    if (surname != null) {
+      await _db.user.profile.surname.update(userUUID, surname);
+    }
+    if (biography != null) {
+      await _db.user.profile.biography.update(userUUID, biography);
+    }
+    if (profilePictureUUID != null) {
+      await _db.user.profile.picture.update(userUUID, profilePictureUUID);
+    }
+    if (birthday != null) {
+      await _db.user.profile.birthday.update(userUUID, birthday);
+    }
+    if (region != null) {
+      await _db.user.profile.region.update(userUUID, region);
+    }
+    if (country != null) {
+      await _db.user.profile.country.update(userUUID, country);
+    }
+    if (bannerPictureUUID != null) {
+      await _db.user.profile.banner.update(userUUID, bannerPictureUUID);
+    }
+    if (color != null) {
+      await _db.user.profile.color.update(userUUID, color);
+    }
+    if (handle != null) {
+      await _db.handle.update.user(userUUID, handle);
+    }
 
     if (eventID != null) {
       await _db.event.user.profile.update(userUUID, eventID);
@@ -168,11 +253,13 @@ class UserPresenceEmitter {
     String status, [
     String? lastAccessAt,
   ]) async {
-    _bus.emit(UserPresenceUpdateEvent(
-      userUUID: userUUID,
-      status: status,
-      lastAccessAt: lastAccessAt,
-    ));
+    _bus.emit(
+      UserPresenceUpdateEvent(
+        userUUID: userUUID,
+        status: status,
+        lastAccessAt: lastAccessAt,
+      ),
+    );
   }
 }
 
@@ -207,15 +294,17 @@ class UserSettingChatEmitter {
         break;
     }
 
-    _bus.emit(UserSettingChatUpdateEvent(
-      chatUUID: chatUUID,
-      action: action,
-      data: data,
-    ));
+    _bus.emit(
+      UserSettingChatUpdateEvent(
+        chatUUID: chatUUID,
+        action: action,
+        data: data,
+      ),
+    );
   }
 }
 
-// ── Chat sub-emitter ──
+//  Chat sub-emitter
 
 class ChatEmitter {
   final EventBus _bus;
@@ -249,17 +338,29 @@ class ChatEmitter {
   ) async {
     switch (action) {
       case 'sub_create':
-        final subData = data['sub'] is Map ? Map<String, dynamic>.from(data['sub'] as Map) : data;
+        final subData = data['sub'] is Map
+            ? Map<String, dynamic>.from(data['sub'] as Map)
+            : data;
         await _db.chat.sub.add(chatUUID, subData);
         break;
       case 'sub_rename':
-        final subData = data['sub'] is Map ? Map<String, dynamic>.from(data['sub'] as Map) : data;
-        final subId = (subData['id'] is num ? (subData['id'] as num).toInt() : int.tryParse(subData['id']?.toString() ?? '0')) ?? 0;
+        final subData = data['sub'] is Map
+            ? Map<String, dynamic>.from(data['sub'] as Map)
+            : data;
+        final subId =
+            (subData['id'] is num
+                ? (subData['id'] as num).toInt()
+                : int.tryParse(subData['id']?.toString() ?? '0')) ??
+            0;
         await _db.chat.sub.update(chatUUID, subId, subData);
         break;
       case 'sub_delete':
         final rawSubId = data['subID'] ?? data['id'];
-        final subId = (rawSubId is num ? rawSubId.toInt() : int.tryParse(rawSubId?.toString() ?? '0')) ?? 0;
+        final subId =
+            (rawSubId is num
+                ? rawSubId.toInt()
+                : int.tryParse(rawSubId?.toString() ?? '0')) ??
+            0;
         await _db.chat.sub.remove(chatUUID, subId);
         break;
     }
@@ -268,11 +369,7 @@ class ChatEmitter {
       await _db.event.chat.update(chatUUID, eventID);
     }
 
-    _bus.emit(ChatUpdateEvent(
-      chatUUID: chatUUID,
-      action: action,
-      data: data,
-    ));
+    _bus.emit(ChatUpdateEvent(chatUUID: chatUUID, action: action, data: data));
   }
 }
 
@@ -299,20 +396,18 @@ class ChatMemberEmitter {
     _bus.emit(ChatMemberLeftEvent(chatUUID: chatUUID, user: user));
   }
 
-  Future<void> activity(
-    String chatUUID,
-    String userUUID,
-    String action,
-  ) async {
-    _bus.emit(ChatMemberActivityEvent(
-      chatUUID: chatUUID,
-      userUUID: userUUID,
-      action: action,
-    ));
+  Future<void> activity(String chatUUID, String userUUID, String action) async {
+    _bus.emit(
+      ChatMemberActivityEvent(
+        chatUUID: chatUUID,
+        userUUID: userUUID,
+        action: action,
+      ),
+    );
   }
 }
 
-// ── Provider ──
+//  Provider
 
 final globalEventEmitterProvider = Provider<GlobalEventEmitter>((ref) {
   return GlobalEventEmitter(

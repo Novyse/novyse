@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
+
 import 'package:novyse/core/storage/file/file_type.dart';
 import 'package:novyse/core/storage/file/file_storage.dart';
 
@@ -16,12 +17,14 @@ List<double> processWaveform(Uint8List bytes, {int samples = 50}) {
       bytes[0] == 0x52 && // 'R'
       bytes[1] == 0x49 && // 'I'
       bytes[2] == 0x46 && // 'F'
-      bytes[3] == 0x46) { // 'F'
+      bytes[3] == 0x46) {
+    // 'F'
     for (var i = 12; i < bytes.length - 8; i++) {
       if (bytes[i] == 0x64 && // 'd'
           bytes[i + 1] == 0x61 && // 'a'
           bytes[i + 2] == 0x74 && // 't'
-          bytes[i + 3] == 0x61) { // 'a'
+          bytes[i + 3] == 0x61) {
+        // 'a'
         offset = i + 8;
         break;
       }
@@ -66,7 +69,10 @@ List<double> processWaveform(Uint8List bytes, {int samples = 50}) {
     filteredData.add(sum / currentBlockSize);
   }
 
-  final maxVal = filteredData.fold<double>(0.0, (prev, elem) => math.max(prev, elem));
+  final maxVal = filteredData.fold<double>(
+    0.0,
+    (prev, elem) => math.max(prev, elem),
+  );
   if (maxVal > 0) {
     final multiplier = 1.0 / maxVal;
     return filteredData.map((n) => (n * multiplier).clamp(0.0, 1.0)).toList();
@@ -114,7 +120,8 @@ int extractVideoDurationFromMp4(Uint8List bytes) {
       if (bytes[i] == 0x6D && // 'm'
           bytes[i + 1] == 0x76 && // 'v'
           bytes[i + 2] == 0x68 && // 'h'
-          bytes[i + 3] == 0x64) { // 'd'
+          bytes[i + 3] == 0x64) {
+        // 'd'
         final version = bytes[i + 4];
         if (version == 0) {
           final timeScale = data.getUint32(i + 16, Endian.big);
@@ -139,7 +146,8 @@ int extractVideoDurationFromMp4(Uint8List bytes) {
 /// Service for calculating waveforms and media durations.
 class MediaUtils {
   final FileStorage _storage;
-  MediaUtils([FileStorage? storage]) : _storage = storage ?? FileStorage.instance;
+  MediaUtils([FileStorage? storage])
+    : _storage = storage ?? FileStorage.instance;
 
   Future<List<double>?> getWaveform(String ref, FileTypeCategory type) async {
     if (type != FileTypeCategory.voice && type != FileTypeCategory.audio) {

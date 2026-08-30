@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/storage/file/file.dart';
 
@@ -18,9 +19,15 @@ void main() {
     });
 
     test('handles voice vs audio distinction based on filename', () {
-      expect(getFileType('audio/wav', 'novyse_vocal_123.wav'), FileTypeCategory.voice);
+      expect(
+        getFileType('audio/wav', 'novyse_vocal_123.wav'),
+        FileTypeCategory.voice,
+      );
       expect(getFileType('audio/wav', 'song.wav'), FileTypeCategory.audio);
-      expect(getFileType('audio/aac', 'novyse_vocal_record.aac'), FileTypeCategory.voice);
+      expect(
+        getFileType('audio/aac', 'novyse_vocal_record.aac'),
+        FileTypeCategory.voice,
+      );
       expect(getFileType('audio/aac', 'track.aac'), FileTypeCategory.audio);
     });
 
@@ -60,22 +67,16 @@ void main() {
 
   group('FileValidators Tests', () {
     test('validates file count and total size', () {
-      final res1 = validateFiles(
-        [
-          {'size': 1024, 'mimeType': 'image/jpeg'},
-          {'size': 1024, 'mimeType': 'image/png'},
-        ],
-        maxFiles: 1,
-      );
+      final res1 = validateFiles([
+        {'size': 1024, 'mimeType': 'image/jpeg'},
+        {'size': 1024, 'mimeType': 'image/png'},
+      ], maxFiles: 1);
       expect(res1.hasErrors, isTrue);
       expect(res1.globalError, contains('Too many files'));
 
-      final res2 = validateFiles(
-        [
-          {'size': 5000, 'mimeType': 'image/jpeg'},
-        ],
-        maxTotalSize: 4000,
-      );
+      final res2 = validateFiles([
+        {'size': 5000, 'mimeType': 'image/jpeg'},
+      ], maxTotalSize: 4000);
       expect(res2.hasErrors, isTrue);
       expect(res2.globalError, contains('Total file size too large'));
     });
@@ -92,9 +93,22 @@ void main() {
 
       expect(res.hasErrors, isTrue);
       expect(res.invalidFilesData.length, 2);
-      expect(res.invalidFilesData[0].errors.any((e) => e.contains('size is 0')), isTrue);
-      expect(res.invalidFilesData[1].errors.any((e) => e.contains('exceeds maximum')), isTrue);
-      expect(res.invalidFilesData[1].errors.any((e) => e.contains('File type not allowed')), isTrue);
+      expect(
+        res.invalidFilesData[0].errors.any((e) => e.contains('size is 0')),
+        isTrue,
+      );
+      expect(
+        res.invalidFilesData[1].errors.any(
+          (e) => e.contains('exceeds maximum'),
+        ),
+        isTrue,
+      );
+      expect(
+        res.invalidFilesData[1].errors.any(
+          (e) => e.contains('File type not allowed'),
+        ),
+        isTrue,
+      );
     });
   });
 

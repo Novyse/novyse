@@ -26,7 +26,11 @@ class SoundPlayer {
       path = sound.assetPath;
     } else if (sound is String) {
       path = resolveSoundPath(sound);
-      if (path == null && (sound.startsWith('assets/') || sound.endsWith('.wav') || sound.endsWith('.mp3') || sound.endsWith('.ogg'))) {
+      if (path == null &&
+          (sound.startsWith('assets/') ||
+              sound.endsWith('.wav') ||
+              sound.endsWith('.mp3') ||
+              sound.endsWith('.ogg'))) {
         path = sound;
       }
     }

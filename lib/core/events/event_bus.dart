@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Events are strongly-typed classes defined in `events.dart`.
 ///
 class EventBus {
+  static final EventBus instance = EventBus();
   final _controller = StreamController<dynamic>.broadcast();
 
   /// Emit an event to all listeners of its type.

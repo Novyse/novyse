@@ -52,7 +52,10 @@ String? getGifMediaUrl(String? url) {
   return null;
 }
 
-typedef TranslationCallback = String Function(String key, [Map<String, dynamic>? params]);
+typedef TranslationCallback = String Function(
+  String key, [
+  Map<String, dynamic>? params,
+]);
 
 /// Default fallback translator for message formatting strings.
 String _defaultTranslate(String key, [Map<String, dynamic>? params]) {
@@ -194,14 +197,46 @@ Map<String, dynamic> formatMessage(
           final count = fileCategories.length;
 
           final (emoji, singularKey, pluralKey) = switch (cat) {
-            FileTypeCategory.image => ('📷', 'messageFormat.fileType.image.singular', 'messageFormat.fileType.image.plural'),
-            FileTypeCategory.video => ('📹', 'messageFormat.fileType.video.singular', 'messageFormat.fileType.video.plural'),
-            FileTypeCategory.audio => ('🎵', 'messageFormat.fileType.audio.singular', 'messageFormat.fileType.audio.plural'),
-            FileTypeCategory.voice => ('🎤', 'messageFormat.fileType.voice.singular', 'messageFormat.fileType.voice.plural'),
-            FileTypeCategory.document => ('📄', 'messageFormat.fileType.document.singular', 'messageFormat.fileType.document.plural'),
-            FileTypeCategory.code => ('💻', 'messageFormat.fileType.code.singular', 'messageFormat.fileType.code.plural'),
-            FileTypeCategory.archive => ('🗄️', 'messageFormat.fileType.archive.singular', 'messageFormat.fileType.archive.plural'),
-            FileTypeCategory.other => ('📎', 'messageFormat.fileType.default.singular', 'messageFormat.fileType.default.plural'),
+            FileTypeCategory.image => (
+              '📷',
+              'messageFormat.fileType.image.singular',
+              'messageFormat.fileType.image.plural',
+            ),
+            FileTypeCategory.video => (
+              '📹',
+              'messageFormat.fileType.video.singular',
+              'messageFormat.fileType.video.plural',
+            ),
+            FileTypeCategory.audio => (
+              '🎵',
+              'messageFormat.fileType.audio.singular',
+              'messageFormat.fileType.audio.plural',
+            ),
+            FileTypeCategory.voice => (
+              '🎤',
+              'messageFormat.fileType.voice.singular',
+              'messageFormat.fileType.voice.plural',
+            ),
+            FileTypeCategory.document => (
+              '📄',
+              'messageFormat.fileType.document.singular',
+              'messageFormat.fileType.document.plural',
+            ),
+            FileTypeCategory.code => (
+              '💻',
+              'messageFormat.fileType.code.singular',
+              'messageFormat.fileType.code.plural',
+            ),
+            FileTypeCategory.archive => (
+              '🗄️',
+              'messageFormat.fileType.archive.singular',
+              'messageFormat.fileType.archive.plural',
+            ),
+            FileTypeCategory.other => (
+              '📎',
+              'messageFormat.fileType.default.singular',
+              'messageFormat.fileType.default.plural',
+            ),
           };
 
           var durationStr = '';
@@ -264,7 +299,9 @@ String getSystemMessageText(
         name = translate('messageFormat.system.you');
       } else {
         final user = getUser?.call(content);
-        name = (user?['name'] as String?) ?? translate('messageFormat.system.user');
+        name =
+            (user?['name'] as String?) ??
+            translate('messageFormat.system.user');
       }
       return translate('messageFormat.system.userJoined', {'name': name});
     case 'USER_LEFT':
@@ -273,7 +310,9 @@ String getSystemMessageText(
         name = translate('messageFormat.system.you');
       } else {
         final user = getUser?.call(content);
-        name = (user?['name'] as String?) ?? translate('messageFormat.system.user');
+        name =
+            (user?['name'] as String?) ??
+            translate('messageFormat.system.user');
       }
       return translate('messageFormat.system.userLeft', {'name': name});
     default:
@@ -341,25 +380,25 @@ String formatActivity(
   };
 
   if (count == 1) {
-    return translate('messageFormat.activity.${actionKey}_one', {'name': names[0]});
+    return translate('messageFormat.activity.${actionKey}_one', {
+      'name': names[0],
+    });
   } else if (count == 2) {
-    return translate(
-      'messageFormat.activity.${actionKey}_two',
-      {'name': names[0], 'name2': names[1]},
-    );
+    return translate('messageFormat.activity.${actionKey}_two', {
+      'name': names[0],
+      'name2': names[1],
+    });
   } else {
-    return translate(
-      'messageFormat.activity.${actionKey}_other',
-      {'name': names[0], 'name2': names[1], 'count': count - 2},
-    );
+    return translate('messageFormat.activity.${actionKey}_other', {
+      'name': names[0],
+      'name2': names[1],
+      'count': count - 2,
+    });
   }
 }
 
 /// Formats relative time for user "last seen" status.
-String formatLastSeen(
-  dynamic lastAccessAt, {
-  TranslationCallback? t,
-}) {
+String formatLastSeen(dynamic lastAccessAt, {TranslationCallback? t}) {
   if (lastAccessAt == null) return '';
   final translate = t ?? _defaultTranslate;
 
@@ -382,10 +421,14 @@ String formatLastSeen(
       return translate('messageFormat.time.justNow');
     }
     if (diff.inSeconds < 60) {
-      return translate('messageFormat.time.secondsAgo', {'count': diff.inSeconds});
+      return translate('messageFormat.time.secondsAgo', {
+        'count': diff.inSeconds,
+      });
     }
     if (diff.inMinutes < 60) {
-      return translate('messageFormat.time.minutesAgo', {'count': diff.inMinutes});
+      return translate('messageFormat.time.minutesAgo', {
+        'count': diff.inMinutes,
+      });
     }
     if (diff.inHours < 24) {
       return translate('messageFormat.time.hoursAgo', {'count': diff.inHours});

@@ -103,8 +103,12 @@ final dioProvider = Provider<Dio>((ref) {
           debugPrint('Client update required (426 Upgrade Required)');
           final responseData = error.response?.data;
           final innerData = responseData is Map ? responseData['data'] : null;
-          final minVersion = innerData is Map ? innerData['minVersion'] as String? : null;
-          ref.read(eventBusProvider).emit(ClientUpdateRequiredEvent(minVersion: minVersion));
+          final minVersion = innerData is Map
+              ? innerData['minVersion'] as String?
+              : null;
+          ref
+              .read(eventBusProvider)
+              .emit(ClientUpdateRequiredEvent(minVersion: minVersion));
           return handler.next(error);
         }
 

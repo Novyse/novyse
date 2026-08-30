@@ -14,10 +14,10 @@ class EventSender {
 
   /// Send a typing/recording activity indicator.
   void activity(String chatUUID, String action) {
-    _socket?.emit(
-      'chat:member:activity',
-      {'chatUUID': chatUUID, 'action': action},
-    );
+    _socket?.emit('chat:member:activity', {
+      'chatUUID': chatUUID,
+      'action': action,
+    });
   }
 }
 

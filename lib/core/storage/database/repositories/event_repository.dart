@@ -29,10 +29,10 @@ class EventChatRepository {
   Future<bool> update(String chatUUID, int eventID) async {
     try {
       if (chatUUID.isEmpty) return false;
-      await _repo.db.rawUpdate(
-        'UPDATE chat SET eventID = ? WHERE uuid = ?;',
-        [eventID, chatUUID],
-      );
+      await _repo.db.rawUpdate('UPDATE chat SET eventID = ? WHERE uuid = ?;', [
+        eventID,
+        chatUUID,
+      ]);
       return true;
     } catch (e) {
       debugPrint('Error updating chat event ID: $e');
@@ -45,7 +45,9 @@ class EventUserRepository {
   final EventRepository _repo;
   EventUserRepository(this._repo);
 
-  late final EventUserProfileRepository profile = EventUserProfileRepository(_repo);
+  late final EventUserProfileRepository profile = EventUserProfileRepository(
+    _repo,
+  );
 }
 
 class EventUserProfileRepository {

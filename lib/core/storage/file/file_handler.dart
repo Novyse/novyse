@@ -39,11 +39,11 @@ class PickedFileAsset {
   }
 
   Map<String, dynamic> toMap() => {
-        'name': name,
-        'path': path,
-        'size': size,
-        'extension': extension,
-      };
+    'name': name,
+    'path': path,
+    'size': size,
+    'extension': extension,
+  };
 }
 
 /// Service for picking files and media from device storage across platforms.
@@ -79,7 +79,9 @@ class FileHandler {
       );
 
       if (result.isNotEmpty) {
-        final assets = await Future.wait(result.map(PickedFileAsset.fromPlatformFile));
+        final assets = await Future.wait(
+          result.map(PickedFileAsset.fromPlatformFile),
+        );
         return assets;
       }
     } catch (e) {
@@ -91,12 +93,12 @@ class FileHandler {
   /// Picks media (Images and Videos).
   static Future<List<PickedFileAsset>> pickMedia() async {
     try {
-      final result = await FilePicker.pickFiles(
-        type: FileType.media,
-      );
+      final result = await FilePicker.pickFiles(type: FileType.media);
 
       if (result.isNotEmpty) {
-        final assets = await Future.wait(result.map(PickedFileAsset.fromPlatformFile));
+        final assets = await Future.wait(
+          result.map(PickedFileAsset.fromPlatformFile),
+        );
         return assets;
       }
     } catch (e) {
@@ -108,12 +110,12 @@ class FileHandler {
   /// Picks images only.
   static Future<List<PickedFileAsset>> pickImage() async {
     try {
-      final result = await FilePicker.pickFiles(
-        type: FileType.image,
-      );
+      final result = await FilePicker.pickFiles(type: FileType.image);
 
       if (result.isNotEmpty) {
-        final assets = await Future.wait(result.map(PickedFileAsset.fromPlatformFile));
+        final assets = await Future.wait(
+          result.map(PickedFileAsset.fromPlatformFile),
+        );
         return assets;
       }
     } catch (e) {
@@ -125,12 +127,12 @@ class FileHandler {
   /// Picks videos only.
   static Future<List<PickedFileAsset>> pickVideo() async {
     try {
-      final result = await FilePicker.pickFiles(
-        type: FileType.video,
-      );
+      final result = await FilePicker.pickFiles(type: FileType.video);
 
       if (result.isNotEmpty) {
-        final assets = await Future.wait(result.map(PickedFileAsset.fromPlatformFile));
+        final assets = await Future.wait(
+          result.map(PickedFileAsset.fromPlatformFile),
+        );
         return assets;
       }
     } catch (e) {
@@ -142,12 +144,12 @@ class FileHandler {
   /// Picks audio files only.
   static Future<List<PickedFileAsset>> pickAudio() async {
     try {
-      final result = await FilePicker.pickFiles(
-        type: FileType.audio,
-      );
+      final result = await FilePicker.pickFiles(type: FileType.audio);
 
       if (result.isNotEmpty) {
-        final assets = await Future.wait(result.map(PickedFileAsset.fromPlatformFile));
+        final assets = await Future.wait(
+          result.map(PickedFileAsset.fromPlatformFile),
+        );
         return assets;
       }
     } catch (e) {

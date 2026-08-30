@@ -1,4 +1,5 @@
 import 'dart:io' as io;
+
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -12,6 +13,7 @@ import 'package:novyse/core/storage/database/repositories/chat_repository.dart';
 import 'package:novyse/core/storage/database/repositories/message_repository.dart';
 import 'package:novyse/core/storage/database/repositories/file_repository.dart';
 import 'package:novyse/core/storage/database/repositories/event_repository.dart';
+import 'package:novyse/core/storage/database/repositories/queue_job_repository.dart';
 
 export 'package:novyse/core/storage/database/init_sql.dart';
 export 'package:novyse/core/storage/database/repositories/user_repository.dart';
@@ -20,6 +22,7 @@ export 'package:novyse/core/storage/database/repositories/chat_repository.dart';
 export 'package:novyse/core/storage/database/repositories/message_repository.dart';
 export 'package:novyse/core/storage/database/repositories/file_repository.dart';
 export 'package:novyse/core/storage/database/repositories/event_repository.dart';
+export 'package:novyse/core/storage/database/repositories/queue_job_repository.dart';
 
 /// Main SQLite database service for Novyse.
 class AppDatabase {
@@ -34,6 +37,8 @@ class AppDatabase {
   late final ChatRepository chat = ChatRepository(null, message, handle);
   late final FileRepository file = FileRepository();
   late final EventRepository event = EventRepository();
+  late final QueueJobRepository job = QueueJobRepository();
+  QueueJobRepository get queue => job;
 
   Database? get rawDb => _db;
   bool get isOpen => _db != null && _db!.isOpen;
@@ -94,6 +99,7 @@ class AppDatabase {
     chat.setRepositories(message, handle);
     file.setDb(db);
     event.setDb(db);
+    job.setDb(db);
   }
 
   /// Sets an active database instance directly (useful for tests).

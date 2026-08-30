@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
@@ -61,7 +62,9 @@ class SocketService {
       }
 
       if (_isConnecting || isOpen) {
-        debugPrint('Socket.IO connection already in progress or already connected');
+        debugPrint(
+          'Socket.IO connection already in progress or already connected',
+        );
         return;
       }
 
@@ -82,7 +85,10 @@ class SocketService {
         debugPrint('Socket.IO connection opened!');
         _isConnecting = false;
         _ref.read(networkProvider.notifier).setSocketConnected(true);
-        eventReceiver.initialize(_socket!, _ref.read(globalEventEmitterProvider));
+        eventReceiver.initialize(
+          _socket!,
+          _ref.read(globalEventEmitterProvider),
+        );
         eventSender.initialize(_socket!);
       });
 
@@ -91,11 +97,15 @@ class SocketService {
         _isConnecting = false;
 
         final errorData = error is Map ? error['data'] : null;
-        final errorCode = errorData is Map ? errorData['code'] as String? : null;
+        final errorCode = errorData is Map
+            ? errorData['code'] as String?
+            : null;
         if (errorCode == 'AUTH_NO_TOKEN' ||
             errorCode == 'AUTH_INVALID_TOKEN' ||
             errorCode == 'AUTH_TOKEN_EXPIRED') {
-          debugPrint('Socket auth error ($errorCode), reconnecting with fresh token...');
+          debugPrint(
+            'Socket auth error ($errorCode), reconnecting with fresh token...',
+          );
           _socket?.disconnect();
           _socket = null;
           _isConnecting = false;
@@ -129,7 +139,9 @@ class SocketService {
 
       _socket!.on('auth:refresh:error', (data) {
         if (data is Map) {
-          debugPrint('Socket token refresh failed: ${data['code']} — ${data['message']}');
+          debugPrint(
+            'Socket token refresh failed: ${data['code']} — ${data['message']}',
+          );
           if (data['code'] == 'AUTH_IDENTITY_MISMATCH') {
             _socket?.disconnect();
             _socket = null;

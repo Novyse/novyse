@@ -2,8 +2,14 @@
 enum AppSound {
   commsJoin('assets/audio/comms/join.wav', 'comms.join'),
   commsLeave('assets/audio/comms/leave.wav', 'comms.leave'),
-  commsScreenShareStart('assets/audio/comms/screen_share/start.wav', 'comms.screen_share.start'),
-  commsScreenShareStop('assets/audio/comms/screen_share/stop.wav', 'comms.screen_share.stop');
+  commsScreenShareStart(
+    'assets/audio/comms/screen_share/start.wav',
+    'comms.screen_share.start',
+  ),
+  commsScreenShareStop(
+    'assets/audio/comms/screen_share/stop.wav',
+    'comms.screen_share.stop',
+  );
 
   final String assetPath;
   final String key;

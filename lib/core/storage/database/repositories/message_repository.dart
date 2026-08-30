@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:sqflite/sqflite.dart';
 
@@ -14,7 +15,9 @@ class MessageRepository {
   DatabaseExecutor get db {
     final database = _db;
     if (database == null) {
-      throw StateError('MessageRepository: database is not set or initialized.');
+      throw StateError(
+        'MessageRepository: database is not set or initialized.',
+      );
     }
     return database;
   }
@@ -22,7 +25,9 @@ class MessageRepository {
   late final MessageGetRepository get = MessageGetRepository(this);
   late final MessagePinRepository pin = MessagePinRepository(this);
   late final MessageLastRepository last = MessageLastRepository(this);
-  late final MessageReactionRepository reaction = MessageReactionRepository(this);
+  late final MessageReactionRepository reaction = MessageReactionRepository(
+    this,
+  );
   late final MessageReadRepository read = MessageReadRepository(this);
 
   /// Helper to safely parse a message ID to an int.
@@ -39,17 +44,26 @@ class MessageRepository {
       final rawId = message['id'];
       final chatUUID = message['chatUUID'] as String?;
       final senderUUID = message['senderUUID'] as String?;
-      final createdAt = message['created_at'] ?? message['createdAt'] ?? DateTime.now().toIso8601String();
+      final createdAt =
+          message['created_at'] ??
+          message['createdAt'] ??
+          DateTime.now().toIso8601String();
 
       if (rawId == null || chatUUID == null || senderUUID == null) {
-        debugPrint('Missing required message fields: id=$rawId, chatUUID=$chatUUID, senderUUID=$senderUUID');
+        debugPrint(
+          'Missing required message fields: id=$rawId, chatUUID=$chatUUID, senderUUID=$senderUUID',
+        );
         return false;
       }
 
       final id = _parseId(rawId);
-      final subID = message['subID'] is num ? (message['subID'] as num).toInt() : int.tryParse(message['subID']?.toString() ?? '0') ?? 0;
+      final subID = message['subID'] is num
+          ? (message['subID'] as num).toInt()
+          : int.tryParse(message['subID']?.toString() ?? '0') ?? 0;
 
-      final replyTo = message['replyTo'] is Map ? Map<String, dynamic>.from(message['replyTo'] as Map) : null;
+      final replyTo = message['replyTo'] is Map
+          ? Map<String, dynamic>.from(message['replyTo'] as Map)
+          : null;
 
       await db.rawInsert(
         '''
@@ -69,7 +83,9 @@ class MessageRepository {
           createdAt,
           replyTo?['chatUUID'],
           replyTo?['subID'] != null ? _parseId(replyTo!['subID']) : null,
-          replyTo?['messageID'] != null ? _parseId(replyTo!['messageID']) : null,
+          replyTo?['messageID'] != null
+              ? _parseId(replyTo!['messageID'])
+              : null,
           replyTo?['rangeStart'],
           replyTo?['rangeEnd'],
         ],
@@ -92,8 +108,12 @@ class MessageRepository {
               subID,
               id,
               r['chatUUID'] ?? r['replyTo_chatUUID'],
-              r['subID'] != null ? _parseId(r['subID']) : _parseId(r['replyTo_subID']),
-              r['messageID'] != null ? _parseId(r['messageID']) : _parseId(r['replyTo_messageID']),
+              r['subID'] != null
+                  ? _parseId(r['subID'])
+                  : _parseId(r['replyTo_subID']),
+              r['messageID'] != null
+                  ? _parseId(r['messageID'])
+                  : _parseId(r['replyTo_messageID']),
               r['rangeStart'] ?? r['replyTo_rangeStart'],
               r['rangeEnd'] ?? r['replyTo_rangeEnd'],
             ],
@@ -113,7 +133,9 @@ class MessageRepository {
 
           if (fileUUID != null && name != null && mimeType != null) {
             final waveformStr = file['waveform'] != null
-                ? (file['waveform'] is String ? file['waveform'] : jsonEncode(file['waveform']))
+                ? (file['waveform'] is String
+                      ? file['waveform']
+                      : jsonEncode(file['waveform']))
                 : null;
 
             await db.rawInsert(
@@ -144,13 +166,16 @@ class MessageRepository {
       }
 
       // Reads
-      final rawReads = message['reads'] ?? message['readBy'] ?? message['message_reads'];
+      final rawReads =
+          message['reads'] ?? message['readBy'] ?? message['message_reads'];
       if (rawReads is List) {
         for (final readRaw in rawReads) {
           if (readRaw is! Map) continue;
           final r = Map<String, dynamic>.from(readRaw);
           final userUUID = (r['userUUID'] ?? r['user_uuid']) as String?;
-          final readAt = (r['readAt'] ?? r['read_at'] ?? DateTime.now().toIso8601String()) as String;
+          final readAt =
+              (r['readAt'] ?? r['read_at'] ?? DateTime.now().toIso8601String())
+                  as String;
           if (userUUID != null) {
             await db.rawInsert(
               '''
@@ -170,7 +195,9 @@ class MessageRepository {
           final r = Map<String, dynamic>.from(reactionRaw);
           final userUUID = r['userUUID'] as String?;
           final emoji = (r['reaction'] ?? r['emoji']) as String?;
-          final at = (r['at'] ?? r['created_at'] ?? DateTime.now().toIso8601String()) as String;
+          final at =
+              (r['at'] ?? r['created_at'] ?? DateTime.now().toIso8601String())
+                  as String;
           if (userUUID != null && emoji != null) {
             await db.rawInsert(
               '''
@@ -202,13 +229,20 @@ class MessageRepository {
         final rawId = message['id'];
         final chatUUID = message['chatUUID'] as String?;
         final senderUUID = message['senderUUID'] as String?;
-        final createdAt = message['created_at'] ?? message['createdAt'] ?? DateTime.now().toIso8601String();
+        final createdAt =
+            message['created_at'] ??
+            message['createdAt'] ??
+            DateTime.now().toIso8601String();
 
         if (rawId == null || chatUUID == null || senderUUID == null) continue;
         final id = _parseId(rawId);
-        final subID = message['subID'] is num ? (message['subID'] as num).toInt() : int.tryParse(message['subID']?.toString() ?? '0') ?? 0;
+        final subID = message['subID'] is num
+            ? (message['subID'] as num).toInt()
+            : int.tryParse(message['subID']?.toString() ?? '0') ?? 0;
 
-        final replyTo = message['replyTo'] is Map ? Map<String, dynamic>.from(message['replyTo'] as Map) : null;
+        final replyTo = message['replyTo'] is Map
+            ? Map<String, dynamic>.from(message['replyTo'] as Map)
+            : null;
 
         batch.rawInsert(
           '''
@@ -228,7 +262,9 @@ class MessageRepository {
             createdAt,
             replyTo?['chatUUID'],
             replyTo?['subID'] != null ? _parseId(replyTo!['subID']) : null,
-            replyTo?['messageID'] != null ? _parseId(replyTo!['messageID']) : null,
+            replyTo?['messageID'] != null
+                ? _parseId(replyTo!['messageID'])
+                : null,
             replyTo?['rangeStart'],
             replyTo?['rangeEnd'],
           ],
@@ -260,8 +296,12 @@ class MessageRepository {
                 subID,
                 id,
                 r['chatUUID'] ?? r['replyTo_chatUUID'],
-                r['subID'] != null ? _parseId(r['subID']) : _parseId(r['replyTo_subID']),
-                r['messageID'] != null ? _parseId(r['messageID']) : _parseId(r['replyTo_messageID']),
+                r['subID'] != null
+                    ? _parseId(r['subID'])
+                    : _parseId(r['replyTo_subID']),
+                r['messageID'] != null
+                    ? _parseId(r['messageID'])
+                    : _parseId(r['replyTo_messageID']),
                 r['rangeStart'] ?? r['replyTo_rangeStart'],
                 r['rangeEnd'] ?? r['replyTo_rangeEnd'],
               ],
@@ -275,7 +315,9 @@ class MessageRepository {
             final r = Map<String, dynamic>.from(reactionRaw);
             final userUUID = r['userUUID'] as String?;
             final emoji = (r['reaction'] ?? r['emoji']) as String?;
-            final at = (r['at'] ?? r['created_at'] ?? DateTime.now().toIso8601String()) as String;
+            final at =
+                (r['at'] ?? r['created_at'] ?? DateTime.now().toIso8601String())
+                    as String;
             if (userUUID != null && emoji != null) {
               batch.rawInsert(
                 '''
@@ -288,13 +330,18 @@ class MessageRepository {
           }
         }
 
-        final rawReads = message['reads'] ?? message['readBy'] ?? message['message_reads'];
+        final rawReads =
+            message['reads'] ?? message['readBy'] ?? message['message_reads'];
         if (rawReads is List) {
           for (final readRaw in rawReads) {
             if (readRaw is! Map) continue;
             final r = Map<String, dynamic>.from(readRaw);
             final userUUID = (r['userUUID'] ?? r['user_uuid']) as String?;
-            final readAt = (r['readAt'] ?? r['read_at'] ?? DateTime.now().toIso8601String()) as String;
+            final readAt =
+                (r['readAt'] ??
+                        r['read_at'] ??
+                        DateTime.now().toIso8601String())
+                    as String;
             if (userUUID != null) {
               batch.rawInsert(
                 '''
@@ -314,11 +361,15 @@ class MessageRepository {
             final fileUUID = file['uuid'] as String?;
             final name = file['name'] as String?;
             final mimeType = file['mimeType'] as String?;
-            final size = file['size'] is num ? (file['size'] as num).toInt() : 0;
+            final size = file['size'] is num
+                ? (file['size'] as num).toInt()
+                : 0;
 
             if (fileUUID != null && name != null && mimeType != null) {
               final waveformStr = file['waveform'] != null
-                  ? (file['waveform'] is String ? file['waveform'] : jsonEncode(file['waveform']))
+                  ? (file['waveform'] is String
+                        ? file['waveform']
+                        : jsonEncode(file['waveform']))
                   : null;
 
               batch.rawInsert(
@@ -368,7 +419,10 @@ class MessageRepository {
       final trimmed = query.trim();
       if (trimmed.isEmpty) return [];
 
-      final escaped = trimmed.replaceAll(r'\', r'\\').replaceAll('%', r'\%').replaceAll('_', r'\_');
+      final escaped = trimmed
+          .replaceAll(r'\', r'\\')
+          .replaceAll('%', r'\%')
+          .replaceAll('_', r'\_');
       final like = '%$escaped%';
 
       final conditions = <String>[
@@ -389,8 +443,7 @@ class MessageRepository {
 
       params.add(limit);
 
-      final rows = await db.rawQuery(
-        '''
+      final rows = await db.rawQuery('''
         SELECT m.id, m.chatUUID, m.subID, m.senderUUID, m.content, m.type, m.created_at,
                u.name as sender_name, u.profilePictureUUID as profile_picture_uuid
         FROM message m
@@ -398,9 +451,7 @@ class MessageRepository {
         WHERE ${conditions.join(' AND ')}
         ORDER BY m.created_at DESC
         LIMIT ?;
-        ''',
-        params,
-      );
+        ''', params);
 
       return rows.map((r) => Map<String, dynamic>.from(r)).toList();
     } catch (e) {
@@ -410,7 +461,12 @@ class MessageRepository {
   }
 
   /// Edits a message content and records it in edited_message table.
-  Future<bool> edit(String chatUUID, int subID, dynamic messageID, String content) async {
+  Future<bool> edit(
+    String chatUUID,
+    int subID,
+    dynamic messageID,
+    String content,
+  ) async {
     try {
       final id = _parseId(messageID);
       await db.rawUpdate(
@@ -443,7 +499,7 @@ class MessageRepository {
     }
   }
 
-  // ── Info Enrichment Helpers ──
+  //  Info Enrichment Helpers
 
   Future<void> addInfos(Map<String, dynamic> message) async {
     await _addReplyTos(message);
@@ -479,13 +535,15 @@ class MessageRepository {
     );
 
     message['replyTos'] = rows
-        .map((r) => {
-              'chatUUID': r['replyTo_chatUUID'],
-              'subID': r['replyTo_subID'],
-              'messageID': r['replyTo_messageID'],
-              'rangeStart': r['replyTo_rangeStart'],
-              'rangeEnd': r['replyTo_rangeEnd'],
-            })
+        .map(
+          (r) => {
+            'chatUUID': r['replyTo_chatUUID'],
+            'subID': r['replyTo_subID'],
+            'messageID': r['replyTo_messageID'],
+            'rangeStart': r['replyTo_rangeStart'],
+            'rangeEnd': r['replyTo_rangeEnd'],
+          },
+        )
         .toList();
   }
 
@@ -500,11 +558,13 @@ class MessageRepository {
     );
 
     message['repliedFroms'] = rows
-        .map((r) => {
-              'chatUUID': r['chatUUID'],
-              'subID': r['subID'],
-              'messageID': r['messageID'],
-            })
+        .map(
+          (r) => {
+            'chatUUID': r['chatUUID'],
+            'subID': r['subID'],
+            'messageID': r['messageID'],
+          },
+        )
         .toList();
   }
 
@@ -528,11 +588,13 @@ class MessageRepository {
     }
 
     message['reactions'] = map.entries
-        .map((entry) => {
-              'emoji': entry.key,
-              'userUUIDs': entry.value.map((e) => e['userUUID']).toList(),
-              'details': entry.value,
-            })
+        .map(
+          (entry) => {
+            'emoji': entry.key,
+            'userUUIDs': entry.value.map((e) => e['userUUID']).toList(),
+            'details': entry.value,
+          },
+        )
         .toList();
   }
 
@@ -573,7 +635,11 @@ class MessageGetByRepository {
   final MessageRepository _repo;
   MessageGetByRepository(this._repo);
 
-  Future<Map<String, dynamic>?> id(String chatUUID, int subID, dynamic messageID) async {
+  Future<Map<String, dynamic>?> id(
+    String chatUUID,
+    int subID,
+    dynamic messageID,
+  ) async {
     try {
       final parsedId = MessageRepository._parseId(messageID);
       final rows = await _repo.db.rawQuery(
@@ -615,7 +681,9 @@ class MessageGetByRepository {
       );
 
       // Reverse to maintain chronological order
-      final messages = rows.reversed.map((r) => Map<String, dynamic>.from(r)).toList();
+      final messages = rows.reversed
+          .map((r) => Map<String, dynamic>.from(r))
+          .toList();
       for (final message in messages) {
         await _repo.addInfos(message);
       }

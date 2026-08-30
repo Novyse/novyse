@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:sqflite/sqflite.dart';
 import 'package:novyse/core/storage/database/repositories/handle_repository.dart';
@@ -27,16 +28,22 @@ class MemberRepository {
     try {
       final userUUID = user is String
           ? user
-          : (user is Map ? (user['uuid'] ?? user['userUUID']) as String? : null);
+          : (user is Map
+                ? (user['uuid'] ?? user['userUUID']) as String?
+                : null);
 
       if (chatUUID.isEmpty || userUUID == null || userUUID.isEmpty) {
-        debugPrint('Missing required fields to add member: chatUUID=$chatUUID, user=$user');
+        debugPrint(
+          'Missing required fields to add member: chatUUID=$chatUUID, user=$user',
+        );
         return false;
       }
 
       final roles = user is Map ? (user['roleIDs'] ?? user['roles'] ?? []) : [];
       final joinedAt = user is Map
-          ? (user['joinedAt'] ?? user['joined_at'] ?? DateTime.now().toIso8601String())
+          ? (user['joinedAt'] ??
+                user['joined_at'] ??
+                DateTime.now().toIso8601String())
           : DateTime.now().toIso8601String();
 
       await db.rawInsert(
@@ -70,7 +77,9 @@ class MemberRepository {
 
         final roles = u is Map ? (u['roleIDs'] ?? u['roles'] ?? []) : [];
         final joinedAt = u is Map
-            ? (u['joinedAt'] ?? u['joined_at'] ?? DateTime.now().toIso8601String())
+            ? (u['joinedAt'] ??
+                  u['joined_at'] ??
+                  DateTime.now().toIso8601String())
             : DateTime.now().toIso8601String();
 
         batch.rawInsert(
@@ -94,10 +103,14 @@ class MemberRepository {
     try {
       final userUUID = user is String
           ? user
-          : (user is Map ? (user['uuid'] ?? user['userUUID']) as String? : null);
+          : (user is Map
+                ? (user['uuid'] ?? user['userUUID']) as String?
+                : null);
 
       if (chatUUID.isEmpty || userUUID == null || userUUID.isEmpty) {
-        debugPrint('Missing required fields to remove member: chatUUID=$chatUUID, user=$user');
+        debugPrint(
+          'Missing required fields to remove member: chatUUID=$chatUUID, user=$user',
+        );
         return false;
       }
 
@@ -168,11 +181,7 @@ class ChatRepository {
   MessageRepository? _messageRepository;
   HandleRepository? _handleRepository;
 
-  ChatRepository([
-    this._db,
-    this._messageRepository,
-    this._handleRepository,
-  ]) {
+  ChatRepository([this._db, this._messageRepository, this._handleRepository]) {
     member = MemberRepository(_db);
     pin = ChatPinRepository(this);
     sub = ChatSubRepository(this);
@@ -184,7 +193,10 @@ class ChatRepository {
     member.setDb(db);
   }
 
-  void setRepositories(MessageRepository messageRepo, HandleRepository handleRepo) {
+  void setRepositories(
+    MessageRepository messageRepo,
+    HandleRepository handleRepo,
+  ) {
     _messageRepository = messageRepo;
     _handleRepository = handleRepo;
   }
@@ -206,9 +218,10 @@ class ChatRepository {
     try {
       final uuid = chat['uuid'] as String?;
       final type = chat['type'] as String?;
-      final members = chat['members'];
+      final rawMembers = chat['members'];
+      final members = rawMembers is List ? rawMembers : [];
 
-      if (uuid == null || type == null || members == null || members is! List) {
+      if (uuid == null || type == null) {
         debugPrint('Missing required chat fields: uuid=$uuid, type=$type');
         return false;
       }
@@ -248,7 +261,9 @@ class ChatRepository {
           if (roleRaw is! Map) continue;
           final role = Map<String, dynamic>.from(roleRaw);
           final colorVal = role['color'] != null
-              ? (role['color'] is String ? role['color'] : jsonEncode(role['color']))
+              ? (role['color'] is String
+                    ? role['color']
+                    : jsonEncode(role['color']))
               : null;
           final roleId = role['id'] is num ? (role['id'] as num).toInt() : 0;
           await db.rawInsert(
@@ -283,7 +298,9 @@ class ChatRepository {
               uuid,
               s['name'],
               s['type'] ?? 'DEFAULT',
-              s['created_at'] ?? s['createdAt'] ?? DateTime.now().toIso8601String(),
+              s['created_at'] ??
+                  s['createdAt'] ??
+                  DateTime.now().toIso8601String(),
             ],
           );
         }
@@ -381,7 +398,10 @@ class ChatRepository {
         if (chat['pinnedMessages'] is List) {
           for (final p in chat['pinnedMessages'] as List) {
             if (p is Map) {
-              allPinnedMessages.add({'chatUUID': uuid, ...Map<String, dynamic>.from(p)});
+              allPinnedMessages.add({
+                'chatUUID': uuid,
+                ...Map<String, dynamic>.from(p),
+              });
             }
           }
         }
@@ -389,7 +409,9 @@ class ChatRepository {
 
       for (final role in allRoles) {
         final colorVal = role['color'] != null
-            ? (role['color'] is String ? role['color'] : jsonEncode(role['color']))
+            ? (role['color'] is String
+                  ? role['color']
+                  : jsonEncode(role['color']))
             : null;
         final roleId = role['id'] is num ? (role['id'] as num).toInt() : 0;
         batch.rawInsert(
@@ -420,7 +442,9 @@ class ChatRepository {
             sub['chatUUID'],
             sub['name'],
             sub['type'] ?? 'DEFAULT',
-            sub['created_at'] ?? sub['createdAt'] ?? DateTime.now().toIso8601String(),
+            sub['created_at'] ??
+                sub['createdAt'] ??
+                DateTime.now().toIso8601String(),
           ],
         );
       }
@@ -459,10 +483,9 @@ class ChatPinRepository {
   Future<bool> add(String chatUUID, int position) async {
     try {
       if (chatUUID.isEmpty) return false;
-      await _repo.db.rawDelete(
-        'DELETE FROM chat_pin WHERE chatUUID = ?;',
-        [chatUUID],
-      );
+      await _repo.db.rawDelete('DELETE FROM chat_pin WHERE chatUUID = ?;', [
+        chatUUID,
+      ]);
       await _repo.db.rawUpdate(
         'UPDATE chat_pin SET position = position + 1 WHERE position >= ?;',
         [position],
@@ -487,10 +510,9 @@ class ChatPinRepository {
       );
       if (rows.isNotEmpty) {
         final pos = (rows.first['position'] as num).toInt();
-        await _repo.db.rawDelete(
-          'DELETE FROM chat_pin WHERE chatUUID = ?;',
-          [chatUUID],
-        );
+        await _repo.db.rawDelete('DELETE FROM chat_pin WHERE chatUUID = ?;', [
+          chatUUID,
+        ]);
         await _repo.db.rawUpdate(
           'UPDATE chat_pin SET position = position - 1 WHERE position > ?;',
           [pos],
@@ -533,7 +555,9 @@ class ChatSubRepository {
           chatUUID,
           sub['name'],
           sub['type'] ?? 'DEFAULT',
-          sub['created_at'] ?? sub['createdAt'] ?? DateTime.now().toIso8601String(),
+          sub['created_at'] ??
+              sub['createdAt'] ??
+              DateTime.now().toIso8601String(),
         ],
       );
       return true;
@@ -543,7 +567,11 @@ class ChatSubRepository {
     }
   }
 
-  Future<bool> update(String chatUUID, int subID, Map<String, dynamic> sub) async {
+  Future<bool> update(
+    String chatUUID,
+    int subID,
+    Map<String, dynamic> sub,
+  ) async {
     try {
       await _repo.db.rawUpdate(
         'UPDATE chat_sub SET name = ? WHERE chatUUID = ? AND id = ?;',
@@ -603,9 +631,18 @@ class ChatGetRepository {
                 WHERE chatUUID = ? AND userUUID = ?
               );
             ''',
-            [chatUUID, localUserUUID, chatUUID, localUserUUID, chatUUID, localUserUUID],
+            [
+              chatUUID,
+              localUserUUID,
+              chatUUID,
+              localUserUUID,
+              chatUUID,
+              localUserUUID,
+            ],
           );
-          chat['unreadCount'] = countRows.isNotEmpty ? (countRows.first['count'] as num).toInt() : 0;
+          chat['unreadCount'] = countRows.isNotEmpty
+              ? (countRows.first['count'] as num).toInt()
+              : 0;
 
           // Load oldest unread message if it exists
           final oldestRows = await _repo.db.rawQuery(
@@ -625,7 +662,14 @@ class ChatGetRepository {
             ORDER BY created_at ASC
             LIMIT 1;
             ''',
-            [chatUUID, localUserUUID, chatUUID, localUserUUID, chatUUID, localUserUUID],
+            [
+              chatUUID,
+              localUserUUID,
+              chatUUID,
+              localUserUUID,
+              chatUUID,
+              localUserUUID,
+            ],
           );
 
           final initialMessages = <Map<String, dynamic>>[];
@@ -649,7 +693,9 @@ class ChatGetRepository {
               final lastMessage = lastArr.first;
               final lastId = (lastMessage['id'] as num).toInt();
               final lastSubId = (lastMessage['subID'] as num).toInt();
-              if (oldestId == null || lastId != oldestId || lastSubId != oldestSubId) {
+              if (oldestId == null ||
+                  lastId != oldestId ||
+                  lastSubId != oldestSubId) {
                 initialMessages.add(lastMessage);
               }
             }
@@ -658,7 +704,9 @@ class ChatGetRepository {
         } else {
           chat['unreadCount'] = 0;
           if (_repo._messageRepository != null) {
-            chat['messages'] = await _repo._messageRepository!.last.get(chatUUID);
+            chat['messages'] = await _repo._messageRepository!.last.get(
+              chatUUID,
+            );
           } else {
             chat['messages'] = [];
           }
@@ -667,7 +715,10 @@ class ChatGetRepository {
         chat['members'] = await _repo.member.get.by.chatUUID(chatUUID);
 
         if (_repo._handleRepository != null) {
-          chat['handle'] = await _repo._handleRepository!.get.by.uuid('chat', chatUUID);
+          chat['handle'] = await _repo._handleRepository!.get.by.uuid(
+            'chat',
+            chatUUID,
+          );
         }
 
         final subRows = await _repo.db.rawQuery(
@@ -677,7 +728,9 @@ class ChatGetRepository {
         final subs = subRows.map((r) => Map<String, dynamic>.from(r)).toList();
 
         if (_repo._messageRepository != null) {
-          final subLastMessages = await _repo._messageRepository!.last.getBySub(chatUUID);
+          final subLastMessages = await _repo._messageRepository!.last.getBySub(
+            chatUUID,
+          );
           final subMsgMap = <int, Map<String, dynamic>>{};
           for (final msg in subLastMessages) {
             final subId = (msg['subID'] as num).toInt();
@@ -708,13 +761,17 @@ class ChatGetRepository {
           'SELECT * FROM pinned_message WHERE chatUUID = ?;',
           [chatUUID],
         );
-        chat['pinnedMessages'] = pinnedRows.map((r) => Map<String, dynamic>.from(r)).toList();
+        chat['pinnedMessages'] = pinnedRows
+            .map((r) => Map<String, dynamic>.from(r))
+            .toList();
 
         final editedRows = await _repo.db.rawQuery(
           'SELECT * FROM edited_message WHERE chatUUID = ?;',
           [chatUUID],
         );
-        chat['editedMessages'] = editedRows.map((r) => Map<String, dynamic>.from(r)).toList();
+        chat['editedMessages'] = editedRows
+            .map((r) => Map<String, dynamic>.from(r))
+            .toList();
         chat['deletedMessages'] = [];
 
         result.add(chat);

@@ -1,5 +1,6 @@
 import 'dart:io' as io;
 import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -53,7 +54,9 @@ class FileStorage {
       } catch (_) {
         // Fallback for tests or environments without platform channels
         final sysTemp = io.Directory.systemTemp;
-        final storageDir = io.Directory(p.join(sysTemp.path, 'novyse_local_files'));
+        final storageDir = io.Directory(
+          p.join(sysTemp.path, 'novyse_local_files'),
+        );
         if (!await storageDir.exists()) {
           await storageDir.create(recursive: true);
         }

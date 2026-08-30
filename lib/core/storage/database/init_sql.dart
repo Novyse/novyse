@@ -258,9 +258,27 @@ CREATE TABLE IF NOT EXISTS pinned_chat (
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid)
 );
 
+CREATE TABLE IF NOT EXISTS queue_job (
+    id TEXT PRIMARY KEY,
+    chat_uuid TEXT NOT NULL,
+    sub_id INTEGER DEFAULT 0,
+    job_type TEXT NOT NULL,
+    priority INTEGER NOT NULL DEFAULT 10,
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    payload TEXT NOT NULL,
+    progress REAL DEFAULT 0.0,
+    attempts INTEGER DEFAULT 0,
+    max_retries INTEGER DEFAULT 5,
+    error_message TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (chat_uuid) REFERENCES chat(uuid)
+);
+
 CREATE INDEX IF NOT EXISTS idx_message_chatUUID ON message(chatUUID);
 CREATE INDEX IF NOT EXISTS idx_message_senderUUID ON message(senderUUID);
 CREATE INDEX IF NOT EXISTS idx_member_chatUUID ON member(chatUUID);
+CREATE INDEX IF NOT EXISTS idx_queue_job_chat_status ON queue_job (chat_uuid, status, priority DESC, created_at ASC);
 ''';
 
 /// Executes the full initialization SQL script on [db].
