@@ -1,65 +1,52 @@
-Task
-\[CXX1429]
-Run
-
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
-# dependencies
-node_modules/
-android/
-ios/
-build/
-
-# Expo
-.expo/
-dist/
-build/
-build-assets/
-web-build/
-expo-env.d.ts
-
-# Native
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
 .DS_Store
-*.pem
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
 
-# local env files
-.env*.local
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
 
-# typescript
-*.tsbuildinfo
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
 
-app-example
-pnpm-lock.yaml
-.gitignore
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
 
-dist.zip
+# Symbolication related
+app.*.symbols
 
-.vscode/launch.json
-.vscode/settings.json
+# Obfuscation related
+app.*.map.json
 
-# android
-.kotlin
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
 
-# firebase
+# Widget Preview related
+.widget_preview/
+
 google-services.json
 GoogleService-Info.plist
-
-# Skia WebAssembly
-public/canvaskit.wasm
 novyse-release.keystore
