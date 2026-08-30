@@ -16,7 +16,11 @@ import { router } from "expo-router";
 import { DateTime } from "luxon";
 import messageFormat from "../../chat/messageFormat";
 import i18n from "../../../i18n";
-import { useActiveChatStore } from "@/src/store/ActiveChatStore";
+
+// Lazily require to avoid a require cycle:
+function getActiveChatStore() {
+  return require("@/src/store/ActiveChatStore").useActiveChatStore;
+}
 
 class MobileNotificationManager {
   private processedMessageIds = new Set<string>();
@@ -67,7 +71,7 @@ class MobileNotificationManager {
       case EventType.PRESS:
         const chatUUID = notification?.data?.chatUUID;
         if (chatUUID) {
-          const activeStore = useActiveChatStore.getState();
+          const activeStore = getActiveChatStore().getState();
           await activeStore.setSelectedChatUUID(chatUUID as string);
           if (notification.id === "novyse_comms_persistent") {
             activeStore.setContentView("vocal");
@@ -88,7 +92,7 @@ class MobileNotificationManager {
         } else if (pressAction?.id === "answer_call") {
           const chatUUID = notification?.data?.chatUUID;
           if (chatUUID) {
-            const activeStore = useActiveChatStore.getState();
+            const activeStore = getActiveChatStore().getState();
             await activeStore.setSelectedChatUUID(chatUUID as string);
             activeStore.setContentView("vocal");
           }
@@ -536,19 +540,19 @@ class MobileNotificationManager {
 
   async hideVoiceChatNotification() {
     if (Platform.OS !== "android") return;
-    
+
     try {
       // Metodo "più pulito": interroghiamo direttamente il sistema operativo
       // per sapere se la notifica del servizio in background è attualmente attiva.
       const displayedNotifications = await notifee.getDisplayedNotifications();
       const isServiceRunning = displayedNotifications.some(
-        (n) => n.id === "novyse_comms_persistent"
+        (n) => n.id === "novyse_comms_persistent",
       );
 
       if (!isServiceRunning) {
         return; // Il servizio non è in esecuzione, evitiamo il comando di stop fatale.
       }
-      
+
       await notifee.stopForegroundService();
       await notifee.cancelNotification("novyse_comms_persistent");
     } catch (e) {
