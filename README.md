@@ -14,6 +14,7 @@
 [![GitHub release](https://img.shields.io/github/release/Novyse/novyse?include_prereleases=&sort=semver&color=blue)](https://github.com/Novyse/novyse/releases/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![issues - novyse](https://img.shields.io/github/issues/Novyse/novyse)](https://github.com/Novyse/novyse/issues)
+[![codecov](https://codecov.io/gh/Novyse/novyse/branch/production/graph/badge.svg)](https://codecov.io/gh/Novyse/novyse/tree/production)
 
 <!-- SOCIAL RELATED -->
 
@@ -22,9 +23,9 @@
 
 <!-- TECH STACK RELATED -->
 
-<img alt='Bun' src='https://img.shields.io/badge/Bun-000000?style=for-the-badge&logo=bun&logoColor=white'/>
-<img alt='React Native' src='https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB'/>
-<img alt='Electron' src='https://img.shields.io/badge/Electron-191970?style=for-the-badge&logo=electron&logoColor=%2347848F&color=%231b1c26'/>
+<img alt='Flutter' src='https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white'/>
+<img alt='Dart' src='https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white'/>
+<img alt='SQLite' src='https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white'/>
 
 <br />
 <br />
@@ -94,6 +95,18 @@ A preview version with new features that are not yet fully tested may be availab
 
 > [!WARNING]
 > We recommend not saving important data on this version, as data may be deleted with version changes, and there could be significant bugs affecting app usage.
+
+## Testing & Code Coverage
+
+To run all unit and widget tests:
+```bash
+flutter test
+```
+
+To run tests with code coverage:
+```bash
+flutter test --coverage
+```
 
 ### Contributing
 
