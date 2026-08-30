@@ -4,7 +4,6 @@ import { Chat, User, Member } from "@/src/types";
 
 import database from "@/src/utils/storage/database";
 import useUserStore from "@/src/store/UserStore";
-import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 
 import notificationManager from "@/src/utils/notifications/manager";
 import messageUtils from "@/src/utils/chat/messageFormat";
@@ -445,6 +444,7 @@ const useChatStore = create<ChatState>((set, get) => ({
     );
 
     if (!isOwnMessage && !message.internal) {
+      const { useActiveChatStore } = require("@/src/store/ActiveChatStore");
       const activeChatState = useActiveChatStore.getState();
       const isViewingThisChat =
         activeChatState.selectedChatUUID === message.chatUUID ||
