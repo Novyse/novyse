@@ -1,10 +1,10 @@
 import { useContext, useState, useCallback, useEffect } from "react";
 import { StyleSheet, Pressable, View } from "react-native";
 import { Image as ExpoImage } from "expo-image";
+import { router, useLocalSearchParams } from "expo-router";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import FileButton from "@/src/components/features/messages/Button/MessageButton";
-import ImageViewer from "@/src/components/features/modalSheets/viewer/ImageViewer";
 import FileSizeProgress from "@/src/components/features/messages/FileSizeProgress";
 
 // Session cache to remember image ratios during the session
@@ -30,7 +30,20 @@ const Image = ({
     return imageRatioCache.get(uuid) || 1.5; // Default to a standard ratio
   });
 
-  const [visible, setVisible] = useState(false);
+  const { chatUUIDorHandle, sub } = useLocalSearchParams();
+
+  const openMedia = useCallback(() => {
+    router.push({
+      pathname: "/app/chat/[chatUUIDorHandle]/[sub]/media-modal",
+      params: {
+        chatUUIDorHandle: String(chatUUIDorHandle ?? ""),
+        sub: String(sub ?? "0"),
+        uri,
+        uuid,
+        type: "IMAGE",
+      },
+    });
+  }, [chatUUIDorHandle, sub, uri, uuid]);
 
   useEffect(() => {
     const newRatio =
@@ -60,7 +73,7 @@ const Image = ({
 
   return (
     <>
-      <Pressable onPress={() => setVisible(true)} style={styles.container}>
+      <Pressable onPress={openMedia} style={styles.container}>
         <ExpoImage
           source={{ uri }}
           style={styles.image}
@@ -76,7 +89,7 @@ const Image = ({
               isAvailable={!!fileRef}
               isReady={!!uri}
               type={"IMAGE"}
-              handleDefaultPress={() => setVisible(true)}
+              handleDefaultPress={openMedia}
             />
           </View>
         </View>
@@ -84,14 +97,6 @@ const Image = ({
           <FileSizeProgress uuid={uuid} size={size} />
         </View>
       </Pressable>
-      <ImageViewer
-        visible={visible}
-        onClose={() => setVisible(false)}
-        uri={uri}
-        theme={theme}
-        scrollable={false}
-        uuid={uuid}
-      />
     </>
   );
 };

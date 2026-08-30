@@ -1,10 +1,10 @@
 import { useContext, useState, useEffect, useCallback } from "react";
 import { StyleSheet, Pressable, View } from "react-native";
 import { VideoView, useVideoPlayer } from "expo-video";
+import { router, useLocalSearchParams } from "expo-router";
 import { ThemeContext } from "@/src/context/ThemeContext";
 import useUriResolver from "@/src/hooks/file/useUriResolver";
 import FileButton from "@/src/components/features/messages/Button/MessageButton";
-import VideoViewer from "@/src/components/features/modalSheets/viewer/VideoViewer";
 import FileSizeProgress from "@/src/components/features/messages/FileSizeProgress";
 
 // Simple session cache to remember ratios without DB persistence
@@ -31,7 +31,20 @@ const Video = ({
     return ratioCache.get(uuid) || 1.5;
   });
 
-  const [visible, setVisible] = useState(false);
+  const { chatUUIDorHandle, sub } = useLocalSearchParams();
+
+  const openMedia = useCallback(() => {
+    router.push({
+      pathname: "/app/chat/[chatUUIDorHandle]/[sub]/media-modal",
+      params: {
+        chatUUIDorHandle: String(chatUUIDorHandle ?? ""),
+        sub: String(sub ?? "0"),
+        uri,
+        uuid,
+        type: "VIDEO",
+      },
+    });
+  }, [chatUUIDorHandle, sub, uri, uuid]);
 
   useEffect(() => {
     const newRatio =
@@ -53,13 +66,7 @@ const Video = ({
 
     player.muted = true;
     player.volume = 0;
-
-    if (visible) {
-      player.pause();
-      return;
-    }
-
-    player.play();
+    player.pause();
     return () => {
       try {
         player.pause();
@@ -67,7 +74,7 @@ const Video = ({
         // player already released
       }
     };
-  }, [player, visible]);
+  }, [player]);
 
   const updateRatio = useCallback(
     (newRatio) => {
@@ -104,7 +111,7 @@ const Video = ({
 
   return (
     <>
-      <Pressable onPress={() => setVisible(true)} style={styles.container}>
+      <Pressable onPress={openMedia} style={styles.container}>
         <VideoView
           player={player}
           style={styles.video}
@@ -120,7 +127,7 @@ const Video = ({
               isAvailable={!!fileRef}
               isReady={!!uri}
               type={"VIDEO"}
-              handleDefaultPress={() => setVisible(true)}
+              handleDefaultPress={openMedia}
             />
           </View>
         </View>
@@ -128,13 +135,6 @@ const Video = ({
           <FileSizeProgress uuid={uuid} size={size} />
         </View>
       </Pressable>
-      <VideoViewer
-        visible={visible}
-        onClose={() => setVisible(false)}
-        uri={uri}
-        theme={theme}
-        uuid={uuid}
-      />
     </>
   );
 };
