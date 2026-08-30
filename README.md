@@ -14,7 +14,7 @@
 [![GitHub release](https://img.shields.io/github/release/Novyse/novyse?include_prereleases=&sort=semver&color=blue)](https://github.com/Novyse/novyse/releases/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![issues - novyse](https://img.shields.io/github/issues/Novyse/novyse)](https://github.com/Novyse/novyse/issues)
-[![codecov](https://codecov.io/gh/Novyse/novyse/branch/production/graph/badge.svg)](https://codecov.io/gh/Novyse/novyse/tree/production)
+[![codecov](https://codecov.io/gh/Novyse/novyse/graph/badge.svg)](https://codecov.io/gh/Novyse/novyse)
 
 <!-- SOCIAL RELATED -->
 
@@ -99,11 +99,13 @@ A preview version with new features that are not yet fully tested may be availab
 ## Testing & Code Coverage
 
 To run all unit and widget tests:
+
 ```bash
 flutter test
 ```
 
 To run tests with code coverage:
+
 ```bash
 flutter test --coverage
 ```
