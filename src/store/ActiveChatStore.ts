@@ -121,7 +121,6 @@ export const useActiveChatStore = create<ActiveChatState>((set, get) => {
   return {
     selectedChatUUID: null,
     selectedHandle: null,
-    selectedSub: 0,
     headerHeight: 0,
     scrollToMessageID: null,
     messageHighlight: null,
