@@ -5,6 +5,9 @@ import 'package:novyse_auth/novyse_auth.dart';
 import 'package:novyse/core/config/global.dart' as config;
 import 'package:novyse/core/utils/platform.dart';
 
+import 'package:novyse/core/events/event_bus.dart';
+import 'package:novyse/core/events/events.dart';
+
 /// Maps the config string to the SDK [Branch] enum.
 final Branch _branch = switch (config.branch) {
   'production' => Branch.production,
@@ -46,11 +49,9 @@ final auth = NovyseAuth(
   ),
 );
 
-/// Bootstrap hook — call once at app startup (e.g. in `main()`).
-void initAuth() {
+/// Bootstrap hook — call once at app startup with the [EventBus].
+void initAuth(EventBus eventBus) {
   auth.token.onInvalidSession(() {
-    // TODO: hook into an event bus / state management to handle invalid
-    // sessions (e.g. redirect to login screen).
-    // In the TypeScript version this was: eventEmitter.emit('invalidSession');
+    eventBus.emit(const InvalidSessionEvent());
   });
 }

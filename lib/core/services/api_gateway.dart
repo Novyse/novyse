@@ -7,9 +7,8 @@ import 'package:novyse/core/config/global.dart' as config;
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/core/services/auth.dart';
 import 'package:novyse/core/stores/network_store.dart';
-
-// TODO: import event emitter once implemented
-// import 'package:novyse/core/utils/events/event_emitter.dart';
+import 'package:novyse/core/events/event_bus.dart';
+import 'package:novyse/core/events/events.dart';
 
 /// URLs that should bypass the sync/connectivity check.
 const _bypassSyncUrls = {
@@ -102,7 +101,10 @@ final dioProvider = Provider<Dio>((ref) {
 
         if (status == 426) {
           debugPrint('Client update required (426 Upgrade Required)');
-          // TODO: eventEmitter.emit('clientUpdateRequired', error.response?.data?['data']);
+          final responseData = error.response?.data;
+          final innerData = responseData is Map ? responseData['data'] : null;
+          final minVersion = innerData is Map ? innerData['minVersion'] as String? : null;
+          ref.read(eventBusProvider).emit(ClientUpdateRequiredEvent(minVersion: minVersion));
           return handler.next(error);
         }
 
@@ -478,7 +480,7 @@ class ChatModule {
       data: {
         'type': type,
         'memberUUIDs': memberUUIDs,
-        if (name != null) 'name': name,
+        'name': ?name,
         if (handle != null && handle.isNotEmpty) 'handle': handle,
       },
     );
@@ -688,10 +690,10 @@ class MessageModule {
       data: {
         'chatUUID': chatUUID,
         'subID': subID,
-        if (content != null) 'content': content,
+        'content': ?content,
         'type': type,
-        if (files != null) 'files': files,
-        if (replyTos != null) 'replyTos': replyTos,
+        'files': ?files,
+        'replyTos': ?replyTos,
       },
     );
     if (_ok(res)) {
