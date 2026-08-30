@@ -299,11 +299,12 @@ const useChatStore = create<ChatState>((set, get) => ({
               (type === "USER" ? `${data.name} ${data.surname}` : "Unknown"),
             profilePictureUUID,
             subs: data.subs,
+            roles: data.roles || [],
             messages: messages.reverse(),
             members: members.map((m: any) => ({
               uuid: m.userUUID || m,
-              role: "member",
-              joinedAt: new Date(),
+              roleIDs: m.roleIDs ?? [],
+              joinedAt: m.joinedAt ? new Date(m.joinedAt) : new Date()
             })),
             unreadCount: 0,
             pinnedMessages: [],
@@ -420,7 +421,7 @@ const useChatStore = create<ChatState>((set, get) => ({
             ...chat.members,
             {
               uuid: user.uuid,
-              role: "member",
+              roleIDs: [],
               joinedAt: new Date(),
               action: null,
             },
