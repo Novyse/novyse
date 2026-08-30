@@ -5,10 +5,13 @@ import firebase from "./lib/firebase";
 import web from "./lib/web";
 import desktop from "./lib/desktop";
 
-import { useActiveChatStore } from "@/src/store/ActiveChatStore";
-
 import { getProfilePictureUri } from "@/src/utils/avatar/profilePicture";
 import Platform from "@/src/utils/device/type";
+
+// Lazily require to avoid a require cycle:
+function getActiveChatStore() {
+  return require("@/src/store/ActiveChatStore").useActiveChatStore;
+}
 
 class NotificationManager {
   constructor() {
@@ -55,7 +58,9 @@ class NotificationManager {
               data,
             );
             if (data && data.chatUUID) {
-              useActiveChatStore.getState().setSelectedChatUUID(data.chatUUID);
+              getActiveChatStore()
+                .getState()
+                .setSelectedChatUUID(data.chatUUID);
             }
           });
         }
@@ -103,7 +108,8 @@ class NotificationManager {
         }
 
         // Skip notification if we are already viewing the chat IN FOREGROUND
-        const activeChatUUID = useActiveChatStore.getState().selectedChatUUID;
+        const activeChatUUID =
+          getActiveChatStore().getState().selectedChatUUID;
         const incomingChatUUID = remoteMessage.data?.chatUUID;
 
         if (
