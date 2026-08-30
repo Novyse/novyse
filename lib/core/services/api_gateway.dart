@@ -107,9 +107,7 @@ final dioProvider = Provider<Dio>((ref) {
         }
 
         if (status == 500) {
-          ref
-              .read(networkProvider.notifier)
-              .setApiError('Server error (500)');
+          ref.read(networkProvider.notifier).setApiError('Server error (500)');
         }
 
         return handler.next(error);
@@ -143,9 +141,9 @@ bool _ok(Response res) => res.data['success'] == true;
 /// Shorthand for `res.data['data']`.
 dynamic _data(Response res) => res.data['data'];
 
-// ══════════════════════════════════════════════════════════════
+//
 //  G A T E W A Y
-// ══════════════════════════════════════════════════════════════
+//
 
 /// Riverpod provider for accessing the [Gateway].
 final apiGatewayProvider = Provider<Gateway>((ref) {
@@ -155,16 +153,16 @@ final apiGatewayProvider = Provider<Gateway>((ref) {
 
 class Gateway {
   Gateway(Dio dio)
-      : check = CheckModule(dio),
-        user = UserModule(dio),
-        search = SearchModule(dio),
-        gather = GatherModule(dio),
-        chat = ChatModule(dio),
-        message = MessageModule(dio),
-        file = FileModule(dio),
-        comms = CommsModule(dio),
-        watchTogether = WatchTogetherModule(dio),
-        notification = NotificationModule(dio);
+    : check = CheckModule(dio),
+      user = UserModule(dio),
+      search = SearchModule(dio),
+      gather = GatherModule(dio),
+      chat = ChatModule(dio),
+      message = MessageModule(dio),
+      file = FileModule(dio),
+      comms = CommsModule(dio),
+      watchTogether = WatchTogetherModule(dio),
+      notification = NotificationModule(dio);
 
   final CheckModule check;
   final UserModule user;
@@ -248,8 +246,10 @@ class UserModule {
   /// Fetch presence information for a list of users.
   Future<({bool success, List? data})> presence(List<String> userUUIDs) async {
     if (userUUIDs.isEmpty) return (success: true, data: []);
-    final res =
-        await _dio.post('/user/presence', data: {'userUUIDs': userUUIDs});
+    final res = await _dio.post(
+      '/user/presence',
+      data: {'userUUIDs': userUUIDs},
+    );
     if (_ok(res)) return (success: true, data: _data(res) as List);
     return (success: false, data: null);
   }
@@ -264,10 +264,10 @@ class UserProfileModule {
   final UserProfileGetModule get;
 
   UserProfileModule(Dio dio)
-      : picture = UserProfilePictureModule(dio),
-        updateInfo = UserProfileUpdateModule(dio),
-        badges = UserProfileBadgesModule(dio),
-        get = UserProfileGetModule(dio);
+    : picture = UserProfilePictureModule(dio),
+      updateInfo = UserProfileUpdateModule(dio),
+      badges = UserProfileBadgesModule(dio),
+      get = UserProfileGetModule(dio);
 
   /// Update user's profile information.
   @Deprecated('Use updateInfo.all() instead')
@@ -283,8 +283,10 @@ class UserProfilePictureModule {
   UserProfilePictureModule(this._dio);
 
   /// Request user's profile picture update.
-  Future<({bool success, String? fileUUID, String? uploadURL, String? expiresAt})>
-      update(String name, String mimeType, int size) async {
+  Future<
+    ({bool success, String? fileUUID, String? uploadURL, String? expiresAt})
+  >
+  update(String name, String mimeType, int size) async {
     final res = await _dio.patch(
       '/user/profile/picture',
       data: {'name': name, 'mimeType': mimeType, 'size': size},
@@ -303,7 +305,7 @@ class UserProfilePictureModule {
 
   /// Confirm user's profile picture update after successful upload.
   Future<({bool success, String? profilePictureUUID, int? profileEventID})>
-      confirm(String fileUUID) async {
+  confirm(String fileUUID) async {
     final res = await _dio.post(
       '/user/profile/picture/confirm',
       data: {'fileUUID': fileUUID},
@@ -335,7 +337,10 @@ class UserProfileUpdateModule {
       data: {'name': name, 'surname': surname, 'biography': biography},
     );
     if (_ok(res)) {
-      return (success: true, profileEventID: _data(res)['profileEventID'] as int?);
+      return (
+        success: true,
+        profileEventID: _data(res)['profileEventID'] as int?,
+      );
     }
     return (success: false, profileEventID: null);
   }
@@ -362,7 +367,8 @@ class UserProfileGetModule {
 
   /// Get user's profile information by handle.
   Future<({bool success, Map<String, dynamic>? user})> byHandle(
-      String handle) async {
+    String handle,
+  ) async {
     final res = await _dio.get(
       '/user/profile/handle',
       queryParameters: {'handle': handle},
@@ -383,8 +389,10 @@ class SearchModule {
 
   /// Search everything (users, chats, bots).
   Future<({bool success, Map<String, dynamic>? data})> all(String query) async {
-    final res =
-        await _dio.get('/search/all', queryParameters: {'query': query});
+    final res = await _dio.get(
+      '/search/all',
+      queryParameters: {'query': query},
+    );
     if (_ok(res)) {
       return (success: true, data: Map<String, dynamic>.from(_data(res)));
     }
@@ -450,9 +458,9 @@ class ChatModule {
   final ChatSubModule sub;
 
   ChatModule(this._dio)
-      : picture = ChatPictureModule(_dio),
-        pin = ChatPinModule(_dio),
-        sub = ChatSubModule(_dio);
+    : picture = ChatPictureModule(_dio),
+      pin = ChatPinModule(_dio),
+      sub = ChatSubModule(_dio);
 
   /// Create a new chat.
   Future<Map<String, dynamic>> create(
@@ -498,8 +506,10 @@ class ChatModule {
     String name,
   ) async {
     assert(chatUUID.isNotEmpty && name.isNotEmpty);
-    final res = await _dio
-        .patch('/chat/rename', data: {'chatUUID': chatUUID, 'name': name});
+    final res = await _dio.patch(
+      '/chat/rename',
+      data: {'chatUUID': chatUUID, 'name': name},
+    );
     if (_ok(res)) {
       final d = _data(res);
       return (
@@ -517,13 +527,10 @@ class ChatPictureModule {
   ChatPictureModule(this._dio);
 
   /// Request an upload URL for a chat picture.
-  Future<({bool success, String? fileUUID, String? uploadURL, String? expiresAt})>
-      requestUpload(
-    String chatUUID,
-    String name,
-    String mimeType,
-    int size,
-  ) async {
+  Future<
+    ({bool success, String? fileUUID, String? uploadURL, String? expiresAt})
+  >
+  requestUpload(String chatUUID, String name, String mimeType, int size) async {
     final res = await _dio.patch(
       '/chat/picture',
       data: {
@@ -575,8 +582,10 @@ class ChatPinModule {
     String chatUUID,
     int position,
   ) async {
-    final res = await _dio
-        .put('/chat/pin', data: {'chatUUID': chatUUID, 'position': position});
+    final res = await _dio.put(
+      '/chat/pin',
+      data: {'chatUUID': chatUUID, 'position': position},
+    );
     final d = _data(res);
     return (
       success: _ok(res),
@@ -626,8 +635,10 @@ class ChatSubModule {
 
   /// Delete a sub-channel.
   Future<bool> delete(String chatUUID, int id) async {
-    final res = await _dio
-        .delete('/chat/sub/delete', data: {'chatUUID': chatUUID, 'id': id});
+    final res = await _dio.delete(
+      '/chat/sub/delete',
+      data: {'chatUUID': chatUUID, 'id': id},
+    );
     return _ok(res);
   }
 }
@@ -640,8 +651,8 @@ class MessageModule {
   final MessageReactionModule reaction;
 
   MessageModule(this._dio)
-      : pin = MessagePinModule(_dio),
-        reaction = MessageReactionModule(_dio);
+    : pin = MessagePinModule(_dio),
+      reaction = MessageReactionModule(_dio);
 
   /// Retrieve a specific message.
   Future<({bool success, Map<String, dynamic>? message})> retrieve(
@@ -693,8 +704,10 @@ class MessageModule {
   Future<({bool success, Map<String, dynamic>? message})> confirm(
     String messageUUID,
   ) async {
-    final res = await _dio
-        .post('/message/confirm', data: {'messageUUID': messageUUID});
+    final res = await _dio.post(
+      '/message/confirm',
+      data: {'messageUUID': messageUUID},
+    );
     return (
       success: _ok(res),
       message: _ok(res) ? Map<String, dynamic>.from(_data(res)) : null,
@@ -741,7 +754,7 @@ class MessageModule {
 
   /// Mark a message as read.
   Future<({bool success, int? chatEventID, String? userUUID, String? readAt})>
-      read(String chatUUID, int subID, String messageID) async {
+  read(String chatUUID, int subID, String messageID) async {
     final res = await _dio.post(
       '/message/read',
       data: {'chatUUID': chatUUID, 'subID': subID, 'messageID': messageID},
@@ -863,16 +876,20 @@ class FileModule {
 
   /// Retrieve a file download URL and metadata.
   Future<
-      ({
-        bool success,
-        String? downloadURL,
-        String? expiresAt,
-        String? name,
-        int? size,
-        String? mimeType
-      })> retrieve(String fileUUID) async {
-    final res =
-        await _dio.get('/file', queryParameters: {'fileUUID': fileUUID});
+    ({
+      bool success,
+      String? downloadURL,
+      String? expiresAt,
+      String? name,
+      int? size,
+      String? mimeType,
+    })
+  >
+  retrieve(String fileUUID) async {
+    final res = await _dio.get(
+      '/file',
+      queryParameters: {'fileUUID': fileUUID},
+    );
     if (_ok(res)) {
       final d = _data(res);
       return (
@@ -890,14 +907,16 @@ class FileModule {
       expiresAt: null,
       name: null,
       size: null,
-      mimeType: null
+      mimeType: null,
     );
   }
 
   /// Delete a file upload (cancel upload).
   Future<bool> delete(String fileUUID) async {
-    final res =
-        await _dio.delete('/file', queryParameters: {'fileUUID': fileUUID});
+    final res = await _dio.delete(
+      '/file',
+      queryParameters: {'fileUUID': fileUUID},
+    );
     return _ok(res);
   }
 }
@@ -950,7 +969,7 @@ class CommsRoomModule {
         return (
           success: true,
           room: d['room'],
-          participants: d['participants']
+          participants: d['participants'],
         );
       }
       return (success: false, room: null, participants: null);
@@ -1018,8 +1037,10 @@ class NotificationModule {
 
   /// Set the FCM push token for the current user.
   Future<bool> setFCMToken(String token) async {
-    final res = await _dio
-        .patch('/notification/push-token', data: {'pushToken': token});
+    final res = await _dio.patch(
+      '/notification/push-token',
+      data: {'pushToken': token},
+    );
     return _ok(res);
   }
 }
