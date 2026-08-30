@@ -3,5 +3,34 @@
   "appTitle": "Novyse",
   "@appTitle": {
     "description": "The application title"
-  }
+  },
+  "welcomeTitle": "Benvenuto",
+  "register": "Registrati",
+  "login": "Accedi",
+  "scanQrToLogin": "Scansiona il QR per accedere",
+  "qrExpiresIn": "Scade tra 2:00"
+  ,"loginSubtitle": "Inserisci le tue credenziali per accedere"
+  ,"createAccount": "Crea account"
+  ,"signupSubtitle": "Inizia subito con il tuo account"
+  ,"name": "Nome"
+  ,"nameHint": "Inserisci il tuo nome"
+  ,"email": "Email"
+  ,"emailHint": "name@example.com"
+  ,"password": "Password"
+  ,"passwordHint": "Inserisci la tua password"
+  ,"confirmPassword": "Conferma password"
+  ,"confirmPasswordHint": "Ripeti la password"
+  ,"or": "oppure"
+  ,"continueWithGoogle": "Continua con Google"
+  ,"continueWithApple": "Continua con Apple"
+  ,"noAccountRegister": "Non hai un account? Registrati"
+  ,"hasAccountLogin": "Hai già un account? Accedi"
+  ,"username": "Username"
+  ,"usernameHint": "Inserisci il tuo username"
+  ,"requiredField": "Campo obbligatorio"
+  ,"passwordsDoNotMatch": "Le password non coincidono"
+  ,"acceptLegal": "Accetto l'informativa sulla privacy e i termini di servizio"
+  ,"privacyPolicy": "informativa sulla privacy"
+  ,"termsOfService": "termini di servizio"
+  ,"atLeastSixteen": "Ho almeno 16 anni"
 }

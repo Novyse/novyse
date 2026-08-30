@@ -3,5 +3,34 @@
   "appTitle": "Novyse",
   "@appTitle": {
     "description": "The application title"
-  }
+  },
+  "welcomeTitle": "Welcome",
+  "register": "Register",
+  "login": "Log in",
+  "scanQrToLogin": "Scan the QR code to log in",
+  "qrExpiresIn": "Expires in 2:00"
+  ,"loginSubtitle": "Enter your credentials to log in"
+  ,"createAccount": "Create account"
+  ,"signupSubtitle": "Get started with your account"
+  ,"name": "Name"
+  ,"nameHint": "Enter your name"
+  ,"email": "Email"
+  ,"emailHint": "name@example.com"
+  ,"password": "Password"
+  ,"passwordHint": "Enter your password"
+  ,"confirmPassword": "Confirm password"
+  ,"confirmPasswordHint": "Repeat your password"
+  ,"or": "or"
+  ,"continueWithGoogle": "Continue with Google"
+  ,"continueWithApple": "Continue with Apple"
+  ,"noAccountRegister": "Don't have an account? Register"
+  ,"hasAccountLogin": "Already have an account? Log in"
+  ,"username": "Username"
+  ,"usernameHint": "Enter your username"
+  ,"requiredField": "Required field"
+  ,"passwordsDoNotMatch": "Passwords do not match"
+  ,"acceptLegal": "I accept the privacy policy and terms of service"
+  ,"privacyPolicy": "privacy policy"
+  ,"termsOfService": "terms of service"
+  ,"atLeastSixteen": "I am at least 16 years old"
 }

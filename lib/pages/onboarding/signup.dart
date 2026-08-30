@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../../core/auth_service.dart';
-import '../../core/themes/themes.dart';
-import '../../ui/components/huge_icon.dart';
 import '../../ui/components/onboarding/onboarding_auth_card.dart';
 
 class SignupPage extends ConsumerWidget {
@@ -14,72 +11,37 @@ class SignupPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.primaryContainer,
-              AppColors.surface,
-            ],
+            colors: [Color(0xFF013480), Color(0xFF177FC0)],
           ),
         ),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(22),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 460),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: AppHugeIcon(
-                        size: 40,
-                        icon: HugeIcons.strokeRoundedUserAccount,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                        strokeWidth: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Crea il tuo account',
-                      style: Theme.of(context).textTheme.displaySmall
-                          ?.copyWith(fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Unisciti a Novyse e inizia subito.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    OnboardingAuthCard(
-                      initialMode: OnboardingAuthMode.signup,
-                      onSubmit: () {
-                        ref.read(authProvider.notifier).login();
-                        context.go('/home');
-                      },
-                      onGooglePressed: () {
-                        ref.read(authProvider.notifier).login();
-                        context.go('/home');
-                      },
-                      onApplePressed: () {
-                        ref.read(authProvider.notifier).login();
-                        context.go('/home');
-                      },
-                    ),
-                  ],
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(28, 34, 28, 20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF9DB8D5),
+                    borderRadius: BorderRadius.circular(26),
+                  ),
+                  child: OnboardingAuthCard(
+                    embedded: true,
+                    showTurnstile: true,
+                    showSocialButtons: false,
+                    showLegalCheckboxes: true,
+                    initialMode: OnboardingAuthMode.signup,
+                    onSubmit: () {
+                      ref.read(authProvider.notifier).login();
+                      context.go('/home');
+                    },
+                  ),
                 ),
               ),
             ),
