@@ -23,6 +23,7 @@ void main() {
 
     queueManager = QueueManager.instance;
     await queueManager.initialize(listenToConnectivity: false);
+    queueManager.setConnected(false);
   });
 
   tearDown(() async {

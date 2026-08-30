@@ -7,6 +7,7 @@ import 'package:novyse/core/chat/queue/chat_queue_processor.dart';
 import 'package:novyse/core/chat/queue/queue_job.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/storage/database/database.dart';
+import 'package:novyse/core/stores/network_store.dart';
 
 /// Central manager orchestrating per-chat queues, app startup recovery, and network state.
 class QueueManager {
@@ -21,7 +22,7 @@ class QueueManager {
   bool get isConnected => _isConnected;
 
   /// Initializes the QueueManager, recovering unfinished jobs from SQLite.
-  Future<void> initialize({bool listenToConnectivity = true}) async {
+  Future<void> initialize({Ref? ref, bool listenToConnectivity = true}) async {
     if (_initialized) return;
     _initialized = true;
 
@@ -36,15 +37,21 @@ class QueueManager {
       processor.addJob(job);
     }
 
-    // 3. Monitor network connectivity
+    // 3. Monitor network connectivity via network store or connectivity_plus
     if (listenToConnectivity) {
-      _checkInitialConnectivity();
-      _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
-        results,
-      ) {
-        final connected = results.any((r) => r != ConnectivityResult.none);
-        setConnected(connected);
-      });
+      if (ref != null) {
+        ref.listen<NetworkState>(networkProvider, (previous, next) {
+          setConnected(next.isConnected && next.isSynced);
+        }, fireImmediately: true);
+      } else {
+        _checkInitialConnectivity();
+        _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
+          (results) {
+            final connected = results.any((r) => r != ConnectivityResult.none);
+            setConnected(connected);
+          },
+        );
+      }
     }
 
     // 4. Listen for inbound messages with files to trigger downloads if configured
@@ -247,16 +254,26 @@ class QueueManager {
     }
   }
 
-  /// Disposes background listeners.
+  /// Disposes background listeners and processors.
   void dispose() {
     _connectivitySubscription?.cancel();
     GlobalEventEmitter.instance.off('message:new', _handleNewInboundMessage);
+    for (final processor in _processors.values) {
+      processor.dispose();
+    }
     _processors.clear();
     _initialized = false;
   }
 }
 
-/// Riverpod provider for accessing [QueueManager].
+/// Riverpod provider for accessing [QueueManager], automatically kept in sync with [networkProvider].
 final queueManagerProvider = Provider<QueueManager>((ref) {
-  return QueueManager.instance;
+  final manager = QueueManager.instance;
+
+  // Keep QueueManager connectivity state in sync with networkProvider
+  ref.listen<NetworkState>(networkProvider, (previous, next) {
+    manager.setConnected(next.isConnected && next.isSynced);
+  }, fireImmediately: true);
+
+  return manager;
 });

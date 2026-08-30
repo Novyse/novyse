@@ -19,17 +19,28 @@ class ChatQueueProcessor {
 
   /// Global network connection state provider reference.
   bool isConnected = true;
+  bool _disposed = false;
 
   ChatQueueProcessor({required this.chatUUID, Gateway? gateway})
     : _gateway =
           gateway ?? Gateway(Dio(BaseOptions(baseUrl: config.apiBaseUrl)));
 
+  bool get isDisposed => _disposed;
   List<QueueJob> get jobs => List.unmodifiable(_jobs);
   QueueJob? get currentJob => _currentJob;
   bool get isProcessing => _isProcessing;
 
+  /// Disposes this processor and cancels any active jobs.
+  void dispose() {
+    _disposed = true;
+    _currentJob?.cancelToken?.cancel('Processor disposed');
+    _currentJob = null;
+    _jobs.clear();
+  }
+
   /// Adds a job to the chat's queue, sorting by priority and creation time.
   void addJob(QueueJob job) {
+    if (_disposed) return;
     _jobs.removeWhere((j) => j.id == job.id);
     _jobs.add(job);
     _sortJobs();
@@ -126,7 +137,7 @@ class ChatQueueProcessor {
 
   /// Triggers processing loop if not already running.
   void triggerProcess() {
-    if (!_isProcessing) {
+    if (!_disposed && !_isProcessing) {
       _processNext();
     }
   }
@@ -167,7 +178,7 @@ class ChatQueueProcessor {
   }
 
   Future<void> _processNext() async {
-    if (_isProcessing) return;
+    if (_disposed || _isProcessing) return;
 
     final pendingJobs = _jobs
         .where((j) => j.status == JobStatus.pending)
@@ -183,50 +194,68 @@ class ChatQueueProcessor {
     _currentJob = job;
 
     try {
+      if (_disposed) return;
       await _executeJob(job);
     } catch (e, stack) {
+      if (_disposed || !AppDatabase.instance.isOpen) {
+        return;
+      }
+      if (e is DioException && CancelToken.isCancel(e)) {
+        return;
+      }
       debugPrint('[ChatQueue] Error processing job ${job.id}: $e\n$stack');
       job.attempts += 1;
       job.errorMessage = e.toString();
 
       if (job.attempts >= job.maxRetries) {
         job.status = JobStatus.failed;
-        await AppDatabase.instance.job.updateStatus(
-          job.id,
-          JobStatus.failed.value,
-          errorMessage: job.errorMessage,
-          attempts: job.attempts,
-        );
+        if (AppDatabase.instance.isOpen) {
+          await AppDatabase.instance.job.updateStatus(
+            job.id,
+            JobStatus.failed.value,
+            errorMessage: job.errorMessage,
+            attempts: job.attempts,
+          );
+        }
         GlobalEventEmitter.instance.emit('message:failed', {
           'tempId': job.id,
           'error': job.errorMessage,
         });
       } else {
         job.status = JobStatus.pending;
-        await AppDatabase.instance.job.updateStatus(
-          job.id,
-          JobStatus.pending.value,
-          errorMessage: job.errorMessage,
-          attempts: job.attempts,
-        );
+        if (AppDatabase.instance.isOpen) {
+          await AppDatabase.instance.job.updateStatus(
+            job.id,
+            JobStatus.pending.value,
+            errorMessage: job.errorMessage,
+            attempts: job.attempts,
+          );
+        }
       }
     } finally {
       _isProcessing = false;
       _currentJob = null;
       // Only continue to next job if online and more pending jobs exist
-      if (isConnected && _jobs.any((j) => j.status == JobStatus.pending)) {
+      if (!_disposed &&
+          isConnected &&
+          _jobs.any((j) => j.status == JobStatus.pending)) {
         Future.microtask(_processNext);
       }
     }
   }
 
   Future<void> _executeJob(QueueJob job) async {
+    if (_disposed || !AppDatabase.instance.isOpen) return;
     job.status = JobStatus.processing;
     job.cancelToken = CancelToken();
-    await AppDatabase.instance.job.updateStatus(
-      job.id,
-      JobStatus.processing.value,
-    );
+    if (AppDatabase.instance.isOpen) {
+      await AppDatabase.instance.job.updateStatus(
+        job.id,
+        JobStatus.processing.value,
+      );
+    }
+
+    if (_disposed) return;
 
     switch (job.type) {
       case JobType.outgoingMessage:
@@ -287,20 +316,24 @@ class ChatQueueProcessor {
     }
 
     // 2. Persist local message in DB in pending/sending status
+    if (_disposed || !AppDatabase.instance.isOpen) return;
     message['chatUUID'] = chatUUID;
     message['status'] = 'PENDING_SEND';
     await AppDatabase.instance.message.add(message);
 
     // === PHASE 2: NETWORK (Requires Internet) ===
+    if (_disposed) return;
     if (!isConnected) {
       debugPrint(
         '[ChatQueue] Device offline. Job ${job.id} paused until network resumes.',
       );
       job.status = JobStatus.pending;
-      await AppDatabase.instance.job.updateStatus(
-        job.id,
-        JobStatus.pending.value,
-      );
+      if (AppDatabase.instance.isOpen) {
+        await AppDatabase.instance.job.updateStatus(
+          job.id,
+          JobStatus.pending.value,
+        );
+      }
       return;
     }
 
@@ -320,6 +353,8 @@ class ChatQueueProcessor {
         replyTos: replyTos,
       );
 
+      if (_disposed) return;
+
       if (!sendResult.success || sendResult.message == null) {
         throw Exception('Failed to send message: API request unsuccessful');
       }
@@ -332,6 +367,7 @@ class ChatQueueProcessor {
         final serverFiles = serverMessage['files'] as List?;
         if (serverFiles != null && serverFiles.isNotEmpty) {
           for (var i = 0; i < serverFiles.length; i++) {
+            if (_disposed) return;
             final sFile = serverFiles[i];
             if (sFile is Map) {
               final uploadURL = sFile['uploadURL'] as String?;
@@ -372,6 +408,8 @@ class ChatQueueProcessor {
           }
         }
 
+        if (_disposed) return;
+
         // Confirm message after upload
         final messageUUID =
             (serverMessage['messageUUID'] ?? serverMessage['uuid']) as String?;
@@ -383,13 +421,17 @@ class ChatQueueProcessor {
         }
       }
 
+      if (_disposed) return;
+
       // Finalize message in DB and emit success
       job.status = JobStatus.completed;
-      await AppDatabase.instance.job.updateStatus(
-        job.id,
-        JobStatus.completed.value,
-        progress: 1.0,
-      );
+      if (AppDatabase.instance.isOpen) {
+        await AppDatabase.instance.job.updateStatus(
+          job.id,
+          JobStatus.completed.value,
+          progress: 1.0,
+        );
+      }
       _jobs.removeWhere((j) => j.id == job.id);
 
       GlobalEventEmitter.instance.emit('message:sent', {
@@ -403,7 +445,7 @@ class ChatQueueProcessor {
 
   /// Standalone file upload execution.
   Future<void> _executeFileUpload(QueueJob job) async {
-    if (!isConnected) {
+    if (!isConnected || _disposed) {
       job.status = JobStatus.pending;
       return;
     }
@@ -434,18 +476,22 @@ class ChatQueueProcessor {
       },
     );
 
+    if (_disposed) return;
+
     job.status = JobStatus.completed;
-    await AppDatabase.instance.job.updateStatus(
-      job.id,
-      JobStatus.completed.value,
-      progress: 1.0,
-    );
+    if (AppDatabase.instance.isOpen) {
+      await AppDatabase.instance.job.updateStatus(
+        job.id,
+        JobStatus.completed.value,
+        progress: 1.0,
+      );
+    }
     _jobs.removeWhere((j) => j.id == job.id);
   }
 
   /// Inbound file download execution.
   Future<void> _executeInboundDownload(QueueJob job) async {
-    if (!isConnected) {
+    if (!isConnected || _disposed) {
       job.status = JobStatus.pending;
       return;
     }
@@ -467,6 +513,8 @@ class ChatQueueProcessor {
       },
     );
 
+    if (_disposed) return;
+
     // Save downloaded bytes to local file storage
     final ext = (job.payload['name'] as String? ?? '').split('.').last;
     final saveResult = await FileStorage.instance.save.byBytes(
@@ -476,14 +524,20 @@ class ChatQueueProcessor {
     final uri =
         await FileStorage.instance.read(saveResult.ref) ?? saveResult.ref;
 
-    await AppDatabase.instance.file.update.uri(fileUUID, uri);
+    if (AppDatabase.instance.isOpen) {
+      await AppDatabase.instance.file.update.uri(fileUUID, uri);
+    }
+
+    if (_disposed) return;
 
     job.status = JobStatus.completed;
-    await AppDatabase.instance.job.updateStatus(
-      job.id,
-      JobStatus.completed.value,
-      progress: 1.0,
-    );
+    if (AppDatabase.instance.isOpen) {
+      await AppDatabase.instance.job.updateStatus(
+        job.id,
+        JobStatus.completed.value,
+        progress: 1.0,
+      );
+    }
     _jobs.removeWhere((j) => j.id == job.id);
 
     GlobalEventEmitter.instance.emit('file:downloaded', {
