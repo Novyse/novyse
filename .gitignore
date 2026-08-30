@@ -48,6 +48,7 @@ app.*.map.json
 .widget_preview/
 
 lib/core/l10n/app_localizations*.dart
+build/
 
 google-services.json
 GoogleService-Info.plist
