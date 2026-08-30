@@ -72,7 +72,7 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
         border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.shadow.withOpacity(0.06),
+            color: theme.colorScheme.shadow.withValues(alpha: 0.06),
             blurRadius: 18,
             offset: const Offset(0, 10),
           ),

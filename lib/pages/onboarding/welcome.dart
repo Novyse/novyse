@@ -42,7 +42,7 @@ class WelcomePage extends ConsumerWidget {
                         boxShadow: [
                           BoxShadow(
                             color: Theme.of(context).colorScheme.primary
-                                .withOpacity(0.22),
+                                .withValues(alpha: 0.22),
                             blurRadius: 24,
                             offset: const Offset(0, 12),
                           ),
@@ -82,7 +82,7 @@ class WelcomePage extends ConsumerWidget {
                         boxShadow: [
                           BoxShadow(
                             color: Theme.of(context).colorScheme.shadow
-                                .withOpacity(0.06),
+                                .withValues(alpha: 0.06),
                             blurRadius: 18,
                             offset: const Offset(0, 10),
                           ),

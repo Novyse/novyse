@@ -46,8 +46,8 @@ class OnboardingTextField extends StatelessWidget {
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: theme.colorScheme.surfaceContainerHighest.withOpacity(
-              0.35,
+            fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.35,
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
