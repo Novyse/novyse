@@ -1,0 +1,7 @@
+{
+  "@@locale": "en",
+  "appTitle": "Novyse",
+  "@appTitle": {
+    "description": "The application title"
+  }
+}
