@@ -46,6 +46,7 @@ const Map<String, FileTypeCategory> mimeToType = {
   'audio/mpeg': FileTypeCategory.audio,
   'audio/flac': FileTypeCategory.audio,
   'audio/x-ms-wma': FileTypeCategory.audio,
+  'audio/m4a': FileTypeCategory.audio,
   'audio/x-m4a': FileTypeCategory.audio,
   'audio/opus': FileTypeCategory.audio,
   'audio/mp4': FileTypeCategory.audio,
@@ -240,6 +241,10 @@ const Map<String, String> extToMime = {
 
 /// Returns the file type category for a given MIME type and optional file name.
 FileTypeCategory getFileType(String mimeType, [String? fileName]) {
+  if (fileName != null && fileName.toLowerCase().startsWith('novyse_vocal_')) {
+    return FileTypeCategory.voice;
+  }
+
   final clean = mimeType.split(';').first.trim().toLowerCase();
   final type = mimeToType[clean] ?? FileTypeCategory.other;
 
