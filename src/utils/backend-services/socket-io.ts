@@ -61,42 +61,92 @@ const SocketIO = {
         await eventSender.initialize(socket);
       });
 
-      socket.on("connect_error", async (error) => {
+      socket.on("connect_error", async (error: any) => {
         console.error("Socket.IO connect_error:", error);
-        // Handle authentication errors specifically
+
+        // Use structured error codes from the server
+        const errorCode = error?.data?.code;
+
         if (
-          error.message.includes("Authentication error") ||
-          error.message.includes("jwt expired")
+          errorCode === "AUTH_NO_TOKEN" ||
+          errorCode === "AUTH_INVALID_TOKEN" ||
+          errorCode === "AUTH_TOKEN_EXPIRED"
         ) {
           console.warn(
-            "Socket authentication error, attempting to reconnection...",
+            `Socket authentication error (${errorCode}), reconnecting with fresh token...`,
           );
           if (socket) {
             socket.disconnect();
             socket = null;
           }
+          isConnecting = false;
           setTimeout(() => {
             SocketIO.open();
           }, 1000);
         }
       });
 
-      socket.on("error", async (error) => {
+      // Handle token expiry notification from server
+      socket.on("auth:expired", () => {
+        console.warn(
+          "Server notified token expired, reconnecting with fresh token...",
+        );
+        if (socket) {
+          socket.disconnect();
+          socket = null;
+        }
+        isConnecting = false;
+        setTimeout(() => {
+          SocketIO.open();
+        }, 500);
+      });
+
+      // Handle session revocation from server
+      socket.on("auth:session-revoked", () => {
+        console.warn(
+          "Session has been revoked by the server, emitting invalidSession...",
+        );
+        if (socket) {
+          socket.disconnect();
+          socket = null;
+        }
+        isConnecting = false;
+        useNetworkStore.getState().setSocketConnected(false);
+        // Trigger the invalid session flow (logout)
+        eventEmitter.getEmitter().emit("invalidSession");
+      });
+
+      // Handle successful token refresh confirmation
+      socket.on("auth:refreshed", (data: { expiresAt: number }) => {
+        console.info(
+          `Socket token refreshed, new expiry: ${new Date(data.expiresAt * 1000).toISOString()}`,
+        );
+      });
+
+      // Handle token refresh errors
+      socket.on(
+        "auth:refresh:error",
+        (data: { code: string; message: string }) => {
+          console.error(
+            `Socket token refresh failed: ${data.code}`,
+            data.message,
+          );
+
+          if (data.code === "AUTH_IDENTITY_MISMATCH") {
+            // Identity mismatch is a critical error, full reconnect
+            if (socket) {
+              socket.disconnect();
+              socket = null;
+            }
+            isConnecting = false;
+            SocketIO.open();
+          }
+        },
+      );
+
+      socket.on("error", async (error: any) => {
         console.error("Socket.IO connection error:", error);
         isConnecting = false;
-
-        if (error.status === 401) {
-          console.error("Invalid session - retrying pulling new sessionId");
-
-          if (socket) {
-            socket.disconnect();
-            socket = null;
-          }
-
-          setTimeout(async () => {
-            await SocketIO.open();
-          }, 2000);
-        }
       });
 
       socket.on("disconnect", (reason) => {
@@ -130,15 +180,17 @@ const SocketIO = {
   },
 };
 
-// Reconnect socket on app foreground
-
-eventEmitter.getEmitter().on("socketReconnect", async () => {
-  console.log("Reconnecting Socket.IO after token refresh");
-  if (socket) {
-    socket.disconnect(); // Disconnect first to avoid conflicts
+// In-band token refresh: when @novyse/auth refreshes the token,
+// send the new token over the existing WebSocket instead of reconnecting
+auth.token.onUpdate((newToken: string | null) => {
+  if (newToken && socket && socket.connected) {
+    console.info("Token updated, sending auth:refresh over existing socket");
+    socket.emit("auth:refresh", { token: newToken });
   }
-  await SocketIO.open();
 });
+
+// Fallback: if the socket is not connected when a token update happens,
+// the next SocketIO.open() will use the fresh token from auth.token.get()
 
 // Subscribe to network store to auto connect/disconnect
 useNetworkStore.subscribe((state) => {
@@ -160,3 +212,4 @@ useNetworkStore.subscribe((state) => {
 });
 
 export default SocketIO;
+`
