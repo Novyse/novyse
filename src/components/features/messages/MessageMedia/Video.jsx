@@ -45,14 +45,20 @@ const Video = ({
   const player = useVideoPlayer(uri, (p) => {
     p.loop = true;
     p.muted = true;
+    p.volume = 0;
   });
 
   useEffect(() => {
     if (!player) return;
+
+    player.muted = true;
+    player.volume = 0;
+
     if (visible) {
       player.pause();
       return;
     }
+
     player.play();
     return () => {
       try {

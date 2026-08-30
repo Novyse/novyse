@@ -98,10 +98,17 @@ const VideoViewer = ({ visible, onClose, uri, theme, uuid }) => {
   const duration = player.duration || 0;
 
   useEffect(() => {
-    if (status === "readyToPlay" && player) {
+    if (!player) return;
+
+    if (!visible) {
+      player.pause();
+      return;
+    }
+
+    if (status === "readyToPlay") {
       player.play();
     }
-  }, [status, player]);
+  }, [status, player, visible]);
 
   useEffect(() => {
     if (visible || getPlatform() === "web") return;
