@@ -2,42 +2,45 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
+import 'package:novyse/core/storage/database/database.dart';
 
 /// Business-logic event emitter — equivalent of JS `GlobalEventEmitter`.
 ///
 /// Handles database writes first, then broadcasts an event on the [EventBus]
 /// so the UI / other services can react.
-///
-/// Database calls are stubbed with TODO — fill them in once the Drift/SQLite
-/// layer is migrated.
 class GlobalEventEmitter {
   final EventBus _bus;
+  final AppDatabase _db;
   late final MessageEmitter message;
   late final UserEmitter user;
   late final ChatEmitter chat;
 
-  GlobalEventEmitter(this._bus) {
-    message = MessageEmitter(_bus);
-    user = UserEmitter(_bus);
-    chat = ChatEmitter(_bus);
+  GlobalEventEmitter(this._bus, [AppDatabase? db])
+      : _db = db ?? AppDatabase.instance {
+    message = MessageEmitter(_bus, _db);
+    user = UserEmitter(_bus, _db);
+    chat = ChatEmitter(_bus, _db);
   }
 
   // ── file ──
 
-  Future<void> fileReady(String fileUUID) async {
-    // TODO: await database.updateFileURI(fileUUID, uri);
+  Future<void> fileReady(String fileUUID, [String? uri]) async {
+    if (uri != null) {
+      await _db.updateFileURI(fileUUID, uri);
+    }
     _bus.emit(FileReadyEvent(fileUUID));
   }
 }
 
-// Message sub-emitter
+// ── Message sub-emitter ──
 
 class MessageEmitter {
   final EventBus _bus;
-  MessageEmitter(this._bus);
+  final AppDatabase _db;
+  MessageEmitter(this._bus, this._db);
 
   Future<void> add(Map<String, dynamic> message) async {
-    // TODO: await database.message.add(message);
+    await _db.message.add(message);
     _bus.emit(MessageNewEvent(message));
   }
 
@@ -51,29 +54,45 @@ class MessageEmitter {
   ) async {
     switch (action) {
       case 'edit':
-        // TODO: await database.message.edit(chatUUID, subID, messageID, data['content']);
+        final content = data['content'] as String? ?? '';
+        await _db.message.edit(chatUUID, subID, messageID, content);
         break;
       case 'delete':
-        // TODO: await database.message.delete(chatUUID, subID, messageID);
+        await _db.message.delete(chatUUID, subID, messageID);
         break;
       case 'pin_add':
-        // TODO: await database.message.pin.add(...);
+        await _db.message.pin.add(
+          chatUUID,
+          subID,
+          messageID,
+          data['pinnedAt'] as String?,
+          data['userUUID'] as String? ?? data['pinnedBy'] as String?,
+        );
         break;
       case 'pin_remove':
-        // TODO: await database.message.pin.remove(chatUUID, subID, messageID);
+        await _db.message.pin.remove(chatUUID, subID, messageID);
         break;
       case 'reaction_add':
-        // TODO: await database.message.reaction.add(...);
+        final emoji = (data['reaction'] ?? data['emoji']) as String? ?? '';
+        final at = (data['reactedAt'] ?? data['at'] ?? DateTime.now().toIso8601String()) as String;
+        final userUUID = (data['userUUID'] ?? data['user_uuid']) as String? ?? '';
+        await _db.message.reaction.add(chatUUID, subID, messageID, emoji, at, userUUID);
         break;
       case 'reaction_remove':
-        // TODO: await database.message.reaction.remove(...);
+        final emoji = (data['reaction'] ?? data['emoji']) as String? ?? '';
+        final userUUID = (data['userUUID'] ?? data['user_uuid']) as String? ?? '';
+        await _db.message.reaction.remove(chatUUID, subID, messageID, emoji, userUUID);
         break;
       case 'read':
-        // TODO: await database.message.read.add(...);
+        final userUUID = (data['userUUID'] ?? data['user_uuid']) as String? ?? '';
+        final readAt = (data['readAt'] ?? data['read_at'] ?? DateTime.now().toIso8601String()) as String;
+        await _db.message.read.add(chatUUID, subID, messageID, userUUID, readAt);
         break;
     }
 
-    // TODO: if (eventID != null) await database.event.chat.update(chatUUID, eventID);
+    if (eventID != null) {
+      await _db.event.chat.update(chatUUID, eventID);
+    }
 
     _bus.emit(MessageUpdateEvent(
       chatUUID: chatUUID,
@@ -85,31 +104,56 @@ class MessageEmitter {
   }
 }
 
-// User sub-emitter
+// ── User sub-emitter ──
 
 class UserEmitter {
   final EventBus _bus;
+  final AppDatabase _db;
   late final UserProfileEmitter profile;
   late final UserPresenceEmitter presence;
   late final UserSettingEmitter setting;
 
-  UserEmitter(this._bus) {
-    profile = UserProfileEmitter(_bus);
+  UserEmitter(this._bus, this._db) {
+    profile = UserProfileEmitter(_bus, _db);
     presence = UserPresenceEmitter(_bus);
-    setting = UserSettingEmitter(_bus);
+    setting = UserSettingEmitter(_bus, _db);
   }
 }
 
 class UserProfileEmitter {
   final EventBus _bus;
-  UserProfileEmitter(this._bus);
+  final AppDatabase _db;
+  UserProfileEmitter(this._bus, this._db);
 
   Future<void> update(Map<String, dynamic> data, int? eventID) async {
     final userUUID = data['userUUID'] as String?;
-    if (userUUID == null) return;
+    if (userUUID == null || userUUID.isEmpty) return;
 
-    // TODO: database writes for each field (name, surname, biography, etc.)
-    // TODO: if (eventID != null) await database.event.user.profile.update(userUUID, eventID);
+    final name = data['name'] as String?;
+    final surname = data['surname'] as String?;
+    final biography = data['biography'] as String?;
+    final profilePictureUUID = (data['profilePictureUUID'] ?? data['profilePictureUuid']) as String?;
+    final bannerPictureUUID = (data['bannerPictureUUID'] ?? data['bannerPictureUuid']) as String?;
+    final birthday = data['birthday'];
+    final region = data['region'] as String?;
+    final country = data['country'] as String?;
+    final color = data['color'];
+    final handle = data['handle'] as String?;
+
+    if (name != null) await _db.user.profile.name.update(userUUID, name);
+    if (surname != null) await _db.user.profile.surname.update(userUUID, surname);
+    if (biography != null) await _db.user.profile.biography.update(userUUID, biography);
+    if (profilePictureUUID != null) await _db.user.profile.picture.update(userUUID, profilePictureUUID);
+    if (birthday != null) await _db.user.profile.birthday.update(userUUID, birthday);
+    if (region != null) await _db.user.profile.region.update(userUUID, region);
+    if (country != null) await _db.user.profile.country.update(userUUID, country);
+    if (bannerPictureUUID != null) await _db.user.profile.banner.update(userUUID, bannerPictureUUID);
+    if (color != null) await _db.user.profile.color.update(userUUID, color);
+    if (handle != null) await _db.handle.update.user(userUUID, handle);
+
+    if (eventID != null) {
+      await _db.event.user.profile.update(userUUID, eventID);
+    }
 
     _bus.emit(UserProfileUpdateEvent(userUUID: userUUID, data: data));
   }
@@ -134,16 +178,18 @@ class UserPresenceEmitter {
 
 class UserSettingEmitter {
   final EventBus _bus;
+  final AppDatabase _db;
   late final UserSettingChatEmitter chat;
 
-  UserSettingEmitter(this._bus) {
-    chat = UserSettingChatEmitter(_bus);
+  UserSettingEmitter(this._bus, this._db) {
+    chat = UserSettingChatEmitter(_bus, _db);
   }
 }
 
 class UserSettingChatEmitter {
   final EventBus _bus;
-  UserSettingChatEmitter(this._bus);
+  final AppDatabase _db;
+  UserSettingChatEmitter(this._bus, this._db);
 
   Future<void> update(
     String chatUUID,
@@ -153,14 +199,13 @@ class UserSettingChatEmitter {
   ) async {
     switch (action) {
       case 'pin_add':
-        // TODO: await database.chat.pin.add(chatUUID, data['position']);
+        final position = (data['position'] as num?)?.toInt() ?? 0;
+        await _db.chat.pin.add(chatUUID, position);
         break;
       case 'pin_remove':
-        // TODO: await database.chat.pin.remove(chatUUID);
+        await _db.chat.pin.remove(chatUUID);
         break;
     }
-
-    // TODO: if (eventID != null) await AsyncStorage / shared_preferences
 
     _bus.emit(UserSettingChatUpdateEvent(
       chatUUID: chatUUID,
@@ -170,20 +215,29 @@ class UserSettingChatEmitter {
   }
 }
 
-// Chat sub-emitter
+// ── Chat sub-emitter ──
 
 class ChatEmitter {
   final EventBus _bus;
+  final AppDatabase _db;
   late final ChatMemberEmitter member;
 
-  ChatEmitter(this._bus) {
-    member = ChatMemberEmitter(_bus);
+  ChatEmitter(this._bus, this._db) {
+    member = ChatMemberEmitter(_bus, _db);
   }
 
   Future<void> add(Map<String, dynamic> chat, List<dynamic> users) async {
-    // TODO: await database.chat.add(chat);
-    // TODO: add messages from chat['messages']
-    // TODO: for user in users → await database.user.add(user);
+    await _db.chat.add(chat);
+
+    final messages = chat['messages'];
+    if (messages is List && messages.isNotEmpty) {
+      await _db.message.addMultiple(messages);
+    }
+
+    if (users.isNotEmpty) {
+      await _db.user.addMultiple(users);
+    }
+
     _bus.emit(ChatNewEvent(chat: chat, users: users));
   }
 
@@ -195,17 +249,24 @@ class ChatEmitter {
   ) async {
     switch (action) {
       case 'sub_create':
-        // TODO: await database.chat.sub.add(chatUUID, data['sub'] ?? data);
+        final subData = data['sub'] is Map ? Map<String, dynamic>.from(data['sub'] as Map) : data;
+        await _db.chat.sub.add(chatUUID, subData);
         break;
       case 'sub_rename':
-        // TODO: await database.chat.sub.update(...);
+        final subData = data['sub'] is Map ? Map<String, dynamic>.from(data['sub'] as Map) : data;
+        final subId = (subData['id'] is num ? (subData['id'] as num).toInt() : int.tryParse(subData['id']?.toString() ?? '0')) ?? 0;
+        await _db.chat.sub.update(chatUUID, subId, subData);
         break;
       case 'sub_delete':
-        // TODO: await database.chat.sub.remove(chatUUID, data['subID'] ?? data['id']);
+        final rawSubId = data['subID'] ?? data['id'];
+        final subId = (rawSubId is num ? rawSubId.toInt() : int.tryParse(rawSubId?.toString() ?? '0')) ?? 0;
+        await _db.chat.sub.remove(chatUUID, subId);
         break;
     }
 
-    // TODO: if (eventID != null) await database.event.chat.update(chatUUID, eventID);
+    if (eventID != null) {
+      await _db.event.chat.update(chatUUID, eventID);
+    }
 
     _bus.emit(ChatUpdateEvent(
       chatUUID: chatUUID,
@@ -217,21 +278,24 @@ class ChatEmitter {
 
 class ChatMemberEmitter {
   final EventBus _bus;
-  ChatMemberEmitter(this._bus);
+  final AppDatabase _db;
+  ChatMemberEmitter(this._bus, this._db);
 
   Future<void> join(
     String chatUUID,
     Map<String, dynamic> user,
     int? eventID,
   ) async {
-    // TODO: await database.chat.member.add(chatUUID, user);
-    // TODO: if (eventID != null) await database.event.chat.update(chatUUID, eventID);
-    // TODO: await database.user.add(user);
+    await _db.chat.member.add(chatUUID, user);
+    if (eventID != null) {
+      await _db.event.chat.update(chatUUID, eventID);
+    }
+    await _db.user.add(user);
     _bus.emit(ChatMemberJoinedEvent(chatUUID: chatUUID, user: user));
   }
 
   Future<void> leave(String chatUUID, Map<String, dynamic> user) async {
-    // TODO: await database.chat.member.remove(chatUUID, user);
+    await _db.chat.member.remove(chatUUID, user);
     _bus.emit(ChatMemberLeftEvent(chatUUID: chatUUID, user: user));
   }
 
@@ -248,8 +312,11 @@ class ChatMemberEmitter {
   }
 }
 
-// Provider
+// ── Provider ──
 
 final globalEventEmitterProvider = Provider<GlobalEventEmitter>((ref) {
-  return GlobalEventEmitter(ref.watch(eventBusProvider));
+  return GlobalEventEmitter(
+    ref.watch(eventBusProvider),
+    ref.watch(databaseProvider),
+  );
 });
