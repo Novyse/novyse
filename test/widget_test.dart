@@ -12,9 +12,10 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(container: container, child: const MyApp()),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('Login'), findsOneWidget);
+    expect(find.text('Log in'), findsOneWidget);
     expect(find.text('Sei autenticato'), findsNothing);
   });
 
@@ -29,6 +30,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Sei autenticato'), findsOneWidget);
-    expect(find.text('Login'), findsNothing);
+    expect(find.text('Log in'), findsNothing);
   });
 }

@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr/qr.dart';
 
+import '../../core/auth_service.dart';
 import '../../core/l10n/l10n.dart';
+import '../../core/auth/use_qr_code.dart';
 
 class WelcomePage extends ConsumerWidget {
   const WelcomePage({super.key});
@@ -13,7 +15,6 @@ class WelcomePage extends ConsumerWidget {
   static const _panelColor = Color(0xFF9DB8D5);
   static const _headingColor = Color(0xFF073B82);
   static const _buttonColor = Color(0xFF013480);
-  static const _qrValue = 'https://novyse.com/access';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,7 +38,6 @@ class WelcomePage extends ConsumerWidget {
                     final isCompact = constraints.maxWidth < 720;
                     return Container(
                       padding: EdgeInsets.symmetric(
-                        horizontal: isCompact ? 28 : 56,
                         vertical: isCompact ? 34 : 24,
                       ),
                       decoration: BoxDecoration(
@@ -162,44 +162,96 @@ class _WelcomeCopy extends StatelessWidget {
   }
 }
 
-class _QrContent extends StatelessWidget {
+class _QrContent extends ConsumerStatefulWidget {
   const _QrContent();
 
   @override
+  ConsumerState<_QrContent> createState() => _QrContentState();
+}
+
+class _QrContentState extends ConsumerState<_QrContent> {
+  QrCodeController? _controller;
+
+  QrCodeController get _qrController => _controller ??= _createController();
+
+  QrCodeController _createController() {
+    return QrCodeController(
+      onAuthorized: (_) {
+        ref.read(authProvider.notifier).login();
+        if (mounted) {
+          context.go('/home');
+        }
+      },
+    )..init();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = _createController();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 252,
-          height: 252,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: WelcomePage._headingColor, width: 1.5),
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: const CustomPaint(painter: _QrPainter(WelcomePage._qrValue)),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          AppLocalizations.of(context)!.scanQrToLogin,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Color(0xFF101820),
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        Text(
-          AppLocalizations.of(context)!.qrExpiresIn,
-          style: TextStyle(
-            color: Color(0xFF101820),
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
+    final l10n = AppLocalizations.of(context)!;
+    return ListenableBuilder(
+      listenable: _qrController,
+      builder: (context, _) {
+        final state = _qrController.state;
+        final hasToken = state.qrToken != null && state.qrToken!.isNotEmpty;
+
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 252,
+              height: 252,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border:
+                    Border.all(color: WelcomePage._headingColor, width: 1.5),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: hasToken
+                  ? CustomPaint(painter: _QrPainter(state.qrToken!))
+                  : const Center(
+                      child: CircularProgressIndicator(
+                        color: WelcomePage._headingColor,
+                      ),
+                    ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.scanQrToLogin,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Color(0xFF101820),
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            Text(
+              hasToken
+                  ? l10n.qrExpiresIn(
+                      QrCodeController.formatTime(state.remainingTime),
+                    )
+                  : '',
+              style: const TextStyle(
+                color: Color(0xFF101820),
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
