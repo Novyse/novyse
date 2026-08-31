@@ -5,13 +5,18 @@ import 'package:novyse/core/stores/status_store.dart';
 import 'status_message.dart';
 
 /// Reactive global status bar that displays the current highest-priority status notification.
-class GlobalStatusBar extends ConsumerWidget {
+class GlobalStatusBar extends ConsumerWidget implements PreferredSizeWidget {
   const GlobalStatusBar({
     super.key,
     this.padding = const EdgeInsets.symmetric(horizontal: 16),
+    this.height = 76,
   });
 
   final EdgeInsetsGeometry padding;
+  final double height;
+
+  @override
+  Size get preferredSize => Size.fromHeight(height);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

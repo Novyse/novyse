@@ -74,6 +74,10 @@ class SyncService {
     }
 
     try {
+      if (!_db.isOpen) {
+        await _db.initialize();
+      }
+
       final initVal = await _storage.read(key: 'init');
       if (initVal == 'true') {
         debugPrint('[SyncService] Already initialized. Performing delta sync...');
@@ -95,6 +99,10 @@ class SyncService {
     _cancelRetry();
 
     try {
+      if (!_db.isOpen) {
+        await _db.initialize();
+      }
+
       _status.setSyncProgress(
         titleBuilder: (l10n) => l10n.syncInitTitle,
         messageBuilder: (l10n) => l10n.syncInitMessage,
@@ -172,20 +180,17 @@ class SyncService {
         progress: 0.90,
       );
 
-      // 5. Hydrate in-memory stores
+      // 5. Mark initialized and synced
+      await _storage.write(key: 'init', value: 'true');
+      _network.setSynced(true);
+
+      // 6. Hydrate in-memory stores (loads local cache & fetches presence)
       await Future.wait([
         _ref.read(userStoreProvider.notifier).init(),
         _ref.read(chatListProvider.notifier).init(),
       ]);
 
-      // 6. Mark initialized and synced
-      await _storage.write(key: 'init', value: 'true');
-      _network.setSynced(true);
-
-      _status.setSyncComplete(
-        titleBuilder: (l10n) => l10n.syncCompleteTitle,
-        messageBuilder: (l10n) => l10n.syncCompleteMessage,
-      );
+      _status.dismissStatus('sync_status');
 
       // Open realtime socket
       await _socket.open();
@@ -212,6 +217,10 @@ class SyncService {
     _cancelRetry();
 
     try {
+      if (!_db.isOpen) {
+        await _db.initialize();
+      }
+
       final userEventIdStr = await _storage.read(key: 'localUserEventID');
       final userEventId = int.tryParse(userEventIdStr ?? '0') ?? 0;
       final gatewayLocal = {'eventID': userEventId};
@@ -442,13 +451,15 @@ class SyncService {
         }
       }
 
-      // 7. Refresh in-memory stores to ensure latest data is loaded
+      // 7. Mark synced before loading in-memory stores
+      _network.setSynced(true);
+
+      // 8. Refresh in-memory stores to ensure latest data is loaded
       await Future.wait([
         _ref.read(userStoreProvider.notifier).init(),
         _ref.read(chatListProvider.notifier).init(),
       ]);
 
-      _network.setSynced(true);
       _status.dismissStatus('sync_status');
       _socket.open();
 

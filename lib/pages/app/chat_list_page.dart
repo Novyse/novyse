@@ -1,17 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/stores/status_store.dart';
+import '../../ui/components/status/global_status_bar.dart';
 import 'chat_catalog.dart';
 
-class ChatListPage extends StatelessWidget {
+class ChatListPage extends ConsumerWidget {
   const ChatListPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final selectedChatId = GoRouterState.of(context).pathParameters['chatId'];
+    final activeStatus = ref.watch(activeStatusProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat')),
+      appBar: AppBar(
+        title: const Text('Chat'),
+        bottom: activeStatus != null
+            ? const GlobalStatusBar(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              )
+            : null,
+      ),
       body: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
         itemCount: ChatCatalog.chats.length,

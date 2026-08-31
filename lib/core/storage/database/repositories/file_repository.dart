@@ -38,7 +38,7 @@ class FileRepository {
           ? (waveform is String ? waveform : jsonEncode(waveform))
           : null;
 
-      await db.rawInsert(
+      await db.execute(
         '''
         INSERT OR REPLACE INTO file (uuid, name, ref, mimeType, size, duration, waveform)
         VALUES (?, ?, ?, ?, ?, ?, ?);
@@ -118,11 +118,11 @@ class FileUpdateRepository {
   Future<bool> ref(String fileUUID, String newRef) async {
     try {
       if (fileUUID.isEmpty) return false;
-      final count = await _repo.db.rawUpdate(
+      await _repo.db.execute(
         'UPDATE file SET ref = ? WHERE uuid = ?;',
         [newRef, fileUUID],
       );
-      return count > 0;
+      return true;
     } catch (e) {
       debugPrint('Error updating file ref: $e');
       return false;
@@ -135,11 +135,11 @@ class FileUpdateRepository {
       final waveformStr = newWaveform is String
           ? newWaveform
           : jsonEncode(newWaveform);
-      final count = await _repo.db.rawUpdate(
+      await _repo.db.execute(
         'UPDATE file SET waveform = ? WHERE uuid = ?;',
         [waveformStr, fileUUID],
       );
-      return count > 0;
+      return true;
     } catch (e) {
       debugPrint('Error updating file waveform: $e');
       return false;
@@ -149,11 +149,11 @@ class FileUpdateRepository {
   Future<bool> duration(String fileUUID, int newDuration) async {
     try {
       if (fileUUID.isEmpty) return false;
-      final count = await _repo.db.rawUpdate(
+      await _repo.db.execute(
         'UPDATE file SET duration = ? WHERE uuid = ?;',
         [newDuration, fileUUID],
       );
-      return count > 0;
+      return true;
     } catch (e) {
       debugPrint('Error updating file duration: $e');
       return false;

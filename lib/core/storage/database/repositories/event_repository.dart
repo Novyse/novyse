@@ -29,7 +29,7 @@ class EventChatRepository {
   Future<bool> update(String chatUUID, int eventID) async {
     try {
       if (chatUUID.isEmpty) return false;
-      await _repo.db.rawUpdate('UPDATE chat SET eventID = ? WHERE uuid = ?;', [
+      await _repo.db.execute('UPDATE chat SET eventID = ? WHERE uuid = ?;', [
         eventID,
         chatUUID,
       ]);
@@ -57,7 +57,7 @@ class EventUserProfileRepository {
   Future<bool> update(String userUUID, int profileEventID) async {
     try {
       if (userUUID.isEmpty) return false;
-      await _repo.db.rawUpdate(
+      await _repo.db.execute(
         'UPDATE user SET profileEventID = ? WHERE uuid = ?;',
         [profileEventID, userUUID],
       );

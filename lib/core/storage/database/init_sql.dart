@@ -283,7 +283,6 @@ CREATE INDEX IF NOT EXISTS idx_queue_job_chat_status ON queue_job (chat_uuid, st
 
 /// Executes the full initialization SQL script on [db].
 Future<void> executeInitSql(DatabaseExecutor db) async {
-  final batch = db.batch();
   final statements = initSql
       .split(';')
       .map((s) => s.trim())
@@ -291,7 +290,6 @@ Future<void> executeInitSql(DatabaseExecutor db) async {
       .toList();
 
   for (final statement in statements) {
-    batch.execute(statement);
+    await db.execute(statement);
   }
-  await batch.commit(noResult: true);
 }

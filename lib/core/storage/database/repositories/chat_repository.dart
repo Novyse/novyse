@@ -46,7 +46,7 @@ class MemberRepository {
                 DateTime.now().toIso8601String())
           : DateTime.now().toIso8601String();
 
-      await db.rawInsert(
+      await db.execute(
         '''
         INSERT OR IGNORE INTO member (userUUID, chatUUID, role_ids, joined_at)
         VALUES (?, ?, ?, ?);
@@ -63,7 +63,6 @@ class MemberRepository {
   Future<bool> addMultiple(List<dynamic> members) async {
     try {
       if (members.isEmpty) return false;
-      final batch = db.batch();
 
       for (final m in members) {
         if (m is! Map) continue;
@@ -82,7 +81,7 @@ class MemberRepository {
                   DateTime.now().toIso8601String())
             : DateTime.now().toIso8601String();
 
-        batch.rawInsert(
+        await db.execute(
           '''
           INSERT OR IGNORE INTO member (userUUID, chatUUID, role_ids, joined_at)
           VALUES (?, ?, ?, ?);
@@ -91,7 +90,6 @@ class MemberRepository {
         );
       }
 
-      await batch.commit(noResult: true);
       return true;
     } catch (e) {
       debugPrint('Error adding multiple members: $e');
@@ -114,7 +112,7 @@ class MemberRepository {
         return false;
       }
 
-      await db.rawDelete(
+      await db.execute(
         'DELETE FROM member WHERE userUUID = ? AND chatUUID = ?;',
         [userUUID, chatUUID],
       );
@@ -226,7 +224,7 @@ class ChatRepository {
         return false;
       }
 
-      await db.rawInsert(
+      await db.execute(
         '''
         INSERT OR IGNORE INTO chat (uuid, type, name, description, profilePictureUUID, eventID)
         VALUES (?, ?, ?, ?, ?, ?);
@@ -243,7 +241,7 @@ class ChatRepository {
 
       final handle = chat['handle'] as String?;
       if (handle != null && handle.isNotEmpty) {
-        await db.rawInsert(
+        await db.execute(
           '''
           INSERT INTO handle (chatUUID, type, handle) VALUES (?, 'CHAT', ?)
           ON CONFLICT(handle) DO UPDATE SET chatUUID = excluded.chatUUID;
@@ -266,7 +264,7 @@ class ChatRepository {
                     : jsonEncode(role['color']))
               : null;
           final roleId = role['id'] is num ? (role['id'] as num).toInt() : 0;
-          await db.rawInsert(
+          await db.execute(
             '''
             INSERT OR IGNORE INTO role (id, chatUUID, name, permission, level, color)
             VALUES (?, ?, ?, ?, ?, ?);
@@ -288,7 +286,7 @@ class ChatRepository {
           if (subRaw is! Map) continue;
           final s = Map<String, dynamic>.from(subRaw);
           final subId = s['id'] is num ? (s['id'] as num).toInt() : 0;
-          await db.rawInsert(
+          await db.execute(
             '''
             INSERT OR IGNORE INTO chat_sub (id, chatUUID, name, type, created_at)
             VALUES (?, ?, ?, ?, ?);
@@ -328,11 +326,10 @@ class ChatRepository {
     }
   }
 
-  /// Adds multiple chats in batch.
+  /// Adds multiple chats sequentially.
   Future<bool> addMultiple(List<dynamic> chats) async {
     try {
       if (chats.isEmpty) return false;
-      final batch = db.batch();
 
       final allMembers = <Map<String, dynamic>>[];
       final allRoles = <Map<String, dynamic>>[];
@@ -347,7 +344,7 @@ class ChatRepository {
 
         if (uuid == null || type == null) continue;
 
-        batch.rawInsert(
+        await db.execute(
           '''
           INSERT OR IGNORE INTO chat (uuid, type, name, description, profilePictureUUID, eventID)
           VALUES (?, ?, ?, ?, ?, ?);
@@ -364,7 +361,7 @@ class ChatRepository {
 
         final handle = chat['handle'] as String?;
         if (handle != null && handle.isNotEmpty) {
-          batch.rawInsert(
+          await db.execute(
             '''
             INSERT INTO handle (chatUUID, type, handle) VALUES (?, 'CHAT', ?)
             ON CONFLICT(handle) DO UPDATE SET chatUUID = excluded.chatUUID;
@@ -414,7 +411,7 @@ class ChatRepository {
                   : jsonEncode(role['color']))
             : null;
         final roleId = role['id'] is num ? (role['id'] as num).toInt() : 0;
-        batch.rawInsert(
+        await db.execute(
           '''
           INSERT OR IGNORE INTO role (id, chatUUID, name, permission, level, color)
           VALUES (?, ?, ?, ?, ?, ?);
@@ -432,7 +429,7 @@ class ChatRepository {
 
       for (final sub in allSubs) {
         final subId = sub['id'] is num ? (sub['id'] as num).toInt() : 0;
-        batch.rawInsert(
+        await db.execute(
           '''
           INSERT OR IGNORE INTO chat_sub (id, chatUUID, name, type, created_at)
           VALUES (?, ?, ?, ?, ?);
@@ -448,8 +445,6 @@ class ChatRepository {
           ],
         );
       }
-
-      await batch.commit(noResult: true);
 
       if (allMembers.isNotEmpty) {
         await member.addMultiple(allMembers);
@@ -483,14 +478,14 @@ class ChatPinRepository {
   Future<bool> add(String chatUUID, int position) async {
     try {
       if (chatUUID.isEmpty) return false;
-      await _repo.db.rawDelete('DELETE FROM chat_pin WHERE chatUUID = ?;', [
+      await _repo.db.execute('DELETE FROM chat_pin WHERE chatUUID = ?;', [
         chatUUID,
       ]);
-      await _repo.db.rawUpdate(
+      await _repo.db.execute(
         'UPDATE chat_pin SET position = position + 1 WHERE position >= ?;',
         [position],
       );
-      await _repo.db.rawInsert(
+      await _repo.db.execute(
         'INSERT INTO chat_pin (chatUUID, position) VALUES (?, ?);',
         [chatUUID, position],
       );
@@ -510,10 +505,10 @@ class ChatPinRepository {
       );
       if (rows.isNotEmpty) {
         final pos = (rows.first['position'] as num).toInt();
-        await _repo.db.rawDelete('DELETE FROM chat_pin WHERE chatUUID = ?;', [
+        await _repo.db.execute('DELETE FROM chat_pin WHERE chatUUID = ?;', [
           chatUUID,
         ]);
-        await _repo.db.rawUpdate(
+        await _repo.db.execute(
           'UPDATE chat_pin SET position = position - 1 WHERE position > ?;',
           [pos],
         );
@@ -545,7 +540,7 @@ class ChatSubRepository {
   Future<bool> add(String chatUUID, Map<String, dynamic> sub) async {
     try {
       final subId = sub['id'] is num ? (sub['id'] as num).toInt() : 0;
-      await _repo.db.rawInsert(
+      await _repo.db.execute(
         '''
         INSERT OR IGNORE INTO chat_sub (id, chatUUID, name, type, created_at)
         VALUES (?, ?, ?, ?, ?);
@@ -573,7 +568,7 @@ class ChatSubRepository {
     Map<String, dynamic> sub,
   ) async {
     try {
-      await _repo.db.rawUpdate(
+      await _repo.db.execute(
         'UPDATE chat_sub SET name = ? WHERE chatUUID = ? AND id = ?;',
         [sub['name'], chatUUID, subID],
       );
@@ -586,11 +581,11 @@ class ChatSubRepository {
 
   Future<bool> remove(String chatUUID, int subID) async {
     try {
-      await _repo.db.rawDelete(
+      await _repo.db.execute(
         'DELETE FROM message WHERE chatUUID = ? AND subID = ?;',
         [chatUUID, subID],
       );
-      await _repo.db.rawDelete(
+      await _repo.db.execute(
         'DELETE FROM chat_sub WHERE chatUUID = ? AND id = ?;',
         [chatUUID, subID],
       );

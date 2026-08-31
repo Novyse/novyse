@@ -281,13 +281,13 @@ class UserModule {
   }
 
   /// Fetch presence information for a list of users.
-  Future<({bool success, List? data})> presence(List<String> userUUIDs) async {
-    if (userUUIDs.isEmpty) return (success: true, data: []);
+  Future<({bool success, dynamic data})> presence(List<String> userUUIDs) async {
+    if (userUUIDs.isEmpty) return (success: true, data: null);
     final res = await _dio.post(
       '/user/presence',
       data: {'userUUIDs': userUUIDs},
     );
-    if (_ok(res)) return (success: true, data: _data(res) as List);
+    if (_ok(res)) return (success: true, data: _data(res));
     return (success: false, data: null);
   }
 }

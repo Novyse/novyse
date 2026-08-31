@@ -67,13 +67,13 @@ class QueueJobRepository {
       if (errorMessage != null) updates['error_message'] = errorMessage;
       if (attempts != null) updates['attempts'] = attempts;
 
-      final count = await db.update(
+      await db.update(
         'queue_job',
         updates,
         where: 'id = ?',
         whereArgs: [id],
       );
-      return count > 0;
+      return true;
     } catch (_) {
       return false;
     }
@@ -82,7 +82,7 @@ class QueueJobRepository {
   /// Updates the JSON payload of a job (e.g. after content edit or file removal).
   Future<bool> updatePayload(String id, Map<String, dynamic> payload) async {
     try {
-      final count = await db.update(
+      await db.update(
         'queue_job',
         {
           'payload': jsonEncode(payload),
@@ -91,7 +91,7 @@ class QueueJobRepository {
         where: 'id = ?',
         whereArgs: [id],
       );
-      return count > 0;
+      return true;
     } catch (_) {
       return false;
     }
@@ -155,12 +155,12 @@ class QueueJobRepository {
   /// Deletes a job by ID.
   Future<bool> delete(String id) async {
     try {
-      final count = await db.delete(
+      await db.delete(
         'queue_job',
         where: 'id = ?',
         whereArgs: [id],
       );
-      return count > 0;
+      return true;
     } catch (_) {
       return false;
     }

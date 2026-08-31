@@ -1,16 +1,11 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/ui/components/status/status_message.dart'
-    show StatusMessageType;
+import 'package:novyse/ui/components/status/status_message.dart';
 
-/// Signature for localized string resolver callbacks.
-typedef LocalizedStringBuilder = String Function(AppLocalizations l10n);
-
-/// Sources that can emit status messages.
+/// Defines source domains for status notifications, ordered by priority.
 enum StatusSource {
   network(100),
   initSync(80),
@@ -18,12 +13,14 @@ enum StatusSource {
   apiGateway(40),
   general(20);
 
-  final int defaultPriority;
-  const StatusSource(this.defaultPriority);
+  final int priority;
+  const StatusSource(this.priority);
 }
 
-/// Model representing a single status notification item.
-@immutable
+/// Represents a dynamic localized string resolver.
+typedef LocalizedStringBuilder = String Function(AppLocalizations l10n);
+
+/// Represents a single status notification item.
 class StatusItem {
   final String id;
   final StatusSource source;
@@ -32,13 +29,12 @@ class StatusItem {
   final LocalizedStringBuilder? titleBuilder;
   final List<String> content;
   final List<LocalizedStringBuilder>? contentBuilders;
-  final double? progress; // 0.0 to 1.0, or null for no progress bar
-  final Duration? timeout;
+  final double? progress;
   final bool closable;
   final String? actionLabel;
   final LocalizedStringBuilder? actionLabelBuilder;
   final VoidCallback? onAction;
-  final int priority;
+  final Duration? timeout;
   final DateTime createdAt;
 
   StatusItem({
@@ -50,15 +46,13 @@ class StatusItem {
     this.content = const [],
     this.contentBuilders,
     this.progress,
-    this.timeout,
-    this.closable = true,
+    this.closable = false,
     this.actionLabel,
     this.actionLabelBuilder,
     this.onAction,
-    int? priority,
+    this.timeout,
     DateTime? createdAt,
-  })  : priority = priority ?? source.defaultPriority,
-        createdAt = createdAt ?? DateTime.now();
+  }) : createdAt = createdAt ?? DateTime.now();
 
   StatusItem copyWith({
     String? id,
@@ -68,13 +62,12 @@ class StatusItem {
     LocalizedStringBuilder? titleBuilder,
     List<String>? content,
     List<LocalizedStringBuilder>? contentBuilders,
-    double? Function()? progress,
-    Duration? timeout,
+    double? progress,
     bool? closable,
     String? actionLabel,
     LocalizedStringBuilder? actionLabelBuilder,
     VoidCallback? onAction,
-    int? priority,
+    Duration? timeout,
     DateTime? createdAt,
   }) {
     return StatusItem(
@@ -85,47 +78,41 @@ class StatusItem {
       titleBuilder: titleBuilder ?? this.titleBuilder,
       content: content ?? this.content,
       contentBuilders: contentBuilders ?? this.contentBuilders,
-      progress: progress != null ? progress() : this.progress,
-      timeout: timeout ?? this.timeout,
+      progress: progress ?? this.progress,
       closable: closable ?? this.closable,
       actionLabel: actionLabel ?? this.actionLabel,
       actionLabelBuilder: actionLabelBuilder ?? this.actionLabelBuilder,
       onAction: onAction ?? this.onAction,
-      priority: priority ?? this.priority,
+      timeout: timeout ?? this.timeout,
       createdAt: createdAt ?? this.createdAt,
     );
   }
 }
 
-/// State containing all active status messages and computing the primary one.
-@immutable
+/// State for [StatusNotifier].
 class StatusState {
   final Map<String, StatusItem> activeStatuses;
 
   const StatusState({this.activeStatuses = const {}});
 
-  /// Returns the highest priority active status item, or null if none.
+  /// Returns the status item with the highest priority, or null if none active.
   StatusItem? get primaryStatus {
     if (activeStatuses.isEmpty) return null;
-
     final sorted = activeStatuses.values.toList()
       ..sort((a, b) {
-        final cmp = b.priority.compareTo(a.priority);
-        if (cmp != 0) return cmp;
+        final priorityDiff = b.source.priority.compareTo(a.source.priority);
+        if (priorityDiff != 0) return priorityDiff;
         return b.createdAt.compareTo(a.createdAt);
       });
-
     return sorted.first;
   }
 
   StatusState copyWith({Map<String, StatusItem>? activeStatuses}) {
-    return StatusState(
-      activeStatuses: activeStatuses ?? this.activeStatuses,
-    );
+    return StatusState(activeStatuses: activeStatuses ?? this.activeStatuses);
   }
 }
 
-/// Riverpod Notifier managing the app's global status notifications.
+/// Manages all system status notifications with priority ordering and localization.
 class StatusNotifier extends Notifier<StatusState> {
   final Map<String, Timer> _timeoutTimers = {};
 
@@ -155,30 +142,31 @@ class StatusNotifier extends Notifier<StatusState> {
     }
   }
 
-  /// Updates progress or message for an existing status item.
+  /// Updates progress or content of an existing status item.
   void updateProgress(
     String id, {
     double? progress,
     String? message,
     LocalizedStringBuilder? messageBuilder,
-    String? title,
-    LocalizedStringBuilder? titleBuilder,
   }) {
     final existing = state.activeStatuses[id];
     if (existing == null) return;
 
-    final updated = existing.copyWith(
-      title: title ?? (titleBuilder != null ? null : existing.title),
-      titleBuilder: titleBuilder ?? existing.titleBuilder,
-      content: message != null ? [message] : (messageBuilder != null ? const [] : existing.content),
-      contentBuilders: messageBuilder != null ? [messageBuilder] : existing.contentBuilders,
-      progress: progress != null ? () => progress : null,
-    );
+    final updatedContent = message != null ? [message] : existing.content;
+    final updatedBuilders = messageBuilder != null
+        ? [messageBuilder]
+        : (message != null ? null : existing.contentBuilders);
 
-    showStatus(updated);
+    showStatus(
+      existing.copyWith(
+        progress: progress ?? existing.progress,
+        content: updatedContent,
+        contentBuilders: updatedBuilders,
+      ),
+    );
   }
 
-  /// Dismisses a status item by its ID.
+  /// Dismisses a status item by [id].
   void dismissStatus(String id) {
     _cancelTimer(id);
     if (!state.activeStatuses.containsKey(id)) return;
@@ -188,7 +176,7 @@ class StatusNotifier extends Notifier<StatusState> {
     state = state.copyWith(activeStatuses: updated);
   }
 
-  /// Clears all statuses originating from a specific [StatusSource].
+  /// Dismisses all status items from a specific [StatusSource].
   void clearSource(StatusSource source) {
     final toRemove = state.activeStatuses.values
         .where((item) => item.source == source)
@@ -274,7 +262,7 @@ class StatusNotifier extends Notifier<StatusState> {
           contentBuilders: messageBuilder != null
               ? [messageBuilder]
               : (message == null ? [(l10n) => l10n.socketDisconnectedMessage] : null),
-          closable: true,
+          closable: false,
         ),
       );
     }
@@ -307,7 +295,7 @@ class StatusNotifier extends Notifier<StatusState> {
         actionLabelBuilder: actionLabelBuilder ?? (onRetry != null ? (l10n) => l10n.retry : null),
         onAction: onRetry,
         timeout: timeout,
-        closable: true,
+        closable: false,
       ),
     );
   }
@@ -338,31 +326,6 @@ class StatusNotifier extends Notifier<StatusState> {
     );
   }
 
-  /// Notifies that sync or init completed successfully.
-  void setSyncComplete({
-    String? title,
-    LocalizedStringBuilder? titleBuilder,
-    String? message,
-    LocalizedStringBuilder? messageBuilder,
-    Duration timeout = const Duration(seconds: 2),
-    String id = 'sync_status',
-  }) {
-    showStatus(
-      StatusItem(
-        id: id,
-        source: StatusSource.initSync,
-        type: StatusMessageType.success,
-        title: title,
-        titleBuilder: titleBuilder ?? (title == null ? (l10n) => l10n.syncCompleteTitle : null),
-        content: message != null ? [message] : const [],
-        contentBuilders: messageBuilder != null
-            ? [messageBuilder]
-            : (message == null ? [(l10n) => l10n.syncCompleteMessage] : null),
-        timeout: timeout,
-        closable: true,
-      ),
-    );
-  }
 
   /// Emits a sync error with optional countdown or retry handler.
   void setSyncError(
@@ -391,7 +354,7 @@ class StatusNotifier extends Notifier<StatusState> {
         contentBuilders: builders.isNotEmpty ? builders : null,
         actionLabelBuilder: onRetry != null ? (l10n) => l10n.retry : null,
         onAction: onRetry,
-        closable: true,
+        closable: false,
       ),
     );
   }

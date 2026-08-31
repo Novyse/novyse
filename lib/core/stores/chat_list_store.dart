@@ -197,6 +197,9 @@ class ChatListNotifier extends Notifier<ChatListState> {
 
     try {
       final AppDatabase db = dbOverride ?? ref.read(databaseProvider);
+      if (!db.isOpen) {
+        await db.initialize();
+      }
       final rawChats = await db.chat.get.all();
 
       final chats = rawChats.map((raw) => ChatModel.fromMap(raw)).toList();

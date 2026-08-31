@@ -65,7 +65,7 @@ class MessageRepository {
           ? Map<String, dynamic>.from(message['replyTo'] as Map)
           : null;
 
-      await db.rawInsert(
+      await db.execute(
         '''
         INSERT OR IGNORE INTO message (
           id, chatUUID, subID, senderUUID, content, type, system_action, created_at,
@@ -96,7 +96,7 @@ class MessageRepository {
         for (final reply in message['replyTos'] as List) {
           if (reply is! Map) continue;
           final r = Map<String, dynamic>.from(reply);
-          await db.rawInsert(
+          await db.execute(
             '''
             INSERT OR IGNORE INTO message_reply (
               chatUUID, subID, messageID,
@@ -138,7 +138,7 @@ class MessageRepository {
                       : jsonEncode(file['waveform']))
                 : null;
 
-            await db.rawInsert(
+            await db.execute(
               '''
               INSERT OR IGNORE INTO file (uuid, name, ref, mimeType, size, waveform, duration)
               VALUES (?, ?, ?, ?, ?, ?, ?);
@@ -154,7 +154,7 @@ class MessageRepository {
               ],
             );
 
-            await db.rawInsert(
+            await db.execute(
               '''
               INSERT OR IGNORE INTO message_files (chatUUID, subID, messageID, fileUUID)
               VALUES (?, ?, ?, ?);
@@ -177,7 +177,7 @@ class MessageRepository {
               (r['readAt'] ?? r['read_at'] ?? DateTime.now().toIso8601String())
                   as String;
           if (userUUID != null) {
-            await db.rawInsert(
+            await db.execute(
               '''
               INSERT OR IGNORE INTO message_read (chat_uuid, sub_id, message_id, user_uuid, read_at)
               VALUES (?, ?, ?, ?, ?);
@@ -199,7 +199,7 @@ class MessageRepository {
               (r['at'] ?? r['created_at'] ?? DateTime.now().toIso8601String())
                   as String;
           if (userUUID != null && emoji != null) {
-            await db.rawInsert(
+            await db.execute(
               '''
               INSERT OR IGNORE INTO reaction_message (chatUUID, subID, messageID, userUUID, reaction, at)
               VALUES (?, ?, ?, ?, ?, ?);
@@ -217,11 +217,10 @@ class MessageRepository {
     }
   }
 
-  /// Adds multiple messages to the database in batch.
+  /// Adds multiple messages to the database sequentially.
   Future<bool> addMultiple(List<dynamic> messages) async {
     try {
       if (messages.isEmpty) return false;
-      final batch = db.batch();
 
       for (final raw in messages) {
         if (raw is! Map) continue;
@@ -244,7 +243,7 @@ class MessageRepository {
             ? Map<String, dynamic>.from(message['replyTo'] as Map)
             : null;
 
-        batch.rawInsert(
+        await db.execute(
           '''
           INSERT OR IGNORE INTO message (
             id, chatUUID, subID, senderUUID, content, type, system_action, created_at,
@@ -271,7 +270,7 @@ class MessageRepository {
         );
 
         if (message['edited'] == true) {
-          batch.rawInsert(
+          await db.execute(
             '''
             INSERT OR IGNORE INTO edited_message (chatUUID, subID, messageID)
             VALUES (?, ?, ?);
@@ -284,7 +283,7 @@ class MessageRepository {
           for (final reply in message['replyTos'] as List) {
             if (reply is! Map) continue;
             final r = Map<String, dynamic>.from(reply);
-            batch.rawInsert(
+            await db.execute(
               '''
               INSERT OR IGNORE INTO message_reply (
                 chatUUID, subID, messageID,
@@ -319,7 +318,7 @@ class MessageRepository {
                 (r['at'] ?? r['created_at'] ?? DateTime.now().toIso8601String())
                     as String;
             if (userUUID != null && emoji != null) {
-              batch.rawInsert(
+              await db.execute(
                 '''
                 INSERT OR IGNORE INTO reaction_message (chatUUID, subID, messageID, userUUID, reaction, at)
                 VALUES (?, ?, ?, ?, ?, ?);
@@ -343,7 +342,7 @@ class MessageRepository {
                         DateTime.now().toIso8601String())
                     as String;
             if (userUUID != null) {
-              batch.rawInsert(
+              await db.execute(
                 '''
                 INSERT OR IGNORE INTO message_read (chat_uuid, sub_id, message_id, user_uuid, read_at)
                 VALUES (?, ?, ?, ?, ?);
@@ -372,7 +371,7 @@ class MessageRepository {
                         : jsonEncode(file['waveform']))
                   : null;
 
-              batch.rawInsert(
+              await db.execute(
                 '''
                 INSERT OR IGNORE INTO file (uuid, name, ref, mimeType, size, waveform, duration)
                 VALUES (?, ?, ?, ?, ?, ?, ?);
@@ -388,7 +387,7 @@ class MessageRepository {
                 ],
               );
 
-              batch.rawInsert(
+              await db.execute(
                 '''
                 INSERT OR IGNORE INTO message_files (chatUUID, subID, messageID, fileUUID)
                 VALUES (?, ?, ?, ?);
@@ -400,7 +399,6 @@ class MessageRepository {
         }
       }
 
-      await batch.commit(noResult: true);
       return true;
     } catch (e) {
       debugPrint('Error adding multiple messages: $e');
@@ -469,11 +467,11 @@ class MessageRepository {
   ) async {
     try {
       final id = _parseId(messageID);
-      await db.rawUpdate(
+      await db.execute(
         'UPDATE message SET content = ? WHERE chatUUID = ? AND subID = ? AND id = ?;',
         [content, chatUUID, subID, id],
       );
-      await db.rawInsert(
+      await db.execute(
         'INSERT OR IGNORE INTO edited_message (chatUUID, subID, messageID) VALUES (?, ?, ?);',
         [chatUUID, subID, id],
       );
@@ -488,7 +486,7 @@ class MessageRepository {
   Future<bool> delete(String chatUUID, int subID, dynamic messageID) async {
     try {
       final id = _parseId(messageID);
-      await db.rawDelete(
+      await db.execute(
         'DELETE FROM message WHERE chatUUID = ? AND subID = ? AND id = ?;',
         [chatUUID, subID, id],
       );
@@ -747,7 +745,7 @@ class MessagePinRepository {
   ]) async {
     try {
       final id = MessageRepository._parseId(messageID);
-      await _repo.db.rawInsert(
+      await _repo.db.execute(
         '''
         INSERT OR IGNORE INTO pinned_message (chatUUID, subID, messageID, pinned_at, pinned_by)
         VALUES (?, ?, ?, ?, ?);
@@ -770,7 +768,7 @@ class MessagePinRepository {
   Future<bool> remove(String chatUUID, int subID, dynamic messageID) async {
     try {
       final id = MessageRepository._parseId(messageID);
-      await _repo.db.rawDelete(
+      await _repo.db.execute(
         'DELETE FROM pinned_message WHERE chatUUID = ? AND subID = ? AND messageID = ?;',
         [chatUUID, subID, id],
       );
@@ -868,7 +866,7 @@ class MessageReactionRepository {
   ) async {
     try {
       final id = MessageRepository._parseId(messageID);
-      await _repo.db.rawInsert(
+      await _repo.db.execute(
         '''
         INSERT OR IGNORE INTO reaction_message (chatUUID, subID, messageID, userUUID, reaction, at)
         VALUES (?, ?, ?, ?, ?, ?);
@@ -891,7 +889,7 @@ class MessageReactionRepository {
   ) async {
     try {
       final id = MessageRepository._parseId(messageID);
-      await _repo.db.rawDelete(
+      await _repo.db.execute(
         '''
         DELETE FROM reaction_message
         WHERE chatUUID = ? AND subID = ? AND messageID = ? AND userUUID = ? AND reaction = ?;
@@ -919,7 +917,7 @@ class MessageReadRepository {
   ) async {
     try {
       final id = MessageRepository._parseId(messageID);
-      await _repo.db.rawInsert(
+      await _repo.db.execute(
         '''
         INSERT OR IGNORE INTO message_read (chat_uuid, sub_id, message_id, user_uuid, read_at)
         VALUES (?, ?, ?, ?, ?);

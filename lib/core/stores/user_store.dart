@@ -198,6 +198,9 @@ class UserNotifier extends Notifier<UserStoreState> {
 
     try {
       final AppDatabase db = dbOverride ?? ref.read(databaseProvider);
+      if (!db.isOpen) {
+        await db.initialize();
+      }
       final rawUsers = await db.user.get.all();
 
       final usersMap = <String, UserModel>{};
@@ -310,14 +313,17 @@ class UserNotifier extends Notifier<UserStoreState> {
       final response = await gw.user.presence(userUUIDs);
       if (response.success && response.data != null) {
         final updatedUsers = Map<String, UserModel>.from(state.users);
-        for (final item in response.data!) {
-          if (item is Map) {
-            final uuid = (item['userUUID'] ?? item['uuid']) as String?;
-            if (uuid != null && updatedUsers.containsKey(uuid)) {
-              final status = item['status'] as String? ?? 'OFFLINE';
+        final rawData = response.data;
+
+        if (rawData is Map) {
+          for (final entry in rawData.entries) {
+            final uuid = entry.key.toString();
+            final val = entry.value;
+            if (val is Map && updatedUsers.containsKey(uuid)) {
+              final status = val['status'] as String? ?? 'OFFLINE';
               DateTime? lastAccess;
-              if (item['lastAccessAt'] != null) {
-                lastAccess = DateTime.tryParse(item['lastAccessAt'].toString());
+              if (val['lastAccessAt'] != null) {
+                lastAccess = DateTime.tryParse(val['lastAccessAt'].toString());
               }
               updatedUsers[uuid] = updatedUsers[uuid]!.copyWith(
                 status: status,
@@ -325,7 +331,25 @@ class UserNotifier extends Notifier<UserStoreState> {
               );
             }
           }
+        } else if (rawData is List) {
+          for (final item in rawData) {
+            if (item is Map) {
+              final uuid = (item['userUUID'] ?? item['uuid']) as String?;
+              if (uuid != null && updatedUsers.containsKey(uuid)) {
+                final status = item['status'] as String? ?? 'OFFLINE';
+                DateTime? lastAccess;
+                if (item['lastAccessAt'] != null) {
+                  lastAccess = DateTime.tryParse(item['lastAccessAt'].toString());
+                }
+                updatedUsers[uuid] = updatedUsers[uuid]!.copyWith(
+                  status: status,
+                  lastAccessAt: lastAccess,
+                );
+              }
+            }
+          }
         }
+
         state = state.copyWith(users: updatedUsers);
       }
     } catch (e) {

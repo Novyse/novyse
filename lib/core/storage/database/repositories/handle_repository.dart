@@ -63,7 +63,7 @@ class HandleUpdateRepository {
   Future<bool> user(String userUUID, String handle) async {
     try {
       if (userUUID.isEmpty || handle.isEmpty) return false;
-      await _repo.db.rawInsert(
+      await _repo.db.execute(
         '''
         INSERT INTO handle (userUUID, type, handle) VALUES (?, 'USER', ?)
         ON CONFLICT(handle) DO UPDATE SET userUUID = excluded.userUUID;
@@ -80,7 +80,7 @@ class HandleUpdateRepository {
   Future<bool> chat(String chatUUID, String handle) async {
     try {
       if (chatUUID.isEmpty || handle.isEmpty) return false;
-      await _repo.db.rawInsert(
+      await _repo.db.execute(
         '''
         INSERT INTO handle (chatUUID, type, handle) VALUES (?, 'CHAT', ?)
         ON CONFLICT(handle) DO UPDATE SET chatUUID = excluded.chatUUID;

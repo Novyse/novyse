@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'adaptive.dart';
@@ -9,6 +10,7 @@ import 'chat_routes.dart';
 import 'profile_page.dart';
 import 'settings_page.dart';
 import '../../core/router/navigator_keys.dart';
+import '../../core/services/sync_service.dart';
 
 class HomeTabControllerScope extends InheritedWidget {
   const HomeTabControllerScope({
@@ -51,7 +53,7 @@ class HomeTabBarView extends StatelessWidget {
   }
 }
 
-class HomeShell extends StatefulWidget {
+class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key, required this.detailNavigator});
 
   final Widget detailNavigator;
@@ -59,10 +61,10 @@ class HomeShell extends StatefulWidget {
   static bool isWide(BuildContext context) => isMasterDetailLayout(context);
 
   @override
-  State<HomeShell> createState() => _HomeShellState();
+  ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell>
+class _HomeShellState extends ConsumerState<HomeShell>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final _chatTabNavKey = GlobalKey<NavigatorState>();
@@ -74,6 +76,11 @@ class _HomeShellState extends State<HomeShell>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_syncUrlWhenNoChat);
+
+    // Trigger account initialization / delta sync
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(syncServiceProvider).ensureInitialized();
+    });
   }
 
   String get _path => GoRouterState.of(context).uri.path;

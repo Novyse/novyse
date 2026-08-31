@@ -51,6 +51,7 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.6
   sqflite_common_ffi: ^2.4.2+1
+  sqflite_common_ffi_web: ^1.1.2
   file_picker: ^12.1.2
   audioplayers: ^6.8.1
   hugeicons: ^1.1.7

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 import 'package:novyse/core/storage/database/init_sql.dart';
 import 'package:novyse/core/storage/database/repositories/user_repository.dart';
@@ -54,8 +55,10 @@ class AppDatabase {
       return;
     }
 
-    // Initialize FFI for desktop (Linux, Windows) and testing environments
-    if (!kIsWeb && (io.Platform.isLinux || io.Platform.isWindows)) {
+    // Initialize databaseFactory across Web, Desktop (Linux, Windows, macOS) and Mobile
+    if (kIsWeb) {
+      databaseFactory = databaseFactoryFfiWeb;
+    } else if (io.Platform.isLinux || io.Platform.isWindows || io.Platform.isMacOS) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
     }
@@ -65,14 +68,14 @@ class AppDatabase {
       dbPath = inMemoryDatabasePath;
     } else if (path != null) {
       dbPath = path;
+    } else if (kIsWeb) {
+      dbPath = 'novyse.db';
+    } else if (io.Platform.isLinux || io.Platform.isWindows || io.Platform.isMacOS) {
+      final appSupportDir = await getApplicationSupportDirectory();
+      dbPath = p.join(appSupportDir.path, 'novyse.db');
     } else {
-      if (!kIsWeb && (io.Platform.isLinux || io.Platform.isWindows)) {
-        final appSupportDir = await getApplicationSupportDirectory();
-        dbPath = p.join(appSupportDir.path, 'novyse.db');
-      } else {
-        final databasesPath = await getDatabasesPath();
-        dbPath = p.join(databasesPath, 'novyse.db');
-      }
+      final databasesPath = await getDatabasesPath();
+      dbPath = p.join(databasesPath, 'novyse.db');
     }
 
     final db = await openDatabase(

@@ -38,7 +38,7 @@ class UserRepository {
         return false;
       }
 
-      await db.rawInsert(
+      await db.execute(
         '''
         INSERT OR REPLACE INTO user (
           uuid, name, surname, profilePictureUUID, bannerPictureUUID,
@@ -61,7 +61,7 @@ class UserRepository {
       );
 
       if (handle != null && handle.isNotEmpty) {
-        await db.rawInsert(
+        await db.execute(
           '''
           INSERT INTO handle (userUUID, type, handle) VALUES (?, 'USER', ?)
           ON CONFLICT(handle) DO UPDATE SET userUUID = excluded.userUUID;
@@ -77,11 +77,10 @@ class UserRepository {
     }
   }
 
-  /// Adds multiple users and their handles in a single batch/transaction.
+  /// Adds multiple users and their handles sequentially.
   Future<bool> addMultiple(List<dynamic> users) async {
     try {
       if (users.isEmpty) return false;
-      final batch = db.batch();
 
       for (final raw in users) {
         if (raw is! Map) continue;
@@ -92,7 +91,7 @@ class UserRepository {
 
         if (uuid == null || name == null) continue;
 
-        batch.rawInsert(
+        await db.execute(
           '''
           INSERT OR REPLACE INTO user (
             uuid, name, surname, profilePictureUUID, bannerPictureUUID,
@@ -115,7 +114,7 @@ class UserRepository {
         );
 
         if (handle != null && handle.isNotEmpty) {
-          batch.rawInsert(
+          await db.execute(
             '''
             INSERT INTO handle (userUUID, type, handle) VALUES (?, 'USER', ?)
             ON CONFLICT(handle) DO UPDATE SET userUUID = excluded.userUUID;
@@ -125,7 +124,6 @@ class UserRepository {
         }
       }
 
-      await batch.commit(noResult: true);
       return true;
     } catch (e) {
       debugPrint('Error adding multiple users: $e');
@@ -299,11 +297,11 @@ class ProfileFieldUpdateRepository {
     try {
       if (userUUID.isEmpty) return false;
       final val = value is String || value == null ? value : value.toString();
-      final count = await _repo.db.rawUpdate(
+      await _repo.db.execute(
         'UPDATE user SET $_column = ? WHERE uuid = ?;',
         [val, userUUID],
       );
-      return count > 0;
+      return true;
     } catch (e) {
       debugPrint('Error updating user $_column: $e');
       return false;
@@ -318,11 +316,11 @@ class ProfilePictureRepository {
   Future<bool> update(String userUUID, String profilePictureUUID) async {
     try {
       if (userUUID.isEmpty || profilePictureUUID.isEmpty) return false;
-      final count = await _repo.db.rawUpdate(
+      await _repo.db.execute(
         'UPDATE user SET profilePictureUUID = ? WHERE uuid = ?;',
         [profilePictureUUID, userUUID],
       );
-      return count > 0;
+      return true;
     } catch (e) {
       debugPrint('Error updating user profile picture: $e');
       return false;
