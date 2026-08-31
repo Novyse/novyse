@@ -65,8 +65,12 @@ class OnboardingManager extends StateNotifier<bool> {
     } catch (_) {}
   }
 
+  bool _isLoggingOut = false;
+
   /// Clear all stored session markers and log out.
   Future<void> logout() async {
+    if (_isLoggingOut) return;
+    _isLoggingOut = true;
     try {
       await _auth.logout();
       await _storage.delete(key: 'userUUID');
@@ -75,6 +79,7 @@ class OnboardingManager extends StateNotifier<bool> {
       await _storage.delete(key: 'init');
     } catch (_) {}
     state = false;
+    _isLoggingOut = false;
   }
 
   /// Verify availability of a handle/username via API Gateway.
