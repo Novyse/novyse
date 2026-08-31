@@ -17,5 +17,7 @@ void main() {
   test('Gateway() constructor injects default Dio with headers', () {
     final gw = Gateway();
     expect(gw.check, isNotNull);
+    expect(identical(gw, Gateway.instance), isTrue);
+    expect(identical(apiGateway, Gateway.instance), isTrue);
   });
 }

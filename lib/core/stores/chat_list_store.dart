@@ -67,8 +67,7 @@ class ChatModel {
         for (final s in map['subs'] as List) {
           if (s is Map && s['lastMessage'] is Map) {
             final subMsg = Map<String, dynamic>.from(s['lastMessage'] as Map);
-            final timeVal =
-                subMsg['time'] ?? subMsg['createdAt'] ?? subMsg['created_at'];
+            final timeVal = subMsg['createdAt'] ?? subMsg['created_at'];
             final dt = timeVal != null
                 ? DateTime.tryParse(timeVal.toString())
                 : null;
@@ -223,11 +222,11 @@ class ChatListNotifier extends Notifier<ChatListState> {
   }
 
   /// Initializes the chat list by loading all chats from SQLite.
-  Future<void> init({AppDatabase? dbOverride}) async {
+  Future<void> init() async {
     state = state.copyWith(loading: true);
 
     try {
-      final AppDatabase db = dbOverride ?? ref.read(databaseProvider);
+      final db = AppDatabase.instance;
       if (!db.isOpen) {
         await db.initialize();
       }
@@ -447,8 +446,7 @@ class ChatListNotifier extends Notifier<ChatListState> {
 
   DateTime _getMessageTime(Map<String, dynamic>? msg) {
     if (msg == null) return DateTime.fromMillisecondsSinceEpoch(0);
-    final val =
-        msg['createdAt'] ?? msg['created_at'] ?? msg['time'] ?? msg['at'];
+    final val = msg['createdAt'] ?? msg['created_at'];
     if (val != null) {
       final parsed = DateTime.tryParse(val.toString());
       if (parsed != null) return parsed;

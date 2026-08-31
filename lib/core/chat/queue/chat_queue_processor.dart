@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:novyse/core/config/global.dart' as config;
 import 'package:novyse/core/chat/queue/queue_job.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/services/api_gateway.dart';
@@ -12,7 +11,6 @@ import 'package:novyse/core/storage/file/file.dart';
 /// Processor for handling queued message and file jobs sequentially for a single chat.
 class ChatQueueProcessor {
   final String chatUUID;
-  final Gateway _gateway;
   final List<QueueJob> _jobs = [];
   bool _isProcessing = false;
   QueueJob? _currentJob;
@@ -21,9 +19,7 @@ class ChatQueueProcessor {
   bool isConnected = true;
   bool _disposed = false;
 
-  ChatQueueProcessor({required this.chatUUID, Gateway? gateway})
-    : _gateway =
-          gateway ?? Gateway(Dio(BaseOptions(baseUrl: config.apiBaseUrl)));
+  ChatQueueProcessor({required this.chatUUID});
 
   bool get isDisposed => _disposed;
   List<QueueJob> get jobs => List.unmodifiable(_jobs);
@@ -217,10 +213,10 @@ class ChatQueueProcessor {
             attempts: job.attempts,
           );
         }
-        GlobalEventEmitter.instance.emit('message:failed', {
-          'tempId': job.id,
-          'error': job.errorMessage,
-        });
+        await GlobalEventEmitter.instance.message.failed(
+          job.id,
+          job.errorMessage,
+        );
       } else {
         job.status = JobStatus.pending;
         if (AppDatabase.instance.isOpen) {
@@ -315,11 +311,12 @@ class ChatQueueProcessor {
       }
     }
 
-    // 2. Persist local message in DB in pending/sending status
+    // 2. Persist local message in DB in pending/sending status and emit global event
     if (_disposed || !AppDatabase.instance.isOpen) return;
     message['chatUUID'] = chatUUID;
+    message['subID'] = job.subID;
     message['status'] = 'PENDING_SEND';
-    await AppDatabase.instance.message.add(message);
+    await GlobalEventEmitter.instance.message.add(message);
 
     // === PHASE 2: NETWORK (Requires Internet) ===
     if (_disposed) return;
@@ -344,7 +341,7 @@ class ChatQueueProcessor {
     final replyTos = message['replyTos'] as List<dynamic>?;
 
     try {
-      final sendResult = await _gateway.message.send(
+      final sendResult = await apiGateway.message.send(
         chatUUID,
         subID: subID,
         content: content,
@@ -359,7 +356,9 @@ class ChatQueueProcessor {
         throw Exception('Failed to send message: API request unsuccessful');
       }
 
-      final serverMessage = sendResult.message!;
+      final serverMessage = Map<String, dynamic>.from(sendResult.message!);
+      serverMessage['chatUUID'] ??= chatUUID;
+      serverMessage['subID'] ??= subID;
       final serverStatus = serverMessage['status'] as String? ?? 'sent';
 
       if (serverStatus == 'pending') {
@@ -414,7 +413,7 @@ class ChatQueueProcessor {
         final messageUUID =
             (serverMessage['messageUUID'] ?? serverMessage['uuid']) as String?;
         if (messageUUID != null) {
-          final confirmResult = await _gateway.message.confirm(messageUUID);
+          final confirmResult = await apiGateway.message.confirm(messageUUID);
           if (!confirmResult.success) {
             throw Exception('Message confirmation failed on server');
           }
@@ -422,6 +421,16 @@ class ChatQueueProcessor {
       }
 
       if (_disposed) return;
+
+      final serverCreatedAt = serverMessage['created_at'] ??
+          serverMessage['createdAt'];
+      if (serverCreatedAt != null) {
+        serverMessage['createdAt'] = serverCreatedAt.toString();
+        serverMessage['created_at'] = serverCreatedAt.toString();
+      }
+
+      serverMessage['status'] = 'sent';
+      serverMessage['tempId'] = job.id;
 
       // Finalize message in DB and emit success
       job.status = JobStatus.completed;
@@ -432,12 +441,7 @@ class ChatQueueProcessor {
           progress: 1.0,
         );
       }
-      _jobs.removeWhere((j) => j.id == job.id);
-
-      GlobalEventEmitter.instance.emit('message:sent', {
-        'tempId': job.id,
-        'message': serverMessage,
-      });
+      await GlobalEventEmitter.instance.message.add(serverMessage);
     } catch (e) {
       rethrow;
     }

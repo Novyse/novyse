@@ -95,11 +95,10 @@ class OnboardingManager extends StateNotifier<bool> {
 
   /// Verify availability of a handle/username via API Gateway.
   Future<({bool success, bool? available})> checkHandleAvailability(
-    String handle, {
-    required Gateway gateway,
-  }) async {
+    String handle,
+  ) async {
     try {
-      return await gateway.check.handle(handle);
+      return await apiGateway.check.handle(handle);
     } catch (_) {
       return (success: false, available: null);
     }

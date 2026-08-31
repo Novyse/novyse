@@ -69,7 +69,7 @@ void main() {
           'type': 'GROUP',
         });
 
-        await container.read(chatListProvider.notifier).init(dbOverride: db);
+        await container.read(chatListProvider.notifier).init();
 
         final activeNotifier = container.read(activeChatProvider.notifier);
 

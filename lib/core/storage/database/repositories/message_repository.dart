@@ -42,8 +42,8 @@ class MessageRepository {
   Future<bool> add(Map<String, dynamic> message) async {
     try {
       final rawId = message['id'];
-      final chatUUID = message['chatUUID'] as String?;
-      final senderUUID = message['senderUUID'] as String?;
+      final chatUUID = message['chatUUID']?.toString();
+      final senderUUID = (message['senderUUID'] ?? message['userUUID'])?.toString();
       final createdAt =
           message['created_at'] ??
           message['createdAt'] ??
@@ -67,10 +67,15 @@ class MessageRepository {
 
       await db.execute(
         '''
-        INSERT OR IGNORE INTO message (
+        INSERT INTO message (
           id, chatUUID, subID, senderUUID, content, type, system_action, created_at,
           replyTo_chatUUID, replyTo_subID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(chatUUID, subID, id) DO UPDATE SET
+          content = excluded.content,
+          type = excluded.type,
+          system_action = excluded.system_action,
+          created_at = excluded.created_at;
         ''',
         [
           id,

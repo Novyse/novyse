@@ -190,10 +190,8 @@ class ChatListItem extends ConsumerWidget {
   String _formatChatTime(ChatModel chat) {
     final msg = chat.lastMessage;
     final rawTime =
-        msg?['time'] ??
         msg?['createdAt'] ??
         msg?['created_at'] ??
-        msg?['at'] ??
         chat.createdAt?.toIso8601String();
     if (rawTime == null) return '';
     final dt = DateTime.tryParse(rawTime.toString())?.toLocal();
@@ -246,6 +244,10 @@ class ChatListItem extends ConsumerWidget {
       l10n: l10n,
     );
 
+    final lastMsg = chat.lastMessage;
+    final lastMsgStatus = lastMsg?['status']?.toString();
+    final isPendingLastMessage = lastMsgStatus == 'PENDING_SEND';
+
     final timeStr = _formatChatTime(chat);
 
     return Material(
@@ -279,7 +281,7 @@ class ChatListItem extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Top Row: Chat Name + Time
+                    // Top Row: Chat Name + Time / Clock
                     Row(
                       children: [
                         Expanded(
@@ -293,7 +295,19 @@ class ChatListItem extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (timeStr.isNotEmpty)
+                        if (isPendingLastMessage &&
+                            !formattedMessageData.isDraft)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Icon(
+                              Icons.access_time_rounded,
+                              size: 14,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                          )
+                        else if (timeStr.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(left: 8),
                             child: Text(

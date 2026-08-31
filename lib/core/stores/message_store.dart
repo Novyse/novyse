@@ -10,7 +10,6 @@ import 'package:novyse/core/storage/database/database.dart';
 @immutable
 class MessageModel {
   final dynamic id;
-  final String? uuid;
   final String chatUUID;
   final int subID;
   final String userUUID;
@@ -22,11 +21,10 @@ class MessageModel {
   final List<Map<String, dynamic>> reactions;
   final List<dynamic> reads;
   final List<Map<String, dynamic>> files;
-  final dynamic format;
+  final String status;
 
   const MessageModel({
     required this.id,
-    this.uuid,
     required this.chatUUID,
     this.subID = 0,
     required this.userUUID,
@@ -38,14 +36,17 @@ class MessageModel {
     this.reactions = const [],
     this.reads = const [],
     this.files = const [],
-    this.format,
+    this.status = 'sent',
   });
+
+  bool get isPending => status == 'PENDING_SEND';
 
   factory MessageModel.fromMap(Map<String, dynamic> map) {
     DateTime parseCreatedAt(dynamic val) {
       if (val is DateTime) return val;
       if (val is String && val.isNotEmpty) {
-        return DateTime.tryParse(val) ?? DateTime.now();
+        final parsed = DateTime.tryParse(val);
+        if (parsed != null) return parsed;
       }
       return DateTime.now();
     }
@@ -60,9 +61,10 @@ class MessageModel {
       return const [];
     }
 
+    final rawCreatedAt = map['createdAt'] ?? map['created_at'];
+
     return MessageModel(
       id: map['id'] ?? map['messageID'] ?? 0,
-      uuid: map['uuid'] as String?,
       chatUUID: (map['chatUUID'] ?? '').toString(),
       subID: map['subID'] is num
           ? (map['subID'] as num).toInt()
@@ -70,23 +72,20 @@ class MessageModel {
       userUUID:
           (map['userUUID'] ?? map['senderUUID'] ?? map['sender_uuid'] ?? '')
               .toString(),
-      createdAt: parseCreatedAt(
-        map['createdAt'] ?? map['created_at'] ?? map['time'] ?? map['at'],
-      ),
+      createdAt: parseCreatedAt(rawCreatedAt),
       edited: map['edited'] == true || map['edited'] == 1,
       pinned: map['pinned'] == true || map['pinned'] == 1,
-      content: (map['content'] ?? map['text'])?.toString(),
+      content: (map['content'])?.toString(),
       replyTos: map['replyTos'] is List ? (map['replyTos'] as List) : const [],
       reactions: parseMapList(map['reactions']),
       reads: map['reads'] is List ? (map['reads'] as List) : const [],
       files: parseMapList(map['files']),
-      format: map['format'],
+      status: (map['status'] ?? 'sent').toString(),
     );
   }
 
   MessageModel copyWith({
     dynamic id,
-    String? uuid,
     String? chatUUID,
     int? subID,
     String? userUUID,
@@ -98,11 +97,10 @@ class MessageModel {
     List<Map<String, dynamic>>? reactions,
     List<dynamic>? reads,
     List<Map<String, dynamic>>? files,
-    dynamic format,
+    String? status,
   }) {
     return MessageModel(
       id: id ?? this.id,
-      uuid: uuid ?? this.uuid,
       chatUUID: chatUUID ?? this.chatUUID,
       subID: subID ?? this.subID,
       userUUID: userUUID ?? this.userUUID,
@@ -114,7 +112,7 @@ class MessageModel {
       reactions: reactions ?? this.reactions,
       reads: reads ?? this.reads,
       files: files ?? this.files,
-      format: format ?? this.format,
+      status: status ?? this.status,
     );
   }
 }
@@ -182,6 +180,12 @@ class MessageListNotifier
     );
 
     _subscriptions.add(
+      bus.on<MessageFailedEvent>().listen((event) {
+        onMessageFailed(event.tempId, event.error);
+      }),
+    );
+
+    _subscriptions.add(
       bus.on<MessageUpdateEvent>().listen((event) {
         if (event.chatUUID == arg.chatUUID && event.subID == arg.subID) {
           onMessageUpdate(event.messageID, event.action, event.data);
@@ -191,13 +195,13 @@ class MessageListNotifier
   }
 
   /// Initial load of messages for this channel from SQLite.
-  Future<void> init({AppDatabase? dbOverride, int limit = 50}) async {
+  Future<void> init({int limit = 50}) async {
     if (_isInitInProgress || state.historyLoaded) return;
     _isInitInProgress = true;
     state = state.copyWith(loading: true);
 
     try {
-      final AppDatabase db = dbOverride ?? ref.read(databaseProvider);
+      final db = AppDatabase.instance;
       if (!db.isOpen) {
         await db.initialize();
       }
@@ -226,14 +230,14 @@ class MessageListNotifier
   }
 
   /// Loads older messages before the oldest current message.
-  Future<void> loadMore({AppDatabase? dbOverride, int limit = 50}) async {
+  Future<void> loadMore({int limit = 50}) async {
     if (state.loading || !state.hasMore || state.messages.isEmpty) return;
 
     state = state.copyWith(loading: true);
 
     try {
       final oldestTime = state.messages.last.createdAt.toIso8601String();
-      final AppDatabase db = dbOverride ?? ref.read(databaseProvider);
+      final db = AppDatabase.instance;
       final rawOlder = await db.message.get.by.sub(
         arg.chatUUID,
         arg.subID,
@@ -256,19 +260,32 @@ class MessageListNotifier
 
   void onNewMessage(Map<String, dynamic> raw) {
     final newMsg = MessageModel.fromMap(raw);
-    final exists = state.messages.any(
-      (m) => m.id.toString() == newMsg.id.toString(),
+    final tempId = raw['tempId']?.toString();
+
+    final index = state.messages.indexWhere(
+      (m) =>
+          m.id.toString() == newMsg.id.toString() ||
+          (tempId != null && tempId.isNotEmpty && m.id.toString() == tempId),
     );
 
-    if (exists) {
-      state = state.copyWith(
-        messages: state.messages.map((m) {
-          return m.id.toString() == newMsg.id.toString() ? newMsg : m;
-        }).toList(),
-      );
+    if (index != -1) {
+      final list = List<MessageModel>.from(state.messages);
+      list[index] = newMsg;
+      state = state.copyWith(messages: list);
     } else {
       state = state.copyWith(messages: [newMsg, ...state.messages]);
     }
+  }
+
+  void onMessageFailed(String tempId, String? error) {
+    state = state.copyWith(
+      messages: state.messages.map((m) {
+        if (m.id.toString() == tempId) {
+          return m.copyWith(status: 'failed');
+        }
+        return m;
+      }).toList(),
+    );
   }
 
   void onMessageUpdate(

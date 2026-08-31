@@ -4,22 +4,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:novyse/core/config/global.dart' as config;
-import 'package:novyse/core/utils/platform.dart';
-import 'package:novyse/core/services/auth.dart';
-import 'package:novyse/core/stores/network_store.dart';
-import 'package:novyse/core/stores/status_store.dart';
 import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
+import 'package:novyse/core/services/auth.dart';
+import 'package:novyse/core/utils/platform.dart';
 
-/// URLs that should bypass the sync/connectivity check.
-const _bypassSyncUrls = {
-  '/user/update',
-  '/user/initialize',
-  '/notification/push-token',
-};
+// Helpers
 
-/// Provider for the pre-configured [Dio] instance using Riverpod's [Ref].
-final dioProvider = Provider<Dio>((ref) {
+/// Shorthand for extracting the `success` field from the standard API envelope.
+bool _ok(Response res) => res.data['success'] == true;
+
+/// Shorthand for `res.data['data']`.
+dynamic _data(Response res) => res.data['data'];
+
+Dio createDefaultDio({Map<String, dynamic>? extraHeaders}) {
   final dio = Dio(
     BaseOptions(
       baseUrl: config.apiBaseUrl,
@@ -29,49 +27,24 @@ final dioProvider = Provider<Dio>((ref) {
         'x-platform': currentPlatform.name,
         'x-operating-system': currentOS.name,
         'x-app-version': config.appVersion,
+        ...?extraHeaders,
       },
     ),
   );
 
-  // Request interceptor: auth token + connectivity guard
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) async {
-        final networkState = ref.read(networkProvider);
         final skipAuth = options.extra['skipAuth'] == true;
-        final shouldBypass = _bypassSyncUrls.contains(options.path) || skipAuth;
-
-        if (!shouldBypass) {
-          if (!networkState.isConnected) {
-            return handler.reject(
-              DioException(requestOptions: options, message: 'Network offline'),
-            );
-          }
-          if (!networkState.isSynced) {
-            return handler.reject(
-              DioException(
-                requestOptions: options,
-                message: 'App not synced yet',
-              ),
-            );
-          }
-        }
-
         if (!skipAuth) {
           final accessToken = await auth.token.get();
-          if (accessToken != null) {
+          if (accessToken != null && accessToken.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $accessToken';
           }
         }
-
         return handler.next(options);
       },
-
-      // Response interceptor: session-id + error handling
       onResponse: (response, handler) async {
-        // Clear API errors on success.
-        ref.read(statusProvider.notifier).clearSource(StatusSource.apiGateway);
-
         // Persist session ID when the server sends one.
         final newSessionId = response.headers.value('x-set-session-id');
         if (newSessionId != null) {
@@ -82,7 +55,6 @@ final dioProvider = Provider<Dio>((ref) {
               await storage.write(key: 'sessionId', value: newSessionId);
               break;
             case AppPlatform.web:
-              // Web handles sessions via cookies – nothing to do.
               break;
           }
         }
@@ -96,7 +68,6 @@ final dioProvider = Provider<Dio>((ref) {
 
         return handler.next(response);
       },
-
       onError: (error, handler) async {
         final status = error.response?.statusCode;
 
@@ -107,30 +78,10 @@ final dioProvider = Provider<Dio>((ref) {
           final minVersion = innerData is Map
               ? innerData['minVersion'] as String?
               : null;
-          ref
-              .read(eventBusProvider)
-              .emit(ClientUpdateRequiredEvent(minVersion: minVersion));
+          EventBus.instance.emit(
+            ClientUpdateRequiredEvent(minVersion: minVersion),
+          );
           return handler.next(error);
-        }
-
-        if (status == 500) {
-          ref
-              .read(statusProvider.notifier)
-              .setApiError(
-                'Server error (500)',
-                messageBuilder: (l10n) => l10n.apiErrorServer,
-              );
-        } else if (error.type == DioExceptionType.connectionTimeout ||
-            error.type == DioExceptionType.receiveTimeout) {
-          final isOnline = ref.read(networkProvider).isConnected;
-          if (isOnline) {
-            ref
-                .read(statusProvider.notifier)
-                .setApiError(
-                  'Request timed out',
-                  messageBuilder: (l10n) => l10n.apiErrorTimeout,
-                );
-          }
         }
 
         return handler.next(error);
@@ -138,60 +89,37 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  // Logging interceptor (debug only)
-  dio.interceptors.add(
-    InterceptorsWrapper(
-      onRequest: (options, handler) {
-        if (kDebugMode) {
+  if (kDebugMode) {
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
           debugPrint(
             'Starting Request: ${options.method.toUpperCase()} ${options.path} '
             '${options.queryParameters} ${options.data ?? ''}',
           );
-        }
-        return handler.next(options);
-      },
-    ),
-  );
+          return handler.next(options);
+        },
+      ),
+    );
+  }
 
   return dio;
-});
-
-// Helpers
-
-/// Shorthand for extracting the `success` field from the standard API envelope.
-bool _ok(Response res) => res.data['success'] == true;
-
-/// Shorthand for `res.data['data']`.
-dynamic _data(Response res) => res.data['data'];
-
-Dio createDefaultDio({Map<String, dynamic>? extraHeaders}) {
-  return Dio(
-    BaseOptions(
-      baseUrl: config.apiBaseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      headers: {
-        'x-platform': currentPlatform.name,
-        'x-operating-system': currentOS.name,
-        'x-app-version': config.appVersion,
-        ...?extraHeaders,
-      },
-    ),
-  );
 }
 
 //
 //  G A T E W A Y
 //
 
+/// Global singleton instance of [Gateway].
+final apiGateway = Gateway.instance;
+
 /// Riverpod provider for accessing the [Gateway].
-final apiGatewayProvider = Provider<Gateway>((ref) {
-  final dio = ref.watch(dioProvider);
-  return Gateway(dio);
-});
+final apiGatewayProvider = Provider<Gateway>((ref) => Gateway.instance);
 
 class Gateway {
-  Gateway([Dio? dio]) : this._withDio(dio ?? createDefaultDio());
+  Gateway._() : this._withDio(createDefaultDio());
+  static final Gateway instance = Gateway._();
+  factory Gateway() => instance;
 
   Gateway._withDio(Dio dio)
     : check = CheckModule(dio),

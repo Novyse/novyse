@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:markdown_editor_live/markdown_editor_live.dart';
-import 'package:novyse/core/events/global_event_emitter.dart';
+import 'package:novyse/core/chat/queue/queue_manager.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
+import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/context_menu.dart';
 
 class ChatBottomBar extends ConsumerStatefulWidget {
@@ -58,22 +58,29 @@ class _ChatBottomBarState extends ConsumerState<ChatBottomBar> {
     ref.read(chatDraftProvider(widget.chatUUID).notifier).setText('');
 
     try {
-      final gateway = ref.read(apiGatewayProvider);
-      final res = await gateway.message.send(
-        widget.chatUUID,
+      final localUserUUID = ref.read(userStoreProvider).localUserUUID;
+      final tempId = DateTime.now().millisecondsSinceEpoch;
+      final now = DateTime.now().toUtc().toIso8601String();
+
+      final queueManager = ref.read(queueManagerProvider);
+      await queueManager.addOutgoingMessageJob(
+        id: tempId.toString(),
+        chatUUID: widget.chatUUID,
         subID: widget.subID,
-        content: text,
+        message: {
+          'id': tempId,
+          'chatUUID': widget.chatUUID,
+          'subID': widget.subID,
+          'senderUUID': localUserUUID,
+          'userUUID': localUserUUID,
+          'content': text,
+          'type': 'message',
+          'createdAt': now,
+          'status': 'PENDING_SEND',
+        },
       );
-
-      if (res.success && res.message != null) {
-        final message = Map<String, dynamic>.from(res.message!);
-        message['chatUUID'] ??= widget.chatUUID;
-        message['subID'] ??= widget.subID;
-
-        await ref.read(globalEventEmitterProvider).message.add(message);
-      }
     } catch (e) {
-      debugPrint('[ChatBottomBar] Error sending message: $e');
+      debugPrint('[ChatBottomBar] Error delegating to queue: $e');
     } finally {
       if (mounted) {
         setState(() => _isSending = false);

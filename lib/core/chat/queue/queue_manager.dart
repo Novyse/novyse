@@ -110,6 +110,12 @@ class QueueManager {
     // Persist in DB
     await AppDatabase.instance.job.save(job.toMap());
 
+    // Optimistically save message to DB and broadcast to UI immediately
+    message['chatUUID'] = chatUUID;
+    message['subID'] = subID;
+    message['status'] = 'PENDING_SEND';
+    await GlobalEventEmitter.instance.message.add(message);
+
     // Dispatch to per-chat queue
     final processor = _getOrCreateProcessor(chatUUID);
     processor.addJob(job);

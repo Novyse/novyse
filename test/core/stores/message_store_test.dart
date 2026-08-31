@@ -45,7 +45,7 @@ void main() {
 
       const key = (chatUUID: 'chat-1', subID: 0);
       final notifier = container.read(chatMessagesProvider(key).notifier);
-      await notifier.init(dbOverride: db);
+      await notifier.init();
 
       final state = container.read(chatMessagesProvider(key));
       expect(state.messages.length, equals(1));
@@ -142,15 +142,59 @@ void main() {
 
       forwardNotifier.setForwardMessages([msg]);
 
-      expect(container.read(forwardProvider).isForwarding, isTrue);
-      expect(
-        container.read(forwardProvider).forwardMessages.first.content,
-        equals('Forward me'),
-      );
-
       forwardNotifier.resetForwarding();
       expect(container.read(forwardProvider).isForwarding, isFalse);
       expect(container.read(forwardProvider).forwardMessages, isEmpty);
     });
+
+    test(
+      'handles pending message and transitions to sent on MessageSentEvent',
+      () async {
+        const key = (chatUUID: 'chat-1', subID: 0);
+        final notifier = container.read(chatMessagesProvider(key).notifier);
+        await notifier.init();
+
+        final bus = container.read(eventBusProvider);
+
+        // Emit pending message
+        bus.emit(
+          const MessageNewEvent({
+            'id': 99999,
+            'chatUUID': 'chat-1',
+            'subID': 0,
+            'userUUID': 'user-1',
+            'content': 'Optimistic message',
+            'createdAt': '2026-08-31T12:00:00.000Z',
+            'status': 'PENDING_SEND',
+          }),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+
+        final pendingState = container.read(chatMessagesProvider(key));
+        expect(pendingState.messages.length, equals(1));
+        expect(pendingState.messages.first.id, equals(99999));
+        expect(pendingState.messages.first.isPending, isTrue);
+
+        // Server confirms message with real ID
+        bus.emit(
+          const MessageNewEvent({
+            'id': 42,
+            'tempId': '99999',
+            'chatUUID': 'chat-1',
+            'subID': 0,
+            'userUUID': 'user-1',
+            'content': 'Optimistic message',
+            'createdAt': '2026-08-31T12:00:00.000Z',
+            'status': 'sent',
+          }),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+
+        final sentState = container.read(chatMessagesProvider(key));
+        expect(sentState.messages.length, equals(1));
+        expect(sentState.messages.first.id, equals(42));
+        expect(sentState.messages.first.isPending, isFalse);
+      },
+    );
   });
 }

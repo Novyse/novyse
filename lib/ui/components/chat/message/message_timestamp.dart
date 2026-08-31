@@ -10,6 +10,7 @@ class MessageTimestamp extends StatelessWidget {
     this.hasBeenRead = false,
     this.isEdited = false,
     this.isPinned = false,
+    this.isPending = false,
     this.replyCount = 0,
     this.compact = false,
   });
@@ -19,6 +20,7 @@ class MessageTimestamp extends StatelessWidget {
   final bool hasBeenRead;
   final bool isEdited;
   final bool isPinned;
+  final bool isPending;
   final int replyCount;
   final bool compact;
 
@@ -65,21 +67,25 @@ class MessageTimestamp extends StatelessWidget {
             ),
             const SizedBox(width: 4),
           ],
-          Text(
-            timeStr,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: textColor,
+          if (isPending) ...[
+            Icon(Icons.access_time_rounded, size: 13, color: textColor),
+          ] else ...[
+            Text(
+              timeStr,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: textColor,
+              ),
             ),
-          ),
-          if (isSender) ...[
-            const SizedBox(width: 4),
-            Icon(
-              hasBeenRead ? Icons.done_all_rounded : Icons.check_rounded,
-              size: 14,
-              color: textColor,
-            ),
+            if (isSender) ...[
+              const SizedBox(width: 4),
+              Icon(
+                hasBeenRead ? Icons.done_all_rounded : Icons.check_rounded,
+                size: 14,
+                color: textColor,
+              ),
+            ],
           ],
         ],
       ),

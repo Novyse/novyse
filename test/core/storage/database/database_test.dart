@@ -19,13 +19,12 @@ void main() {
     db = AppDatabase.instance;
     await db.initialize(inMemory: true);
     await db.clear();
-    eventBus = EventBus();
-    emitter = GlobalEventEmitter(eventBus, db);
+    eventBus = EventBus.instance;
+    emitter = GlobalEventEmitter.instance;
   });
 
   tearDown(() async {
     await db.close();
-    eventBus.dispose();
   });
 
   group('AppDatabase & Schema Tests', () {

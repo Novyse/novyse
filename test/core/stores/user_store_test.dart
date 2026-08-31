@@ -41,7 +41,7 @@ void main() {
       });
 
       final notifier = container.read(userStoreProvider.notifier);
-      await notifier.init(dbOverride: db, fetchPresence: false);
+      await notifier.init(fetchPresence: false);
 
       final state = container.read(userStoreProvider);
       expect(state.users.containsKey('user-1'), isTrue);
@@ -59,7 +59,7 @@ void main() {
       await db.user.add({'uuid': 'user-2', 'name': 'Bob', 'handle': 'bob'});
 
       final notifier = container.read(userStoreProvider.notifier);
-      await notifier.init(dbOverride: db, fetchPresence: false);
+      await notifier.init(fetchPresence: false);
 
       final bus = container.read(eventBusProvider);
 
@@ -94,7 +94,7 @@ void main() {
 
     test('onNewChat and onNewMember add users to store', () async {
       final notifier = container.read(userStoreProvider.notifier);
-      await notifier.init(dbOverride: db, fetchPresence: false);
+      await notifier.init(fetchPresence: false);
 
       final bus = container.read(eventBusProvider);
 

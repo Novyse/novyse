@@ -59,7 +59,7 @@ class SyncService {
 
   bool get isSyncing => _isSyncing;
 
-  Gateway get _gateway => _ref.read(apiGatewayProvider);
+  Gateway get _gateway => apiGateway;
   AppDatabase get _db => _ref.read(databaseProvider);
   StatusNotifier get _status => _ref.read(statusProvider.notifier);
   NetworkNotifier get _network => _ref.read(networkProvider.notifier);

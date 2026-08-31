@@ -92,11 +92,7 @@ class ActiveChatNotifier extends Notifier<ActiveChatState> {
     }
   }
 
-  Future<void> setSelectedHandle(
-    String? handle, {
-    int? subOverride,
-    Gateway? gatewayOverride,
-  }) async {
+  Future<void> setSelectedHandle(String? handle, {int? subOverride}) async {
     if (handle == null || handle.isEmpty) {
       clear();
       return;
@@ -147,8 +143,7 @@ class ActiveChatNotifier extends Notifier<ActiveChatState> {
     );
 
     try {
-      final Gateway gw = gatewayOverride ?? ref.read(apiGatewayProvider);
-      final response = await gw.gather.handle(handle, detailed: true);
+      final response = await apiGateway.gather.handle(handle, detailed: true);
       if (response.success && response.data != null) {
         final fetchedChat = Map<String, dynamic>.from(response.data!);
 

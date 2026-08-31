@@ -28,6 +28,12 @@ class MessageNewEvent {
   const MessageNewEvent(this.message);
 }
 
+class MessageFailedEvent {
+  final String tempId;
+  final String? error;
+  const MessageFailedEvent({required this.tempId, this.error});
+}
+
 class MessageUpdateEvent {
   final String chatUUID;
   final int subID;

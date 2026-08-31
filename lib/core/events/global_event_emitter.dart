@@ -24,7 +24,7 @@ class GlobalEventEmitter {
 
   GlobalEventEmitter(this._bus, [AppDatabase? db])
     : _db = db ?? AppDatabase.instance {
-    message = MessageEmitter(_bus, _db);
+    message = MessageEmitter(_bus, _db, this);
     user = UserEmitter(_bus, _db);
     chat = ChatEmitter(_bus, _db);
   }
@@ -68,11 +68,30 @@ class GlobalEventEmitter {
 class MessageEmitter {
   final EventBus _bus;
   final AppDatabase _db;
-  MessageEmitter(this._bus, this._db);
+  final GlobalEventEmitter _emitter;
+  MessageEmitter(this._bus, this._db, this._emitter);
 
   Future<void> add(Map<String, dynamic> message) async {
+    final tempId = message['tempId']?.toString();
+    final newId = message['id']?.toString() ?? '';
+    final chatUUID = (message['chatUUID'] ?? '').toString();
+    final subID = message['subID'] is num
+        ? (message['subID'] as num).toInt()
+        : (int.tryParse(message['subID']?.toString() ?? '0') ?? 0);
+
+    // If this confirmed message replaces an optimistic message with a different tempId, cleanup SQLite
+    if (tempId != null && tempId.isNotEmpty && tempId != newId) {
+      await _db.message.delete(chatUUID, subID, tempId);
+    }
+
     await _db.message.add(message);
     _bus.emit(MessageNewEvent(message));
+    _emitter.emit('message:new', message);
+  }
+
+  Future<void> failed(String tempId, String? error) async {
+    _bus.emit(MessageFailedEvent(tempId: tempId, error: error));
+    _emitter.emit('message:failed', {'tempId': tempId, 'error': error});
   }
 
   Future<void> update(
@@ -407,11 +426,10 @@ class ChatMemberEmitter {
   }
 }
 
-//  Provider
+/// Global singleton instance of [GlobalEventEmitter].
+final globalEventEmitter = GlobalEventEmitter.instance;
 
-final globalEventEmitterProvider = Provider<GlobalEventEmitter>((ref) {
-  return GlobalEventEmitter(
-    ref.watch(eventBusProvider),
-    ref.watch(databaseProvider),
-  );
-});
+/// Riverpod provider for accessing the global [GlobalEventEmitter].
+final globalEventEmitterProvider = Provider<GlobalEventEmitter>(
+  (ref) => GlobalEventEmitter.instance,
+);

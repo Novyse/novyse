@@ -43,7 +43,7 @@ void main() {
       });
 
       final notifier = container.read(chatListProvider.notifier);
-      await notifier.init(dbOverride: db);
+      await notifier.init();
 
       final state = container.read(chatListProvider);
       expect(state.chats.length, equals(2));
@@ -57,7 +57,7 @@ void main() {
       await db.chat.add({'uuid': 'chat-1', 'name': 'General', 'type': 'GROUP'});
 
       final notifier = container.read(chatListProvider.notifier);
-      await notifier.init(dbOverride: db);
+      await notifier.init();
 
       final bus = container.read(eventBusProvider);
 
@@ -95,14 +95,14 @@ void main() {
           'chatUUID': 'chat-1',
           'subID': 0,
           'userUUID': 'user-1',
-          'text': 'Hello!',
-          'time': '2026-08-31T12:00:00.000Z',
+          'content': 'Hello!',
+          'createdAt': '2026-08-31T12:00:00.000Z',
         }),
       );
       await Future<void>.delayed(const Duration(milliseconds: 10));
       final chatAfterMsg = container.read(chatProvider('chat-1'));
       expect(chatAfterMsg?.unreadCount, equals(1));
-      expect(chatAfterMsg?.lastMessage?['text'], equals('Hello!'));
+      expect(chatAfterMsg?.lastMessage?['content'], equals('Hello!'));
 
       // 4. Mark as read
       notifier.markAsRead('chat-1');

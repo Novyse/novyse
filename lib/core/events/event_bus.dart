@@ -6,7 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Events are strongly-typed classes defined in `events.dart`.
 ///
 class EventBus {
-  static final EventBus instance = EventBus();
+  EventBus._();
+  static final EventBus instance = EventBus._();
+  factory EventBus() => instance;
+
   final _controller = StreamController<dynamic>.broadcast();
 
   /// Emit an event to all listeners of its type.
@@ -25,9 +28,8 @@ class EventBus {
   }
 }
 
+/// Global singleton instance of [EventBus].
+final eventBus = EventBus.instance;
+
 /// Riverpod provider for the global [EventBus].
-final eventBusProvider = Provider<EventBus>((ref) {
-  final bus = EventBus();
-  ref.onDispose(() => bus.dispose());
-  return bus;
-});
+final eventBusProvider = Provider<EventBus>((ref) => EventBus.instance);

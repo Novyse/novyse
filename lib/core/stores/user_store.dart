@@ -211,15 +211,11 @@ class UserNotifier extends Notifier<UserStoreState> {
   }
 
   /// Initializes the user store by loading users from SQLite and setting local user.
-  Future<void> init({
-    AppDatabase? dbOverride,
-    Gateway? gatewayOverride,
-    bool fetchPresence = true,
-  }) async {
+  Future<void> init({bool fetchPresence = true}) async {
     state = state.copyWith(loading: true);
 
     try {
-      final AppDatabase db = dbOverride ?? ref.read(databaseProvider);
+      final db = AppDatabase.instance;
       if (!db.isOpen) {
         await db.initialize();
       }
@@ -247,7 +243,7 @@ class UserNotifier extends Notifier<UserStoreState> {
       );
 
       if (fetchPresence) {
-        await this.fetchPresence(gatewayOverride: gatewayOverride);
+        await this.fetchPresence();
       }
     } catch (e) {
       debugPrint('UserStore init error: $e');
@@ -326,13 +322,12 @@ class UserNotifier extends Notifier<UserStoreState> {
     state = state.copyWith(users: {...state.users, user.uuid: user});
   }
 
-  Future<void> fetchPresence({Gateway? gatewayOverride}) async {
+  Future<void> fetchPresence() async {
     final userUUIDs = state.users.keys.toList();
     if (userUUIDs.isEmpty) return;
 
     try {
-      final Gateway gw = gatewayOverride ?? ref.read(apiGatewayProvider);
-      final response = await gw.user.presence(userUUIDs);
+      final response = await apiGateway.user.presence(userUUIDs);
       if (response.success && response.data != null) {
         final updatedUsers = Map<String, UserModel>.from(state.users);
         final rawData = response.data;

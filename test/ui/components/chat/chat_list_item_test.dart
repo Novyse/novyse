@@ -36,7 +36,7 @@ void main() {
         ],
         lastMessage: {
           'content': 'Note personali',
-          'time': '2026-08-31T12:00:00.000Z',
+          'createdAt': '2026-08-31T12:00:00.000Z',
         },
       );
 
@@ -87,7 +87,7 @@ void main() {
       lastMessage: {
         'content': 'Ci vediamo dopo!',
         'senderUUID': 'user-alice',
-        'time': '2026-08-31T12:00:00.000Z',
+        'createdAt': '2026-08-31T12:00:00.000Z',
       },
     );
 
@@ -135,7 +135,7 @@ void main() {
           'files': [
             {'name': 'screenshot.png', 'mimeType': 'image/png'},
           ],
-          'time': '2026-08-31T12:00:00.000Z',
+          'createdAt': '2026-08-31T12:00:00.000Z',
         },
       );
 
@@ -219,7 +219,7 @@ void main() {
       type: 'GROUP',
       lastMessage: {
         'content': '**Importante**: guarda questo `codice`!',
-        'time': '2026-08-31T12:00:00.000Z',
+        'createdAt': '2026-08-31T12:00:00.000Z',
       },
     );
 
@@ -238,5 +238,46 @@ void main() {
 
     expect(find.text('Markdown Group'), findsOneWidget);
     expect(find.textContaining('Importante'), findsOneWidget);
+  });
+
+  testWidgets('ChatListItem renders clock icon when lastMessage isPending', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final userNotifier = container.read(userStoreProvider.notifier);
+    userNotifier.state = const UserStoreState(
+      localUserUUID: 'user-local',
+      users: {},
+    );
+
+    const chat = ChatModel(
+      uuid: 'chat-pending-test',
+      name: 'Pending Group',
+      type: 'GROUP',
+      lastMessage: {
+        'content': 'Messaggio in invio...',
+        'createdAt': '2026-08-31T12:00:00.000Z',
+        'status': 'PENDING_SEND',
+      },
+    );
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          localizationsDelegates: localizationsDelegates,
+          supportedLocales: supportedLocales,
+          locale: Locale('it'),
+          home: Scaffold(body: ChatListItem(chat: chat)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pending Group'), findsOneWidget);
+    expect(find.textContaining('Messaggio in invio...'), findsOneWidget);
+    expect(find.byIcon(Icons.access_time_rounded), findsOneWidget);
   });
 }

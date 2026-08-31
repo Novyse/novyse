@@ -212,6 +212,7 @@ class MessageBase extends StatelessWidget {
                             hasBeenRead: hasBeenRead,
                             isEdited: message.edited,
                             isPinned: message.pinned,
+                            isPending: message.isPending,
                             replyCount: message.replyTos.length,
                             compact: true,
                           ),

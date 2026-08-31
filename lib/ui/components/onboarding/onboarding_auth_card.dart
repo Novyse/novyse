@@ -42,7 +42,6 @@ class OnboardingAuthCard extends StatefulWidget {
     this.showTurnstile = false,
     this.embedded = false,
     this.showLegalCheckboxes = false,
-    this.gateway,
   });
 
   final VoidCallback? onSubmit;
@@ -56,7 +55,6 @@ class OnboardingAuthCard extends StatefulWidget {
   final bool showTurnstile;
   final bool embedded;
   final bool showLegalCheckboxes;
-  final Gateway? gateway;
 
   @override
   State<OnboardingAuthCard> createState() => _OnboardingAuthCardState();
@@ -188,9 +186,8 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
     });
 
     _handleDebounceTimer = Timer(const Duration(milliseconds: 600), () async {
-      final gw = widget.gateway ?? Gateway();
       try {
-        final res = await gw.check.handle(trimmed);
+        final res = await apiGateway.check.handle(trimmed);
         if (mounted) {
           setState(() {
             _isCheckingHandle = false;
