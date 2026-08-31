@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class OnboardingPrimaryButton extends StatelessWidget {
-  const OnboardingPrimaryButton({
+class OnboardingSecondaryButton extends StatelessWidget {
+  const OnboardingSecondaryButton({
     super.key,
     required this.label,
     required this.onPressed,
@@ -22,14 +22,8 @@ class OnboardingPrimaryButton extends StatelessWidget {
       child: FilledButton(
         onPressed: isLoading ? null : onPressed,
         style: FilledButton.styleFrom(
-          backgroundColor: theme.colorScheme.primary,
-          foregroundColor: theme.colorScheme.onPrimary,
-          disabledBackgroundColor: theme.colorScheme.primary.withValues(
-            alpha: 0.35,
-          ),
-          disabledForegroundColor: theme.colorScheme.onPrimary.withValues(
-            alpha: 0.7,
-          ),
+          backgroundColor: Colors.white,
+          foregroundColor: const Color(0xFF101820),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -41,7 +35,10 @@ class OnboardingPrimaryButton extends StatelessWidget {
             ? const SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(strokeWidth: 1),
+                child: CircularProgressIndicator(
+                  strokeWidth: 1,
+                  color: Color(0xFF101820),
+                ),
               )
             : Text(label),
       ),

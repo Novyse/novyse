@@ -32,7 +32,7 @@ class WelcomePage extends ConsumerWidget {
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(22),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1100),
+                constraints: const BoxConstraints(maxWidth: 840),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final isCompact = constraints.maxWidth < 720;
@@ -215,8 +215,10 @@ class _QrContentState extends ConsumerState<_QrContent> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.white,
-                border:
-                    Border.all(color: WelcomePage._headingColor, width: 1.5),
+                border: Border.all(
+                  color: WelcomePage._headingColor,
+                  width: 1.5,
+                ),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: hasToken

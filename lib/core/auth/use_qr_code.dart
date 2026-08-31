@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+
 import '../services/auth.dart';
 
 /// State of QR Code authentication, countdown timer, and loading/error status.
@@ -110,10 +111,7 @@ class QrCodeController extends ChangeNotifier {
       }
     } catch (e) {
       if (!_isDisposed) {
-        _state = _state.copyWith(
-          isLoading: false,
-          error: e.toString(),
-        );
+        _state = _state.copyWith(isLoading: false, error: e.toString());
         notifyListeners();
       }
     }

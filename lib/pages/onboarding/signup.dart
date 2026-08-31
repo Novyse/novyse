@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/auth_service.dart';
+import '../../core/auth/onboarding_manager.dart';
+import '../../core/l10n/l10n.dart';
 import '../../ui/components/onboarding/onboarding_auth_card.dart';
 
 class SignupPage extends ConsumerWidget {
@@ -10,6 +11,8 @@ class SignupPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       body: DecoratedBox(
         decoration: const BoxDecoration(
@@ -34,12 +37,45 @@ class SignupPage extends ConsumerWidget {
                   child: OnboardingAuthCard(
                     embedded: true,
                     showTurnstile: true,
-                    showSocialButtons: false,
                     showLegalCheckboxes: true,
                     initialMode: OnboardingAuthMode.signup,
+                    onBack: () => context.go('/welcome'),
+                    onToggleMode: (mode) {
+                      if (mode == OnboardingAuthMode.login) {
+                        context.go('/login');
+                      }
+                    },
+                    onSubmitData:
+                        ({
+                          required username,
+                          required password,
+                          name,
+                          confirmPassword,
+                          captchaToken,
+                          acceptLegal,
+                          isOldEnough,
+                        }) async {
+                          if (captchaToken != null) {
+                            final res = await onboardingManager.signup(
+                              username: username,
+                              password: password,
+                              name: name ?? '',
+                              captchaToken: captchaToken,
+                              acceptLegal: acceptLegal ?? false,
+                              isOldEnough: isOldEnough ?? false,
+                            );
+                            if (!res.success) {
+                              throw Exception(res.error ?? l10n.signupFailed);
+                            }
+                          }
+                          if (!context.mounted) return;
+                          // Navigate to login prefilled with registered username and signedup=true
+                          context.go(
+                            '/login?signedup=true&username=${Uri.encodeComponent(username)}',
+                          );
+                        },
                     onSubmit: () {
-                      ref.read(authProvider.notifier).login();
-                      context.go('/home');
+                      context.go('/login');
                     },
                   ),
                 ),

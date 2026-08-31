@@ -147,6 +147,22 @@ bool _ok(Response res) => res.data['success'] == true;
 /// Shorthand for `res.data['data']`.
 dynamic _data(Response res) => res.data['data'];
 
+Dio createDefaultDio({Map<String, dynamic>? extraHeaders}) {
+  return Dio(
+    BaseOptions(
+      baseUrl: config.apiBaseUrl,
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+      headers: {
+        'x-platform': currentPlatform.name,
+        'x-operating-system': currentOS.name,
+        'x-app-version': config.appVersion,
+        ...?extraHeaders,
+      },
+    ),
+  );
+}
+
 //
 //  G A T E W A Y
 //
@@ -158,7 +174,9 @@ final apiGatewayProvider = Provider<Gateway>((ref) {
 });
 
 class Gateway {
-  Gateway(Dio dio)
+  Gateway([Dio? dio]) : this._withDio(dio ?? createDefaultDio());
+
+  Gateway._withDio(Dio dio)
     : check = CheckModule(dio),
       user = UserModule(dio),
       search = SearchModule(dio),

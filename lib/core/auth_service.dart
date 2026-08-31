@@ -46,7 +46,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/welcome',
         builder: (context, state) => const WelcomePage(),
       ),
-      GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+      GoRoute(
+        path: '/login',
+        builder: (context, state) {
+          final signedUpParam =
+              state.uri.queryParameters['signedup']?.toLowerCase() ??
+              state.uri.queryParameters['signedUp']?.toLowerCase();
+          final isSignedUp = signedUpParam == 'true';
+
+          return LoginPage(
+            key: ValueKey(
+              '${state.uri.queryParameters['username']}_$isSignedUp',
+            ),
+            initialUsername: state.uri.queryParameters['username'],
+            isSignedUp: isSignedUp,
+          );
+        },
+      ),
       GoRoute(path: '/signup', builder: (context, state) => const SignupPage()),
       GoRoute(path: '/home', builder: (context, state) => const HomePage()),
     ],

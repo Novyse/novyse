@@ -1,40 +1,61 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:cloudflare_turnstile/cloudflare_turnstile.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/auth/validator.dart';
 import '../../../core/config/global.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/services/api_gateway.dart';
 import '../huge_icon.dart';
+import '../status/status_message.dart';
 import 'onboarding_primary_button.dart';
-import 'onboarding_social_button.dart';
+import 'onboarding_secondary_button.dart';
 import 'onboarding_text_field.dart';
 
 enum OnboardingAuthMode { login, signup }
+
+typedef OnboardingSubmitCallback = FutureOr<void> Function({
+  required String username,
+  required String password,
+  String? name,
+  String? confirmPassword,
+  String? captchaToken,
+  bool? acceptLegal,
+  bool? isOldEnough,
+});
 
 class OnboardingAuthCard extends StatefulWidget {
   const OnboardingAuthCard({
     super.key,
     this.onSubmit,
-    this.onGooglePressed,
-    this.onApplePressed,
+    this.onSubmitData,
     this.onToggleMode,
+    this.onBack,
     this.initialMode = OnboardingAuthMode.login,
+    this.initialUsername,
+    this.successMessage,
+    this.errorMessage,
     this.showTurnstile = false,
-    this.showSocialButtons = true,
     this.embedded = false,
     this.showLegalCheckboxes = false,
+    this.gateway,
   });
 
   final VoidCallback? onSubmit;
-  final VoidCallback? onGooglePressed;
-  final VoidCallback? onApplePressed;
+  final OnboardingSubmitCallback? onSubmitData;
   final ValueChanged<OnboardingAuthMode>? onToggleMode;
+  final VoidCallback? onBack;
   final OnboardingAuthMode initialMode;
+  final String? initialUsername;
+  final String? successMessage;
+  final String? errorMessage;
   final bool showTurnstile;
-  final bool showSocialButtons;
   final bool embedded;
   final bool showLegalCheckboxes;
+  final Gateway? gateway;
 
   @override
   State<OnboardingAuthCard> createState() => _OnboardingAuthCardState();
@@ -45,16 +66,68 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
   String? _turnstileToken;
   bool _acceptLegal = false;
   bool _isOldEnough = false;
+  bool _isLoading = false;
+  bool _isCheckingHandle = false;
+  bool? _isHandleAvailable;
+  String? _statusError;
+  String? _statusSuccess;
+  bool _dismissedSuccess = false;
   final _formKey = GlobalKey<FormState>();
 
-  final _emailController = TextEditingController();
+  late final TextEditingController _usernameController;
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  Timer? _handleDebounceTimer;
+  String? _handleApiError;
+
+  @override
+  void initState() {
+    super.initState();
+    _usernameController = TextEditingController(
+      text: widget.initialUsername ?? '',
+    );
+    _statusSuccess = widget.successMessage;
+    _statusError = widget.errorMessage;
+
+    _usernameController.addListener(_onFormUpdated);
+    _passwordController.addListener(_onFormUpdated);
+    _nameController.addListener(_onFormUpdated);
+    _confirmPasswordController.addListener(_onFormUpdated);
+  }
+
+  void _onFormUpdated() {
+    setState(() {});
+  }
+
+  @override
+  void didUpdateWidget(OnboardingAuthCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.successMessage != oldWidget.successMessage) {
+      setState(() {
+        _statusSuccess = widget.successMessage;
+        _dismissedSuccess = false;
+      });
+    }
+    if (widget.errorMessage != oldWidget.errorMessage) {
+      setState(() => _statusError = widget.errorMessage);
+    }
+    if (widget.initialUsername != oldWidget.initialUsername &&
+        widget.initialUsername != null) {
+      _usernameController.text = widget.initialUsername!;
+    }
+  }
+
   @override
   void dispose() {
-    _emailController.dispose();
+    _handleDebounceTimer?.cancel();
+    _usernameController.removeListener(_onFormUpdated);
+    _passwordController.removeListener(_onFormUpdated);
+    _nameController.removeListener(_onFormUpdated);
+    _confirmPasswordController.removeListener(_onFormUpdated);
+
+    _usernameController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
     _confirmPasswordController.dispose();
@@ -68,23 +141,250 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
       _mode = _isLoginMode
           ? OnboardingAuthMode.signup
           : OnboardingAuthMode.login;
+      _handleApiError = null;
+      _isHandleAvailable = null;
+      _isCheckingHandle = false;
+      _statusError = null;
+      _statusSuccess = null;
+      _dismissedSuccess = false;
     });
     widget.onToggleMode?.call(_mode);
   }
 
-  void _submit() {
-    final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid ||
-        (widget.showTurnstile && _turnstileToken == null) ||
-        (widget.showLegalCheckboxes && (!_acceptLegal || !_isOldEnough))) {
-      setState(() {});
+  void _onUsernameChanged(String value) {
+    _handleDebounceTimer?.cancel();
+    if (_statusError != null) {
+      setState(() => _statusError = null);
+    }
+    if (_handleApiError != null) {
+      setState(() => _handleApiError = null);
+    }
+    final trimmed = value.trim().toLowerCase();
+    if (_isLoginMode || trimmed.isEmpty) {
+      setState(() {
+        _isCheckingHandle = false;
+        _isHandleAvailable = null;
+      });
       return;
     }
-    widget.onSubmit?.call();
+
+    final basicError = Validator.validateHandle(
+      trimmed,
+      AppLocalizations.of(context),
+    );
+    if (basicError != null) {
+      setState(() {
+        _isCheckingHandle = false;
+        _isHandleAvailable = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isCheckingHandle = true;
+      _isHandleAvailable = null;
+    });
+
+    _handleDebounceTimer = Timer(const Duration(milliseconds: 600), () async {
+      final gw = widget.gateway ?? Gateway();
+      try {
+        final res = await gw.check.handle(trimmed);
+        if (mounted) {
+          setState(() {
+            _isCheckingHandle = false;
+            if (res.success && res.available == false) {
+              _isHandleAvailable = false;
+              _handleApiError =
+                  AppLocalizations.of(context)?.handleAlreadyInUse ??
+                  'Username is already in use';
+            } else if (res.success && res.available == true) {
+              _isHandleAvailable = true;
+              _handleApiError = null;
+            } else {
+              _isHandleAvailable = null;
+              _handleApiError = null;
+            }
+          });
+          _formKey.currentState?.validate();
+        }
+      } catch (_) {
+        if (mounted) {
+          setState(() {
+            _isCheckingHandle = false;
+            _isHandleAvailable = false;
+            _handleApiError =
+                AppLocalizations.of(context)?.availabilityError ??
+                'Unable to verify username availability';
+          });
+          _formKey.currentState?.validate();
+        }
+      }
+    });
+  }
+
+  bool _isSubmitEnabled(AppLocalizations? l10n) {
+    if (_isLoading) return false;
+
+    if (_isLoginMode) {
+      final hasUsername = _usernameController.text.trim().isNotEmpty;
+      final hasPassword = _passwordController.text.isNotEmpty;
+      final hasTurnstile = !widget.showTurnstile || _turnstileToken != null;
+      return hasUsername && hasPassword && hasTurnstile;
+    }
+
+    // Signup validation
+    final nameValid =
+        _nameController.text.trim().isNotEmpty &&
+        Validator.validateName(_nameController.text.trim(), l10n) == null;
+
+    final handleText = _usernameController.text.trim().toLowerCase();
+    final handleFormatValid =
+        handleText.isNotEmpty &&
+        Validator.validateHandle(handleText, l10n) == null;
+    final handleValid =
+        handleFormatValid &&
+        !_isCheckingHandle &&
+        _handleApiError == null &&
+        _isHandleAvailable == true;
+
+    final passwordValid =
+        _passwordController.text.isNotEmpty &&
+        Validator.validatePassword(_passwordController.text, l10n) == null;
+
+    final confirmValid =
+        _confirmPasswordController.text.isNotEmpty &&
+        _confirmPasswordController.text == _passwordController.text;
+
+    final legalValid =
+        !widget.showLegalCheckboxes || (_acceptLegal && _isOldEnough);
+
+    final turnstileValid = !widget.showTurnstile || _turnstileToken != null;
+
+    return nameValid &&
+        handleValid &&
+        passwordValid &&
+        confirmValid &&
+        legalValid &&
+        turnstileValid;
+  }
+
+  Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context);
+    setState(() {
+      _statusError = null;
+    });
+
+    if (!_isSubmitEnabled(l10n)) {
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      if (widget.onSubmitData != null) {
+        await widget.onSubmitData!(
+          username: _usernameController.text.trim(),
+          password: _passwordController.text,
+          name: _isLoginMode ? null : _nameController.text.trim(),
+          confirmPassword: _isLoginMode
+              ? null
+              : _confirmPasswordController.text,
+          captchaToken: _turnstileToken,
+          acceptLegal: _acceptLegal,
+          isOldEnough: _isOldEnough,
+        );
+      } else {
+        widget.onSubmit?.call();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _statusError = e.toString().replaceAll('Exception: ', '');
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   Future<void> _openLink(String url) async {
     await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+  }
+
+  Widget _buildSecuredByOpaque(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text(
+            '${l10n.securedBy} ',
+            style: const TextStyle(
+              color: Color(0xFF505D69),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          InkWell(
+            onTap: () => _openLink('https://opaque-auth.com/'),
+            child: const Text(
+              'OPAQUE',
+              style: TextStyle(
+                color: Color(0xFF013480),
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget? _buildUsernameSuffix() {
+    if (_isLoginMode) return null;
+
+    if (_isCheckingHandle) {
+      return const Padding(
+        padding: EdgeInsets.all(14),
+        child: SizedBox(
+          width: 16,
+          height: 16,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Color(0xFF003B70),
+          ),
+        ),
+      );
+    }
+
+    if (_isHandleAvailable == true && _handleApiError == null) {
+      return const Padding(
+        padding: EdgeInsets.all(12),
+        child: AppHugeIcon(
+          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+          color: Color(0xFF2E7D32),
+          size: 20,
+        ),
+      );
+    }
+
+    if (_handleApiError != null) {
+      return const Padding(
+        padding: EdgeInsets.all(12),
+        child: AppHugeIcon(
+          icon: HugeIcons.strokeRoundedAlertCircle,
+          color: Color(0xFFC62828),
+          size: 20,
+        ),
+      );
+    }
+
+    return null;
   }
 
   @override
@@ -93,6 +393,12 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
     final l10n = AppLocalizations.of(context)!;
     final title = _isLoginMode ? l10n.login : l10n.createAccount;
     final subtitle = _isLoginMode ? l10n.loginSubtitle : l10n.signupSubtitle;
+
+    final displaySuccess = !_dismissedSuccess
+        ? (_statusSuccess ?? widget.successMessage)
+        : null;
+    final displayError = _statusError ?? widget.errorMessage;
+    final canSubmit = _isSubmitEnabled(l10n);
 
     final content = Form(
       key: _formKey,
@@ -116,25 +422,51 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 24),
+          if (displaySuccess != null && displaySuccess.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            StatusMessage(
+              type: StatusMessageType.success,
+              title: l10n.statusSuccess,
+              content: [displaySuccess],
+              onClose: () => setState(() {
+                _statusSuccess = null;
+                _dismissedSuccess = true;
+              }),
+            ),
+          ],
+          if (displayError != null && displayError.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            StatusMessage(
+              type: StatusMessageType.danger,
+              title: l10n.statusError,
+              content: [displayError],
+              onClose: () => setState(() => _statusError = null),
+            ),
+          ],
+          const SizedBox(height: 20),
           if (!_isLoginMode) ...[
             OnboardingTextField(
               label: l10n.name,
               hint: l10n.nameHint,
               controller: _nameController,
-              validator: (value) => value == null || value.trim().isEmpty
-                  ? l10n.requiredField
-                  : null,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              validator: (value) => Validator.validateName(value, l10n),
             ),
             const SizedBox(height: 16),
           ],
           OnboardingTextField(
             label: l10n.username,
             hint: l10n.usernameHint,
-            controller: _emailController,
-            validator: (value) => value == null || value.trim().isEmpty
-                ? l10n.requiredField
-                : null,
+            controller: _usernameController,
+            onChanged: _onUsernameChanged,
+            suffixIcon: _buildUsernameSuffix(),
+            autovalidateMode: _isLoginMode
+                ? AutovalidateMode.disabled
+                : AutovalidateMode.onUserInteraction,
+            validator: _isLoginMode
+                ? null
+                : (value) =>
+                      Validator.validateHandle(value, l10n) ?? _handleApiError,
           ),
           const SizedBox(height: 16),
           OnboardingTextField(
@@ -142,9 +474,14 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
             hint: l10n.passwordHint,
             controller: _passwordController,
             obscureText: true,
-            validator: (value) =>
-                value == null || value.isEmpty ? l10n.requiredField : null,
+            autovalidateMode: _isLoginMode
+                ? AutovalidateMode.disabled
+                : AutovalidateMode.onUserInteraction,
+            validator: _isLoginMode
+                ? null
+                : (value) => Validator.validatePassword(value, l10n),
           ),
+          if (_isLoginMode) _buildSecuredByOpaque(context),
           if (!_isLoginMode) ...[
             const SizedBox(height: 16),
             OnboardingTextField(
@@ -152,10 +489,14 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
               hint: l10n.confirmPasswordHint,
               controller: _confirmPasswordController,
               obscureText: true,
-              validator: (value) => value != _passwordController.text
-                  ? l10n.passwordsDoNotMatch
-                  : null,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              validator: (value) => Validator.validateConfirmPassword(
+                value,
+                _passwordController.text,
+                l10n,
+              ),
             ),
+            _buildSecuredByOpaque(context),
           ],
           if (widget.showLegalCheckboxes) ...[
             const SizedBox(height: 12),
@@ -164,6 +505,7 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
               onChanged: (bool? value) {
                 setState(() {
                   _acceptLegal = value == true;
+                  if (_acceptLegal && _isOldEnough) _statusError = null;
                 });
               },
               text: l10n.acceptLegal,
@@ -178,6 +520,7 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
               onChanged: (bool? value) {
                 setState(() {
                   _isOldEnough = value == true;
+                  if (_acceptLegal && _isOldEnough) _statusError = null;
                 });
               },
               text: l10n.atLeastSixteen,
@@ -193,59 +536,34 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
                   theme: TurnstileTheme.dark,
                   language: Localizations.localeOf(context).languageCode,
                 ),
-                onTokenReceived: (token) =>
-                    setState(() => _turnstileToken = token),
+                onTokenReceived: (token) => setState(() {
+                  _turnstileToken = token;
+                  _statusError = null;
+                }),
                 onTokenExpired: () => setState(() => _turnstileToken = null),
               ),
             ),
           ],
           const SizedBox(height: 24),
-          OnboardingPrimaryButton(
-            label: _isLoginMode ? l10n.login : l10n.register,
-            onPressed: _submit,
+          Row(
+            children: [
+              Expanded(
+                child: OnboardingSecondaryButton(
+                  label: l10n.back,
+                  onPressed:
+                      widget.onBack ?? () => Navigator.of(context).maybePop(),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OnboardingPrimaryButton(
+                  label: _isLoginMode ? l10n.login : l10n.register,
+                  isLoading: _isLoading,
+                  onPressed: canSubmit ? _submit : null,
+                ),
+              ),
+            ],
           ),
-          if (widget.showSocialButtons) ...[
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: Divider(color: theme.colorScheme.outlineVariant),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text(
-                    l10n.or,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Divider(color: theme.colorScheme.outlineVariant),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            OnboardingSocialButton(
-              label: l10n.continueWithGoogle,
-              icon: AppHugeIcon(
-                icon: HugeIcons.strokeRoundedGoogle,
-                color: theme.colorScheme.onSurface,
-                strokeWidth: 1,
-              ),
-              onPressed: widget.onGooglePressed ?? () {},
-            ),
-            const SizedBox(height: 12),
-            OnboardingSocialButton(
-              label: l10n.continueWithApple,
-              icon: AppHugeIcon(
-                icon: HugeIcons.strokeRoundedApple,
-                color: theme.colorScheme.onSurface,
-                strokeWidth: 1,
-              ),
-              onPressed: widget.onApplePressed ?? () {},
-            ),
-          ],
           const SizedBox(height: 20),
           Align(
             alignment: Alignment.center,
