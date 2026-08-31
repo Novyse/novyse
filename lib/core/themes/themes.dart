@@ -80,6 +80,28 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         ),
       ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: lightScheme.surface,
+        modalBackgroundColor: lightScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        showDragHandle: true,
+        dragHandleColor: lightScheme.outline,
+        clipBehavior: Clip.antiAlias,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: lightScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(25),
+          side: BorderSide(color: lightScheme.outline),
+        ),
+      ),
     );
   }
 
@@ -134,6 +156,28 @@ class AppTheme {
             borderRadius: BorderRadius.circular(16),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: darkScheme.surface,
+        modalBackgroundColor: darkScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        showDragHandle: true,
+        dragHandleColor: darkScheme.outline,
+        clipBehavior: Clip.antiAlias,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: darkScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(25),
+          side: BorderSide(color: darkScheme.outline),
         ),
       ),
     );

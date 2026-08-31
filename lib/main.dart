@@ -29,6 +29,7 @@ class MyApp extends ConsumerWidget {
       localizationsDelegates: localizationsDelegates,
       supportedLocales: supportedLocales,
       localeResolutionCallback: resolveLocale,
+      debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.light,

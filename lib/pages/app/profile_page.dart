@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'profile_edit_page.dart';
+import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -70,11 +69,7 @@ class ProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           FilledButton.icon(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const ProfileEditPage(),
-              ),
-            ),
+            onPressed: () => ResponsiveOverlay.show(context: context),
             icon: const Icon(Icons.edit_outlined),
             label: const Text('Modifica profilo'),
           ),
