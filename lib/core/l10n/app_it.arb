@@ -115,5 +115,10 @@
       }
     }
   },
-  "retry": "Riprova"
+  "retry": "Riprova",
+  "savedMessages": "Messaggi salvati",
+  "chatDraft": "Bozza",
+  "chatYou": "Tu",
+  "chatUnknown": "Sconosciuto",
+  "noChats": "Nessuna chat presente"
 }

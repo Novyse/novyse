@@ -50,6 +50,28 @@ class UserModel {
     return name;
   }
 
+  bool get isOnline => status.toUpperCase() == 'ONLINE';
+
+  Map<String, dynamic> toMap() {
+    return {
+      'uuid': uuid,
+      'userUUID': uuid,
+      'email': email,
+      'name': name,
+      'surname': surname,
+      'handle': handle,
+      'profilePictureUUID': profilePictureUUID,
+      'bannerPictureUUID': bannerPictureUUID,
+      'biography': biography,
+      'birthday': birthday,
+      'region': region,
+      'country': country,
+      'color': color,
+      'status': status,
+      'lastAccessAt': lastAccessAt?.toIso8601String(),
+    };
+  }
+
   factory UserModel.fromMap(Map<String, dynamic> map) {
     DateTime? parseDate(dynamic val) {
       if (val == null) return null;

@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../core/stores/status_store.dart';
-import '../../ui/components/status/global_status_bar.dart';
-import 'chat_catalog.dart';
+import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/stores/chat_list_store.dart';
+import 'package:novyse/core/stores/status_store.dart';
+import 'package:novyse/ui/components/chat/chat_list_item.dart';
+import 'package:novyse/ui/components/status/global_status_bar.dart';
 
 class ChatListPage extends ConsumerWidget {
   const ChatListPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final selectedChatId = GoRouterState.of(context).pathParameters['chatId'];
     final activeStatus = ref.watch(activeStatusProvider);
+    final chatListState = ref.watch(chatListProvider);
+    final chats = chatListState.chats;
 
     return Scaffold(
       appBar: AppBar(
@@ -23,58 +27,44 @@ class ChatListPage extends ConsumerWidget {
               )
             : null,
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-        itemCount: ChatCatalog.chats.length,
-        separatorBuilder: (_, _) => const Divider(height: 1),
-        itemBuilder: (context, index) {
-          final chat = ChatCatalog.chats[index];
-          final selected = selectedChatId == chat.id;
-
-          return ListTile(
-            selected: selected,
-            selectedTileColor: Theme.of(context).colorScheme.primaryContainer
-                .withValues(alpha: 0.28),
-            leading: CircleAvatar(
-              radius: 24,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Text(
-                chat.name.substring(0, 1),
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  fontWeight: FontWeight.w700,
-                ),
+      body: chatListState.loading && chats.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : chats.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.chat_bubble_outline_rounded,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.outline
+                        .withValues(alpha: 0.4),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.noChats,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
+            )
+          : ListView.separated(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
+              itemCount: chats.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 4),
+              itemBuilder: (context, index) {
+                final chat = chats[index];
+                final selected = selectedChatId == chat.uuid;
+
+                return ChatListItem(
+                  chat: chat,
+                  isSelected: selected,
+                  onTap: () => context.go('/chats/${chat.uuid}'),
+                );
+              },
             ),
-            title: Text(
-              chat.name,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text(chat.message),
-            trailing: chat.unread > 0
-                ? Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 7,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      '${chat.unread}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  )
-                : Text(chat.time, style: Theme.of(context).textTheme.bodySmall),
-            onTap: () => context.go('/chats/${chat.id}'),
-          );
-        },
-      ),
     );
   }
 }

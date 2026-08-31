@@ -803,7 +803,7 @@ class MessageLastRepository {
         '''
         SELECT m.*, u.name as sender_name, u.profilePictureUUID as profile_picture_uuid
         FROM message m
-        JOIN user u ON m.senderUUID = u.uuid
+        LEFT JOIN user u ON m.senderUUID = u.uuid
         WHERE m.chatUUID = ?
         ORDER BY m.created_at DESC
         LIMIT 1;
@@ -828,7 +828,7 @@ class MessageLastRepository {
         '''
         SELECT m.*, u.name as sender_name, u.profilePictureUUID as profile_picture_uuid
         FROM message m
-        JOIN user u ON m.senderUUID = u.uuid
+        LEFT JOIN user u ON m.senderUUID = u.uuid
         INNER JOIN (
           SELECT subID, MAX(created_at) as max_time
           FROM message

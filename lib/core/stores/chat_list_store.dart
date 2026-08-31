@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
 import 'package:novyse/core/storage/database/database.dart';
+import 'package:novyse/core/stores/user_store.dart';
 
 /// Immutable model representing a Chat in the user's chat list.
 @immutable
@@ -50,6 +51,38 @@ class ChatModel {
       return const [];
     }
 
+    Map<String, dynamic>? resolveLastMessage() {
+      if (map['lastMessage'] is Map) {
+        return Map<String, dynamic>.from(map['lastMessage'] as Map);
+      }
+      if (map['messages'] is List && (map['messages'] as List).isNotEmpty) {
+        final last = (map['messages'] as List).last;
+        if (last is Map) {
+          return Map<String, dynamic>.from(last);
+        }
+      }
+      if (map['subs'] is List) {
+        Map<String, dynamic>? latestSubMsg;
+        DateTime? latestTime;
+        for (final s in map['subs'] as List) {
+          if (s is Map && s['lastMessage'] is Map) {
+            final subMsg = Map<String, dynamic>.from(s['lastMessage'] as Map);
+            final timeVal =
+                subMsg['time'] ?? subMsg['createdAt'] ?? subMsg['created_at'];
+            final dt = timeVal != null
+                ? DateTime.tryParse(timeVal.toString())
+                : null;
+            if (latestTime == null || (dt != null && dt.isAfter(latestTime))) {
+              latestTime = dt;
+              latestSubMsg = subMsg;
+            }
+          }
+        }
+        if (latestSubMsg != null) return latestSubMsg;
+      }
+      return null;
+    }
+
     return ChatModel(
       uuid: (map['uuid'] ?? map['chatUUID'] ?? '') as String,
       name: (map['name'] ?? '') as String,
@@ -61,9 +94,7 @@ class ChatModel {
       members: parseList(map['members']),
       subs: parseList(map['subs']),
       pinnedMessages: parseList(map['pinnedMessages']),
-      lastMessage: map['lastMessage'] is Map
-          ? Map<String, dynamic>.from(map['lastMessage'] as Map)
-          : null,
+      lastMessage: resolveLastMessage(),
       pinPosition: map['pinPosition'] as int?,
       createdAt: map['createdAt'] != null
           ? DateTime.tryParse(map['createdAt'].toString())
@@ -200,7 +231,8 @@ class ChatListNotifier extends Notifier<ChatListState> {
       if (!db.isOpen) {
         await db.initialize();
       }
-      final rawChats = await db.chat.get.all();
+      final localUserUUID = ref.read(userStoreProvider).localUserUUID;
+      final rawChats = await db.chat.get.all(localUserUUID);
 
       final chats = rawChats.map((raw) => ChatModel.fromMap(raw)).toList();
       _sortChats(chats);

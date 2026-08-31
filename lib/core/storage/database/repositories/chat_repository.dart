@@ -686,6 +686,7 @@ class ChatGetRepository {
             final lastArr = await _repo._messageRepository!.last.get(chatUUID);
             if (lastArr.isNotEmpty) {
               final lastMessage = lastArr.first;
+              chat['lastMessage'] = lastMessage;
               final lastId = (lastMessage['id'] as num).toInt();
               final lastSubId = (lastMessage['subID'] as num).toInt();
               if (oldestId == null ||
@@ -699,11 +700,12 @@ class ChatGetRepository {
         } else {
           chat['unreadCount'] = 0;
           if (_repo._messageRepository != null) {
-            chat['messages'] = await _repo._messageRepository!.last.get(
-              chatUUID,
-            );
+            final lastArr = await _repo._messageRepository!.last.get(chatUUID);
+            chat['messages'] = lastArr;
+            chat['lastMessage'] = lastArr.isNotEmpty ? lastArr.first : null;
           } else {
             chat['messages'] = [];
+            chat['lastMessage'] = null;
           }
         }
 
