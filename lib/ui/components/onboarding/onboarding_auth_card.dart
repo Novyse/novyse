@@ -571,6 +571,7 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
                   key: ValueKey('turnstile_$_turnstileKey'),
                   controller: _turnstileController,
                   siteKey: cloudflareTurnstilePublic,
+                  baseUrl: "http://localhost",
                   action: _isLoginMode ? 'login' : 'signup',
                   options: TurnstileOptions(
                     theme: TurnstileTheme.dark,
@@ -581,6 +582,7 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
                     _statusError = null;
                   }),
                   onTokenExpired: () => setState(() => _turnstileToken = null),
+                  onError: (error) => debugPrint('Turnstile Error: $error'),
                 ),
               ),
             ],
