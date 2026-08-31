@@ -2,23 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../pages/app/home.dart';
-import '../pages/onboarding/login.dart';
-import '../pages/onboarding/signup.dart';
-import '../pages/onboarding/welcome.dart';
+import '../auth/onboarding_manager.dart';
+import '../../pages/app/home.dart';
+import '../../pages/onboarding/login.dart';
+import '../../pages/onboarding/signup.dart';
+import '../../pages/onboarding/welcome.dart';
 
-class AuthController extends StateNotifier<bool> {
-  AuthController() : super(false);
-
-  void login() => state = true;
-  void logout() => state = false;
-}
-
-final authProvider = StateNotifierProvider<AuthController, bool>(
-  (ref) => AuthController(),
-);
-
-final appRouterProvider = Provider<GoRouter>((ref) {
+/// Global application GoRouter provider with authentication guard.
+final routerProvider = Provider<GoRouter>((ref) {
   final isLoggedIn = ref.watch(authProvider);
 
   return GoRouter(

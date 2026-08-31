@@ -1,12 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:novyse/core/auth_service.dart';
+import 'package:novyse/core/auth/onboarding_manager.dart';
 import 'package:novyse/main.dart';
 
 void main() {
   testWidgets('guest user is redirected to login', (tester) async {
-    final container = ProviderContainer();
+    final container = ProviderContainer(
+      overrides: [authProvider.overrideWith((ref) => OnboardingManager(false))],
+    );
     addTearDown(container.dispose);
 
     await tester.pumpWidget(
@@ -20,14 +22,16 @@ void main() {
   });
 
   testWidgets('logged in user can reach home', (tester) async {
-    final container = ProviderContainer();
+    final container = ProviderContainer(
+      overrides: [authProvider.overrideWith((ref) => OnboardingManager(true))],
+    );
     addTearDown(container.dispose);
-    container.read(authProvider.notifier).login();
 
     await tester.pumpWidget(
       UncontrolledProviderScope(container: container, child: const MyApp()),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('Sei autenticato'), findsOneWidget);
     expect(find.text('Log in'), findsNothing);

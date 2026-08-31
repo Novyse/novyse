@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/auth_service.dart';
+import '../../core/auth/onboarding_manager.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -18,9 +18,11 @@ class HomePage extends ConsumerWidget {
             const Text('Sei autenticato', style: TextStyle(fontSize: 24)),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {
-                ref.read(authProvider.notifier).logout();
-                context.go('/login');
+              onPressed: () async {
+                await onboardingManager.logout();
+                if (context.mounted) {
+                  context.go('/login');
+                }
               },
               child: const Text('Logout'),
             ),

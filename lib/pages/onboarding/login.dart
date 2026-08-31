@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/auth/onboarding_manager.dart';
-import '../../core/auth_service.dart';
 import '../../core/l10n/l10n.dart';
 import '../../ui/components/onboarding/onboarding_auth_card.dart';
 
@@ -71,11 +70,9 @@ class LoginPage extends ConsumerWidget {
                             }
                           }
                           if (!context.mounted) return;
-                          ref.read(authProvider.notifier).login();
                           context.go('/home');
                         },
                     onSubmit: () {
-                      ref.read(authProvider.notifier).login();
                       context.go('/home');
                     },
                   ),

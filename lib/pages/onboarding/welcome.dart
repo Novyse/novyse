@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/auth_service.dart';
+import '../../core/auth/onboarding_manager.dart';
 import '../../core/l10n/l10n.dart';
 import '../../core/auth/use_qr_code.dart';
 import '../../ui/components/onboarding/styled_qr_code.dart';
@@ -192,8 +192,12 @@ class _QrContentState extends ConsumerState<_QrContent> {
 
   QrCodeController _createController() {
     return QrCodeController(
-      onAuthorized: (_) {
-        ref.read(authProvider.notifier).login();
+      onAuthorized: (data) async {
+        await onboardingManager.setLogin(
+          userUUID: data['userUUID']?.toString(),
+          sessionID: data['sessionID']?.toString(),
+          sessionId: data['session_id']?.toString(),
+        );
         if (mounted) {
           context.go('/home');
         }

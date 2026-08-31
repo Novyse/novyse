@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:novyse_auth/novyse_auth.dart' show NovyseAuth;
 
@@ -5,12 +6,19 @@ import '../services/api_gateway.dart';
 import '../services/auth.dart' as auth_service;
 
 /// Onboarding and session lifecycle manager.
-/// Directly interfaces with Novyse Authentication backend and API Gateway.
-class OnboardingManager {
-  OnboardingManager();
+/// Extends [StateNotifier<bool>] to be the single source of truth for auth state (true = logged in).
+class OnboardingManager extends StateNotifier<bool> {
+  OnboardingManager([super.state = false]);
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   NovyseAuth get _auth => auth_service.auth;
+
+  /// Check saved credentials on app startup and initialize state.
+  Future<bool> checkInitialSession() async {
+    final loggedIn = await isLoggedIn();
+    state = loggedIn;
+    return loggedIn;
+  }
 
   /// Check if the user is currently logged in based on session tokens.
   Future<bool> isLoggedIn() async {
@@ -53,6 +61,7 @@ class OnboardingManager {
       if (resolvedSessionId != null) {
         await _storage.write(key: 'sessionId', value: resolvedSessionId);
       }
+      state = true;
     } catch (_) {}
   }
 
@@ -65,6 +74,7 @@ class OnboardingManager {
       await _storage.delete(key: 'sessionId');
       await _storage.delete(key: 'init');
     } catch (_) {}
+    state = false;
   }
 
   /// Verify availability of a handle/username via API Gateway.
@@ -80,7 +90,7 @@ class OnboardingManager {
   }
 
   /// Sign in with credentials and required Cloudflare Turnstile token.
-  /// `{ success: true, userUUID: string, sessionID: number, session_id: string, token: string }`
+  /// Sets internal logged in state only if API call succeeds.
   Future<({bool success, String? error, Map<String, dynamic>? data})> login({
     required String username,
     required String password,
@@ -105,6 +115,8 @@ class OnboardingManager {
             sessionID: sessionID,
             sessionId: sessionId,
           );
+        } else {
+          state = true;
         }
         return (success: true, error: null, data: data);
       } else {
@@ -120,7 +132,6 @@ class OnboardingManager {
   }
 
   /// Register new user with required Cloudflare Turnstile token and legal consent.
-  /// `{ success: true }`
   Future<({bool success, String? error, Map<String, dynamic>? data})> signup({
     required String username,
     required String password,
@@ -159,3 +170,8 @@ class OnboardingManager {
 
 /// Global [OnboardingManager] singleton.
 final onboardingManager = OnboardingManager();
+
+/// Global [authProvider] directly driven by [onboardingManager].
+final authProvider = StateNotifierProvider<OnboardingManager, bool>(
+  (ref) => onboardingManager,
+);
