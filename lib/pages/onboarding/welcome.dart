@@ -84,26 +84,37 @@ class _CompactWelcomeContent extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(height: 38),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 144,
-              child: OnboardingSecondaryButton(
-                label: l10n.register,
-                onPressed: () => context.go('/signup'),
+        const SizedBox(height: 40),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 300,
+                ), // Max 300px, ma si adatta se lo schermo è più piccolo
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OnboardingSecondaryButton(
+                    label: l10n.register,
+                    onPressed: () => context.go('/signup'),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(width: 14),
-            SizedBox(
-              width: 144,
-              child: OnboardingPrimaryButton(
-                label: l10n.login,
-                onPressed: () => context.go('/login'),
+              const SizedBox(height: 15),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 300),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OnboardingPrimaryButton(
+                    label: l10n.login,
+                    onPressed: () => context.go('/login'),
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
@@ -122,7 +133,7 @@ class _WideWelcomeContent extends StatelessWidget {
         children: [
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 25),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

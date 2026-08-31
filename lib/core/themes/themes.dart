@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class AppColors {
@@ -16,6 +17,16 @@ class AppColors {
 }
 
 class AppTheme {
+  static const pageTransitionsTheme = PageTransitionsTheme(
+    builders: {
+      TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
+      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+    },
+  );
+
   static ThemeData get light {
     final lightScheme = ColorScheme.fromSeed(
       seedColor: AppColors.primary,
@@ -35,6 +46,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      pageTransitionsTheme: AppTheme.pageTransitionsTheme,
       colorScheme: lightScheme,
       scaffoldBackgroundColor: AppColors.surface,
       textTheme: ThemeData.light().textTheme.apply(
@@ -90,6 +102,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      pageTransitionsTheme: AppTheme.pageTransitionsTheme,
       colorScheme: darkScheme,
       scaffoldBackgroundColor: const Color(0xFF071827),
       textTheme: ThemeData.dark().textTheme.apply(

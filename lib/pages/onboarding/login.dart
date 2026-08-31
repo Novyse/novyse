@@ -17,6 +17,7 @@ class LoginPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       body: DecoratedBox(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
