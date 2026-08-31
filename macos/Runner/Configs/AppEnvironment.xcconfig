@@ -1,0 +1,5 @@
+// Generated automatically from lib/core/config/global.dart - DO NOT EDIT MANUALLY
+APP_BRANCH = development
+APP_BUNDLE_IDENTIFIER = com.novyse.dev
+APP_SCHEME = novyse.dev
+APP_HOST = app.dev.novyse.com

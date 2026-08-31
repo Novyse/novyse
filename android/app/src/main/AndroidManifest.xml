@@ -35,9 +35,33 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- Enable Flutter Deep Linking handler -->
+            <meta-data
+                android:name="flutter_deeplinking_enabled"
+                android:value="true" />
+
+            <!-- Main Launcher Intent Filter -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+            <!-- Deep Linking: Custom Scheme for current branch (novyse, novyse.preview, novyse.dev) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="${appScheme}" />
+            </intent-filter>
+
+            <!-- App Links: Environment-specific hosts (autoVerify=true) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="${appHost}" />
+                <data android:scheme="https" android:host="${webHost}" />
+                <data android:scheme="https" android:host="${authHost}" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

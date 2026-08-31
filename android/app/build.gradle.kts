@@ -42,6 +42,22 @@ fun getAppVersionFromGlobalConfig(): String {
 val currentBranch = getBranchFromGlobalConfig()
 val currentAppVersion = getAppVersionFromGlobalConfig()
 
+val currentScheme = when (currentBranch) {
+    "production" -> "novyse"
+    "preview" -> "novyse.preview"
+    else -> "novyse.dev"
+}
+
+val currentHostSuffix = when (currentBranch) {
+    "production" -> ""
+    "preview" -> ".preview"
+    else -> ".dev"
+}
+
+val currentAppHost = "app${currentHostSuffix}.novyse.com"
+val currentWebHost = "web${currentHostSuffix}.novyse.com"
+val currentAuthHost = "auth${currentHostSuffix}.novyse.com"
+
 val currentApplicationId = when (currentBranch) {
     "production" -> "com.novyse"
     "preview" -> "com.novyse.preview"
@@ -60,6 +76,10 @@ android {
 
     defaultConfig {
         applicationId = currentApplicationId
+        manifestPlaceholders["appScheme"] = currentScheme
+        manifestPlaceholders["appHost"] = currentAppHost
+        manifestPlaceholders["webHost"] = currentWebHost
+        manifestPlaceholders["authHost"] = currentAuthHost
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

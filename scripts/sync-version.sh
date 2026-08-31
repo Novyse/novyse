@@ -8,7 +8,7 @@ GLOBAL_DART="$ROOT_DIR/lib/core/config/global.dart"
 PUBSPEC="$ROOT_DIR/pubspec.yaml"
 
 if [ ! -f "$GLOBAL_DART" ]; then
-  echo "❌ [SYNC ERROR] Configuration file not found: $GLOBAL_DART" >&2
+  echo "❌ [SYNC-VERSION ERROR] Configuration file not found: $GLOBAL_DART" >&2
   exit 1
 fi
 
@@ -16,12 +16,12 @@ fi
 APP_VERSION=$(sed -n "s/.*const[[:space:]]\+String[[:space:]]\+appVersion[[:space:]]*=[[:space:]]*['\"]\([^'\"]\+\)['\"].*/\1/p" "$GLOBAL_DART" | head -n 1)
 
 if [ -z "$APP_VERSION" ]; then
-  echo "❌ [SYNC ERROR] 'const String appVersion' must be defined in $GLOBAL_DART" >&2
+  echo "❌ [SYNC-VERSION ERROR] 'const String appVersion' must be defined in $GLOBAL_DART" >&2
   exit 1
 fi
 
 if [ ! -f "$PUBSPEC" ]; then
-  echo "❌ [SYNC ERROR] pubspec.yaml not found at: $PUBSPEC" >&2
+  echo "❌ [SYNC-VERSION ERROR] pubspec.yaml not found at: $PUBSPEC" >&2
   exit 1
 fi
 
@@ -32,12 +32,11 @@ if [ -z "$BUILD_SUFFIX" ]; then
 fi
 
 NEW_VERSION="version: ${APP_VERSION}${BUILD_SUFFIX}"
-
 CURRENT_VERSION=$(grep "^version:" "$PUBSPEC" | head -n 1)
 
-if [ "$CURRENT_VERSION" = "$NEW_VERSION" ]; then
-  echo "✅ [SYNC] pubspec.yaml is already up to date ($NEW_VERSION)"
-else
+if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
   sed -i "s/^version:.*/${NEW_VERSION}/" "$PUBSPEC"
-  echo "🔄 [SYNC] Updated pubspec.yaml to: $NEW_VERSION"
+  echo "🔄 [SYNC-VERSION] Updated pubspec.yaml to: $NEW_VERSION"
+else
+  echo "✅ [SYNC-VERSION] pubspec.yaml is already up to date ($NEW_VERSION)"
 fi

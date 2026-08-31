@@ -3,13 +3,18 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-echo "🔄 [Pre-Commit] Syncing version from config/global.dart..."
+echo "🔄 [Pre-Commit] Syncing version..."
 ./scripts/sync-version.sh
 
-# If pubspec.yaml was modified by sync, stage it automatically
-if git diff --name-only | grep -q "^pubspec.yaml$"; then
-  git add pubspec.yaml
-fi
+echo "🔄 [Pre-Commit] Syncing branch & environment..."
+./scripts/sync-branch.sh
+
+# Stage any configuration files updated by the sync scripts
+for f in pubspec.yaml ios/Flutter/AppEnvironment.xcconfig macos/Runner/Configs/AppEnvironment.xcconfig ios/Runner/Runner.entitlements; do
+  if git diff --name-only | grep -q "^${f}$"; then
+    git add "$f"
+  fi
+done
 
 echo "🔍 [Pre-Commit] Running Flutter Analyze..."
 flutter analyze
