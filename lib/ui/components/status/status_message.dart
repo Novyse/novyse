@@ -137,7 +137,7 @@ class _StatusMessageState extends State<StatusMessage>
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: colors.bg,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(25),
         border: Border.all(color: colors.border, width: 1),
         boxShadow: [
           BoxShadow(

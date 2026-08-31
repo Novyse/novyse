@@ -18,14 +18,16 @@ class OnboardingSecondaryButton extends StatelessWidget {
 
     return SizedBox(
       width: double.infinity,
-      height: 54,
+      height: 45,
       child: FilledButton(
         onPressed: isLoading ? null : onPressed,
         style: FilledButton.styleFrom(
           backgroundColor: Colors.white,
           foregroundColor: const Color(0xFF101820),
+          elevation: 0,
+          shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(100),
           ),
           textStyle: theme.textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w700,

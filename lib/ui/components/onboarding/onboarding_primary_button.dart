@@ -12,17 +12,19 @@ class OnboardingPrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
 
+  static const _buttonColor = Color(0xFF013480);
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return SizedBox(
       width: double.infinity,
-      height: 54,
+      height: 45,
       child: FilledButton(
         onPressed: isLoading ? null : onPressed,
         style: FilledButton.styleFrom(
-          backgroundColor: theme.colorScheme.primary,
+          backgroundColor: _buttonColor,
           foregroundColor: theme.colorScheme.onPrimary,
           disabledBackgroundColor: theme.colorScheme.primary.withValues(
             alpha: 0.35,
@@ -30,8 +32,10 @@ class OnboardingPrimaryButton extends StatelessWidget {
           disabledForegroundColor: theme.colorScheme.onPrimary.withValues(
             alpha: 0.7,
           ),
+          elevation: 0,
+          shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(100),
           ),
           textStyle: theme.textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w700,

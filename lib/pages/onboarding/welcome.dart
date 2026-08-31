@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/auth/onboarding_manager.dart';
 import '../../core/l10n/l10n.dart';
 import '../../core/auth/use_qr_code.dart';
+import '../../ui/components/onboarding/onboarding_primary_button.dart';
+import '../../ui/components/onboarding/onboarding_secondary_button.dart';
 import '../../ui/components/onboarding/styled_qr_code.dart';
 
 class WelcomePage extends ConsumerWidget {
@@ -14,7 +16,6 @@ class WelcomePage extends ConsumerWidget {
   static const _backgroundEnd = Color(0xFF177FC0);
   static const _panelColor = Color(0xFF9DB8D5);
   static const _headingColor = Color(0xFF073B82);
-  static const _buttonColor = Color(0xFF013480);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,7 +43,7 @@ class WelcomePage extends ConsumerWidget {
                       ),
                       decoration: BoxDecoration(
                         color: _panelColor,
-                        borderRadius: BorderRadius.circular(26),
+                        borderRadius: BorderRadius.circular(25),
                       ),
                       child: isCompact
                           ? const _CompactWelcomeContent()
@@ -87,18 +88,20 @@ class _CompactWelcomeContent extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _WelcomeButton(
-              label: l10n.register,
-              onPressed: () => context.go('/signup'),
-              backgroundColor: Colors.white,
-              foregroundColor: WelcomePage._buttonColor,
+            SizedBox(
+              width: 144,
+              child: OnboardingSecondaryButton(
+                label: l10n.register,
+                onPressed: () => context.go('/signup'),
+              ),
             ),
             const SizedBox(width: 14),
-            _WelcomeButton(
-              label: l10n.login,
-              onPressed: () => context.go('/login'),
-              backgroundColor: WelcomePage._buttonColor,
-              foregroundColor: Colors.white,
+            SizedBox(
+              width: 144,
+              child: OnboardingPrimaryButton(
+                label: l10n.login,
+                onPressed: () => context.go('/login'),
+              ),
             ),
           ],
         ),
@@ -142,18 +145,20 @@ class _WideWelcomeContent extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _WelcomeButton(
-                        label: l10n.register,
-                        onPressed: () => context.go('/signup'),
-                        backgroundColor: Colors.white,
-                        foregroundColor: WelcomePage._buttonColor,
+                      SizedBox(
+                        width: 144,
+                        child: OnboardingSecondaryButton(
+                          label: l10n.register,
+                          onPressed: () => context.go('/signup'),
+                        ),
                       ),
                       const SizedBox(width: 14),
-                      _WelcomeButton(
-                        label: l10n.login,
-                        onPressed: () => context.go('/login'),
-                        backgroundColor: WelcomePage._buttonColor,
-                        foregroundColor: Colors.white,
+                      SizedBox(
+                        width: 144,
+                        child: OnboardingPrimaryButton(
+                          label: l10n.login,
+                          onPressed: () => context.go('/login'),
+                        ),
                       ),
                     ],
                   ),
@@ -239,7 +244,7 @@ class _QrContentState extends ConsumerState<_QrContent> {
                   color: WelcomePage._headingColor,
                   width: 1.5,
                 ),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(25),
               ),
               child: hasToken
                   ? Center(
@@ -287,38 +292,6 @@ class _QrContentState extends ConsumerState<_QrContent> {
           ],
         );
       },
-    );
-  }
-}
-
-class _WelcomeButton extends StatelessWidget {
-  const _WelcomeButton({
-    required this.label,
-    required this.onPressed,
-    required this.backgroundColor,
-    required this.foregroundColor,
-  });
-
-  final String label;
-  final VoidCallback onPressed;
-  final Color backgroundColor;
-  final Color foregroundColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 144,
-      height: 46,
-      child: FilledButton(
-        onPressed: onPressed,
-        style: FilledButton.styleFrom(
-          backgroundColor: backgroundColor,
-          foregroundColor: foregroundColor,
-          shape: const StadiumBorder(),
-          padding: EdgeInsets.zero,
-        ),
-        child: Text(label),
-      ),
     );
   }
 }

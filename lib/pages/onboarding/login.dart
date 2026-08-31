@@ -35,7 +35,7 @@ class LoginPage extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(28, 34, 28, 20),
                   decoration: BoxDecoration(
                     color: const Color(0xFF9DB8D5),
-                    borderRadius: BorderRadius.circular(26),
+                    borderRadius: BorderRadius.circular(25),
                   ),
                   child: OnboardingAuthCard(
                     embedded: true,

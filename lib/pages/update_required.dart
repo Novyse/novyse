@@ -79,7 +79,7 @@ class UpdateRequiredPage extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF9DB8D5),
-                    borderRadius: BorderRadius.circular(28),
+                    borderRadius: BorderRadius.circular(25),
                     boxShadow: const [
                       BoxShadow(
                         color: Colors.black26,
@@ -125,7 +125,7 @@ class UpdateRequiredPage extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.7),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(25),
                         ),
                         child: Wrap(
                           spacing: 16,
@@ -162,7 +162,7 @@ class UpdateRequiredPage extends StatelessWidget {
                             backgroundColor: const Color(0xFF013480),
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(25),
                             ),
                           ),
                           child: Text(
