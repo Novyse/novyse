@@ -4,8 +4,8 @@ import { useLocalSearchParams } from "expo-router";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
 
-import Profile from "@/src/components/profile";
-import AppText from "@/src/components/AppText";
+import Profile from "@/src/components/features/profile/ProfilePanel";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import database from "@/src/utils/storage/database";
 import gateway from "@/src/utils/backend-services/api-gateway";
@@ -77,7 +77,7 @@ const ProfilePage = () => {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <AppText style={styles.loadingText} translationKey="profile.loading" />
+        <Typography style={styles.loadingText} translationKey="profile.loading" />
       </View>
     );
   }
@@ -85,7 +85,7 @@ const ProfilePage = () => {
   if (error) {
     return (
       <View style={styles.container}>
-        <AppText
+        <Typography
           style={styles.loadingText}
           translationKey="profile.error"
           translationOptions={{

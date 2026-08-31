@@ -8,8 +8,12 @@ const getAutostartFilePath = () => {
   return path.join(homeDir, ".config", "autostart", filename);
 };
 
-export function handleSetOpenOnStartup(request: { openAtLogin: boolean }) {
+export function handleSetOpenOnStartup(request: {
+  openAtLogin: boolean;
+  openMinimized?: boolean;
+}) {
   try {
+    const openMinimized = request.openMinimized ?? true;
     if (process.platform === "linux") {
       const autostartFilePath = getAutostartFilePath();
       const autostartDir = path.dirname(autostartFilePath);
@@ -20,17 +24,23 @@ export function handleSetOpenOnStartup(request: { openAtLogin: boolean }) {
         }
 
         const execPath = process.env.APPIMAGE || process.execPath;
-        const execArgs = app.isPackaged ? "" : ` "${app.getAppPath()}"`;
+        const execArgs = openMinimized
+          ? app.isPackaged
+            ? " --hidden"
+            : ` "${app.getAppPath()}" --hidden`
+          : app.isPackaged
+          ? ""
+          : ` "${app.getAppPath()}"`;
 
         const desktopContent = `[Desktop Entry]
-Type=Application
-Version=1.0
-Name=${app.name}
-Comment=Start ${app.name} on login
-Exec="${execPath}"${execArgs}
-StartupNotify=false
-Terminal=false
-`;
+          Type=Application
+          Version=${app.getVersion()}
+          Name=${app.name}
+          Comment=Start ${app.name} on login
+          Exec="${execPath}"${execArgs}
+          StartupNotify=false
+          Terminal=false
+        `;
         fs.writeFileSync(autostartFilePath, desktopContent, "utf-8");
       } else {
         if (fs.existsSync(autostartFilePath)) {
@@ -39,7 +49,10 @@ Terminal=false
       }
       return { success: true };
     } else {
-      app.setLoginItemSettings({ openAtLogin: request.openAtLogin });
+      app.setLoginItemSettings({
+        openAtLogin: request.openAtLogin,
+        args: openMinimized ? ["--hidden"] : [],
+      });
       return { success: true };
     }
   } catch (error) {
@@ -52,10 +65,20 @@ export function handleGetOpenOnStartup() {
   try {
     if (process.platform === "linux") {
       const autostartFilePath = getAutostartFilePath();
-      return { success: true, openAtLogin: fs.existsSync(autostartFilePath) };
+      const exists = fs.existsSync(autostartFilePath);
+      let openMinimized = false;
+      if (exists) {
+        const content = fs.readFileSync(autostartFilePath, "utf-8");
+        openMinimized = content.includes("--hidden");
+      }
+      return { success: true, openAtLogin: exists, openMinimized };
     } else {
-      const settings = app.getLoginItemSettings();
-      return { success: true, openAtLogin: settings.openAtLogin };
+      const settings = app.getLoginItemSettings({ args: ["--hidden"] });
+      return {
+        success: true,
+        openAtLogin: settings.openAtLogin,
+        openMinimized: settings.wasOpenedAsHidden || false,
+      };
     }
   } catch (error) {
     console.error("Failed to get login item settings:", error);

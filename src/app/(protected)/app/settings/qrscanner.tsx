@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import QRCodeReader from "@/src/components/QRCodeReader";
-import StatusMessage from "@/src/components/StatusMessage";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
+import QRCodeReader from "@/src/components/features/settings/qr-code-scanner/QRCodeScanner";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
 
 import auth from "@/src/utils/backend-services/auth";
 
@@ -49,7 +49,7 @@ export default function QrscannerRoute() {
 
       <View style={[styles.statusMessageContainer, { top: insets.top + 80 }]}>
         <StatusMessage
-          type="error"
+          type="danger"
           content={[error || ""]}
           visible={!!error}
           onClose={() => setError(null)}

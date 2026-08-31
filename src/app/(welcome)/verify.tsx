@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
-import AppText from "@/src/components/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { useScreen } from "@/src/context/ScreenContext";
 
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 import gateway from "@/src/utils/backend-services/api-gateway";
-import OtpDigitsInput from "@/src/components/OtpDigitsInput";
-import StatusMessage from "@/src/components/StatusMessage";
-import WelcomeButton from "@/src/components/welcome/WelcomeButton";
-import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
+import OtpDigitsInput from "@/src/components/features/settings/privacy-and-security/security/OtpDigitsInput";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
+import WelcomeButton from "@/src/components/features/welcome/WelcomeButton";
+import WelcomeButtonText from "@/src/components/features/welcome/WelcomeButtonText";
 
 type VerificationType = "email" | "email_verification" | "authenticator";
 
@@ -100,11 +100,11 @@ const Verify: React.FC = () => {
         <View style={styles.cardContent}>
           {/* <Image style={styles.logo} source={logoNovyse} /> */}
 
-          <AppText
+          <Typography
             style={styles.title}
             translationKey={getFormattedVerificationType()}
           />
-          <AppText
+          <Typography
             style={styles.subtitle}
             translationKey="auth.verify.subtitle"
           />
@@ -149,7 +149,7 @@ const Verify: React.FC = () => {
           </View>
 
           <StatusMessage
-            type="error"
+            type="danger"
             content={error ? [error] : []}
             visible={!!error}
             onClose={() => setError(null)}

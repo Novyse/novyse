@@ -9,6 +9,8 @@ interface ChatShortcutsActions {
   isInputEmpty?: boolean;
 }
 
+// Secondo me sarebbe meglio disabilitare tutte le shortcut, poi abilitiamo solo le necessarie.
+
 export const handleChatShortcuts = (e: any, actions: ChatShortcutsActions) => {
   const key = e.key || e.nativeEvent?.key;
 

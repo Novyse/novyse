@@ -303,7 +303,11 @@ export function checkUpdatesAtStartup(onComplete: () => void) {
   }
 
   startupCompleteCallback = onComplete;
-  createSplashWindow();
+  
+  const isHidden = process.argv.includes("--hidden");
+  if (!isHidden) {
+    createSplashWindow();
+  }
 
   autoUpdater.checkForUpdates().catch((err) => {
     console.error("[updater] Failed to check updates at startup:", err);

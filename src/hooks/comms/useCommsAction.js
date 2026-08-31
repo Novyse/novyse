@@ -1,21 +1,110 @@
-import { useState, useEffect } from "react";
-import { DeviceEventEmitter } from "react-native";
+import { useState, useEffect, useRef } from "react";
+import { DeviceEventEmitter, Platform } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useCommsContext } from "@/src/context/CommsContext";
 import gateway from "@/src/utils/backend-services/api-gateway";
 import { connectToLiveKit } from "@/src/utils/comms/livekit";
-import { Room, Track } from "livekit-client";
+import { Room, Track, LocalVideoTrack } from "livekit-client";
+import { Camera } from "expo-camera";
 
 import platform from "@/src/utils/device/type";
 
-
 import SoundPlayer from "@/src/utils/sounds/SoundPlayer";
+import {
+  usesNativeAudioRouting,
+  supportsWebAudioOutputSelection,
+  isUnsupportedWebAudioOutputError,
+  ensureNativeSpeakerRoute,
+  selectNativeAudioRoute,
+  startNativeAudioSession,
+  stopNativeAudioSession,
+} from "@/src/utils/comms/nativeAudio";
+
+const isAbortError = (error) =>
+  error?.name === "AbortError" ||
+  error?.message === "AbortError" ||
+  String(error?.message || "").includes("AbortError");
+
+const getCameraCaptureFacingMode = (facingMode) =>
+  facingMode === "user" ? "user" : "environment";
+
+const getCameraRestartFacingMode = (facingMode) =>
+  facingMode === "user" ? "front" : "environment";
+
+const createCameraOperationQueue = () => {
+  let chain = Promise.resolve();
+  return (operation) => {
+    chain = chain.catch(() => {}).then(operation);
+    return chain;
+  };
+};
 
 const getDeviceErrorMessage = (t) =>
   t("chat.bottomBar.overview.errors.deviceError", {
     troubleshooting: t("common.troubleshooting"),
     link: t("chat.bottomBar.overview.errors.troubleshootingLink"),
   });
+
+/**
+ * If LiveKit reports default/empty for a kind, pick the first listed device
+ * and optionally switch to it.
+ */
+const resolveActiveDevice = async (
+  roomInstance,
+  kind,
+  { switchDevice = true } = {},
+) => {
+  let deviceId = roomInstance.getActiveDevice(kind);
+  if (deviceId && deviceId !== "default") return deviceId;
+
+  try {
+    const devices = await Room.getLocalDevices(kind);
+    if (!devices.length) return deviceId;
+    deviceId = devices[0].deviceId;
+  } catch (e) {
+    console.error(`Failed to list ${kind} devices`, e);
+    return deviceId;
+  }
+
+  if (!switchDevice || !deviceId) return deviceId;
+
+  try {
+    await roomInstance.switchActiveDevice(kind, deviceId);
+  } catch (e) {
+    // Many browsers cannot switch audiooutput — keep the deviceId for UI/setSinkId.
+    if (kind === "audiooutput" && isUnsupportedWebAudioOutputError(e)) {
+      return deviceId;
+    }
+    console.error(`Failed to switch ${kind} device`, e);
+  }
+
+  return deviceId;
+};
+
+const publishAssociatedScreenTracks = async (localParticipant, tracks) => {
+  const published = [];
+
+  for (const track of tracks) {
+    const isVideo = track.kind === "video";
+    const publication = await localParticipant.publishTrack(track, {
+      source: isVideo ? Track.Source.ScreenShare : Track.Source.ScreenShareAudio,
+    });
+    published.push({
+      trackSid: publication.trackSid,
+      track: publication.track ?? track,
+      isVideo,
+    });
+  }
+
+  const video = published.find((item) => item.isVideo);
+  const audio = published.find((item) => !item.isVideo);
+  if (video && audio) {
+    video.track.associatedAudioSid = audio.trackSid;
+    audio.track.associatedVideoSid = video.trackSid;
+  }
+
+  return published;
+};
 
 const useCommsAction = (chatUUID, sub) => {
   const {
@@ -34,11 +123,15 @@ const useCommsAction = (chatUUID, sub) => {
     setFacingMode,
     isAudioEnabled,
     setIsAudioEnabled,
+    isAudioOutputEnabled,
+    setIsAudioOutputEnabled,
     isVideoEnabled,
     setIsVideoEnabled,
     error,
     setError,
     setStreams,
+    speakerDevice,
+    setSpeakerDevice,
   } = useCommsContext();
 
   const { t } = useTranslation();
@@ -48,47 +141,94 @@ const useCommsAction = (chatUUID, sub) => {
   const clearError = () => setError(null);
 
   const [microphoneDevice, setMicrophoneDevice] = useState(null);
+  // future speaker state
   const [cameraDevice, setCameraDevice] = useState(null);
-  const [speakerDevice, setSpeakerDevice] = useState(null);
+  const runCameraOperation = useRef(createCameraOperationQueue()).current;
 
-  const isMobile = platform === "mobile";
+  const syncVideoEnabledState = () => {
+    if (room?.localParticipant) {
+      setIsVideoEnabled(room.localParticipant.isCameraEnabled);
+    }
+  };
 
-  // @SamueleOrazioDurante temp init function, this will be removed in the 1.2 with the comms settings menù implementation
+  const refreshLocalVideoStream = () => {
+    if (!room?.localParticipant) return;
+
+    const publication = room.localParticipant.getTrackPublication(
+      Track.Source.Camera,
+    );
+    const track = publication?.track;
+
+    if (track?.mediaStreamTrack) {
+      setStreams((prev) => ({
+        ...prev,
+        [room.localParticipant.identity]: new MediaStream([
+          track.mediaStreamTrack,
+        ]),
+      }));
+    }
+  };
+
+  const checkCameraPermission = async () => {
+    if (Platform.OS === "web") {
+      try {
+        (
+          await navigator.mediaDevices?.getUserMedia?.({ video: true })
+        )
+          ?.getTracks()
+          .forEach((track) => track.stop());
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    const existing = await Camera.getCameraPermissionsAsync();
+    if (existing.granted) return true;
+
+    const requested = await Camera.requestCameraPermissionsAsync();
+    return requested.granted;
+  };
+
+  const applyCameraEnabledState = async (enabled) => {
+    if (enabled && Platform.OS !== "web") {
+      await room.localParticipant.setCameraEnabled(true, {
+        facingMode: getCameraCaptureFacingMode(facingMode),
+      });
+      return;
+    }
+
+    await room.localParticipant.setCameraEnabled(enabled);
+  };
+
+  // @SamueleOrazioDurante temp init — replace with comms settings menu in 1.2
   const initHardwareDevices = async (roomInstance) => {
-    if (!roomInstance || !roomInstance.localParticipant) return;
+    if (!roomInstance?.localParticipant) return;
 
-    let microphone = roomInstance.getActiveDevice("audioinput");
-    let camera = roomInstance.getActiveDevice("videoinput");
-    let speaker = roomInstance.getActiveDevice("audiooutput");
-
-    // Force selecting a real hardware ID if the current one is "default" or null
-    if (!microphone || microphone === "default") {
-      try {
-        const devices = await Room.getLocalDevices("audioinput");
-        if (devices.length > 0) {
-          microphone = devices[0].deviceId;
-          await roomInstance.switchActiveDevice("audioinput", microphone);
-        }
-      } catch (e) {
-        console.error("Failed to list audio devices", e);
-      }
+    if (!usesNativeAudioRouting) {
+      setMicrophoneDevice(
+        await resolveActiveDevice(roomInstance, "audioinput"),
+      );
     }
 
-    if (!camera || camera === "default") {
+    setCameraDevice(
+      await resolveActiveDevice(roomInstance, "videoinput", {
+        switchDevice: Platform.OS === "web",
+      }),
+    );
+
+    if (supportsWebAudioOutputSelection) {
+      setSpeakerDevice(
+        await resolveActiveDevice(roomInstance, "audiooutput"),
+      );
+    } else if (usesNativeAudioRouting) {
       try {
-        const devices = await Room.getLocalDevices("videoinput");
-        if (devices.length > 0) {
-          camera = devices[0].deviceId;
-          await roomInstance.switchActiveDevice("videoinput", camera);
-        }
+        setSpeakerDevice(await ensureNativeSpeakerRoute(roomInstance));
       } catch (e) {
-        console.error("Failed to list video devices", e);
+        console.error("Failed to init native speaker route", e);
+        setSpeakerDevice("speaker");
       }
     }
-
-    setMicrophoneDevice(microphone);
-    setCameraDevice(camera);
-    setSpeakerDevice(speaker);
   };
 
   useEffect(() => {
@@ -96,26 +236,26 @@ const useCommsAction = (chatUUID, sub) => {
   }, [chatUUID, sub, checkRoomMatch]);
 
   useEffect(() => {
-    if (room && room.localParticipant) {
+    if (room?.localParticipant) {
       setIsAudioEnabled(room.localParticipant.isMicrophoneEnabled);
       setIsVideoEnabled(room.localParticipant.isCameraEnabled);
+      initHardwareDevices(room);
+      return;
+    }
 
-      const refresh = async () => {
-        await initHardwareDevices(room);
-      };
-
-      refresh();
-    } else {
-      setIsAudioEnabled(false);
-      setIsVideoEnabled(false);
-
-      setMicrophoneDevice(null);
-      setCameraDevice(null);
+    setIsAudioEnabled(false);
+    setIsVideoEnabled(false);
+    setMicrophoneDevice(null);
+    setCameraDevice(null);
+    if (supportsWebAudioOutputSelection || usesNativeAudioRouting) {
       setSpeakerDevice(null);
     }
   }, [room]);
 
-  const join = async () => {
+  const join = async (overrideChatUUID, overrideSub) => {
+    const targetChatUUID = overrideChatUUID ?? chatUUID;
+    const targetSub = overrideSub ?? sub;
+
     setConnecting(true);
     if (connected) {
       leave();
@@ -123,8 +263,8 @@ const useCommsAction = (chatUUID, sub) => {
 
     try {
       const { success, token, url } = await gateway.comms.getToken(
-        chatUUID,
-        sub,
+        targetChatUUID,
+        targetSub,
       );
 
       if (!success) {
@@ -141,22 +281,33 @@ const useCommsAction = (chatUUID, sub) => {
         return;
       }
 
+      await startNativeAudioSession();
       setRoom(roomInstance);
-
       SoundPlayer.getInstance().playSound("comms.join");
 
+      // Delay mic enable so the room/AudioSession finish settling.
       setTimeout(async () => {
-        if (roomInstance.localParticipant) {
-          try {
-            await roomInstance.localParticipant.setMicrophoneEnabled(true);
+        if (!roomInstance.localParticipant) return;
+
+        try {
+          await roomInstance.localParticipant.setMicrophoneEnabled(true);
+
+          if (usesNativeAudioRouting) {
+            // Re-apply after mic is on so restartMicrophoneTrack can bind the route.
+            const route = await ensureNativeSpeakerRoute(roomInstance, {
+              apply: true,
+            });
+            setSpeakerDevice(route);
+          } else {
             setMicrophoneDevice(roomInstance.getActiveDevice("audioinput"));
-            setIsAudioEnabled(true);
-            setFacingMode("environment");
-            setError(null);
-          } catch (err) {
-            console.error("Failed enabling microphone after join", err);
-            setError(getDeviceErrorMessage(t));
           }
+
+          setIsAudioEnabled(true);
+          setFacingMode("environment");
+          setError(null);
+        } catch (err) {
+          console.error("Failed enabling microphone after join", err);
+          setError(getDeviceErrorMessage(t));
         }
       }, 1000);
     } catch (error) {
@@ -173,6 +324,7 @@ const useCommsAction = (chatUUID, sub) => {
   const leave = async () => {
     if (room) {
       room.disconnect();
+      await stopNativeAudioSession();
       reset();
       SoundPlayer.getInstance().playSound("comms.leave");
     }
@@ -182,7 +334,7 @@ const useCommsAction = (chatUUID, sub) => {
     try {
       (await navigator.mediaDevices?.getUserMedia?.({ audio: true }))
         ?.getTracks()
-        .forEach((t) => t.stop());
+        .forEach((track) => track.stop());
       return true;
     } catch {
       return false;
@@ -196,8 +348,7 @@ const useCommsAction = (chatUUID, sub) => {
       if (newState) {
         const permitted = await checkMicPermission();
         if (!permitted) {
-          const textError = t("chat.comms.error.noMicPermissionWarning");
-          setError(textError);
+          setError(t("chat.comms.error.noMicPermissionWarning"));
           return;
         }
       }
@@ -211,227 +362,282 @@ const useCommsAction = (chatUUID, sub) => {
 
   const toggleVideo = async () => {
     if (!room || !room.localParticipant) return;
-    try {
-      const newState = !isVideoEnabled;
-      await room.localParticipant.setCameraEnabled(newState);
-      setIsVideoEnabled(newState);
-    } catch (e) {
-      console.error("Failed toggling video state", e);
-      setError(getDeviceErrorMessage(t));
-    }
+
+    await runCameraOperation(async () => {
+      const newState = !room.localParticipant.isCameraEnabled;
+
+      if (newState) {
+        const permitted = await checkCameraPermission();
+        if (!permitted) {
+          setError(t("chat.comms.error.noCamPermissionWarning"));
+          return;
+        }
+      }
+
+      const finalizeVideoState = () => {
+        const actuallyEnabled = room.localParticipant.isCameraEnabled;
+        setIsVideoEnabled(actuallyEnabled);
+        if (actuallyEnabled) {
+          refreshLocalVideoStream();
+        }
+      };
+
+      try {
+        await applyCameraEnabledState(newState);
+        finalizeVideoState();
+        setError(null);
+      } catch (e) {
+        if (isAbortError(e)) {
+          await new Promise((resolve) => setTimeout(resolve, 250));
+          try {
+            await applyCameraEnabledState(newState);
+            finalizeVideoState();
+            if (newState && !room.localParticipant.isCameraEnabled) {
+              setError(getDeviceErrorMessage(t));
+            } else {
+              setError(null);
+            }
+            return;
+          } catch (retryError) {
+            if (isAbortError(retryError)) {
+              syncVideoEnabledState();
+              if (newState && !room.localParticipant.isCameraEnabled) {
+                setError(getDeviceErrorMessage(t));
+              }
+              return;
+            }
+            e = retryError;
+          }
+        }
+
+        console.error("Failed toggling video state", e);
+        setError(getDeviceErrorMessage(t));
+        syncVideoEnabledState();
+      }
+    });
+  };
+
+  const toggleAudioOutput = () => {
+    setIsAudioOutputEnabled((prev) => !prev);
   };
 
   const toggleFacingMode = () => {
+    if (Platform.OS !== "web") {
+      switchMobileCamera();
+      return;
+    }
     setFacingMode((prev) => (prev === "environment" ? "user" : "environment"));
   };
 
-  useEffect(() => {
-    async function switchMicrophone() {
-      if (!room || !room.localParticipant || !microphoneDevice) return;
-      try {
-        await room.switchActiveDevice("audioinput", microphoneDevice);
-        setError(null);
-      } catch (e) {
-        console.error("Failed switching microphone device", e);
-        setError(getDeviceErrorMessage(t));
-      }
-    }
-    switchMicrophone();
-  }, [microphoneDevice]);
+  const switchMobileCamera = async () => {
+    if (Platform.OS === "web" || !room || !room.localParticipant) return;
 
-  useEffect(() => {
-    async function switchCamera() {
-      if (!room || !room.localParticipant || !cameraDevice) return;
+    await runCameraOperation(async () => {
       try {
-        await room.switchActiveDevice("videoinput", cameraDevice);
-        setError(null);
-      } catch (e) {
-        console.error("Failed switching camera device", e);
-        setError(getDeviceErrorMessage(t));
-      }
-    }
-    switchCamera();
-  }, [cameraDevice]);
+        if (!room.localParticipant.isCameraEnabled) {
+          await room.localParticipant.setCameraEnabled(true, {
+            facingMode: getCameraCaptureFacingMode(facingMode),
+          });
+          setIsVideoEnabled(true);
+          refreshLocalVideoStream();
+        }
 
-  useEffect(() => {
-    async function switchSpeaker() {
-      if (!room || !room.localParticipant || !speakerDevice || isMobile) return;
-      try {
-        const deviceId =
-          typeof speakerDevice === "string"
-            ? speakerDevice
-            : speakerDevice.deviceId;
-        if (!deviceId || room.getActiveDevice("audiooutput") === deviceId)
+        const publication = room.localParticipant.getTrackPublication(
+          Track.Source.Camera,
+        );
+        const localVideoTrack = publication?.track;
+
+        if (!(localVideoTrack instanceof LocalVideoTrack)) {
+          console.warn("No local camera track available for switch");
           return;
+        }
 
-        await room.switchActiveDevice("audiooutput", deviceId);
-        setError(null);
-      } catch (e) {
-        console.error("Failed switching speaker device", e);
-      }
-    }
-    switchSpeaker();
-  }, [speakerDevice, room, isMobile]);
+        const nextFacing = facingMode === "environment" ? "user" : "environment";
+        const facingModeStr = getCameraRestartFacingMode(nextFacing);
+        const devices = await Room.getLocalDevices("videoinput");
+        let newDevice = null;
 
-  useEffect(() => {
-    async function switchFacingMode() {
-      if (!room || !room.localParticipant) return;
-      try {
-        const cameraInstance =
-          await room.localParticipant.setCameraEnabled(isVideoEnabled); // get camera instance
-        if (!cameraInstance) return;
+        for (const device of devices) {
+          if (device.kind !== "videoinput") continue;
+          const deviceFacing = device.facing || device.facingMode;
+          if (deviceFacing === facingModeStr) {
+            newDevice = device;
+            break;
+          }
+        }
 
-        const videoTrack = cameraInstance.track;
-        await videoTrack.restartTrack({
-          facingMode,
+        if (!newDevice && devices.length > 1) {
+          newDevice =
+            devices.find((device) => device.deviceId !== cameraDevice) ||
+            devices[1];
+        }
+
+        if (!newDevice) {
+          newDevice = devices[0];
+        }
+
+        if (!newDevice) return;
+
+        await localVideoTrack.restartTrack({
+          deviceId: newDevice.deviceId,
+          facingMode: facingModeStr,
         });
 
-        // Refresh the local stream in context to trigger UI update
-        if (room.localParticipant) {
-          const newStream = new MediaStream([videoTrack.mediaStreamTrack]);
+        setFacingMode(nextFacing);
+        setCameraDevice(newDevice.deviceId);
+
+        if (localVideoTrack.mediaStreamTrack) {
+          const newStream = new MediaStream([localVideoTrack.mediaStreamTrack]);
           setStreams((prev) => ({
             ...prev,
             [room.localParticipant.identity]: newStream,
           }));
         }
+
+        setError(null);
       } catch (e) {
-        console.error("Failed switching camera facing mode", e);
+        if (isAbortError(e)) {
+          syncVideoEnabledState();
+          return;
+        }
+        console.error("Failed switching mobile camera", e);
         setError(getDeviceErrorMessage(t));
+        syncVideoEnabledState();
       }
+    });
+  };
+
+  const switchActiveDevice = async (kind, deviceId, label) => {
+    if (!room?.localParticipant || !deviceId) return;
+
+    try {
+      await room.switchActiveDevice(kind, deviceId);
+      setError(null);
+    } catch (e) {
+      if (kind === "videoinput" && isAbortError(e)) return;
+      // Expected on web browsers without setSinkId / audiooutput switching.
+      if (kind === "audiooutput" && isUnsupportedWebAudioOutputError(e)) {
+        return;
+      }
+      console.error(`Failed switching ${label} device`, e);
+      setError(getDeviceErrorMessage(t));
     }
-    switchFacingMode();
-  }, [facingMode]);
+  };
+
+  useEffect(() => {
+    if (usesNativeAudioRouting) return;
+    switchActiveDevice("audioinput", microphoneDevice, "microphone");
+  }, [microphoneDevice, room]);
+
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    switchActiveDevice("videoinput", cameraDevice, "camera");
+  }, [cameraDevice]);
+
+  useEffect(() => {
+    if (!room?.localParticipant || !speakerDevice) return;
+
+    const applySpeaker = async () => {
+      if (usesNativeAudioRouting) {
+        try {
+          await selectNativeAudioRoute(room, speakerDevice);
+          setError(null);
+        } catch (e) {
+          console.error("Failed switching speaker route", e);
+          setError(getDeviceErrorMessage(t));
+        }
+        return;
+      }
+
+      if (!supportsWebAudioOutputSelection) return;
+      await switchActiveDevice("audiooutput", speakerDevice, "speaker");
+    };
+
+    applySpeaker();
+  }, [room, speakerDevice]);
 
   const startScreenShare = async (sourceId = null, includeAudio = false) => {
-    if (!room || !room.localParticipant) return;
+    if (!room?.localParticipant) return;
 
-    if (platform === "desktop") {
-      if (!sourceId) return;
-      try {
-        let stream;
+    try {
+      let tracks;
 
-        if (sourceId === "wayland") {
-          stream = await navigator.mediaDevices.getDisplayMedia({
-            video: true,
-            audio: includeAudio
-              ? {
-                  echoCancellation: false,
-                  noiseSuppression: false,
-                  autoGainControl: false,
-                }
-              : false,
-          });
-        } else {
-          stream = await navigator.mediaDevices.getUserMedia({
-            audio: includeAudio
-              ? {
+      if (platform === "desktop") {
+        if (!sourceId) return;
+
+        const stream =
+          sourceId === "wayland"
+            ? await navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                audio: includeAudio
+                  ? {
+                      echoCancellation: false,
+                      noiseSuppression: false,
+                      autoGainControl: false,
+                    }
+                  : false,
+              })
+            : await navigator.mediaDevices.getUserMedia({
+                audio: includeAudio
+                  ? {
+                      mandatory: {
+                        chromeMediaSource: "desktop",
+                      },
+                    }
+                  : false,
+                video: {
                   mandatory: {
                     chromeMediaSource: "desktop",
+                    chromeMediaSourceId: sourceId,
                   },
-                }
-              : false,
-            video: {
-              mandatory: {
-                chromeMediaSource: "desktop",
-                chromeMediaSourceId: sourceId,
-              },
-            },
-          });
-        }
+                },
+              });
 
-        const tracksToPublish = [];
-
-        for (const track of stream.getTracks()) {
-          const isVideo = track.kind === "video";
-          const source = isVideo
-            ? Track.Source.ScreenShare
-            : Track.Source.ScreenShareAudio;
-
-          const publication = await room.localParticipant.publishTrack(track, {
-            source,
-          });
-
-          tracksToPublish.push({
-            trackSid: publication.trackSid,
-            track: publication.track,
-            isVideo,
-          });
-        }
-
-        const video = tracksToPublish.find((t) => t.isVideo);
-        const audio = tracksToPublish.find((t) => !t.isVideo);
-
-        if (video && audio) {
-          video.track.associatedAudioSid = audio.trackSid;
-          audio.track.associatedVideoSid = video.trackSid;
-        }
-
-        setActiveScreenShares((prev) => {
-          const next = { ...prev };
-          for (const item of tracksToPublish) {
-            next[item.trackSid] = item.track;
-          }
-          return next;
-        });
-      } catch (err) {
-        console.log("Screenshare cancelled or failed:", err);
-      }
-    } else {
-      const screenTracks = await room.localParticipant.createScreenTracks({
-        audio: true,
-      });
-
-      const tracksToPublish = [];
-      for (const track of screenTracks) {
-        const publication = await room.localParticipant.publishTrack(track);
-        tracksToPublish.push({
-          trackSid: publication.trackSid,
-          track: track,
-          isVideo: track.kind === "video",
+        tracks = stream.getTracks();
+      } else {
+        tracks = await room.localParticipant.createScreenTracks({
+          audio: true,
         });
       }
 
-      const video = tracksToPublish.find((t) => t.isVideo);
-      const audio = tracksToPublish.find((t) => !t.isVideo);
-
-      if (video && audio) {
-        video.track.associatedAudioSid = audio.trackSid;
-        audio.track.associatedVideoSid = video.trackSid;
-      }
+      const published = await publishAssociatedScreenTracks(
+        room.localParticipant,
+        tracks,
+      );
 
       setActiveScreenShares((prev) => {
         const next = { ...prev };
-        for (const item of tracksToPublish) {
+        for (const item of published) {
           next[item.trackSid] = item.track;
         }
         return next;
       });
+    } catch (err) {
+      console.log("Screenshare cancelled or failed:", err);
     }
   };
 
   const stopScreenShare = async (trackSid) => {
-    if (!room || !room.localParticipant) return;
+    if (!room?.localParticipant || !activeScreenShares[trackSid]) return;
 
-    if (activeScreenShares[trackSid]) {
-      const videoTrack = activeScreenShares[trackSid];
-      const associatedAudioSid = videoTrack.associatedAudioSid;
+    const videoTrack = activeScreenShares[trackSid];
+    const associatedAudioSid = videoTrack.associatedAudioSid;
 
-      if (videoTrack.stop) videoTrack.stop();
-      await room.localParticipant.unpublishTrack(videoTrack);
+    if (videoTrack.stop) videoTrack.stop();
+    await room.localParticipant.unpublishTrack(videoTrack);
 
-      setActiveScreenShares((prev) => {
-        const newMap = { ...prev };
-        delete newMap[trackSid];
+    setActiveScreenShares((prev) => {
+      const next = { ...prev };
+      delete next[trackSid];
 
-        if (associatedAudioSid && newMap[associatedAudioSid]) {
-          const audioTrack = newMap[associatedAudioSid];
-          if (audioTrack.stop) audioTrack.stop();
-          room.localParticipant.unpublishTrack(audioTrack).catch(() => {});
-          delete newMap[associatedAudioSid];
-        }
-        return newMap;
-      });
-    }
+      if (associatedAudioSid && next[associatedAudioSid]) {
+        const audioTrack = next[associatedAudioSid];
+        if (audioTrack.stop) audioTrack.stop();
+        room.localParticipant.unpublishTrack(audioTrack).catch(() => {});
+        delete next[associatedAudioSid];
+      }
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -439,15 +645,15 @@ const useCommsAction = (chatUUID, sub) => {
 
     const micListener = DeviceEventEmitter.addListener(
       "comms_toggle_mic",
-      toggleAudio
+      toggleAudio,
     );
     const camListener = DeviceEventEmitter.addListener(
       "comms_toggle_cam",
-      toggleVideo
+      toggleVideo,
     );
     const leaveListener = DeviceEventEmitter.addListener(
       "comms_leave_voice",
-      leave
+      leave,
     );
 
     return () => {
@@ -462,6 +668,7 @@ const useCommsAction = (chatUUID, sub) => {
     connected,
     roomMatch,
     isAudioEnabled,
+    isAudioOutputEnabled,
     isVideoEnabled,
     microphoneDevice,
     cameraDevice,
@@ -472,8 +679,10 @@ const useCommsAction = (chatUUID, sub) => {
     join,
     leave,
     toggleAudio,
+    toggleAudioOutput,
     toggleVideo,
     toggleFacingMode,
+    switchMobileCamera,
     setMicrophoneDevice,
     setCameraDevice,
     setSpeakerDevice,

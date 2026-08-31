@@ -27,16 +27,24 @@ function runCmd(cmd, cwd = rootDir) {
 }
 
 try {
-  runCmd("bun run prebuild");
-  runCmd("node scripts/patch-android-build.js");
-
   const androidDir = path.join(rootDir, "android");
 
   if (shouldBuildAab) {
+    console.log("Preparing environment for Android App Bundle (Play Store)...");
+    runCmd("IS_PLAY_STORE=true bun run prebuild");
+    runCmd("node scripts/patch-android-build.js");
+
     console.log("Building Android App Bundle (AAB)...");
     runCmd("./gradlew bundleRelease", androidDir);
   }
+
   if (shouldBuildApk) {
+    console.log(
+      "Preparing environment for Android Package (GitHub/Sideload)...",
+    );
+    runCmd("IS_PLAY_STORE=false bun run prebuild");
+    runCmd("node scripts/patch-android-build.js");
+
     console.log("Building Android Package (APK)...");
     runCmd("./gradlew assembleRelease", androidDir);
   }

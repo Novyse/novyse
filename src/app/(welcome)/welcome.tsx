@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { View, StyleSheet, Image, ActivityIndicator } from "react-native";
-import AppText from "@/src/components/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { useScreen } from "@/src/context/ScreenContext";
 
@@ -9,8 +9,8 @@ import { LinearGradient, vec } from "@shopify/react-native-skia";
 import { useRouter } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 
-import WelcomeButton from "@/src/components/welcome/WelcomeButton";
-import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
+import WelcomeButton from "@/src/components/features/welcome/WelcomeButton";
+import WelcomeButtonText from "@/src/components/features/welcome/WelcomeButtonText";
 
 import auth from "@/src/utils/welcome/auth";
 import useQRCode from "@/src/hooks/auth/useQRCode";
@@ -57,7 +57,7 @@ const Welcome = () => {
         <View style={styles.cardContent}>
           <View style={styles.logoAndTitleContainer}>
             <Image style={styles.logo} source={logoNovyse} />
-            <AppText style={styles.title} translationKey="auth.welcome.title" />
+            <Typography style={styles.title} translationKey="auth.welcome.title" />
           </View>
 
           {/* Login / Signup buttons */}
@@ -86,7 +86,7 @@ const Welcome = () => {
           <>
             <View style={styles.divider}>
               <View style={styles.lineDivider} />
-              <AppText
+              <Typography
                 style={styles.textDivider}
                 translationKey="auth.welcome.or"
               />
@@ -119,8 +119,8 @@ const Welcome = () => {
                           style={{
                             width: 45,
                             height: 45,
-                            resizeMode: "contain",
                           }}
+                          resizeMode="contain"
                         />
                       </View>
                     }
@@ -138,12 +138,12 @@ const Welcome = () => {
                   />
                 )}
               </View>
-              <AppText
+              <Typography
                 style={styles.qrcodeSubtitle}
                 translationKey="auth.welcome.scanQr"
               />
               {qrToken ? (
-                <AppText
+                <Typography
                   style={styles.qrcodeSmallSubtitle}
                   translationKey="auth.welcome.expiresIn"
                   translationOptions={{ time: formatTime(remainingTime) }}
@@ -165,10 +165,10 @@ function createStyle(loginTheme: LoginTheme, isSmallScreen: boolean) {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      padding: isSmallScreen ? 0 : 24,
+      padding: isSmallScreen ? 0 : 25,
     },
     card: {
-      padding: isSmallScreen ? 16 : 24,
+      padding: isSmallScreen ? 15 : 25,
       borderRadius: isSmallScreen ? 0 : 25,
       overflow: "hidden",
       flexDirection: isSmallScreen ? "column" : "row",
@@ -214,7 +214,7 @@ function createStyle(loginTheme: LoginTheme, isSmallScreen: boolean) {
       fontSize: 14,
       color: LoginColors[loginTheme].subtitle,
       textAlign: "center",
-      marginTop: 2,
+      marginTop: 5,
       fontWeight: "500",
     },
     qrcodeContainer: {
@@ -227,7 +227,6 @@ function createStyle(loginTheme: LoginTheme, isSmallScreen: boolean) {
       borderRadius: 25,
       borderColor: LoginColors[loginTheme].borderQRCode,
       borderWidth: 1.5,
-      padding: 15,
     },
     logo: {
       alignSelf: "center",

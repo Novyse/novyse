@@ -2,16 +2,19 @@ import React, { useState, useContext, useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import AppText from "@/src/components/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
-import StatusMessage from "@/src/components/StatusMessage";
-import Avatar from "@/src/components/Avatar";
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import useChatStore from "@/src/context/ChatContext";
-import SettingRow from "@/src/components/settings/SettingRow";
-import Section from "@/src/components/settings/Section";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
+import Avatar from "@/src/components/ui/avatar/Avatar";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import useChatStore from "@/src/store/ChatStore";
+import SettingRow from "@/src/components/features/settings/SettingsRow";
+import Section from "@/src/components/features/settings/SettingsSection";
+import useUserStore from "@/src/store/UserStore";
+import { hasPermission, PERMISSIONS } from "@/src/utils/chat/permissions";
+import { Role } from "@/src/types/chat";
 
 const ChatSettings = () => {
   const { theme } = useContext(ThemeContext);
@@ -42,6 +45,20 @@ const ChatSettings = () => {
 
   const membersCount = chat?.members?.length ?? 0;
 
+  const localUserUUID = useUserStore((state) => state.localUserUUID);
+  const myMember = chat?.members?.find((m) => m.uuid === localUserUUID);
+  const myRoleIDs = myMember?.roleIDs || [];
+  const myRoles = (chat?.roles || []).filter((r) =>
+    myRoleIDs.some((id) => Number(r.id) === Number(id)),
+  ) as Role[];
+
+  const canManageMembers =
+    hasPermission(myRoles, PERMISSIONS.KICK_MEMBER) ||
+    hasPermission(myRoles, PERMISSIONS.BAN_MEMBER) ||
+    hasPermission(myRoles, PERMISSIONS.ASSIGN_ROLE);
+  const canManageInvite = hasPermission(myRoles, PERMISSIONS.MANAGE_INVITE);
+  const canManageChat = hasPermission(myRoles, PERMISSIONS.MANAGE_CHAT);
+
   return (
     <>
       <HeaderWithBackArrow title={t("chat.settings.title")} onBack={onBack} />
@@ -56,17 +73,16 @@ const ChatSettings = () => {
         <View style={styles.header}>
           <Avatar
             uuid={profilePictureUUID || undefined}
-            theme={theme}
             style={styles.profilePicture}
           />
-          <AppText style={styles.chatName}>
+          <Typography style={styles.chatName}>
             {name ?? (isDM ? "Chat" : "Group")}
-          </AppText>
-          <AppText style={styles.chatMeta}>
+          </Typography>
+          <Typography style={styles.chatMeta}>
             {isDM
               ? t("chat.settings.directMessage")
               : t("chat.memberCount", { count: membersCount })}
-          </AppText>
+          </Typography>
         </View>
 
         {/* ── Notifications ── */}
@@ -102,7 +118,7 @@ const ChatSettings = () => {
         {isDM && (
           <Section titleKey="chat.settings.privacy">
             <SettingRow
-              iconName="Tick02Icon"
+              iconName="Tick01Icon"
               labelKey="chat.settings.readReceipts"
               type="SWITCH"
               isEnabled={readReceipts}
@@ -115,27 +131,35 @@ const ChatSettings = () => {
         {/* ── Group-only settings ── */}
         {!isDM && (
           <Section titleKey="chat.settings.groupSettings">
-            <SettingRow
-              iconName="UserAdd01Icon"
-              labelKey="chat.settings.addMembers"
-              onPress={() => {}}
-            />
-            <SettingRow
-              iconName="UserGroupIcon"
-              labelKey="chat.settings.manageMembers"
-              onPress={() => {}}
-            />
-            <SettingRow
-              iconName="LinkSquare01Icon"
-              labelKey="chat.settings.inviteLink"
-              onPress={() => {}}
-            />
-            <SettingRow
-              iconName="PencilEdit01Icon"
-              labelKey="chat.settings.editGroupInfo"
-              onPress={() => {}}
-              style={{ borderBottomWidth: 0 }}
-            />
+            {canManageInvite && (
+              <SettingRow
+                iconName="UserAdd01Icon"
+                labelKey="chat.settings.addMembers"
+                onPress={() => {}}
+              />
+            )}
+            {canManageMembers && (
+              <SettingRow
+                iconName="UserGroupIcon"
+                labelKey="chat.settings.manageMembers"
+                onPress={() => {}}
+              />
+            )}
+            {canManageInvite && (
+              <SettingRow
+                iconName="Share05Icon"
+                labelKey="chat.settings.inviteLink"
+                onPress={() => {}}
+              />
+            )}
+            {canManageChat && (
+              <SettingRow
+                iconName="Pen01Icon"
+                labelKey="chat.settings.editGroupInfo"
+                onPress={() => {}}
+                style={{ borderBottomWidth: 0 }}
+              />
+            )}
           </Section>
         )}
 

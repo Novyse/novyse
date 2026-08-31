@@ -79,10 +79,37 @@ export class ChatRepository {
         await this.member.add(chat.uuid, member);
       }
 
+      if (chat.roles && Array.isArray(chat.roles)) {
+        for (const role of chat.roles) {
+          const colorValue = role.color ? JSON.stringify(role.color) : null;
+          await this.db.runAsync(
+            `INSERT OR IGNORE INTO role (id, chatUUID, name, permission, level, color) VALUES (?, ?, ?, ?, ?, ?);`,
+            [
+              role.id,
+              chat.uuid,
+              role.name,
+              String(role.permission),
+              role.level,
+              colorValue,
+            ],
+          );
+        }
+      }
+
+      if (chat.subs && Array.isArray(chat.subs)) {
+        for (const sub of chat.subs) {
+          await this.db.runAsync(
+            `INSERT OR IGNORE INTO chat_sub (id, chatUUID, name, type, created_at) VALUES (?, ?, ?, ?, ?);`,
+            [sub.id, chat.uuid, sub.name, sub.type, sub.created_at],
+          );
+        }
+      }
+
       if (chat.pinnedMessages && this.messageRepository) {
         for (const pinnedMessage of chat.pinnedMessages) {
           await this.messageRepository.pin.add(
             chat.uuid,
+            pinnedMessage.subID,
             pinnedMessage.messageID,
             pinnedMessage.pinnedAt,
             pinnedMessage.pinnedBy,
@@ -157,6 +184,64 @@ export class ChatRepository {
         await this.member.addMultiple(allMembers);
       }
 
+      const allSubs: any[] = [];
+      for (const chat of chats) {
+        if (chat.subs && Array.isArray(chat.subs)) {
+          for (const sub of chat.subs) {
+            allSubs.push({ chatUUID: chat.uuid, ...sub });
+          }
+        }
+      }
+
+      const allRoles: any[] = [];
+      for (const chat of chats) {
+        if (chat.roles && Array.isArray(chat.roles)) {
+          for (const role of chat.roles) {
+            allRoles.push({ chatUUID: chat.uuid, ...role });
+          }
+        }
+      }
+
+      if (allRoles.length > 0) {
+        const rolePlaceholders = allRoles
+          .map(() => `(?, ?, ?, ?, ?, ?)`)
+          .join(", ");
+        const roleValues: any[] = [];
+        for (const role of allRoles) {
+          const colorValue = role.color ? JSON.stringify(role.color) : null;
+          roleValues.push(
+            role.id,
+            role.chatUUID,
+            role.name,
+            String(role.permission),
+            role.level,
+            colorValue,
+          );
+        }
+        await this.db.runAsync(
+          `INSERT OR IGNORE INTO role (id, chatUUID, name, permission, level, color) VALUES ${rolePlaceholders};`,
+          roleValues,
+        );
+      }
+
+      if (allSubs.length > 0) {
+        const subPlaceholders = allSubs.map(() => `(?, ?, ?, ?, ?)`).join(", ");
+        const subValues: any[] = [];
+        for (const sub of allSubs) {
+          subValues.push(
+            sub.id || 0,
+            sub.chatUUID,
+            sub.name || null,
+            sub.type,
+            sub.created_at || sub.createdAt || new Date().toISOString(),
+          );
+        }
+        await this.db.runAsync(
+          `INSERT OR IGNORE INTO chat_sub (id, chatUUID, name, type, created_at) VALUES ${subPlaceholders};`,
+          subValues,
+        );
+      }
+
       // Pinned messages
       if (this.messageRepository) {
         for (const chat of chats) {
@@ -164,6 +249,7 @@ export class ChatRepository {
             for (const pinnedMessage of chat.pinnedMessages) {
               await this.messageRepository.pin.add(
                 chat.uuid,
+                pinnedMessage.subID,
                 pinnedMessage.messageID,
                 pinnedMessage.pinnedAt,
                 pinnedMessage.pinnedBy,
@@ -257,13 +343,65 @@ export class ChatRepository {
     },
   };
 
+  sub = {
+    add: async (chatUUID: string, sub: any): Promise<boolean> => {
+      try {
+        await this.db.runAsync(
+          `INSERT OR IGNORE INTO chat_sub (id, chatUUID, name, type, created_at) VALUES (?, ?, ?, ?, ?);`,
+          [
+            sub.id,
+            chatUUID,
+            sub.name,
+            sub.type,
+            sub.created_at || sub.createdAt || new Date().toISOString(),
+          ],
+        );
+        return true;
+      } catch (error) {
+        console.error("Error adding sub:", error);
+        return false;
+      }
+    },
+    update: async (
+      chatUUID: string,
+      subID: number,
+      sub: any,
+    ): Promise<boolean> => {
+      try {
+        await this.db.runAsync(
+          `UPDATE chat_sub SET name = ? WHERE chatUUID = ? AND id = ?;`,
+          [sub?.name, chatUUID, subID],
+        );
+        return true;
+      } catch (error) {
+        console.error("Error updating sub:", error);
+        return false;
+      }
+    },
+    remove: async (chatUUID: string, subID: number): Promise<boolean> => {
+      try {
+        await this.db.runAsync(
+          `DELETE FROM message WHERE chatUUID = ? AND subID = ?;`,
+          [chatUUID, subID],
+        );
+        await this.db.runAsync(
+          `DELETE FROM chat_sub WHERE chatUUID = ? AND id = ?;`,
+          [chatUUID, subID],
+        );
+        return true;
+      } catch (error) {
+        console.error("Error removing sub:", error);
+        return false;
+      }
+    },
+  };
+
   get = {
     all: async (localUserUUID?: string): Promise<any[]> => {
       try {
         const result: any[] = await this.db.getAllAsync(`SELECT * FROM chat`);
 
         for (const chat of result) {
-
           if (localUserUUID) {
             const row = await this.db.getFirstAsync<{ count: number }>(
               `SELECT COUNT(*) as count 
@@ -291,9 +429,12 @@ export class ChatRepository {
             );
             chat.unreadCount = row?.count || 0;
 
-            // Load oldest unread message ID if it exists
-            const oldestRow = await this.db.getFirstAsync<{ id: number }>(
-              `SELECT MIN(id) as id 
+            // Load oldest unread message if it exists
+            const oldestRow = await this.db.getFirstAsync<{
+              id: number;
+              subID: number;
+            }>(
+              `SELECT id, subID
                FROM message 
                WHERE chatUUID = ? 
                  AND senderUUID != ?
@@ -306,7 +447,9 @@ export class ChatRepository {
                      SELECT joined_at 
                      FROM member 
                      WHERE chatUUID = ? AND userUUID = ?
-                 )`,
+                 )
+               ORDER BY created_at ASC
+               LIMIT 1`,
               [
                 chat.uuid,
                 localUserUUID,
@@ -321,6 +464,7 @@ export class ChatRepository {
             if (oldestRow?.id && this.messageRepository) {
               const oldestUnread = await this.messageRepository.get.by.id(
                 chat.uuid,
+                oldestRow.subID,
                 oldestRow.id,
               );
               if (oldestUnread) initialMessages.push(oldestUnread);
@@ -334,7 +478,9 @@ export class ChatRepository {
               const lastMessage = lastMessageArr?.[0];
               if (
                 lastMessage &&
-                (!oldestRow?.id || lastMessage.id !== oldestRow.id)
+                (!oldestRow?.id ||
+                  lastMessage.id !== oldestRow.id ||
+                  lastMessage.subID !== oldestRow.subID)
               ) {
                 initialMessages.push(lastMessage);
               }
@@ -357,6 +503,35 @@ export class ChatRepository {
               chat.uuid,
             );
           }
+
+          chat.subs =
+            (await this.db.getAllAsync(
+              `SELECT * FROM chat_sub WHERE chatUUID = ? ORDER BY id ASC;`,
+              [chat.uuid],
+            )) || [];
+
+          if (this.messageRepository) {
+            const subLastMessages = await this.messageRepository.last.getBySub(
+              chat.uuid,
+            );
+            const subMsgMap: any = {};
+            for (const msg of subLastMessages) {
+              subMsgMap[msg.subID] = msg;
+            }
+            for (const sub of chat.subs) {
+              sub.lastMessage = subMsgMap[sub.id] || null;
+            }
+          }
+
+          const fetchedRoles: any[] =
+            (await this.db.getAllAsync(
+              `SELECT * FROM role WHERE chatUUID = ? ORDER BY id ASC;`,
+              [chat.uuid],
+            )) || [];
+          chat.roles = fetchedRoles.map((r) => ({
+            ...r,
+            color: r.color ? JSON.parse(r.color) : null,
+          }));
 
           chat.pinnedMessages =
             (await this.db.getAllAsync(

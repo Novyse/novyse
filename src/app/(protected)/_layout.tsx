@@ -12,8 +12,8 @@ import { AudioPlayerProvider } from "@/src/context/AudioPlayerContext";
 import { ShareIntentProvider } from "expo-share-intent";
 
 import { CommsProvider } from "@/src/context/CommsContext";
-import useNetworkStore from "@/src/context/NetworkContext";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
+import useNetworkStore from "@/src/store/NetworkStore";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
 
 import Platform from "@/src/utils/device/type";
 

@@ -5,10 +5,13 @@ import firebase from "./lib/firebase";
 import web from "./lib/web";
 import desktop from "./lib/desktop";
 
-import { useActiveChatStore } from "../../context/ActiveChatContext";
-
 import { getProfilePictureUri } from "@/src/utils/avatar/profilePicture";
 import Platform from "@/src/utils/device/type";
+
+// Lazily require to avoid a require cycle:
+function getActiveChatStore() {
+  return require("@/src/store/ActiveChatStore").useActiveChatStore;
+}
 
 class NotificationManager {
   constructor() {
@@ -55,7 +58,9 @@ class NotificationManager {
               data,
             );
             if (data && data.chatUUID) {
-              useActiveChatStore.getState().setSelectedChatUUID(data.chatUUID);
+              getActiveChatStore()
+                .getState()
+                .setSelectedChatUUID(data.chatUUID);
             }
           });
         }
@@ -103,7 +108,8 @@ class NotificationManager {
         }
 
         // Skip notification if we are already viewing the chat IN FOREGROUND
-        const activeChatUUID = useActiveChatStore.getState().selectedChatUUID;
+        const activeChatUUID =
+          getActiveChatStore().getState().selectedChatUUID;
         const incomingChatUUID = remoteMessage.data?.chatUUID;
 
         if (
@@ -128,10 +134,17 @@ class NotificationManager {
   async sendNotification(
     title: string,
     body: string,
-    data = {},
+    data: any = {},
     profilePictureUUID?: string,
     subtitle?: string,
   ) {
+    const isSystemSender =
+      typeof data?.senderUUID === "string" &&
+      data.senderUUID.replace(/-/g, "").startsWith("000000");
+
+    const finalTitle = isSystemSender && !subtitle ? "" : title;
+    const finalSubtitle = isSystemSender ? "" : subtitle;
+
     const icon =
       Platform !== "desktop"
         ? (await getProfilePictureUri(profilePictureUUID)) || undefined
@@ -139,10 +152,10 @@ class NotificationManager {
 
     switch (Platform) {
       case "web":
-        web.send(title, body, data, icon, subtitle);
+        web.send(finalTitle, body, data, icon, finalSubtitle);
         break;
       case "desktop":
-        desktop.send(title, body, data, profilePictureUUID, subtitle);
+        desktop.send(finalTitle, body, data, profilePictureUUID, finalSubtitle);
         break;
       case "mobile":
         // Local display via Notifee
@@ -150,7 +163,7 @@ class NotificationManager {
           data: {
             ...data,
             content: body,
-            chatName: title,
+            chatName: finalTitle,
             chatIcon: icon,
           },
         });

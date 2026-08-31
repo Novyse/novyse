@@ -20,5 +20,6 @@
     "src/utils/global/Events/EventEmitter.js",
     "src/context/AuthContext.js",
     "src/components/Divider.tsxsx"
-  ]
+  ],
+  "exclude": ["node_modules", "desktop", "dist"]
 }

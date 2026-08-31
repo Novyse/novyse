@@ -31,16 +31,18 @@ export class MessageRepository {
       }
 
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        `INSERT OR IGNORE INTO message (id, chatUUID, subID, senderUUID, content, type, system_action, created_at, replyTo_chatUUID, replyTo_subID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           message.id,
           message.chatUUID,
+          message.subID,
           message.senderUUID,
           message.content || null,
           message.type || "message",
           message.system_action || null,
           message.created_at,
           message.replyTo?.chatUUID || null,
+          message.replyTo?.subID !== undefined ? message.replyTo.subID : null,
           message.replyTo?.messageID || null,
           message.replyTo?.rangeStart !== undefined
             ? message.replyTo.rangeStart
@@ -55,11 +57,13 @@ export class MessageRepository {
       if (message.replyTos && Array.isArray(message.replyTos)) {
         for (const reply of message.replyTos) {
           await this.db.runAsync(
-            `INSERT OR IGNORE INTO message_reply (chatUUID, messageID, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?);`,
+            `INSERT OR IGNORE INTO message_reply (chatUUID, subID, messageID, replyTo_chatUUID, replyTo_subID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
             [
               message.chatUUID,
+              message.subID,
               message.id,
               reply.chatUUID,
+              reply.subID,
               reply.messageID,
               reply.rangeStart !== undefined ? reply.rangeStart : null,
               reply.rangeEnd !== undefined ? reply.rangeEnd : null,
@@ -85,8 +89,8 @@ export class MessageRepository {
             ],
           );
           await this.db.runAsync(
-            `INSERT OR IGNORE INTO message_files (chatUUID, messageID, fileUUID) VALUES (?, ?, ?);`,
-            [message.chatUUID, message.id, file.uuid],
+            `INSERT OR IGNORE INTO message_files (chatUUID, subID, messageID, fileUUID) VALUES (?, ?, ?, ?);`,
+            [message.chatUUID, message.subID, message.id, file.uuid],
           );
         }
       }
@@ -104,8 +108,14 @@ export class MessageRepository {
       if (readsToStore && Array.isArray(readsToStore)) {
         for (const read of readsToStore) {
           await this.db.runAsync(
-            `INSERT OR IGNORE INTO message_read (chat_uuid, message_id, user_uuid, read_at) VALUES (?, ?, ?, ?);`,
-            [message.chatUUID, message.id, read.userUUID, read.readAt],
+            `INSERT OR IGNORE INTO message_read (chat_uuid, sub_id, message_id, user_uuid, read_at) VALUES (?, ?, ?, ?, ?);`,
+            [
+              message.chatUUID,
+              message.subID,
+              message.id,
+              read.userUUID,
+              read.readAt,
+            ],
           );
         }
       }
@@ -113,9 +123,10 @@ export class MessageRepository {
       if (message.reactions && Array.isArray(message.reactions)) {
         for (const reaction of message.reactions) {
           await this.db.runAsync(
-            `INSERT OR IGNORE INTO reaction_message (chatUUID, messageID, userUUID, reaction, at) VALUES (?, ?, ?, ?, ?);`,
+            `INSERT OR IGNORE INTO reaction_message (chatUUID, subID, messageID, userUUID, reaction, at) VALUES (?, ?, ?, ?, ?, ?);`,
             [
               message.chatUUID,
+              message.subID,
               message.id,
               reaction.userUUID,
               reaction.reaction,
@@ -146,8 +157,8 @@ export class MessageRepository {
   async _addReads(message: any): Promise<void> {
     if (!message) return;
     const reads: any[] = await this.db.getAllAsync(
-      `SELECT user_uuid, read_at FROM message_read WHERE chat_uuid = ? AND message_id = ?;`,
-      [message.chatUUID, message.id],
+      `SELECT user_uuid, read_at FROM message_read WHERE chat_uuid = ? AND sub_id = ? AND message_id = ?;`,
+      [message.chatUUID, message.subID, message.id],
     );
     message.readBy = reads.map((r: any) => ({
       userUUID: r.user_uuid,
@@ -158,11 +169,12 @@ export class MessageRepository {
   async _addReplyTos(message: any): Promise<void> {
     if (!message) return;
     const replyTosRaw: any[] = await this.db.getAllAsync(
-      `SELECT * FROM message_reply WHERE chatUUID = ? AND messageID = ?;`,
-      [message.chatUUID, message.id],
+      `SELECT * FROM message_reply WHERE chatUUID = ? AND subID = ? AND messageID = ?;`,
+      [message.chatUUID, message.subID, message.id],
     );
     message.replyTos = replyTosRaw.map((r: any) => ({
       chatUUID: r.replyTo_chatUUID,
+      subID: r.replyTo_subID,
       messageID: r.replyTo_messageID,
       rangeStart: r.replyTo_rangeStart,
       rangeEnd: r.replyTo_rangeEnd,
@@ -172,11 +184,12 @@ export class MessageRepository {
   async _addRepliedFroms(message: any): Promise<void> {
     if (!message) return;
     const repliedFromRaw: any[] = await this.db.getAllAsync(
-      `SELECT chatUUID, messageID FROM message_reply WHERE replyTo_chatUUID = ? AND replyTo_messageID = ?;`,
-      [message.chatUUID, message.id],
+      `SELECT chatUUID, subID, messageID FROM message_reply WHERE replyTo_chatUUID = ? AND replyTo_subID = ? AND replyTo_messageID = ?;`,
+      [message.chatUUID, message.subID, message.id],
     );
     message.repliedFroms = repliedFromRaw.map((r: any) => ({
       chatUUID: r.chatUUID,
+      subID: r.subID,
       messageID: r.messageID,
     }));
   }
@@ -184,8 +197,8 @@ export class MessageRepository {
   async _addReactions(message: any): Promise<void> {
     if (!message) return;
     const reactionsRaw: any[] = await this.db.getAllAsync(
-      `SELECT reaction, userUUID, at FROM reaction_message WHERE chatUUID = ? AND messageID = ?;`,
-      [message.chatUUID, message.id],
+      `SELECT reaction, userUUID, at FROM reaction_message WHERE chatUUID = ? AND subID = ? AND messageID = ?;`,
+      [message.chatUUID, message.subID, message.id],
     );
     const reactionsMap: any = {};
     for (const r of reactionsRaw) {
@@ -206,8 +219,8 @@ export class MessageRepository {
     const files: any[] = await this.db.getAllAsync(
       `SELECT f.* FROM file f
          JOIN message_files mf ON f.uuid = mf.fileUUID
-         WHERE mf.chatUUID = ? AND mf.messageID = ?;`,
-      [message.chatUUID, message.id],
+         WHERE mf.chatUUID = ? AND mf.subID = ? AND mf.messageID = ?;`,
+      [message.chatUUID, message.subID, message.id],
     );
     message.files = files;
   }
@@ -224,7 +237,7 @@ export class MessageRepository {
         return false;
       }
       const placeholders = messages
-        .map(() => `(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .map(() => `(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .join(", ");
       const values: any[] = [];
       for (const message of messages) {
@@ -240,12 +253,14 @@ export class MessageRepository {
         values.push(
           message.id,
           message.chatUUID,
+          message.subID,
           message.senderUUID,
           message.content || null,
           message.type || "message",
           message.system_action || null,
           message.created_at,
           message.replyTo?.chatUUID || null,
+          message.replyTo?.subID !== undefined ? message.replyTo.subID : null,
           message.replyTo?.messageID || null,
           message.replyTo?.rangeStart !== undefined
             ? message.replyTo.rangeStart
@@ -256,7 +271,7 @@ export class MessageRepository {
         );
       }
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO message (id, chatUUID, senderUUID, content, type, system_action, created_at, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES ${placeholders};`,
+        `INSERT OR IGNORE INTO message (id, chatUUID, subID, senderUUID, content, type, system_action, created_at, replyTo_chatUUID, replyTo_subID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES ${placeholders};`,
         values,
       );
       console.log(`${messages.length} messages added successfully.`);
@@ -265,11 +280,13 @@ export class MessageRepository {
         if (message.replyTos && Array.isArray(message.replyTos)) {
           for (const reply of message.replyTos) {
             await this.db.runAsync(
-              `INSERT OR IGNORE INTO message_reply (chatUUID, messageID, replyTo_chatUUID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?);`,
+              `INSERT OR IGNORE INTO message_reply (chatUUID, subID, messageID, replyTo_chatUUID, replyTo_subID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
               [
                 message.chatUUID,
+                message.subID,
                 message.id,
                 reply.chatUUID,
+                reply.subID,
                 reply.messageID,
                 reply.rangeStart !== undefined ? reply.rangeStart : null,
                 reply.rangeEnd !== undefined ? reply.rangeEnd : null,
@@ -279,16 +296,17 @@ export class MessageRepository {
         }
         if (message.edited) {
           await this.db.runAsync(
-            `INSERT OR IGNORE INTO edited_message (chatUUID, messageID) VALUES (?, ?);`,
-            [message.chatUUID, message.id],
+            `INSERT OR IGNORE INTO edited_message (chatUUID, subID, messageID) VALUES (?, ?, ?);`,
+            [message.chatUUID, message.subID, message.id],
           );
         }
         if (message.reactions && Array.isArray(message.reactions)) {
           for (const reaction of message.reactions) {
             await this.db.runAsync(
-              `INSERT OR IGNORE INTO reaction_message (chatUUID, messageID, userUUID, reaction, at) VALUES (?, ?, ?, ?, ?);`,
+              `INSERT OR IGNORE INTO reaction_message (chatUUID, subID, messageID, userUUID, reaction, at) VALUES (?, ?, ?, ?, ?, ?);`,
               [
                 message.chatUUID,
+                message.subID,
                 message.id,
                 reaction.userUUID,
                 reaction.reaction,
@@ -315,6 +333,7 @@ export class MessageRepository {
           for (const read of readsToStore) {
             allReads.push([
               message.chatUUID,
+              message.subID,
               message.id,
               read.userUUID,
               read.readAt,
@@ -327,10 +346,10 @@ export class MessageRepository {
         const CHUNK_SIZE = 100;
         for (let i = 0; i < allReads.length; i += CHUNK_SIZE) {
           const chunk = allReads.slice(i, i + CHUNK_SIZE);
-          const rPlaceholders = chunk.map(() => "(?, ?, ?, ?)").join(", ");
+          const rPlaceholders = chunk.map(() => "(?, ?, ?, ?, ?)").join(", ");
           const flatValues = chunk.flat();
           await this.db.runAsync(
-            `INSERT OR IGNORE INTO message_read (chat_uuid, message_id, user_uuid, read_at) VALUES ${rPlaceholders};`,
+            `INSERT OR IGNORE INTO message_read (chat_uuid, sub_id, message_id, user_uuid, read_at) VALUES ${rPlaceholders};`,
             flatValues,
           );
         }
@@ -353,6 +372,7 @@ export class MessageRepository {
             allFiles.push(file);
             allMessageFiles.push({
               chatUUID: message.chatUUID,
+              subID: message.subID,
               messageID: message.id,
               fileUUID: file.uuid,
             });
@@ -382,14 +402,14 @@ export class MessageRepository {
       }
       if (allMessageFiles.length > 0) {
         const mfPlaceholders = allMessageFiles
-          .map(() => `(?, ?, ?)`)
+          .map(() => `(?, ?, ?, ?)`)
           .join(", ");
         const mfValues: any[] = [];
         for (const mf of allMessageFiles) {
-          mfValues.push(mf.chatUUID, mf.messageID, mf.fileUUID);
+          mfValues.push(mf.chatUUID, mf.subID, mf.messageID, mf.fileUUID);
         }
         await this.db.runAsync(
-          `INSERT OR IGNORE INTO message_files (chatUUID, messageID, fileUUID) VALUES ${mfPlaceholders};`,
+          `INSERT OR IGNORE INTO message_files (chatUUID, subID, messageID, fileUUID) VALUES ${mfPlaceholders};`,
           mfValues,
         );
       }
@@ -402,13 +422,13 @@ export class MessageRepository {
 
   get = {
     by: {
-      id: async (chatUUID: any, messageID: any): Promise<any> => {
+      id: async (chatUUID: any, subID: any, messageID: any): Promise<any> => {
         try {
           const message: any = await this.db.getFirstAsync(
             `SELECT m.*, u.name as sender_name FROM message m 
            JOIN user u ON m.senderUUID = u.uuid 
-           WHERE m.chatUUID = ? AND m.id = ?;`,
-            [chatUUID, messageID],
+           WHERE m.chatUUID = ? AND m.subID = ? AND m.id = ?;`,
+            [chatUUID, subID, messageID],
           );
           if (!message) {
             return null;
@@ -448,16 +468,69 @@ export class MessageRepository {
       },
     },
   };
+  async search(
+    query: string,
+    options: { chatUUID?: string; subID?: number; limit?: number } = {},
+  ): Promise<any[]> {
+    try {
+      const trimmed = (query || "").trim();
+      if (!trimmed) return [];
 
-  async edit(chatUUID: any, messageID: any, content: any): Promise<boolean> {
+      const { chatUUID, subID, limit = 50 } = options;
+
+      const escaped = trimmed.replace(/[\\%_]/g, (c) => `\\${c}`);
+      const like = `%${escaped}%`;
+
+      const conditions: string[] = [
+        "m.content IS NOT NULL",
+        "m.content LIKE ? ESCAPE '\\'",
+        "m.type = 'message'",
+      ];
+      const params: any[] = [like];
+
+      if (chatUUID) {
+        conditions.push("m.chatUUID = ?");
+        params.push(chatUUID);
+        if (subID !== undefined && subID !== null) {
+          conditions.push("m.subID = ?");
+          params.push(subID);
+        }
+      }
+
+      params.push(limit);
+
+      const results: any[] = await this.db.getAllAsync(
+        `SELECT m.id, m.chatUUID, m.subID, m.senderUUID, m.content, m.type, m.created_at,
+                u.name as sender_name, u.profilePictureUUID as profile_picture_uuid
+           FROM message m
+           JOIN user u ON m.senderUUID = u.uuid
+           WHERE ${conditions.join(" AND ")}
+           ORDER BY m.created_at DESC
+           LIMIT ?;`,
+        params,
+      );
+
+      return results;
+    } catch (error) {
+      console.error("Error searching messages:", error);
+      return [];
+    }
+  }
+
+  async edit(
+    chatUUID: any,
+    subID: any,
+    messageID: any,
+    content: any,
+  ): Promise<boolean> {
     try {
       await this.db.runAsync(
-        `UPDATE message SET content = ? WHERE chatUUID = ? AND id = ?;`,
-        [content, chatUUID, messageID],
+        `UPDATE message SET content = ? WHERE chatUUID = ? AND subID = ? AND id = ?;`,
+        [content, chatUUID, subID, messageID],
       );
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO edited_message (chatUUID, messageID) VALUES (?, ?);`,
-        [chatUUID, messageID],
+        `INSERT OR IGNORE INTO edited_message (chatUUID, subID, messageID) VALUES (?, ?, ?);`,
+        [chatUUID, subID, messageID],
       );
       console.log(`Message ${messageID} edited successfully.`);
       return true;
@@ -467,11 +540,11 @@ export class MessageRepository {
     }
   }
 
-  async delete(chatUUID: any, messageID: any): Promise<boolean> {
+  async delete(chatUUID: any, subID: any, messageID: any): Promise<boolean> {
     try {
       await this.db.runAsync(
-        `DELETE FROM message WHERE chatUUID = ? AND id = ?;`,
-        [chatUUID, messageID],
+        `DELETE FROM message WHERE chatUUID = ? AND subID = ? AND id = ?;`,
+        [chatUUID, subID, messageID],
       );
       console.log(`Message ${messageID} deleted successfully.`);
       return true;
@@ -484,14 +557,15 @@ export class MessageRepository {
   pin = {
     add: async (
       chatUUID: any,
+      subID: any,
       messageID: any,
       pinnedAt: any = new Date().toISOString(),
       pinnedBy: any,
     ): Promise<boolean> => {
       try {
         await this.db.runAsync(
-          `INSERT OR IGNORE INTO pinned_message (chatUUID, messageID, pinned_at, pinned_by) VALUES (?, ?, ?, ?);`,
-          [chatUUID, messageID, pinnedAt, pinnedBy],
+          `INSERT OR IGNORE INTO pinned_message (chatUUID, subID, messageID, pinned_at, pinned_by) VALUES (?, ?, ?, ?, ?);`,
+          [chatUUID, subID, messageID, pinnedAt, pinnedBy],
         );
         console.log(`Message ${messageID} pinned successfully.`);
         return true;
@@ -500,11 +574,15 @@ export class MessageRepository {
         return false;
       }
     },
-    remove: async (chatUUID: any, messageID: any): Promise<boolean> => {
+    remove: async (
+      chatUUID: any,
+      subID: any,
+      messageID: any,
+    ): Promise<boolean> => {
       try {
         await this.db.runAsync(
-          `DELETE FROM pinned_message WHERE chatUUID = ? AND messageID = ?;`,
-          [chatUUID, messageID],
+          `DELETE FROM pinned_message WHERE chatUUID = ? AND subID = ? AND messageID = ?;`,
+          [chatUUID, subID, messageID],
         );
         console.log(`Message ${messageID} unpinned successfully.`);
         return true;
@@ -516,10 +594,13 @@ export class MessageRepository {
     get: async (chatUUID: any): Promise<any[]> => {
       try {
         const pinnedMessages: any[] = await this.db.getAllAsync(
-          `SELECT messageID FROM pinned_message WHERE chatUUID = ?;`,
+          `SELECT subID, messageID FROM pinned_message WHERE chatUUID = ?;`,
           [chatUUID],
         );
-        return pinnedMessages.map((m: any) => m.messageID);
+        return pinnedMessages.map((m: any) => ({
+          subID: m.subID,
+          messageID: m.messageID,
+        }));
       } catch (error) {
         console.error("Error retrieving pinned messages:", error);
         return [];
@@ -550,11 +631,42 @@ export class MessageRepository {
         return [];
       }
     },
+    getBySub: async (chatUUID: any): Promise<any[]> => {
+      try {
+        const result: any[] = await this.db.getAllAsync(
+          `SELECT m.*, u.name as sender_name 
+           FROM message m
+           JOIN user u ON m.senderUUID = u.uuid
+           INNER JOIN (
+               SELECT subID, MAX(created_at) as max_time
+               FROM message
+               WHERE chatUUID = ?
+               GROUP BY subID
+           ) latest ON m.subID = latest.subID AND m.created_at = latest.max_time
+           WHERE m.chatUUID = ?;`,
+          [chatUUID, chatUUID],
+        );
+
+        for (const message of result) {
+          await this._addInfos(message);
+        }
+
+        return result;
+      } catch (error) {
+        console.error(
+          "Error getting last messages by sub for chat:",
+          chatUUID,
+          error,
+        );
+        return [];
+      }
+    },
   };
 
   reaction = {
     add: async (
       chatUUID: any,
+      subID: any,
       messageID: any,
       reaction: any,
       at: any,
@@ -562,8 +674,8 @@ export class MessageRepository {
     ): Promise<boolean> => {
       try {
         await this.db.runAsync(
-          `INSERT OR IGNORE INTO reaction_message (chatUUID, messageID, userUUID, reaction, at) VALUES (?, ?, ?, ?, ?);`,
-          [chatUUID, messageID, userUUID, reaction, at],
+          `INSERT OR IGNORE INTO reaction_message (chatUUID, subID, messageID, userUUID, reaction, at) VALUES (?, ?, ?, ?, ?, ?);`,
+          [chatUUID, subID, messageID, userUUID, reaction, at],
         );
         console.log(`Reaction ${reaction} added successfully.`);
         return true;
@@ -574,14 +686,15 @@ export class MessageRepository {
     },
     remove: async (
       chatUUID: any,
+      subID: any,
       messageID: any,
       reaction: any,
       userUUID: any,
     ): Promise<boolean> => {
       try {
         await this.db.runAsync(
-          `DELETE FROM reaction_message WHERE chatUUID = ? AND messageID = ? AND userUUID = ? AND reaction = ?;`,
-          [chatUUID, messageID, userUUID, reaction],
+          `DELETE FROM reaction_message WHERE chatUUID = ? AND subID = ? AND messageID = ? AND userUUID = ? AND reaction = ?;`,
+          [chatUUID, subID, messageID, userUUID, reaction],
         );
         console.log(`Reaction ${reaction} removed successfully.`);
         return true;
@@ -595,14 +708,15 @@ export class MessageRepository {
   read = {
     add: async (
       chatUUID: any,
+      subID: any,
       messageID: any,
       userUUID: any,
       readAt: any,
     ): Promise<boolean> => {
       try {
         await this.db.runAsync(
-          `INSERT OR IGNORE INTO message_read (chat_uuid, message_id, user_uuid, read_at) VALUES (?, ?, ?, ?);`,
-          [chatUUID, messageID, userUUID, readAt],
+          `INSERT OR IGNORE INTO message_read (chat_uuid, sub_id, message_id, user_uuid, read_at) VALUES (?, ?, ?, ?, ?);`,
+          [chatUUID, subID, messageID, userUUID, readAt],
         );
         console.log(
           `Read tracking for message ${messageID} added successfully.`,

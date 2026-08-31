@@ -2,20 +2,18 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, useWindowDimensions, Animated } from "react-native";
 import { Slot, usePathname } from "expo-router";
 
-import { useThemeContext } from "@/src/context/ThemeContext";
-
+import { useScreen } from "@/src/context/ScreenContext";
 import TabNavigator, {
   getActiveTabName,
-} from "@/src/components/tabs/TabNavigator";
-import { useScreen } from "@/src/context/ScreenContext";
-import useChatStore from "@/src/context/ChatContext";
-import useUserStore from "@/src/context/UserContext";
+} from "@/src/components/features/tabs/TabNavigator";
+import useChatStore from "@/src/store/ChatStore";
+import useUserStore from "@/src/store/UserStore";
 import useWindowSizeStore, {
   SIDEBAR_MIN,
   SIDEBAR_COLLAPSED,
-} from "@/src/context/WindowSizeContext";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
-import useNetworkStore from "@/src/context/NetworkContext";
+} from "@/src/store/WindowSizeStore";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
+import useNetworkStore from "@/src/store/NetworkStore";
 
 import { usePanelResizer } from "@/src/hooks/layout/usePanelResizer";
 import useMobileBackHandler from "@/src/hooks/layout/useMobileBackHandler";
@@ -36,7 +34,6 @@ export default function RootLayout() {
   // Pan responder for resizing the detail pane on larger screens
   const { isSmallScreen } = useScreen();
   useMobileBackHandler(isSmallScreen, isDetailOpen);
-  const { theme } = useThemeContext();
   const { width } = useWindowDimensions();
 
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -208,36 +205,40 @@ export default function RootLayout() {
         style={{ flex: 1, backgroundColor: "transparent", overflow: "hidden" }}
       >
         <Animated.View
-          style={{
-            flex: 1,
-            opacity: slideAnim.interpolate({
-              inputRange: [0, 0.15, 1],
-              outputRange: [1, 0, 0],
-            }),
-          }}
-          pointerEvents={isDetailOpen ? "none" : "auto"}
+          style={[
+            {
+              flex: 1,
+              opacity: slideAnim.interpolate({
+                inputRange: [0, 0.15, 1],
+                outputRange: [1, 0, 0],
+              }),
+              pointerEvents: isDetailOpen ? "none" : "auto",
+            },
+          ]}
         >
           <TabNavigator />
         </Animated.View>
         <Animated.View
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "transparent",
-            transform: [
-              {
-                translateX: slideAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [width, 0],
-                }),
-              },
-            ],
-            zIndex: 1,
-          }}
-          pointerEvents={isDetailOpen ? "auto" : "none"}
+          style={[
+            {
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "transparent",
+              transform: [
+                {
+                  translateX: slideAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [width, 0],
+                  }),
+                },
+              ],
+              zIndex: 1,
+              pointerEvents: isDetailOpen ? "auto" : "none",
+            },
+          ]}
         >
           <Slot />
         </Animated.View>
@@ -269,8 +270,10 @@ export default function RootLayout() {
         style={{
           width: currentSidebarWidth,
           height: "100%",
-          padding: 10,
-          paddingHorizontal: showCollapsedSidebar ? 5 : 10,
+          paddingTop: 10,
+          paddingBottom: 10,
+          paddingLeft: 10,
+          paddingRight: 0,
           backgroundColor: "transparent",
         }}
       >

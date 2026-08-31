@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
-import AppText from "@/src/components/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { useScreen } from "@/src/context/ScreenContext";
 
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LoginColors } from "@/constants/LoginColors";
 import gateway from "@/src/utils/backend-services/api-gateway";
-import OtpDigitsInput from "@/src/components/OtpDigitsInput";
-import StatusMessage from "@/src/components/StatusMessage";
-import WelcomeButton from "@/src/components/welcome/WelcomeButton";
-import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
+import OtpDigitsInput from "@/src/components/features/settings/privacy-and-security/security/OtpDigitsInput";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
+import WelcomeButton from "@/src/components/features/welcome/WelcomeButton";
+import WelcomeButtonText from "@/src/components/features/welcome/WelcomeButtonText";
 // import logoNovyse from "@/assets/images/logo-novyse.png";
 
 type SearchParams = {
@@ -97,11 +97,11 @@ const VerifyBackup: React.FC = () => {
         <View style={styles.cardContent}>
           {/* <Image style={styles.logo} source={logoNovyse} /> */}
 
-          <AppText
+          <Typography
             style={styles.title}
             translationKey="auth.verifyBackup.title"
           />
-          <AppText
+          <Typography
             style={styles.subtitle}
             translationKey="auth.verifyBackup.subtitle"
           />
@@ -147,7 +147,7 @@ const VerifyBackup: React.FC = () => {
           </View>
 
           <StatusMessage
-            type="error"
+            type="danger"
             content={error ? [error] : []}
             visible={!!error}
             onClose={() => setError(null)}

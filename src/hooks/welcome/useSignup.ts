@@ -106,13 +106,6 @@ export const useSignup = () => {
     !!captchaToken &&
     !isLoading;
 
-  const isPasskeyValid =
-    validateStep(0) &&
-    validateStep(1) &&
-    privacyAccepted &&
-    ageConfirmed &&
-    !!captchaToken;
-
   const handleChange = (field: string, value: string) => {
     const v = field === "handle" ? value.toLowerCase() : value;
     setForm((prev) => ({ ...prev, [field]: v }));
@@ -166,43 +159,12 @@ export const useSignup = () => {
         captchaToken!,
       );
       if (ok.success) {
-        router.navigate(
-          `/(welcome)/login?signedup=true&username=${handle}&type=opaque`,
-        );
+        router.navigate(`/(welcome)/login?signedup=true&username=${handle}`);
       } else {
         setError(ok.error || "Signup failed. Please try again.");
       }
     } catch {
       setError("An unexpected error occurred.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handlePasskeySignup = async () => {
-    setError(null);
-    setIsLoading(true);
-    try {
-      const { name, handle } = form;
-      const ok = await auth.signup.passkey(
-        handle,
-        name,
-        {
-          privacy: privacyAccepted,
-          tos: privacyAccepted,
-          isOver16: ageConfirmed,
-        },
-        captchaToken!,
-      );
-      if (ok?.success) {
-        router.navigate(
-          `/(welcome)/login?signedup=true&username=${handle}&type=passkey`,
-        );
-      } else {
-        setError(ok?.error || "Passkey signup failed.");
-      }
-    } catch (e) {
-      setError("An unexpected error occurred during passkey signup.");
     } finally {
       setIsLoading(false);
     }
@@ -243,7 +205,6 @@ export const useSignup = () => {
     slideAnim,
     fadeAnim,
     isFormValid,
-    isPasskeyValid,
     setShowPassword,
     setShowConfirmPassword,
     setPrivacyAccepted,
@@ -252,7 +213,6 @@ export const useSignup = () => {
     handleChange,
     handleNext,
     handleBack,
-    handlePasskeySignup,
     goToStep,
     validateStep,
     setCaptchaToken,

@@ -16,19 +16,20 @@ export class MemberRepository {
 
   async add(chatUUID: string, user: any): Promise<boolean> {
     try {
-      if (!chatUUID || !user || !user.uuid) {
+      const userUUID = typeof user === "string" ? user : user?.uuid;
+      if (!chatUUID || !userUUID) {
         console.error(
           "Missing required fields to add member:",
-          JSON.stringify({ chatUUID, user: user ? user.uuid : null }),
+          JSON.stringify({ chatUUID, user }),
         );
         return false;
       }
-      // Insert member into the member table
+      const roles = user.roleIDs ?? [];
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO member (userUUID, chatUUID, joined_at) VALUES (?, ?, ?);`,
-        [user.uuid, chatUUID, user.joined_at || new Date().toISOString()],
+        `INSERT OR IGNORE INTO member (userUUID, chatUUID, role_ids, joined_at) VALUES (?, ?, ?, ?);`,
+        [userUUID, chatUUID, JSON.stringify(roles), user.joinedAt],
       );
-      console.log(`User ${user.uuid} added to chat ${chatUUID} successfully.`);
+      console.log(`User ${userUUID} added to chat ${chatUUID} successfully.`);
       return true;
     } catch (error) {
       console.error("Error adding member to chat:", error);
@@ -48,19 +49,18 @@ export class MemberRepository {
         return false;
       }
 
-      const placeholders = members.map(() => `(?, ?, ?)`).join(", ");
+      const placeholders = members.map(() => `(?, ?, ?, ?)`).join(", ");
       const values: any[] = [];
 
       for (const m of members) {
-        values.push(
-          m.user.uuid,
-          m.chatUUID,
-          m.user.joined_at || new Date().toISOString(),
-        );
+        const u = m.user;
+        const userUUID = typeof u === "string" ? u : u?.uuid;
+        const roles = u?.roleIDs ?? [];
+        values.push(userUUID, m.chatUUID, JSON.stringify(roles), u?.joinedAt);
       }
 
       await this.db.runAsync(
-        `INSERT OR IGNORE INTO member (userUUID, chatUUID, joined_at) VALUES ${placeholders};`,
+        `INSERT OR IGNORE INTO member (userUUID, chatUUID, role_ids, joined_at) VALUES ${placeholders};`,
         values,
       );
 
@@ -85,18 +85,29 @@ export class MemberRepository {
           }
 
           const members = await this.db.getAllAsync<any>(
-            `SELECT m.userUUID as uuid, m.joined_at as joinedAt
+            `SELECT m.userUUID as uuid, m.joined_at as joinedAt, m.role_ids as roleIds
              FROM member m
              WHERE m.chatUUID = ?;`,
             [chatUUID],
           );
 
-          return members.map((m) => ({
-            uuid: m.uuid,
-            role: "member",
-            action: null,
-            joinedAt: new Date(m.joinedAt),
-          }));
+          return members.map((m) => {
+            let parsedRoleIds = [];
+            try {
+              parsedRoleIds =
+                typeof m.roleIds === "string"
+                  ? JSON.parse(m.roleIds)
+                  : m.roleIds || [];
+            } catch (e) {
+              console.error("Failed to parse role_ids", m.roleIds);
+            }
+            return {
+              uuid: m.uuid,
+              roleIDs: parsedRoleIds,
+              action: null,
+              joinedAt: new Date(m.joinedAt),
+            };
+          });
         } catch (error) {
           console.error("Error retrieving members by chat UUID:", error);
           return [];

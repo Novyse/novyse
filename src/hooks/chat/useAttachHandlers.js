@@ -5,7 +5,7 @@ import Platform from "@/src/utils/device/type";
 
 import { openNativeFileMenu } from "@/src/utils/storage/file/handler";
 
-const useAttachHandlers = (setIsAttachMenuOpen) => {
+const useAttachHandlers = (setIsAttachMenuOpen, onStartScreenRecording) => {
   const [attachType, setAttachType] = useState(null);
 
   const handleMenuItemPress = async (item) => {
@@ -14,6 +14,10 @@ const useAttachHandlers = (setIsAttachMenuOpen) => {
       case "Media":
       case "File":
         return await handleFilePick(item);
+      case "Recording":
+        _closeFileMenu();
+        onStartScreenRecording();
+        return null;
       case "Camera":
       case "Location":
       case "Todo":

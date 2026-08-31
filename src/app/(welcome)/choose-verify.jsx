@@ -8,10 +8,10 @@ import { LoginColors } from "@/constants/LoginColors";
 
 import gateway from "@/src/utils/backend-services/api-gateway";
 
-import StatusMessage from "@/src/components/StatusMessage";
-import WelcomeButton from "@/src/components/welcome/WelcomeButton";
-import WelcomeButtonText from "@/src/components/welcome/WelcomeButtonText";
-import AppText from "@/src/components/AppText";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
+import WelcomeButton from "@/src/components/features/welcome/WelcomeButton";
+import WelcomeButtonText from "@/src/components/features/welcome/WelcomeButtonText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import logoNovyse from "@/assets/images/logo-novyse.png";
 
@@ -71,11 +71,11 @@ const ChooseVerify = () => {
         <View style={styles.cardContent}>
           <Image style={styles.logo} source={logoNovyse} />
 
-          <AppText
+          <Typography
             style={styles.title}
             translationKey="auth.chooseVerify.title"
           />
-          <AppText
+          <Typography
             style={styles.subtitle}
             translationKey="auth.chooseVerify.subtitle"
           />
@@ -90,7 +90,7 @@ const ChooseVerify = () => {
                 ]}
                 onPress={() => handleChooseMethod(method)}
               >
-                <AppText
+                <Typography
                   style={[
                     styles.optionButtonText,
                     selectedMethod === method &&
@@ -100,7 +100,7 @@ const ChooseVerify = () => {
                   {method === "email" && "Email"}
                   {method === "sms" && "SMS"}
                   {method === "authenticator" && "Authenticator App"}
-                </AppText>
+                </Typography>
               </TouchableOpacity>
             ))}
           </View>
@@ -125,7 +125,7 @@ const ChooseVerify = () => {
           </View>
           <View style={styles.containerStatus}>
             <StatusMessage
-              type="error"
+              type="danger"
               content={[error]}
               visible={!!error}
               onClose={() => {

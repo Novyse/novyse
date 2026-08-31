@@ -21,28 +21,30 @@ class GlobalEventEmitter {
       await database.message.add(message);
       this.eventEmitter.emit("message:new", message);
     },
-    update: async (chatUUID, messageID, action, eventID, data) => {
+    update: async (chatUUID, subID, messageID, action, eventID, data) => {
       switch (action) {
         case "edit":
-          await database.message.edit(chatUUID, messageID, data.content);
+          await database.message.edit(chatUUID, subID, messageID, data.content);
           break;
         case "delete":
-          await database.message.delete(chatUUID, messageID);
+          await database.message.delete(chatUUID, subID, messageID);
           break;
         case "pin_add":
           await database.message.pin.add(
             chatUUID,
+            subID,
             messageID,
             data.pinnedAt,
             data.userUUID,
           );
           break;
         case "pin_remove":
-          await database.message.pin.remove(chatUUID, messageID);
+          await database.message.pin.remove(chatUUID, subID, messageID);
           break;
         case "reaction_add":
           await database.message.reaction.add(
             chatUUID,
+            subID,
             messageID,
             data.reaction,
             data.reactedAt,
@@ -52,6 +54,7 @@ class GlobalEventEmitter {
         case "reaction_remove":
           await database.message.reaction.remove(
             chatUUID,
+            subID,
             messageID,
             data.reaction,
             data.userUUID,
@@ -60,6 +63,7 @@ class GlobalEventEmitter {
         case "read":
           await database.message.read.add(
             chatUUID,
+            subID,
             messageID,
             data.userUUID,
             data.readAt,
@@ -75,6 +79,7 @@ class GlobalEventEmitter {
 
       this.eventEmitter.emit("message:update", {
         chatUUID,
+        subID,
         messageID,
         action,
         data,
@@ -210,6 +215,28 @@ class GlobalEventEmitter {
       this.eventEmitter.emit("chat:new", { chat, users });
     },
     update: async (chatUUID, action, eventID, data) => {
+      switch (action) {
+        case "sub_create":
+          await database.chat.sub.add(chatUUID, data.sub || data);
+          break;
+        case "sub_rename": {
+          const renamedSub = data.sub || data;
+          await database.chat.sub.update(chatUUID, renamedSub.id, {
+            name: renamedSub.name,
+          });
+          break;
+        }
+        case "sub_delete":
+          await database.chat.sub.remove(chatUUID, data.subID ?? data.id);
+          break;
+        default:
+          break;
+      }
+
+      if (eventID) {
+        await database.event.chat.update(chatUUID, eventID);
+      }
+
       this.eventEmitter.emit("chat:update", {
         chatUUID,
         action,

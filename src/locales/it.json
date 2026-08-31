@@ -7,9 +7,10 @@
     "error": "Errore",
     "success": "Successo",
     "status": {
-      "error": "Errore",
+      "danger": "Errore",
       "warning": "Attenzione",
-      "success": "Successo"
+      "success": "Successo",
+      "info": "Info"
     },
     "developerNote": "Nota per lo sviluppatore: questa pagina è attualmente solo un'anteprima dell'interfaccia utente. Tutte le funzionalità funzionali sono in fase di sviluppo e saranno incluse nella versione 1.2.",
     "errorPage": {
@@ -51,6 +52,23 @@
         "alreadyInUse": "Già in uso",
         "passwordsMismatch": "Le password non coincidono"
       }
+    },
+    "inputs": {
+      "select_placeholder": "Seleziona un'opzione",
+      "no_options": "Nessuna opzione",
+      "select_date": "Seleziona data",
+      "select_time": "Seleziona orario",
+      "select_datetime": "Seleziona data e orario",
+      "select_date_range": "Seleziona un intervallo",
+      "select_dates": "Seleziona date",
+      "tab_date": "Data",
+      "tab_time": "Orario",
+      "from": "Da",
+      "to": "A",
+      "clear": "Cancella",
+      "confirm": "Conferma",
+      "multipleHint": "Tocca un giorno per iniziare, di nuovo lo stesso per aggiungerlo, oppure un altro giorno per un intervallo. Tocca un giorno già selezionato per rimuoverlo.",
+      "selectedCount": "{{count}} selezionati"
     }
   },
   "chat": {
@@ -59,9 +77,11 @@
     "unknownUser": "Sconosciuto",
     "messageActions": {
       "reply": "Rispondi",
+      "quoteAndReply": "Cita e rispondi",
       "pin": "Fissa",
       "unpin": "Rimuovi",
       "copy": "Copia",
+      "copySelected": "Copia selezione",
       "download": "Scarica",
       "cancelEdit": "Annulla Modifica",
       "edit": "Modifica",
@@ -82,6 +102,7 @@
       "media": "Media",
       "camera": "Fotocamera",
       "file": "File",
+      "recording": "Registra",
       "location": "Posizione",
       "todo": "Lista",
       "poll": "Sondaggio"
@@ -109,6 +130,14 @@
       "flags": "Bandiere",
       "searchResults": "Risultati della Ricerca"
     },
+    "gifCategories": {
+      "searchPlaceholder": "Cerca GIF",
+      "recents": "Recenti",
+      "popular": "Popolari",
+      "searchResults": "Risultati della Ricerca",
+      "noResults": "Nessuna GIF trovata",
+      "providerAll": "Tutti"
+    },
     "overview": {
       "tabs": {
         "members": "Membri",
@@ -126,6 +155,7 @@
       "actions": {
         "settings": "Impostazioni",
         "block": "Blocca",
+        "favourite_messages": "Messaggi preferiti",
         "leave": "Abbandona"
       },
       "errors": {
@@ -166,7 +196,10 @@
         "select_date": "Seleziona data",
         "confirm": "Conferma"
       },
-      "selected": "{{count}} selezionati"
+      "selected": "{{count}} selezionati",
+      "search": {
+        "placeholder": "Cerca in questa chat"
+      }
     },
     "bottomBar": {
       "editing": "Modifica",
@@ -202,7 +235,8 @@
       "error": {
         "chatFull": "Questa chat è piena",
         "generic": "Per favore riprova più tardi.",
-        "noMicPermissionWarning": "Il permesso del microfono è richiesto per riattivare l'audio. Consenti l'accesso al microfono nelle impostazioni del browser o del sistema."
+        "noMicPermissionWarning": "Il permesso del microfono è richiesto per riattivare l'audio. Consenti l'accesso al microfono nelle impostazioni del browser o del sistema.",
+        "noCamPermissionWarning": "Il permesso della fotocamera è richiesto per attivare il video. Consenti l'accesso alla fotocamera nelle impostazioni del dispositivo o del browser."
       },
       "selectors": {
         "camera": {
@@ -215,21 +249,30 @@
           "title": "Seleziona Microfono",
           "loading": "Caricamento microfoni...",
           "currentlySelected": "Attualmente Selezionato",
-          "defaultName": "Microfono {{id}}",
-          "permissionDenied": "Il permesso del microfono è negato. Abilita l'accesso al microfono nelle impostazioni di sistema per utilizzare le funzionalità vocali."
+          "defaultName": "Microfono {{id}}"
+        },
+        "speaker": {
+          "title": "Seleziona Altoparlante",
+          "loading": "Caricamento altoparlanti...",
+          "currentlySelected": "Attualmente Selezionato",
+          "defaultName": "Altoparlante {{id}}"
+        },
+        "nativeAudioRoutes": {
+          "bluetooth": "Bluetooth",
+          "headset": "Cuffie",
+          "earpiece": "Telefono",
+          "speaker": "Altoparlante",
+          "default": "Predefinito",
+          "force_speaker": "Altoparlante"
         },
         "screenshare": {
           "title": "Condividi il tuo schermo",
           "loading": "Caricamento delle sorgenti in corso...",
-          "screens": "Schermi interi",
-          "windows": "Singole finestre",
           "screen": "Schermo",
           "window": "Finestra",
           "includeAudio": "Includi l'audio di sistema",
           "macOsAudioWarning": "La condivisione audio non è supportata sulla tua versione di macOS.",
           "permissionWarning": "Per condividere lo schermo, devi consentire all'app i permessi di registrazione schermo nelle Impostazioni di Sistema (Privacy e Sicurezza).",
-          "nativeMenuWarning": "Il tuo ambiente Desktop richiede di selezionare lo schermo o la finestra dal portale di sistema nativo.",
-          "share": "Condividi",
           "cancel": "Annulla",
           "startScreenShare": "Avvia"
         }
@@ -239,7 +282,8 @@
         "watchTogether": "Guarda Insieme",
         "startWatchTogether": "Avvia Watch Together",
         "modifyWatchTogether": "Modifica Watch Together",
-        "stopWatchTogether": "Interrompi Watch Together"
+        "stopWatchTogether": "Interrompi Watch Together",
+        "audioOutput": "Uscita audio"
       },
       "watchTogether": {
         "title": "Watch Together",
@@ -303,7 +347,7 @@
       "account": "Account",
       "customization": "Personalizzazione",
       "storage": "Archiviazione",
-      "security": "Sicurezza",
+      "privacyAndSecurity": "Privacy & Sicurezza",
       "comms": "Comunicazioni",
       "qrScanner": "Scanner QR",
       "shortcuts": "Scorciatoie",
@@ -385,9 +429,8 @@
       "inputDevicesWarning": "⚠️ Attenzione: Le modifiche ai dispositivi di input non influenzeranno attualmente le funzionalità della chat.",
       "loadingDevices": "Caricamento dispositivi...",
       "microphone": "Microfono",
-      "noMicrophonesFound": "Nessun microfono trovato",
+      "speaker": "Autoparlante",
       "webcam": "Webcam",
-      "noCamerasFound": "Nessuna fotocamera trovata",
       "entryMode": "Modalità di Ingresso",
       "videoSettings": "Impostazioni Video",
       "webcamQuality": "Qualità Webcam",
@@ -398,10 +441,7 @@
       "screenShareAudio": "Audio Condivisione Schermo",
       "audioProcessing": "Elaborazione Audio",
       "noiseSuppression": "Soppressione Rumore",
-      "expander": "Espansore",
       "noiseGate": "Gate del Rumore",
-      "noiseGateThreshold": "Soglia del Gate del Rumore",
-      "typingAttenuation": "Attenuazione Digitazione",
       "currentSettings": "Impostazioni Attuali:",
       "on": "ON",
       "off": "OFF",
@@ -428,8 +468,8 @@
       "documents": "Documenti",
       "others": "Altro"
     },
-    "security": {
-      "title": "Sicurezza",
+    "privacyAndSecurity": {
+      "title": "Privacy & Sicurezza",
       "status": "Stato",
       "actions": "Azioni",
       "sessions": {
@@ -553,6 +593,7 @@
       "startupSection": "Avvio dell'Applicazione",
       "actionsSection": "Azioni Iniziali",
       "openOnStartup": "Apri all'avvio",
+      "openMinimized": "Apri ridotto ad icona",
       "joinCommsOnStartup": "Entra nelle comms all'avvio",
       "selectChat": "Seleziona Chat",
       "selectSub": "Seleziona Sub",
@@ -594,11 +635,14 @@
     "chatList": {
       "selected": "{{count}} selezionate",
       "intentSharing": "Seleziona chat",
-      "forwarding": "Inoltra a..."
+      "forwarding": "Inoltra a...",
+      "searchPlaceholder": "Cerca chat..."
     },
     "search": {
       "search": "Cerca",
-      "noResults": "Nessun risultato trovato"
+      "noResults": "Nessun risultato trovato",
+      "chats": "Chat",
+      "messages": "Messaggi"
     }
   },
   "profile": {
@@ -724,6 +768,10 @@
         "singular": "Archivio",
         "plural": "Archivi"
       },
+      "gif": {
+        "singular": "GIF",
+        "plural": "GIF"
+      },
       "default": {
         "singular": "File",
         "plural": "File"
@@ -769,10 +817,15 @@
     "delete_account": {
       "title": "Elimina Account",
       "warning": "Questa azione non può essere annullata. Tutti i tuoi dati verranno eliminati permanentemente.",
-      "confirmation_identity": "Conferma Identità",
       "confirm_instruction": "Inserisci il tuo nome utente {{username}} per confermare.",
       "helper_text": "Questa è un'azione permanente.",
       "learn_more": "Scopri di più",
+      "cancel": "Annulla",
+      "delete": "Elimina"
+    },
+    "delete_message": {
+      "subtitle_one": "Vuoi eliminare questo messaggio permanentemente?",
+      "subtitle_other": "Vuoi eliminare {{count}} messaggi permanentemente?",
       "cancel": "Annulla",
       "delete": "Elimina"
     },
@@ -785,14 +838,12 @@
       "title": "Crea Nuova Chat",
       "subtitle": "Configura le impostazioni della tua nuova chat qui sotto.",
       "sections": {
-        "identity": "IDENTITÀ CHAT",
-        "commsStyle": "STILE DI COMUNICAZIONE",
-        "privacy": "IMPOSTAZIONI PRIVACY"
+        "commsStyle": "Stile Di Comunicazione",
+        "privacy": "Impostazioni Privacy"
       },
       "fields": {
         "name": "Nome Chat",
         "namePlaceholder": "es., Novyse News",
-        "nameHelper": "Questo è il nome che sarà visibile ai membri.",
         "handle": "Handle Chat",
         "handlePlaceholder": "il-tuo-handle",
         "handleHelper": "Le persone possono trovare la tua chat usando questo handle.",
@@ -816,7 +867,9 @@
       },
       "errors": {
         "handleTaken": "Handle già in uso",
-        "handleError": "Errore nel controllo disponibilità handle"
+        "handleError": "Errore nel controllo disponibilità handle",
+        "nameRequired": "Il nome è obbligatorio",
+        "genericError": "Si è verificato un errore, riprova"
       }
     }
   }

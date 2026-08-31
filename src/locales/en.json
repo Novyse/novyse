@@ -7,9 +7,10 @@
     "error": "Error",
     "success": "Success",
     "status": {
-      "error": "Error",
+      "danger": "Error",
       "warning": "Warning",
-      "success": "Success"
+      "success": "Success",
+      "info": "Info"
     },
     "developerNote": "Developer Note: This page is currently a UI preview only. All functional features are under development and will be included in the version 1.2 release.",
     "errorPage": {
@@ -51,6 +52,23 @@
         "alreadyInUse": "Already in use",
         "passwordsMismatch": "Passwords do not match"
       }
+    },
+    "inputs": {
+      "select_placeholder": "Select an option",
+      "no_options": "No options",
+      "select_date": "Select date",
+      "select_time": "Select time",
+      "select_datetime": "Select date and time",
+      "select_date_range": "Select date range",
+      "select_dates": "Select dates",
+      "tab_date": "Date",
+      "tab_time": "Time",
+      "from": "From",
+      "to": "To",
+      "clear": "Clear",
+      "confirm": "Confirm",
+      "multipleHint": "Tap a day to start, the same day again to add it, or another day to add a range. Tap a selected day to remove it.",
+      "selectedCount": "{{count}} selected"
     }
   },
   "chat": {
@@ -59,9 +77,11 @@
     "unknownUser": "Unknown User",
     "messageActions": {
       "reply": "Reply",
+      "quoteAndReply": "Quote and reply",
       "pin": "Pin",
       "unpin": "Unpin",
       "copy": "Copy",
+      "copySelected": "Copy selected",
       "download": "Download",
       "cancelEdit": "Cancel Edit",
       "edit": "Edit",
@@ -82,6 +102,7 @@
       "media": "Media",
       "camera": "Camera",
       "file": "File",
+      "recording": "Recording",
       "location": "Location",
       "todo": "Todo",
       "poll": "Poll"
@@ -109,6 +130,14 @@
       "flags": "Flags",
       "searchResults": "Search Results"
     },
+    "gifCategories": {
+      "searchPlaceholder": "Search GIFs",
+      "recents": "Recents",
+      "popular": "Popular",
+      "searchResults": "Search Results",
+      "noResults": "No GIFs found",
+      "providerAll": "All"
+    },
     "overview": {
       "tabs": {
         "members": "Members",
@@ -127,6 +156,7 @@
       "actions": {
         "settings": "Settings",
         "block": "Block",
+        "favourite_messages": "Favuorite messages",
         "leave": "Leave"
       },
       "errors": {
@@ -168,7 +198,10 @@
       },
       "online": "{{count}} online",
       "lastSeen": "Last seen",
-      "selected": "{{count}} selected"
+      "selected": "{{count}} selected",
+      "search": {
+        "placeholder": "Search in this chat"
+      }
     },
     "bottomBar": {
       "editing": "Editing",
@@ -204,7 +237,8 @@
       "error": {
         "chatFull": "This chat is full",
         "generic": "Please try again later.",
-        "noMicPermissionWarning": "Microphone permission is required to unmute yourself. Please allow microphone access in your browser or system settings."
+        "noMicPermissionWarning": "Microphone permission is required to unmute yourself. Please allow microphone access in your browser or system settings.",
+        "noCamPermissionWarning": "Camera permission is required to enable video. Please allow camera access in your device or browser settings."
       },
       "selectors": {
         "camera": {
@@ -217,21 +251,30 @@
           "title": "Select Microphone",
           "loading": "Loading microphones...",
           "currentlySelected": "Currently Selected",
-          "defaultName": "Microphone {{id}}",
-          "permissionDenied": "Microphone permission is denied. Please enable microphone access in your system settings to use voice features."
+          "defaultName": "Microphone {{id}}"
+        },
+        "speaker": {
+          "title": "Select Speaker",
+          "loading": "Loading speakers...",
+          "currentlySelected": "Currently Selected",
+          "defaultName": "Speaker {{id}}"
+        },
+        "nativeAudioRoutes": {
+          "bluetooth": "Bluetooth",
+          "headset": "Headset",
+          "earpiece": "Phone",
+          "speaker": "Speaker",
+          "default": "Default",
+          "force_speaker": "Speaker"
         },
         "screenshare": {
           "title": "Share your screen",
           "loading": "Loading sources...",
-          "screens": "Screens",
-          "windows": "Windows",
           "screen": "Screen",
           "window": "Window",
           "includeAudio": "Share system audio",
           "macOsAudioWarning": "Audio sharing is not supported on your macOS version.",
           "permissionWarning": "Please allow screen recording in System Settings (Privacy & Security) to share your screen.",
-          "nativeMenuWarning": "Your Desktop environment requires selecting the screen or window from the native system portal.",
-          "share": "Share",
           "cancel": "Cancel",
           "startScreenShare": "Start"
         }
@@ -241,7 +284,8 @@
         "watchTogether": "Watch Together",
         "startWatchTogether": "Start Watch Together",
         "modifyWatchTogether": "Modify Watch Together",
-        "stopWatchTogether": "Stop Watch Together"
+        "stopWatchTogether": "Stop Watch Together",
+        "audioOutput": "Audio output"
       },
       "watchTogether": {
         "title": "Watch Together",
@@ -305,7 +349,7 @@
       "account": "Account",
       "customization": "Customization",
       "storage": "Storage",
-      "security": "Security",
+      "privacyAndSecurity": "Privacy & Security",
       "comms": "Comms",
       "qrScanner": "QR Scanner",
       "shortcuts": "Shortcuts",
@@ -387,9 +431,8 @@
       "inputDevicesWarning": "⚠️ Warning: Changes to input devices will not affect chat functionality at the moment.",
       "loadingDevices": "Loading devices...",
       "microphone": "Microphone",
-      "noMicrophonesFound": "No microphones found",
+      "speaker": "Speaker",
       "webcam": "Webcam",
-      "noCamerasFound": "No cameras found",
       "entryMode": "Entry Mode",
       "videoSettings": "Video Settings",
       "webcamQuality": "Webcam Quality",
@@ -400,10 +443,7 @@
       "screenShareAudio": "Screen Share Audio",
       "audioProcessing": "Audio Processing",
       "noiseSuppression": "Noise Suppression",
-      "expander": "Expander",
       "noiseGate": "Noise Gate",
-      "noiseGateThreshold": "Noise Gate Threshold",
-      "typingAttenuation": "Typing Attenuation",
       "currentSettings": "Current Settings:",
       "on": "ON",
       "off": "OFF",
@@ -430,8 +470,8 @@
       "documents": "Documents",
       "others": "Others"
     },
-    "security": {
-      "title": "Security",
+    "privacyAndSecurity": {
+      "title": "Privacy & Security",
       "status": "Status",
       "actions": "Actions",
       "sessions": {
@@ -555,6 +595,7 @@
       "startupSection": "Application Startup",
       "actionsSection": "Initial Actions",
       "openOnStartup": "Open on startup",
+      "openMinimized": "Open minimized",
       "joinCommsOnStartup": "Join comms on startup",
       "selectChat": "Select Chat",
       "selectSub": "Select Sub",
@@ -596,11 +637,14 @@
     "chatList": {
       "selected": "{{count}} selected",
       "intentSharing": "Select chat",
-      "forwarding": "Forward to..."
+      "forwarding": "Forward to...",
+      "searchPlaceholder": "Search chats..."
     },
     "search": {
       "search": "Search",
-      "noResults": "No results found"
+      "noResults": "No results found",
+      "chats": "Chats",
+      "messages": "Messages"
     }
   },
   "profile": {
@@ -726,6 +770,10 @@
         "singular": "Archive File",
         "plural": "Archive Files"
       },
+      "gif": {
+        "singular": "GIF",
+        "plural": "GIFs"
+      },
       "default": {
         "singular": "File",
         "plural": "Files"
@@ -771,10 +819,15 @@
     "delete_account": {
       "title": "Delete Account",
       "warning": "This action cannot be undone. All your data will be permanently deleted.",
-      "confirmation_identity": "Confirm Identity",
       "confirm_instruction": "Please type your username {{username}} to confirm.",
       "helper_text": "This is a permanent action.",
       "learn_more": "Learn More",
+      "cancel": "Cancel",
+      "delete": "Delete"
+    },
+    "delete_message": {
+      "subtitle_one": "Do you want to delete this message permanently?",
+      "subtitle_other": "Do you want to delete {{count}} messages permanently?",
       "cancel": "Cancel",
       "delete": "Delete"
     },
@@ -787,14 +840,12 @@
       "title": "Create New Chat",
       "subtitle": "Configure your new chat space settings below.",
       "sections": {
-        "identity": "CHAT IDENTITY",
-        "commsStyle": "COMMUNICATION STYLE",
-        "privacy": "PRIVACY SETTINGS"
+        "commsStyle": "Communication Style",
+        "privacy": "Privacy Settings"
       },
       "fields": {
         "name": "Chat Name",
         "namePlaceholder": "e.g., Novyse News",
-        "nameHelper": "This is the name that will be visible to your members.",
         "handle": "Chat Handle",
         "handlePlaceholder": "your-handle",
         "handleHelper": "People can find your chat using this handle.",
@@ -818,7 +869,9 @@
       },
       "errors": {
         "handleTaken": "Handle already in use",
-        "handleError": "Error checking handle availability"
+        "handleError": "Error checking handle availability",
+        "nameRequired": "Name is required",
+        "genericError": "An error occurred, please try again"
       }
     }
   }

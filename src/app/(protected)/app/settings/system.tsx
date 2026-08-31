@@ -1,18 +1,19 @@
 import React, { useContext, useState, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import AppText from "@/src/components/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import DropdownMenu from "@/src/components/DropdownMenu";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import Section from "@/src/components/settings/Section";
-import SettingRow from "@/src/components/settings/SettingRow";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
+import SystemChatSelector from "@/src/components/features/settings/system/SystemChatSelector";
+import SystemSubSelector from "@/src/components/features/settings/system/SystemSubSelector";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import Section from "@/src/components/features/settings/SettingsSection";
+import SettingRow from "@/src/components/features/settings/SettingsRow";
 
-import useChatStore from "@/src/context/ChatContext";
-import useUserStore from "@/src/context/UserContext";
+import useChatStore from "@/src/store/ChatStore";
+import useUserStore from "@/src/store/UserStore";
 
 import settingsManager from "@/src/utils/global/SettingsManager";
 import Platform from "@/src/utils/device/type";
@@ -48,8 +49,12 @@ export default function SystemRoute() {
       setIsLoading(true);
       const settings =
         await settingsManager.getPageParameters("settings.system");
-      const openOnStartup = await systemRpc.getOpenOnStartup();
-      setSystemSettings({ ...(settings || {}), openOnStartup });
+      const startupData = await systemRpc.getOpenOnStartup();
+      setSystemSettings({
+        ...(settings || {}),
+        openOnStartup: startupData.openAtLogin,
+        openMinimized: startupData.openMinimized,
+      });
     } catch (error) {
       console.error("Error loading system settings:", error);
     } finally {
@@ -59,8 +64,18 @@ export default function SystemRoute() {
 
   const updateSetting = async (key: string, value: any) => {
     try {
-      if (key === "openOnStartup") {
-        await systemRpc.setOpenOnStartup(value);
+      if (key === "openOnStartup" || key === "openMinimized") {
+        const newOpenOnStartup =
+          key === "openOnStartup" ? value : !!systemSettings.openOnStartup;
+        const newOpenMinimized =
+          key === "openMinimized" ? value : !!systemSettings.openMinimized;
+
+        await systemRpc.setOpenOnStartup(newOpenOnStartup, newOpenMinimized);
+        await settingsManager.setSingleParameter(
+          `settings.system.${key}`,
+          value,
+        );
+
         setSystemSettings((prev: any) => ({
           ...prev,
           [key]: value,
@@ -85,7 +100,11 @@ export default function SystemRoute() {
   };
 
   const chatOptions = [
-    { label: t("settings.system.none") || "None", value: "" },
+    {
+      labelText: t("settings.system.none") || "None",
+      value: "",
+      iconName: "ChatIcon",
+    },
     ...chats.map((chat) => {
       let displayName = chat.name || "Unknown Chat";
       if (chat.type === "DM") {
@@ -101,13 +120,14 @@ export default function SystemRoute() {
         }
       }
       return {
-        label: displayName,
+        labelText: displayName,
         value: chat.uuid,
+        iconName: "ChatIcon",
       };
     }),
   ];
 
-  const subOptions = [{ label: "0", value: "0" }];
+  const subOptions = [{ labelText: "0", value: "0", iconName: "Layers01Icon" }];
 
   if (isLoading || !systemSettings) {
     return (
@@ -117,7 +137,7 @@ export default function SystemRoute() {
           onBack={onBack}
         />
         <View style={styles.container}>
-          <AppText
+          <Typography
             style={styles.loadingText}
             translationKey="settings.comms.loadingSettings"
           />
@@ -140,26 +160,38 @@ export default function SystemRoute() {
             type="SWITCH"
             isEnabled={!!systemSettings.openOnStartup}
             onToggle={(value) => updateSetting("openOnStartup", value)}
-            style={{ borderBottomWidth: 0 }}
+            style={
+              !systemSettings.openOnStartup
+                ? { borderBottomWidth: 0 }
+                : undefined
+            }
           />
+          {!!systemSettings.openOnStartup && (
+            <SettingRow
+              iconName="CollapseIcon"
+              labelKey="settings.system.openMinimized"
+              type="SWITCH"
+              isEnabled={!!systemSettings.openMinimized}
+              onToggle={(value) => updateSetting("openMinimized", value)}
+              style={{ borderBottomWidth: 0 }}
+            />
+          )}
         </Section>
 
         <Section titleKey="settings.system.actionsSection">
           <View style={{ paddingHorizontal: 15 }}>
-            <DropdownMenu
-              label={t("settings.system.selectChat")}
+            <SystemChatSelector
               value={systemSettings.joinCommsChatId || ""}
               options={chatOptions}
-              onValueChange={(value) => updateSetting("joinCommsChatId", value)}
-              theme={theme}
+              onChatSelected={(value) =>
+                updateSetting("joinCommsChatId", value)
+              }
             />
 
-            <DropdownMenu
-              label={t("settings.system.selectSub")}
+            <SystemSubSelector
               value={"0"}
               options={subOptions}
-              onValueChange={() => {}}
-              theme={theme}
+              onSubSelected={() => {}}
               disabled={true}
             />
           </View>

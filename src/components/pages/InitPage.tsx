@@ -1,7 +1,6 @@
-import React from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { useThemeContext } from "@/src/context/ThemeContext";
-import AppText from "@/src/components/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 
 const InitPage = () => {
   const { theme } = useThemeContext();
@@ -14,8 +13,8 @@ const InitPage = () => {
           color={theme.text}
           style={styles.loader}
         />
-        <AppText
-          style={[styles.text, { color: theme.text }]}
+        <Typography
+          weight="medium"
           translationKey="layout.loadingData"
         />
       </View>
@@ -37,11 +36,6 @@ const styles = StyleSheet.create({
   loader: {
     marginBottom: 20,
     transform: [{ scale: 1.2 }],
-  },
-  text: {
-    fontSize: 16,
-    fontWeight: "500",
-    textAlign: "center",
   },
 });
 

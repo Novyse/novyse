@@ -14,6 +14,7 @@ build/
 .expo/
 dist/
 build/
+build-assets/
 web-build/
 expo-env.d.ts
 
@@ -61,3 +62,4 @@ GoogleService-Info.plist
 
 # Skia WebAssembly
 public/canvaskit.wasm
+novyse-release.keystore

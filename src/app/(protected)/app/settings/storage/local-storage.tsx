@@ -2,10 +2,10 @@ import React, { useContext } from "react";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "@/src/context/ThemeContext";
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import SettingsCard from "@/src/components/settings/SettingsCard";
-import StorageBreakdown from "@/src/components/settings/storage/StorageBreakdown";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import SettingsCard from "@/src/components/features/settings/SettingsCard";
+import StorageBreakdown from "@/src/components/features/settings/storage/StorageBreakdown";
 import useStorage from "@/src/hooks/settings/useStorage";
 
 export default function LocalStorageRoute() {

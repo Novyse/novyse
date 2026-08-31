@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { StatusBar } from "react-native";
 
 import { useScreen } from "@/src/context/ScreenContext";
@@ -72,10 +72,8 @@ const useLayout = (room, participants, containerDimensions, containerRef) => {
         }
       } else {
         StatusBar.setHidden(false, "fade");
-        ScreenOrientation.lockAsync(
-          ScreenOrientation.OrientationLock.PORTRAIT_UP,
-        ).catch((err) => {
-          console.error("Error locking portrait orientation:", err);
+        ScreenOrientation.unlockAsync().catch((err) => {
+          console.error("Error unlocking orientation:", err);
         });
       }
     }

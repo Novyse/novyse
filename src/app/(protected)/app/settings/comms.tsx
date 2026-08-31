@@ -1,19 +1,23 @@
-import React, { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
 import { StyleSheet, View, TouchableOpacity } from "react-native";
-import AppText from "@/src/components/AppText";
+import Typography from "@/src/components/ui/typography/Typography";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 
-import ToggleSelector from "@/src/components/ToggleSelector";
-import InputDeviceDropdown from "@/src/components/DropdownMenu";
+import CameraSelector from "@/src/components/features/comms/bottomBar/CameraSelector";
+import MicrophoneSelector from "@/src/components/features/comms/bottomBar/MicrophoneSelector";
 import settingsManager from "@/src/utils/global/SettingsManager";
+import { usesNativeAudioRouting } from "@/src/utils/comms/nativeAudio";
 
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import SettingsCard from "@/src/components/settings/SettingsCard";
-import StatusMessage from "@/src/components/StatusMessage";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
+import SettingsSection from "@/src/components/features/settings/SettingsSection";
+import SettingsRow from "@/src/components/features/settings/SettingsRow";
+import SpeakerSelector from "@/src/components/features/comms/bottomBar/SpeakerSelector";
+import SettingsSelectGroup from "@/src/components/features/settings/SettingsSelectGroup";
 
 export default function CommsRoute() {
   const { t } = useTranslation();
@@ -25,6 +29,9 @@ export default function CommsRoute() {
   const [audioDevices, setAudioDevices] = useState<any[]>([]);
   const [videoDevices, setVideoDevices] = useState<any[]>([]);
   const [devicesLoading, setDevicesLoading] = useState(true);
+  const [micModalVisible, setMicModalVisible] = useState(false);
+  const [speakerModalVisible, setSpeakerModalVisible] = useState(false);
+  const [cameraModalVisible, setCameraModalVisible] = useState(false);
   const styles = createStyle(theme);
 
   useEffect(() => {
@@ -85,10 +92,26 @@ export default function CommsRoute() {
   }));
 
   const entryModeOptions = [
-    { label: t("settings.comms.off"), value: "OFF" },
-    { label: t("settings.comms.audioOnly"), value: "AUDIO_ONLY" },
-    { label: t("settings.comms.videoOnly"), value: "VIDEO_ONLY" },
-    { label: t("settings.comms.both"), value: "BOTH" },
+    {
+      iconName: "Remove01Icon",
+      labelText: t("settings.comms.off"),
+      value: "OFF",
+    },
+    {
+      iconName: "AudioWave01Icon",
+      labelText: t("settings.comms.audioOnly"),
+      value: "AUDIO_ONLY",
+    },
+    {
+      iconName: "Camera01Icon",
+      labelText: t("settings.comms.videoOnly"),
+      value: "VIDEO_ONLY",
+    },
+    {
+      iconName: "SlidersVerticalIcon",
+      labelText: t("settings.comms.both"),
+      value: "BOTH",
+    },
   ];
 
   const qualityOptions = [
@@ -118,33 +141,11 @@ export default function CommsRoute() {
     { label: t("settings.comms.high"), value: "HIGH" },
   ];
 
-  const expanderOptions = [
-    { label: t("settings.comms.off"), value: "OFF" },
-    { label: t("settings.comms.low"), value: "LOW" },
-    { label: t("settings.comms.medium"), value: "MEDIUM" },
-    { label: t("settings.comms.high"), value: "HIGH" },
-  ];
-
   const noiseGateOptions = [
     { label: t("settings.comms.off"), value: "OFF" },
     { label: t("settings.comms.adaptive"), value: "ADAPTIVE" },
     { label: t("settings.comms.hybrid"), value: "HYBRID" },
     { label: t("settings.comms.manual"), value: "MANUAL" },
-  ];
-
-  // Threshold expressed as string options (dB steps)
-  const noiseGateThresholdOptions = [
-    { label: "-60 dB", value: "-60" },
-    { label: "-40 dB", value: "-40" },
-    { label: "-20 dB", value: "-20" },
-    { label: "0 dB", value: "0" },
-  ];
-
-  const typingAttenuationOptions = [
-    { label: t("settings.comms.off"), value: "OFF" },
-    { label: t("settings.comms.low"), value: "LOW" },
-    { label: t("settings.comms.medium"), value: "MEDIUM" },
-    { label: t("settings.comms.high"), value: "HIGH" },
   ];
 
   if (isLoading) {
@@ -155,7 +156,7 @@ export default function CommsRoute() {
           onBack={onBack}
         />
         <View style={styles.container}>
-          <AppText
+          <Typography
             style={styles.loadingText}
             translationKey="settings.comms.loadingSettings"
           />
@@ -172,12 +173,12 @@ export default function CommsRoute() {
           onBack={onBack}
         />
         <View style={styles.container}>
-          <AppText
+          <Typography
             style={styles.dangerText}
             translationKey="settings.comms.errorLoadingSettings"
           />
           <TouchableOpacity style={styles.retryButton} onPress={loadSettings}>
-            <AppText
+            <Typography
               style={styles.retryButtonText}
               translationKey="settings.comms.retry"
             />
@@ -194,215 +195,152 @@ export default function CommsRoute() {
         onBack={onBack}
       />
       <SettingsPageScrollview>
-        <StatusMessage type="warning" translationKey="common.developerNote" closable={false}/>
-        <SettingsCard>
-          <AppText
-            style={styles.sectionTitle}
-            translationKey="settings.comms.inputDevices"
-          />
-          <StatusMessage type="warning" translationKey="settings.comms.inputDevicesWarning" closable={false}/>
+        <StatusMessage
+          type="warning"
+          translationKey="common.developerNote"
+          closable={false}
+        />
+        <StatusMessage
+          type="warning"
+          translationKey="settings.comms.inputDevicesWarning"
+          closable={false}
+        />
 
-          {devicesLoading ? (
-            <View style={styles.disabledField}>
-              <AppText
-                style={styles.label}
-                translationKey="settings.comms.loadingDevices"
-              />
-            </View>
-          ) : (
-            <>
-              <InputDeviceDropdown
-                label={t("settings.comms.microphone")}
-                value={
-                  audioSettings.microphoneDeviceId ||
-                  (audioDeviceOptions.length > 0
-                    ? audioDeviceOptions[0].value
-                    : "")
-                }
-                options={
-                  audioDeviceOptions.length > 0
-                    ? audioDeviceOptions
-                    : [
-                        {
-                          label: t("settings.comms.noMicrophonesFound"),
-                          value: "",
-                        },
-                      ]
-                }
-                onValueChange={(value) =>
-                  updateSetting("microphoneDeviceId", value)
-                }
-                theme={theme}
-                disabled={audioDeviceOptions.length === 0}
-              />
-
-              <InputDeviceDropdown
-                label={t("settings.comms.webcam")}
-                value={
-                  audioSettings.webcamDeviceId ||
-                  (videoDeviceOptions.length > 0
-                    ? videoDeviceOptions[0].value
-                    : "")
-                }
-                options={
-                  videoDeviceOptions.length > 0
-                    ? videoDeviceOptions
-                    : [{ label: t("settings.comms.noCamerasFound"), value: "" }]
-                }
-                onValueChange={(value) =>
-                  updateSetting("webcamDeviceId", value)
-                }
-                theme={theme}
-                disabled={videoDeviceOptions.length === 0}
-              />
-            </>
+        <SettingsSection titleKey="settings.comms.inputDevices">
+          {!usesNativeAudioRouting && (
+            <SettingsRow
+              iconName="Mic02Icon"
+              labelKey="settings.comms.microphone"
+              type="MODAL"
+              onPress={() => setMicModalVisible(true)}
+            />
+          )}
+          {!usesNativeAudioRouting && (
+            <SettingsRow
+              iconName="VolumeHighIcon"
+              labelKey="settings.comms.speaker"
+              type="MODAL"
+              onPress={() => setSpeakerModalVisible(true)}
+            />
           )}
 
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.entryMode"
+          <SettingsRow
+            iconName="Camera01Icon"
+            labelKey="settings.comms.webcam"
+            type="MODAL"
+            onPress={() => setCameraModalVisible(true)}
           />
-          <ToggleSelector
+        </SettingsSection>
+
+        <SettingsSection titleKey="settings.comms.entryMode">
+          <SettingsSelectGroup
             options={entryModeOptions}
             value={audioSettings.entryMode || "AUDIO_ONLY"}
             onChange={(value) => updateSetting("entryMode", value)}
           />
-        </SettingsCard>
+        </SettingsSection>
 
-        <SettingsCard>
-          <AppText
-            style={styles.sectionTitle}
-            translationKey="settings.comms.videoSettings"
+        <SettingsSection titleKey="settings.comms.videoSettings">
+          <SettingsRow
+            iconName="Camera01Icon"
+            labelKey="settings.comms.webcamQuality"
+            type="MODAL"
+            // onPress={() => setCameraQualityModalVisible(true)}
           />
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.webcamQuality"
+          <SettingsRow
+            iconName="Camera01Icon"
+            labelKey="settings.comms.webcamFPS"
+            type="MODAL"
+            // onPress={() => setCameraFpsModalVisible(true)}
           />
-          <ToggleSelector
-            options={qualityOptions}
-            value={audioSettings.webcamQuality || "HD"}
-            onChange={(value) => updateSetting("webcamQuality", value)}
-          />
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.webcamFPS"
-          />
-          <ToggleSelector
-            options={fpsOptions}
-            value={String(audioSettings.webcamFPS || 30)}
-            onChange={(value) => updateSetting("webcamFPS", Number(value))}
-          />
-        </SettingsCard>
+        </SettingsSection>
 
-        <SettingsCard>
-          <AppText
-            style={styles.sectionTitle}
-            translationKey="settings.comms.screenShareSettings"
+        <SettingsSection titleKey="settings.comms.screenShareSettings">
+          <SettingsRow
+            iconName="ComputerScreenShareIcon"
+            labelKey="settings.comms.screenShareQuality"
+            type="MODAL"
+            // onPress={() => setScreenShareQualityModalVisible(true)}
           />
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.screenShareQuality"
+          <SettingsRow
+            iconName="ComputerScreenShareIcon"
+            labelKey="settings.comms.screenShareFPS"
+            type="MODAL"
+            // onPress={() => setScreenShareFpsModalVisible(true)}
           />
-          <ToggleSelector
-            options={qualityOptions}
-            value={audioSettings.screenShareQuality || "HD"}
-            onChange={(value) => updateSetting("screenShareQuality", value)}
+          <SettingsRow
+            iconName="ComputerScreenShareIcon"
+            labelKey="settings.comms.screenShareAudio"
+            type="SWITCH"
           />
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.screenShareFPS"
+        </SettingsSection>
+
+        <SettingsSection titleKey="settings.comms.audioProcessing">
+          <SettingsRow
+            iconName="AudioWave01Icon"
+            labelKey="settings.comms.noiseSuppression"
+            type="SWITCH"
           />
-          <ToggleSelector
-            options={fpsOptions}
-            value={String(audioSettings.screenShareFPS || 30)}
-            onChange={(value) => updateSetting("screenShareFPS", Number(value))}
+          <SettingsRow
+            iconName="AudioWave01Icon"
+            labelKey="settings.comms.noiseGate"
+            type="SWITCH"
           />
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.screenShareAudio"
-          />
-          <ToggleSelector
-            options={audioOptions}
-            value={audioSettings.screenShareAudio ? "ON" : "OFF"}
-            onChange={(value) =>
-              updateSetting("screenShareAudio", value === "ON")
+        </SettingsSection>
+
+        {!usesNativeAudioRouting && (
+          <MicrophoneSelector
+            visible={micModalVisible}
+            onClose={() => setMicModalVisible(false)}
+            currentDeviceId={audioSettings.microphoneDeviceId || "default"}
+            onMicrophoneSelected={(deviceId) =>
+              updateSetting("microphoneDeviceId", deviceId)
             }
           />
-        </SettingsCard>
+        )}
 
-        <SettingsCard>
-          <AppText
-            style={styles.sectionTitle}
-            translationKey="settings.comms.audioProcessing"
+        {!usesNativeAudioRouting && (
+          <SpeakerSelector
+            visible={speakerModalVisible}
+            onClose={() => setSpeakerModalVisible(false)}
+            currentDeviceId={audioSettings.speakerDeviceId || "default"}
+            onSpeakerSelected={(deviceId) =>
+              updateSetting("speakerDeviceId", deviceId)
+            }
           />
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.noiseSuppression"
-          />
-          <ToggleSelector
-            options={noiseSuppressionOptions}
-            value={audioSettings.noiseSuppressionLevel || "MEDIUM"}
-            onChange={(value) => updateSetting("noiseSuppressionLevel", value)}
-          />
+        )}
 
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.expander"
-          />
-          <ToggleSelector
-            options={expanderOptions}
-            value={audioSettings.expanderLevel || "MEDIUM"}
-            onChange={(value) => updateSetting("expanderLevel", value)}
-          />
-
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.noiseGate"
-          />
-          <ToggleSelector
-            options={noiseGateOptions}
-            value={audioSettings.noiseGateType || "ADAPTIVE"}
-            onChange={(value) => updateSetting("noiseGateType", value)}
-          />
-
-          {(audioSettings.noiseGateType === "HYBRID" ||
-            audioSettings.noiseGateType === "MANUAL") && (
-            <>
-              <AppText
-                style={styles.fieldLabel}
-                translationKey="settings.comms.noiseGateThreshold"
-              />
-              <ToggleSelector
-                options={noiseGateThresholdOptions}
-                value={String(audioSettings.noiseGateThreshold || -20)}
-                onChange={(value) =>
-                  updateSetting("noiseGateThreshold", Number(value))
-                }
-              />
-            </>
-          )}
-
-          <AppText
-            style={styles.fieldLabel}
-            translationKey="settings.comms.typingAttenuation"
-          />
-          <ToggleSelector
-            options={typingAttenuationOptions}
-            value={audioSettings.typingAttenuationLevel || "MEDIUM"}
-            onChange={(value) => updateSetting("typingAttenuationLevel", value)}
-          />
-        </SettingsCard>
+        <CameraSelector
+          visible={cameraModalVisible}
+          onClose={() => setCameraModalVisible(false)}
+          currentDeviceId={audioSettings.webcamDeviceId || "default"}
+          onCameraSelected={(deviceId) =>
+            updateSetting("webcamDeviceId", deviceId)
+          }
+        />
 
         {__DEV__ && (
-          <SettingsCard>
-            <AppText
+          <View
+            style={{
+              backgroundColor: theme.backgroundMain,
+              padding: 25,
+              borderRadius: 25,
+            }}
+          >
+            <Typography
+              size="lg"
+              weight="semibold"
+              text="DEV UI"
+              variant="danger"
+            />
+            <Typography
               style={styles.debugTitle}
               translationKey="settings.comms.currentSettings"
             />
-            <AppText style={styles.debugText}>
+            <Typography style={styles.debugText}>
               {JSON.stringify(audioSettings, null, 2)}
-            </AppText>
-          </SettingsCard>
+            </Typography>
+          </View>
         )}
       </SettingsPageScrollview>
     </>
@@ -439,17 +377,6 @@ const createStyle = (theme: any) =>
       fontSize: 16,
       fontWeight: "600",
     },
-    label: {
-      color: theme.text,
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    fieldLabel: {
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: "600",
-      marginBottom: 8,
-    },
     sectionTitle: {
       color: theme.text,
       fontSize: 18,
@@ -477,5 +404,5 @@ const createStyle = (theme: any) =>
       color: theme.subtitle,
       fontSize: 12,
       fontFamily: "monospace",
-    }
+    },
   });

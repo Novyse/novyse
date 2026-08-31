@@ -1,7 +1,7 @@
 import { useCallback } from "react";
-import { useForwardStore } from "@/src/context/ForwardContext";
-import { useActiveChatStore } from "@/src/context/ActiveChatContext";
-import useUserStore from "@/src/context/UserContext";
+import { useForwardStore } from "@/src/store/ForwardStore";
+import { useActiveChatStore } from "@/src/store/ActiveChatStore";
+import useUserStore from "@/src/store/UserStore";
 import queueManager from "@/src/utils/chat/queueManager";
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 import useDownload from "@/src/hooks/file/useDownload";
@@ -57,6 +57,7 @@ export const useForward = () => {
 
         const message = {
           senderUUID: myUUID,
+          subID: 0,
           content: msg.content || "",
           type: msg.type,
           replyTos: [],

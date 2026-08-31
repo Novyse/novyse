@@ -3,17 +3,18 @@ import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
 import auth from "@/src/utils/welcome/auth";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import Section from "@/src/components/settings/Section";
-import SettingRow from "@/src/components/settings/SettingRow";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import Section from "@/src/components/features/settings/SettingsSection";
+import SettingRow from "@/src/components/features/settings/SettingsRow";
 
 import useStorage from "@/src/hooks/settings/useStorage";
 
 export default function StorageRoute() {
   const { t } = useTranslation();
-  const onBack = () => router.canGoBack() ? router.back() : router.push("/app");
+  const onBack = () =>
+    router.canGoBack() ? router.back() : router.push("/app");
   const { theme } = useContext(ThemeContext);
 
   const handlePress = (navToPage: string) => {
@@ -37,14 +38,19 @@ export default function StorageRoute() {
 
   return (
     <>
-      <HeaderWithBackArrow translationKey="settings.menu.storage" onBack={onBack} />
+      <HeaderWithBackArrow
+        translationKey="settings.menu.storage"
+        onBack={onBack}
+      />
       <SettingsPageScrollview>
         <Section titleKey="settings.menu.storage">
           <SettingRow
             iconName="Database02Icon"
             labelKey="settings.storage.localStorage"
             valueKey="settings.storage.gbUsed"
-            valueOptions={{ count: (usedStorage / (1024 * 1024 * 1024)).toFixed(2) }}
+            valueOptions={{
+              count: (usedStorage / (1024 * 1024 * 1024)).toFixed(2),
+            }}
             onPress={handleNavigateToLocal}
           />
           <SettingRow
@@ -55,7 +61,7 @@ export default function StorageRoute() {
             style={{ borderBottomWidth: 0 }}
           />
         </Section>
-        
+
         <Section>
           <SettingRow
             iconName="Delete02Icon"
@@ -69,5 +75,3 @@ export default function StorageRoute() {
     </>
   );
 }
-
-

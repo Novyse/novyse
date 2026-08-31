@@ -4,16 +4,22 @@ import { View, StyleSheet, TouchableOpacity, Pressable } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 
 import { ThemeContext } from "@/src/context/ThemeContext";
-import useUserStore from "@/src/context/UserContext";
-import ToggleSelector, { ToggleOption } from "@/src/components/ToggleSelector";
-import AppText from "@/src/components/AppText";
+import useUserStore from "@/src/store/UserStore";
+import SegmentedSwitch, {
+  ToggleOption,
+} from "@/src/components/ui/switch/SegmentedSwitch";
+import Typography from "@/src/components/ui/typography/Typography";
 import { useTranslation } from "react-i18next";
-import Icon from "@/src/components/Icon";
+import Icon from "@/src/components/ui/icon/Icon";
 import { useChatMetadata } from "@/src/hooks/chat/useChatMetadata";
-import Avatar from "@/src/components/Avatar";
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import useChatStore from "@/src/context/ChatContext";
+import Avatar from "@/src/components/ui/avatar/Avatar";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import useChatStore from "@/src/store/ChatStore";
+import { BadgeRenderer } from "@/src/components/features/badge/Badges";
+import Divider from "@/src/components/ui/divider/Divider";
+import SettingsSection from "@/src/components/features/settings/SettingsSection";
+import SettingsRow from "@/src/components/features/settings/SettingsRow";
 
 type GroupTab =
   | "members"
@@ -105,12 +111,12 @@ const ChatOverview = () => {
             <Icon name="UserIcon" color={theme.primary} />
           </View>
           <View style={styles.dmInfoContent}>
-            <AppText
-              style={styles.dmInfoLabel}
+            <Typography
+              weight="semibold"
               translationKey="settings.modifyProfile.username"
             />
-            <AppText
-              style={styles.dmInfoValue}
+            <Typography
+              weight="semibold"
               text={
                 dmUser.handle
                   ? `@${dmUser.handle}`
@@ -130,12 +136,12 @@ const ChatOverview = () => {
             <Icon name="InformationCircleIcon" color={theme.primary} />
           </View>
           <View style={styles.dmInfoContent}>
-            <AppText
-              style={styles.dmInfoLabel}
+            <Typography
+              weight="semibold"
               translationKey="settings.modifyProfile.biography"
             />
-            <AppText
-              style={styles.dmInfoValue}
+            <Typography
+              weight="semibold"
               text={dmUser.biography || t("chat.overview.noDescriptionYet")}
             />
           </View>
@@ -145,15 +151,16 @@ const ChatOverview = () => {
   };
 
   const renderMembers = (chat: any) => {
-    console.log(chat);
     if (!chat?.members || chat.members.length === 0) {
       return (
-        <AppText
-          style={styles.emptyText}
+        <Typography
+          variant="subtitle"
           translationKey="chat.overview.noMembers"
         />
       );
     }
+
+    const chatRoles = chat?.roles || [];
 
     return (
       <View style={styles.listContainer}>
@@ -161,50 +168,70 @@ const ChatOverview = () => {
           const mUUID = member.uuid || member.userUUID;
           const user = mUUID ? users[mUUID] || member : member;
 
+          const memberRoleIDs = member.roleIDs ||
+            member.role_ids ||
+            member.roleIds || [2];
+          const resolvedRoles = chatRoles.filter((r: any) =>
+            memberRoleIDs.some((id: number) => Number(r.id) === Number(id)),
+          );
+
           return (
-            <Pressable
-              key={mUUID || index}
-              style={styles.memberItem}
-              onPress={() => {
-                router.navigate(`/profile/${user.handle}`);
-              }}
-            >
-              {user.profilePictureUUID ? (
-                <Avatar
-                  uuid={user.profilePictureUUID || undefined}
-                  isOnline={user.status === "ONLINE"}
-                  style={styles.memberAvatar}
-                />
-              ) : (
-                <View
-                  style={[
-                    styles.memberAvatar,
-                    { backgroundColor: theme.primary + "33" },
-                  ]}
-                >
-                  <AppText style={{ color: theme.primary, fontWeight: "600" }}>
-                    {(user.name || user.handle || "?")[0].toUpperCase()}
-                  </AppText>
+            <>
+              <Pressable
+                key={mUUID || index}
+                style={styles.memberItem}
+                onPress={() => {
+                  router.navigate(`/profile/${user.handle}`);
+                }}
+              >
+                {user.profilePictureUUID ? (
+                  <Avatar
+                    uuid={user.profilePictureUUID || undefined}
+                    isOnline={user.status === "ONLINE"}
+                    style={styles.memberAvatar}
+                  />
+                ) : (
+                  <View
+                    style={[
+                      styles.memberAvatar,
+                      { backgroundColor: theme.primary + "33" },
+                    ]}
+                  >
+                    <Typography
+                      text={(user.name || user.handle || "?")[0].toUpperCase()}
+                    />
+                  </View>
+                )}
+                <View style={styles.memberInfo}>
+                  <Typography
+                    weight="semibold"
+                    text={
+                      user.name || user.handle || t("chat.listItem.unknown")
+                    }
+                  />
+                  <View style={styles.roleBadgesContainer}>
+                    {resolvedRoles.map((role: any) => (
+                      <BadgeRenderer key={role.id} badge={role} />
+                    ))}
+                  </View>
                 </View>
-              )}
-              <View style={styles.memberInfo}>
-                <AppText style={styles.memberName}>
-                  {user.name || user.handle || t("chat.listItem.unknown")}
-                </AppText>
-                <AppText style={styles.memberRole}>
-                  {member.role || t("messageFormat.system.user")}
-                </AppText>
-              </View>
-              {member.joinedAt && (
-                <AppText style={styles.memberJoinedAt}>
-                  {DateTime.fromISO(new Date(member.joinedAt).toISOString(), {
-                    zone: "utc",
-                  })
-                    .toLocal()
-                    .toFormat("MMMM d, yyyy")}
-                </AppText>
-              )}
-            </Pressable>
+                {member.joinedAt && (
+                  <Typography
+                    size="xs"
+                    variant="subtitle"
+                    text={DateTime.fromISO(
+                      new Date(member.joinedAt).toISOString(),
+                      {
+                        zone: "utc",
+                      },
+                    )
+                      .toLocal()
+                      .toFormat("MMMM d, yyyy")}
+                  />
+                )}
+              </Pressable>
+              {index !== chat.members.length - 1 && <Divider />}
+            </>
           );
         })}
       </View>
@@ -216,8 +243,9 @@ const ChatOverview = () => {
       return (
         <View style={styles.emptyContainer}>
           <Icon name="Folder01Icon" size={48} color={theme.subtitle} />
-          <AppText
-            style={styles.emptyText}
+          <Typography
+            size="sm"
+            variant="subtitle"
             translationKey="chat.overview.noFiles"
           />
         </View>
@@ -228,13 +256,15 @@ const ChatOverview = () => {
       <View style={styles.listContainer}>
         {files.map((file: any, index: number) => (
           <View key={file.id || index} style={styles.fileItem}>
-            <Icon name="File02Icon" size={32} color={theme.primary} />
+            <Icon name="File01Icon" size={32} color={theme.primary} />
             <View style={styles.fileInfo}>
-              <AppText style={styles.fileName}>
-                {file.name || t("common.unnamedFile")}
-              </AppText>
-              <AppText
-                style={styles.fileSize}
+              <Typography
+                weight="semibold"
+                text={file.name || t("common.unnamedFile")}
+              />
+              <Typography
+                size="xs"
+                variant="subtitle"
                 text={`${(file.size / 1024).toFixed(2)} KB`}
               />
             </View>
@@ -271,9 +301,12 @@ const ChatOverview = () => {
               uuid={profilePictureUUID || undefined}
               style={styles.profilePicture}
             />
-            <AppText style={styles.membersLabel}>
-              {isDM ? name : t("chat.memberCount", { count: membersCount })}
-            </AppText>
+            <Typography
+              variant="subtitle"
+              text={
+                isDM ? name : t("chat.memberCount", { count: membersCount })
+              }
+            />
           </View>
         </View>
 
@@ -282,13 +315,13 @@ const ChatOverview = () => {
 
         <View style={styles.tabsSection}>
           {isDM ? (
-            <ToggleSelector
+            <SegmentedSwitch
               options={dmTabs}
               value={selectedDMTab}
               onChange={(val) => setSelectedDMTab(val)}
             />
           ) : (
-            <ToggleSelector
+            <SegmentedSwitch
               options={groupTabs}
               value={selectedGroupTab}
               onChange={(val) => setSelectedGroupTab(val)}
@@ -300,51 +333,28 @@ const ChatOverview = () => {
           {isDM ? renderDMTabContent() : renderGroupTabContent(chat)}
         </View>
 
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={styles.actionButton}
+        <SettingsSection>
+          <SettingsRow
+            iconName="Settings01Icon"
+            labelKey="chat.overview.actions.settings"
             onPress={() =>
               router.push(
                 `/app/chat/${chatUUIDorHandle}/${sub}/settings` as any,
               )
             }
-          >
-            <View
-              style={[
-                styles.actionIconContainer,
-                { backgroundColor: theme.primary + "15" },
-              ]}
-            >
-              <Icon name="Settings01Icon" color={theme.primary} />
-            </View>
-            <AppText
-              style={[styles.actionText, { color: theme.primary }]}
-              translationKey="common.settings"
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
+          />
+          <SettingsRow
+            iconName="StarIcon"
+            labelKey="chat.overview.actions.favourite_messages"
             onPress={() => {}}
-            disabled
-          >
-            <View
-              style={[
-                styles.actionIconContainer,
-                { backgroundColor: theme.backgroundDanger + "15" },
-              ]}
-            >
-              <Icon
-                name={isDM ? "UnavailableIcon" : "Logout01Icon"}
-                color={theme.iconDanger}
-              />
-            </View>
-            <AppText
-              style={[styles.actionText, { color: theme.iconDanger }]}
-              translationKey={isDM ? "common.block" : "common.leave"}
-            />
-          </TouchableOpacity>
-        </View>
+          />
+          <SettingsRow
+            iconName="Logout01Icon"
+            danger
+            labelKey="chat.overview.actions.leave"
+            onPress={() => {}}
+          />
+        </SettingsSection>
       </SettingsPageScrollview>
     </>
   );
@@ -357,12 +367,6 @@ const createStyles = (theme: any) =>
       alignItems: "center",
       position: "relative",
     },
-    backButton: {
-      position: "absolute",
-      top: 50,
-      left: 20,
-      zIndex: 10,
-    },
     profileSection: {
       alignItems: "center",
       marginBottom: 30,
@@ -372,17 +376,6 @@ const createStyles = (theme: any) =>
       height: 120,
       borderRadius: 60,
       marginBottom: 15,
-    },
-    groupName: {
-      fontSize: 24,
-      fontWeight: "700",
-      color: theme.text,
-      marginBottom: 5,
-    },
-    membersLabel: {
-      fontSize: 16,
-      color: theme.subtitle,
-      fontWeight: "500",
     },
     dmInfoContainer: {
       marginHorizontal: 20,
@@ -408,23 +401,12 @@ const createStyles = (theme: any) =>
     dmInfoContent: {
       flex: 1,
     },
-    dmInfoLabel: {
-      fontSize: 12,
-      color: theme.subtitle,
-      marginBottom: 2,
-    },
-    dmInfoValue: {
-      fontSize: 15,
-      fontWeight: "500",
-      color: theme.text,
-    },
     tabsSection: {
-      paddingHorizontal: 20,
       marginBottom: 20,
     },
     mainContent: {
-      paddingHorizontal: 20,
       minHeight: 200,
+      alignItems: "center",
     },
     listContainer: {
       width: "100%",
@@ -433,8 +415,6 @@ const createStyles = (theme: any) =>
       flexDirection: "row",
       alignItems: "center",
       paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.border,
     },
     memberAvatar: {
       width: 45,
@@ -447,20 +427,11 @@ const createStyles = (theme: any) =>
     memberInfo: {
       flex: 1,
     },
-    memberName: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: theme.text,
-    },
-    memberRole: {
-      fontSize: 14,
-      color: theme.subtitle,
-      marginTop: 2,
-    },
-    memberJoinedAt: {
-      fontSize: 12,
-      color: theme.subtitle,
-      opacity: 0.7,
+    roleBadgesContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 6,
+      marginTop: 4,
     },
     fileItem: {
       flexDirection: "row",
@@ -475,50 +446,10 @@ const createStyles = (theme: any) =>
       flex: 1,
       marginLeft: 15,
     },
-    fileName: {
-      fontSize: 15,
-      fontWeight: "600",
-      color: theme.text,
-    },
-    fileSize: {
-      fontSize: 13,
-      color: theme.subtitle,
-      marginTop: 2,
-    },
     emptyContainer: {
       alignItems: "center",
       justifyContent: "center",
       paddingVertical: 60,
-    },
-    emptyText: {
-      marginTop: 15,
-      fontSize: 15,
-      color: theme.subtitle,
-      textAlign: "center",
-    },
-    actions: {
-      marginTop: 30,
-      paddingHorizontal: 20,
-      gap: 15,
-    },
-    actionButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: 15,
-      borderRadius: 16,
-      backgroundColor: theme.backgroundMainGradient[0],
-    },
-    actionIconContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      justifyContent: "center",
-      alignItems: "center",
-      marginRight: 15,
-    },
-    actionText: {
-      fontSize: 16,
-      fontWeight: "600",
     },
   });
 

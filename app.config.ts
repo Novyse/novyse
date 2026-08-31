@@ -64,7 +64,7 @@ export default {
     name: `${APP_NAME}${devSuffix}`,
     slug: APP_SLUG,
     version: APP_VERSION,
-    orientation: "portrait",
+    orientation: "default",
     icon: "./assets/images/novyse-icon-logo.png",
     scheme: `${APP_SLUG}${devSuffix}`,
     owner: EXPO_OWNER,
@@ -85,6 +85,7 @@ export default {
         process.env.GOOGLE_SERVICES_PLIST || "./GoogleService-Info.plist",
     },
     android: {
+      versionCode: 2,
       adaptiveIcon: {
         foregroundImage: "./assets/images/novyse-icon-logo.png",
         backgroundColor: "#ffffff",
@@ -124,7 +125,9 @@ export default {
         "WAKE_LOCK",
         "USE_FULL_SCREEN_INTENT",
         "VIBRATE",
-        "REQUEST_INSTALL_PACKAGES",
+        ...(process.env.IS_PLAY_STORE === "true"
+          ? []
+          : ["REQUEST_INSTALL_PACKAGES"]),
       ],
       googleServicesFile:
         process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
@@ -203,6 +206,7 @@ export default {
           androidFSTypes: ["mediaPlayback"],
         },
       ],
+      "react-native-enriched-markdown",
       "@livekit/react-native-expo-plugin",
       [
         "expo-share-intent",
@@ -218,12 +222,28 @@ export default {
           androidIntentFilters: ["*/*"],
         },
       ],
+      [
+        "expo-screen-orientation",
+        {
+          initialOrientation: "DEFAULT",
+        },
+      ],
       "expo-font",
       "expo-image",
       "expo-localization",
       "expo-secure-store",
       "expo-sharing",
       "expo-status-bar",
+      [
+        "expo-build-properties",
+        {
+          android: {
+            packagingOptions: {
+              useLegacyPackaging: false,
+            },
+          },
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,

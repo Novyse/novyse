@@ -72,8 +72,8 @@ export const LoginColors: Record<
     backgroundTimeline: "#E0E0E0",
 
     // Bottoni
-    submitButtonTextColor: "#fff",
-    backButtonTextColor: "#000",
+    submitButtonTextColor: "#f1f1f1",
+    backButtonTextColor: "#2D2D2D",
     hoveredSubmitButton: "#003f9eff",
     pressedSubmitButton: "#0049b8ff",
     hoveredBackButton: "#c7c7c7ff",

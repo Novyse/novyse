@@ -1,12 +1,12 @@
 import React, { useEffect } from "react";
 import { router } from "expo-router";
 
-import HeaderWithBackArrow from "@/src/components/HeaderWithBackArrow";
-import SettingsPageScrollview from "@/src/components/settings/SettingsPageScrollview";
-import SettingsCard from "@/src/components/settings/SettingsCard";
-import ShortcutItem from "@/src/components/settings/shortcuts/ShortcutItem";
-import StatusMessage from "@/src/components/StatusMessage";
-import AppText from "@/src/components/AppText";
+import HeaderWithBackArrow from "@/src/components/features/header/HeaderWithBackArrow";
+import SettingsPageScrollview from "@/src/components/features/settings/SettingsPageScrollview";
+import SettingsCard from "@/src/components/features/settings/SettingsCard";
+import ShortcutItem from "@/src/components/features/settings/shortcuts/ShortcutItem";
+import StatusMessage from "@/src/components/features/status/StatusMessage";
+import Typography from "@/src/components/ui/typography/Typography";
 
 import { shortcutsRpc } from "@/src/utils/electron/shortcuts";
 import { getPlatform } from "@/src/utils/device/type";
@@ -83,7 +83,7 @@ export default function ShortcutsRoute() {
           closable={false}
         />
 
-        <AppText
+        <Typography
           style={{ marginVertical: 12, marginLeft: 16, fontSize: 16 }}
           translationKey="settings.shortcuts.chatTitle"
         />
@@ -98,7 +98,7 @@ export default function ShortcutsRoute() {
             />
           ))}
         </SettingsCard>
-        <AppText
+        <Typography
           style={{ marginVertical: 12, marginLeft: 16, fontSize: 16 }}
           translationKey="settings.shortcuts.commsTitle"
         />

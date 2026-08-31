@@ -3,15 +3,12 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 
 import authInit from "@/src/utils/welcome/auth";
 import auth from "@/src/utils/backend-services/auth";
-import LoginForm from "@/src/components/welcome/login/LoginForm";
+import LoginForm from "@/src/components/features/welcome/login/LoginForm";
 
 const LoginPassword = () => {
   const router = useRouter();
-  const {
-    username: urlUsername,
-    signedup: urlSignedup,
-    type: urlType,
-  } = useLocalSearchParams();
+  const { username: urlUsername, signedup: urlSignedup } =
+    useLocalSearchParams();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,29 +58,6 @@ const LoginPassword = () => {
     }
   };
 
-  const handleLoginWithPasskey = async (captchaToken: string) => {
-    setError(null);
-    setIsLoading(true);
-
-    try {
-      const ok = await auth.signin.passkey(captchaToken);
-
-      if (!ok.success) {
-        setError(ok.error || "Passkey login failed");
-        return;
-      }
-
-      const { data } = ok;
-      await authInit.setLogin(data.userUUID, data.sessionID, data.session_id);
-      router.replace("/app");
-    } catch (e: any) {
-      console.error(e);
-      setError("An unexpected error occurred during passkey login");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleSignup = () => {
     router.navigate("/signup");
   };
@@ -91,14 +65,12 @@ const LoginPassword = () => {
   return (
     <LoginForm
       onLogin={handleLogin}
-      onLoginWithPasskey={handleLoginWithPasskey}
       onSignup={handleSignup}
       isLoading={isLoading}
       error={error}
       onErrorDismiss={() => setError(null)}
       urlUsername={urlUsername as string}
       urlSignedup={urlSignedup === "true"}
-      urlType={urlType as "opaque" | "passkey"}
     />
   );
 };

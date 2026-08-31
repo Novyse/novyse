@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { BackHandler } from "react-native";
 import { router } from "expo-router";
 
-import { getActiveTabName } from "@/src/components/tabs/TabNavigator";
+import { getActiveTabName } from "@/src/components/features/tabs/TabNavigator";
 import { tabNavigator } from "@/src/utils/navigation/tabRef";
 
 /**
