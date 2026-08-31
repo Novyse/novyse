@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:webview_all/webview_all.dart';
+
+import '../../../core/utils/platform.dart';
 
 /// A universal Turnstile widget supporting Web, Mobile (Android/iOS),
 /// and Desktop (Windows, macOS, Linux) via [webview_all].
@@ -9,7 +12,7 @@ class TurnstileWidget extends StatefulWidget {
   const TurnstileWidget({
     super.key,
     required this.siteKey,
-    this.baseUrl = 'https://app.novyse.com',
+    this.baseUrl = 'http://localhost',
     this.action,
     this.theme = 'dark',
     this.language,
@@ -23,7 +26,7 @@ class TurnstileWidget extends StatefulWidget {
   /// The Turnstile public site key.
   final String siteKey;
 
-  /// The base URL used by Cloudflare for domain verification.
+  /// The base URL used as fallback.
   final String baseUrl;
 
   /// Optional action name for reporting (e.g. 'login', 'signup').
@@ -56,6 +59,7 @@ class TurnstileWidget extends StatefulWidget {
 
 class _TurnstileWidgetState extends State<TurnstileWidget> {
   late final WebViewController _controller;
+  HttpServer? _server;
   bool _isInitialized = false;
 
   @override
@@ -64,7 +68,13 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
     _initController();
   }
 
-  void _initController() {
+  @override
+  void dispose() {
+    _server?.close(force: true);
+    super.dispose();
+  }
+
+  Future<void> _initController() async {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.transparent)
@@ -81,8 +91,31 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
       );
 
     final html = _generateHtml();
-    _controller.loadHtmlString(html, baseUrl: widget.baseUrl);
-    _isInitialized = true;
+    final isWindows = currentOS == AppOS.windows;
+
+    if (isWindows) {
+      try {
+        _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+        _server!.listen((HttpRequest request) {
+          request.response
+            ..headers.contentType = ContentType.html
+            ..headers.set('Access-Control-Allow-Origin', '*')
+            ..write(html)
+            ..close();
+        });
+        await _controller.loadRequest(
+          Uri.parse('http://localhost:${_server!.port}'),
+        );
+      } catch (_) {
+        await _controller.loadHtmlString(html, baseUrl: widget.baseUrl);
+      }
+    } else {
+      await _controller.loadHtmlString(html, baseUrl: widget.baseUrl);
+    }
+
+    if (mounted) {
+      setState(() => _isInitialized = true);
+    }
   }
 
   void _handleJavaScriptMessage(JavaScriptMessage message) {
