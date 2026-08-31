@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:qr/qr.dart';
 
 import '../../core/auth_service.dart';
 import '../../core/l10n/l10n.dart';
 import '../../core/auth/use_qr_code.dart';
+import '../../ui/components/onboarding/styled_qr_code.dart';
 
 class WelcomePage extends ConsumerWidget {
   const WelcomePage({super.key});
@@ -45,14 +45,8 @@ class WelcomePage extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(26),
                       ),
                       child: isCompact
-                          ? _CompactContent(
-                              onLogin: () => context.go('/login'),
-                              onSignup: () => context.go('/signup'),
-                            )
-                          : _WideContent(
-                              onLogin: () => context.go('/login'),
-                              onSignup: () => context.go('/signup'),
-                            ),
+                          ? const _CompactWelcomeContent()
+                          : const _WideWelcomeContent(),
                     );
                   },
                 ),
@@ -65,99 +59,121 @@ class WelcomePage extends ConsumerWidget {
   }
 }
 
-class _WideContent extends StatelessWidget {
-  const _WideContent({required this.onLogin, required this.onSignup});
-
-  final VoidCallback onLogin;
-  final VoidCallback onSignup;
+class _CompactWelcomeContent extends StatelessWidget {
+  const _CompactWelcomeContent();
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _WelcomeCopy(onLogin: onLogin, onSignup: onSignup),
-        ),
-        const SizedBox(
-          height: 338,
-          child: VerticalDivider(
-            width: 1,
-            thickness: 1,
-            color: Color(0x80505D69),
-          ),
-        ),
-        Expanded(child: _QrContent()),
-      ],
-    );
-  }
-}
-
-class _CompactContent extends StatelessWidget {
-  const _CompactContent({required this.onLogin, required this.onSignup});
-
-  final VoidCallback onLogin;
-  final VoidCallback onSignup;
-
-  @override
-  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
-      children: [
-        _WelcomeCopy(onLogin: onLogin, onSignup: onSignup),
-        const SizedBox(height: 38),
-        const Divider(color: Color(0x80505D69)),
-        const SizedBox(height: 30),
-        _QrContent(),
-      ],
-    );
-  }
-}
-
-class _WelcomeCopy extends StatelessWidget {
-  const _WelcomeCopy({required this.onLogin, required this.onSignup});
-
-  final VoidCallback onLogin;
-  final VoidCallback onSignup;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Image.asset(
-          'assets/images/logo-novyse-512.png',
-          width: 150,
-          height: 150,
+          'assets/images/logo-novyse.png',
+          width: 140,
+          height: 140,
+          fit: BoxFit.contain,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         Text(
-          AppLocalizations.of(context)!.welcomeTitle,
-          textAlign: TextAlign.center,
+          l10n.welcomeTitle,
           style: const TextStyle(
             color: WelcomePage._headingColor,
             fontSize: 40,
             fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 38),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _WelcomeButton(
-              label: AppLocalizations.of(context)!.register,
-              onPressed: onSignup,
+              label: l10n.register,
+              onPressed: () => context.go('/signup'),
               backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF101820),
+              foregroundColor: WelcomePage._buttonColor,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             _WelcomeButton(
-              label: AppLocalizations.of(context)!.login,
-              onPressed: onLogin,
+              label: l10n.login,
+              onPressed: () => context.go('/login'),
               backgroundColor: WelcomePage._buttonColor,
               foregroundColor: Colors.white,
             ),
           ],
         ),
       ],
+    );
+  }
+}
+
+class _WideWelcomeContent extends StatelessWidget {
+  const _WideWelcomeContent();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/images/logo-novyse.png',
+                    width: 150,
+                    height: 150,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n.welcomeTitle,
+                    style: const TextStyle(
+                      color: WelcomePage._headingColor,
+                      fontSize: 42,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 38),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _WelcomeButton(
+                        label: l10n.register,
+                        onPressed: () => context.go('/signup'),
+                        backgroundColor: Colors.white,
+                        foregroundColor: WelcomePage._buttonColor,
+                      ),
+                      const SizedBox(width: 14),
+                      _WelcomeButton(
+                        label: l10n.login,
+                        onPressed: () => context.go('/login'),
+                        backgroundColor: WelcomePage._buttonColor,
+                        foregroundColor: Colors.white,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const VerticalDivider(
+            color: Color(0xFFD6E3F0),
+            thickness: 1,
+            width: 1,
+          ),
+          const Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 28, vertical: 18),
+              child: _QrContent(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -212,7 +228,7 @@ class _QrContentState extends ConsumerState<_QrContent> {
             Container(
               width: 252,
               height: 252,
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: Colors.white,
                 border: Border.all(
@@ -222,7 +238,20 @@ class _QrContentState extends ConsumerState<_QrContent> {
                 borderRadius: BorderRadius.circular(24),
               ),
               child: hasToken
-                  ? CustomPaint(painter: _QrPainter(state.qrToken!))
+                  ? Center(
+                      child: StyledQrCode(
+                        data: state.qrToken!,
+                        size: 220,
+                        gradientColors: const [
+                          Color(0xFF2241D3),
+                          Color(0xFF1FA6D3),
+                        ],
+                        embeddedLogo: Image.asset(
+                          'assets/images/logo-novyse.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    )
                   : const Center(
                       child: CircularProgressIndicator(
                         color: WelcomePage._headingColor,
@@ -288,42 +317,4 @@ class _WelcomeButton extends StatelessWidget {
       ),
     );
   }
-}
-
-class _QrPainter extends CustomPainter {
-  const _QrPainter(this.value);
-
-  final String value;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final payload = QrPayload.fromString(value);
-    final qrCode = QrCode(
-      payload: payload,
-      errorCorrectLevel: QrErrorCorrectLevel.high,
-    );
-    final image = QrImage(qrCode);
-    final moduleSize = size.shortestSide / image.moduleCount;
-    final paint = Paint()..color = WelcomePage._headingColor;
-
-    for (var row = 0; row < image.moduleCount; row++) {
-      for (var column = 0; column < image.moduleCount; column++) {
-        if (image.isDark(row, column)) {
-          canvas.drawRect(
-            Rect.fromLTWH(
-              column * moduleSize,
-              row * moduleSize,
-              moduleSize + 0.2,
-              moduleSize + 0.2,
-            ),
-            paint,
-          );
-        }
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _QrPainter oldDelegate) =>
-      oldDelegate.value != value;
 }
