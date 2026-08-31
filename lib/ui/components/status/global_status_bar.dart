@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:novyse/core/stores/status_store.dart';
+
 import 'status_message.dart';
 
 /// Reactive global status bar that displays the current highest-priority status notification.
@@ -29,10 +30,7 @@ class GlobalStatusBar extends ConsumerWidget implements PreferredSizeWidget {
         return SizeTransition(
           sizeFactor: animation,
           alignment: Alignment.topCenter,
-          child: FadeTransition(
-            opacity: animation,
-            child: child,
-          ),
+          child: FadeTransition(opacity: animation, child: child),
         );
       },
       child: status != null

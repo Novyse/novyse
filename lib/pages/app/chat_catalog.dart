@@ -27,8 +27,7 @@ class ChatCatalog {
       message: 'Ti va di fare una call?',
       time: '09:42',
       unread: 2,
-      details:
-          'Stiamo definendo i dettagli del briefing e ho bisogno del tuo ok finale prima di inviare il materiale.',
+      details: 'Stiamo definendo i dettagli del briefing e ho bisogno del tuo ok finale prima di inviare il materiale.',
     ),
     ChatPreview(
       id: 'marco',
@@ -36,8 +35,7 @@ class ChatCatalog {
       message: 'Ho mandato i file finali.',
       time: 'Ieri',
       unread: 0,
-      details:
-          'Ho condiviso gli ultimi mockup e il file di checklist finale. Ti chiedo solo una verifica rapida.',
+      details: 'Ho condiviso gli ultimi mockup e il file di checklist finale. Ti chiedo solo una verifica rapida.',
     ),
     ChatPreview(
       id: 'sofia',
@@ -45,8 +43,7 @@ class ChatCatalog {
       message: 'Perfetto, lo vedo più tardi.',
       time: 'Lun',
       unread: 4,
-      details:
-          'Ho aggiornato la documentazione e il ticket con le note del meeting. Controllo finale nel pomeriggio.',
+      details: 'Ho aggiornato la documentazione e il ticket con le note del meeting. Controllo finale nel pomeriggio.',
     ),
     ChatPreview(
       id: 'luca',
@@ -54,8 +51,7 @@ class ChatCatalog {
       message: 'Abbiamo un appuntamento alle 15:00.',
       time: 'Dom',
       unread: 1,
-      details:
-          'Ti aspetto alle 15:00 in ufficio per riassumere le azioni del sprint e i prossimi step.',
+      details: 'Ti aspetto alle 15:00 in ufficio per riassumere le azioni del sprint e i prossimi step.',
     ),
   ];
 

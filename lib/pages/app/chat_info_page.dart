@@ -18,7 +18,7 @@ class ChatInfoPage extends StatelessWidget {
         title: Text(chat == null ? 'Info chat' : 'Info · ${chat.name}'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-            onPressed: () => popOrChats(context),
+          onPressed: () => popOrChats(context),
         ),
       ),
       body: chat == null
@@ -64,7 +64,7 @@ class ChatMediaPage extends StatelessWidget {
         title: Text(chat == null ? 'Media' : 'Media · ${chat.name}'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-            onPressed: () => popOrChats(context),
+          onPressed: () => popOrChats(context),
         ),
       ),
       body: ListView(

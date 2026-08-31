@@ -4,11 +4,9 @@ library;
 const String branch = 'development'; // 'development' | 'preview' | 'production'
 
 /// Application metadata.
-const String appName = switch (branch) {
-  'production' => 'Novyse',
-  'preview' => 'Novyse.preview',
-  _ => 'Novyse.dev',
-};
+const String appName = branch == 'production'
+    ? 'Novyse'
+    : (branch == 'preview' ? 'Novyse.preview' : 'Novyse.dev');
 const String appVersion = '1.2.0-20260831.0';
 
 // Domain helpers

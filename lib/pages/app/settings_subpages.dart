@@ -16,14 +16,8 @@ class SettingsAccountPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
         children: const [
-          ListTile(
-            title: Text('Username'),
-            subtitle: Text('mattia'),
-          ),
-          ListTile(
-            title: Text('Email'),
-            subtitle: Text('mattia@novyse.app'),
-          ),
+          ListTile(title: Text('Username'), subtitle: Text('mattia')),
+          ListTile(title: Text('Email'), subtitle: Text('mattia@novyse.app')),
         ],
       ),
     );

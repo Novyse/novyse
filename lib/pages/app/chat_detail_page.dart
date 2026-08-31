@@ -31,7 +31,7 @@ class ChatDetailPage extends StatelessWidget {
         title: Text(chat.name),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-            onPressed: () => popOrChats(context),
+          onPressed: () => popOrChats(context),
         ),
       ),
       body: ListView(
@@ -53,7 +53,10 @@ class ChatDetailPage extends StatelessWidget {
                 color: Theme.of(context).colorScheme.outlineVariant,
               ),
             ),
-            child: Text(chat.details, style: Theme.of(context).textTheme.bodyLarge),
+            child: Text(
+              chat.details,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
           ),
           const SizedBox(height: 24),
           const Divider(),

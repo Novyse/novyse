@@ -339,7 +339,9 @@ class UserNotifier extends Notifier<UserStoreState> {
                 final status = item['status'] as String? ?? 'OFFLINE';
                 DateTime? lastAccess;
                 if (item['lastAccessAt'] != null) {
-                  lastAccess = DateTime.tryParse(item['lastAccessAt'].toString());
+                  lastAccess = DateTime.tryParse(
+                    item['lastAccessAt'].toString(),
+                  );
                 }
                 updatedUsers[uuid] = updatedUsers[uuid]!.copyWith(
                   status: status,

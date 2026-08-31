@@ -56,10 +56,7 @@ class NetworkNotifier extends Notifier<NetworkState> {
     Connectivity().checkConnectivity().then((results) {
       final connected =
           results.isNotEmpty && !results.contains(ConnectivityResult.none);
-      state = state.copyWith(
-        isConnected: connected,
-        connectionType: results,
-      );
+      state = state.copyWith(isConnected: connected, connectionType: results);
       ref.read(statusProvider.notifier).setOffline(!connected);
     });
   }

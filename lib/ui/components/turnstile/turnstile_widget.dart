@@ -144,8 +144,12 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
   }
 
   String _generateHtml() {
-    final actionParam = widget.action != null ? "action: '${widget.action}'," : '';
-    final langParam = widget.language != null ? "language: '${widget.language}'," : '';
+    final actionParam = widget.action != null
+        ? "action: '${widget.action}',"
+        : '';
+    final langParam = widget.language != null
+        ? "language: '${widget.language}',"
+        : '';
 
     return '''<!DOCTYPE html>
 <html lang="en">
@@ -220,10 +224,7 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
   @override
   Widget build(BuildContext context) {
     if (!_isInitialized) {
-      return SizedBox(
-        width: widget.width,
-        height: widget.height,
-      );
+      return SizedBox(width: widget.width, height: widget.height);
     }
 
     return SizedBox(

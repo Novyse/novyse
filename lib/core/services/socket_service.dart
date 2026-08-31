@@ -99,10 +99,9 @@ class SocketService {
 
         final isOnline = _ref.read(networkProvider).isConnected;
         if (isOnline) {
-          _ref.read(statusProvider.notifier).setSocketStatus(
-                isConnected: false,
-                isConnecting: false,
-              );
+          _ref
+              .read(statusProvider.notifier)
+              .setSocketStatus(isConnected: false, isConnecting: false);
         }
 
         final errorData = error is Map ? error['data'] : null;
@@ -169,10 +168,9 @@ class SocketService {
         _isConnecting = false;
         final isOnline = _ref.read(networkProvider).isConnected;
         if (isOnline) {
-          _ref.read(statusProvider.notifier).setSocketStatus(
-                isConnected: false,
-                isConnecting: false,
-              );
+          _ref
+              .read(statusProvider.notifier)
+              .setSocketStatus(isConnected: false, isConnecting: false);
         }
         debugPrint('Closed Socket.IO connection: $reason');
       });

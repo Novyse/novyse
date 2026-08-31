@@ -297,10 +297,10 @@ class ProfileFieldUpdateRepository {
     try {
       if (userUUID.isEmpty) return false;
       final val = value is String || value == null ? value : value.toString();
-      await _repo.db.execute(
-        'UPDATE user SET $_column = ? WHERE uuid = ?;',
-        [val, userUUID],
-      );
+      await _repo.db.execute('UPDATE user SET $_column = ? WHERE uuid = ?;', [
+        val,
+        userUUID,
+      ]);
       return true;
     } catch (e) {
       debugPrint('Error updating user $_column: $e');

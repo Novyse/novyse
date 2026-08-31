@@ -58,7 +58,9 @@ class AppDatabase {
     // Initialize databaseFactory across Web, Desktop (Linux, Windows, macOS) and Mobile
     if (kIsWeb) {
       databaseFactory = databaseFactoryFfiWeb;
-    } else if (io.Platform.isLinux || io.Platform.isWindows || io.Platform.isMacOS) {
+    } else if (io.Platform.isLinux ||
+        io.Platform.isWindows ||
+        io.Platform.isMacOS) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
     }
@@ -70,7 +72,9 @@ class AppDatabase {
       dbPath = path;
     } else if (kIsWeb) {
       dbPath = 'novyse.db';
-    } else if (io.Platform.isLinux || io.Platform.isWindows || io.Platform.isMacOS) {
+    } else if (io.Platform.isLinux ||
+        io.Platform.isWindows ||
+        io.Platform.isMacOS) {
       final appSupportDir = await getApplicationSupportDirectory();
       dbPath = p.join(appSupportDir.path, 'novyse.db');
     } else {

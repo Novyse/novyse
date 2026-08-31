@@ -114,7 +114,9 @@ final dioProvider = Provider<Dio>((ref) {
         }
 
         if (status == 500) {
-          ref.read(statusProvider.notifier).setApiError(
+          ref
+              .read(statusProvider.notifier)
+              .setApiError(
                 'Server error (500)',
                 messageBuilder: (l10n) => l10n.apiErrorServer,
               );
@@ -122,7 +124,9 @@ final dioProvider = Provider<Dio>((ref) {
             error.type == DioExceptionType.receiveTimeout) {
           final isOnline = ref.read(networkProvider).isConnected;
           if (isOnline) {
-            ref.read(statusProvider.notifier).setApiError(
+            ref
+                .read(statusProvider.notifier)
+                .setApiError(
                   'Request timed out',
                   messageBuilder: (l10n) => l10n.apiErrorTimeout,
                 );
@@ -281,7 +285,9 @@ class UserModule {
   }
 
   /// Fetch presence information for a list of users.
-  Future<({bool success, dynamic data})> presence(List<String> userUUIDs) async {
+  Future<({bool success, dynamic data})> presence(
+    List<String> userUUIDs,
+  ) async {
     if (userUUIDs.isEmpty) return (success: true, data: null);
     final res = await _dio.post(
       '/user/presence',

@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -247,7 +248,9 @@ class StatusNotifier extends Notifier<StatusState> {
           content: message != null ? [message] : const [],
           contentBuilders: messageBuilder != null
               ? [messageBuilder]
-              : (message == null ? [(l10n) => l10n.socketConnectingMessage] : null),
+              : (message == null
+                    ? [(l10n) => l10n.socketConnectingMessage]
+                    : null),
           closable: false,
         ),
       );
@@ -261,7 +264,9 @@ class StatusNotifier extends Notifier<StatusState> {
           content: message != null ? [message] : const [],
           contentBuilders: messageBuilder != null
               ? [messageBuilder]
-              : (message == null ? [(l10n) => l10n.socketDisconnectedMessage] : null),
+              : (message == null
+                    ? [(l10n) => l10n.socketDisconnectedMessage]
+                    : null),
           closable: false,
         ),
       );
@@ -281,18 +286,23 @@ class StatusNotifier extends Notifier<StatusState> {
     LocalizedStringBuilder? actionLabelBuilder,
     Duration timeout = const Duration(seconds: 5),
   }) {
-    final uniqueId = 'api_error_${DateTime.now().microsecondsSinceEpoch}_${++_apiErrorCounter}';
+    final uniqueId =
+        'api_error_${DateTime.now().microsecondsSinceEpoch}_${++_apiErrorCounter}';
     showStatus(
       StatusItem(
         id: uniqueId,
         source: StatusSource.apiGateway,
         type: StatusMessageType.danger,
         title: title,
-        titleBuilder: titleBuilder ?? (title == null ? (l10n) => l10n.apiErrorTitle : null),
+        titleBuilder:
+            titleBuilder ??
+            (title == null ? (l10n) => l10n.apiErrorTitle : null),
         content: messageBuilder == null ? [message] : const [],
         contentBuilders: messageBuilder != null ? [messageBuilder] : null,
         actionLabel: actionLabel,
-        actionLabelBuilder: actionLabelBuilder ?? (onRetry != null ? (l10n) => l10n.retry : null),
+        actionLabelBuilder:
+            actionLabelBuilder ??
+            (onRetry != null ? (l10n) => l10n.retry : null),
         onAction: onRetry,
         timeout: timeout,
         closable: false,
@@ -317,7 +327,9 @@ class StatusNotifier extends Notifier<StatusState> {
         source: StatusSource.initSync,
         type: StatusMessageType.info,
         title: title,
-        titleBuilder: titleBuilder ?? (title == null ? (l10n) => l10n.syncProgressTitle : null),
+        titleBuilder:
+            titleBuilder ??
+            (title == null ? (l10n) => l10n.syncProgressTitle : null),
         content: message != null ? [message] : const [],
         contentBuilders: messageBuilder != null ? [messageBuilder] : null,
         progress: progress,
@@ -325,7 +337,6 @@ class StatusNotifier extends Notifier<StatusState> {
       ),
     );
   }
-
 
   /// Emits a sync error with optional countdown or retry handler.
   void setSyncError(

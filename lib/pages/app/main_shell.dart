@@ -181,10 +181,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
       body = Stack(
         children: [
           master,
-          IgnorePointer(
-            ignoring: !chatOpen && !shellCanPop,
-            child: detail,
-          ),
+          IgnorePointer(ignoring: !chatOpen && !shellCanPop, child: detail),
         ],
       );
     }
@@ -237,10 +234,7 @@ class EmptyDetailPane extends StatelessWidget {
 }
 
 class _FloatingTabBar extends StatelessWidget {
-  const _FloatingTabBar({
-    required this.controller,
-    required this.onTabPressed,
-  });
+  const _FloatingTabBar({required this.controller, required this.onTabPressed});
 
   final TabController controller;
   final ValueChanged<int> onTabPressed;
@@ -312,8 +306,10 @@ class _FloatingTabBar extends StatelessWidget {
                               children: List.generate(_items.length, (index) {
                                 final item = _items[index];
                                 final selectedAmount =
-                                    (1.0 - (animValue - index).abs())
-                                        .clamp(0.0, 1.0);
+                                    (1.0 - (animValue - index).abs()).clamp(
+                                      0.0,
+                                      1.0,
+                                    );
                                 final iconColor = Color.lerp(
                                   scheme.onSurfaceVariant,
                                   scheme.primary,
@@ -327,7 +323,9 @@ class _FloatingTabBar extends StatelessWidget {
                                     child: Material(
                                       color: Colors.transparent,
                                       child: InkWell(
-                                        borderRadius: BorderRadius.circular(100),
+                                        borderRadius: BorderRadius.circular(
+                                          100,
+                                        ),
                                         onTap: () => onTabPressed(index),
                                         child: Center(
                                           child: Icon(

@@ -118,10 +118,10 @@ class FileUpdateRepository {
   Future<bool> ref(String fileUUID, String newRef) async {
     try {
       if (fileUUID.isEmpty) return false;
-      await _repo.db.execute(
-        'UPDATE file SET ref = ? WHERE uuid = ?;',
-        [newRef, fileUUID],
-      );
+      await _repo.db.execute('UPDATE file SET ref = ? WHERE uuid = ?;', [
+        newRef,
+        fileUUID,
+      ]);
       return true;
     } catch (e) {
       debugPrint('Error updating file ref: $e');
@@ -135,10 +135,10 @@ class FileUpdateRepository {
       final waveformStr = newWaveform is String
           ? newWaveform
           : jsonEncode(newWaveform);
-      await _repo.db.execute(
-        'UPDATE file SET waveform = ? WHERE uuid = ?;',
-        [waveformStr, fileUUID],
-      );
+      await _repo.db.execute('UPDATE file SET waveform = ? WHERE uuid = ?;', [
+        waveformStr,
+        fileUUID,
+      ]);
       return true;
     } catch (e) {
       debugPrint('Error updating file waveform: $e');
@@ -149,10 +149,10 @@ class FileUpdateRepository {
   Future<bool> duration(String fileUUID, int newDuration) async {
     try {
       if (fileUUID.isEmpty) return false;
-      await _repo.db.execute(
-        'UPDATE file SET duration = ? WHERE uuid = ?;',
-        [newDuration, fileUUID],
-      );
+      await _repo.db.execute('UPDATE file SET duration = ? WHERE uuid = ?;', [
+        newDuration,
+        fileUUID,
+      ]);
       return true;
     } catch (e) {
       debugPrint('Error updating file duration: $e');

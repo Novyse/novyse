@@ -67,12 +67,7 @@ class QueueJobRepository {
       if (errorMessage != null) updates['error_message'] = errorMessage;
       if (attempts != null) updates['attempts'] = attempts;
 
-      await db.update(
-        'queue_job',
-        updates,
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      await db.update('queue_job', updates, where: 'id = ?', whereArgs: [id]);
       return true;
     } catch (_) {
       return false;
@@ -155,11 +150,7 @@ class QueueJobRepository {
   /// Deletes a job by ID.
   Future<bool> delete(String id) async {
     try {
-      await db.delete(
-        'queue_job',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      await db.delete('queue_job', where: 'id = ?', whereArgs: [id]);
       return true;
     } catch (_) {
       return false;

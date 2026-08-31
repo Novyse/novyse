@@ -55,7 +55,7 @@ class SyncService {
   int _retryCountdown = 0;
 
   SyncService(this._ref, [FlutterSecureStorage? storage])
-      : _storage = storage ?? const FlutterSecureStorage();
+    : _storage = storage ?? const FlutterSecureStorage();
 
   bool get isSyncing => _isSyncing;
 
@@ -80,10 +80,14 @@ class SyncService {
 
       final initVal = await _storage.read(key: 'init');
       if (initVal == 'true') {
-        debugPrint('[SyncService] Already initialized. Performing delta sync...');
+        debugPrint(
+          '[SyncService] Already initialized. Performing delta sync...',
+        );
         return await updateDatabase();
       } else {
-        debugPrint('[SyncService] Init is false. Performing full initialization...');
+        debugPrint(
+          '[SyncService] Init is false. Performing full initialization...',
+        );
         return await initializeDatabase();
       }
     } catch (e) {
@@ -226,11 +230,13 @@ class SyncService {
       final gatewayLocal = {'eventID': userEventId};
 
       final allEvents = await _db.user.update.getAllEventsIDs();
-      final gatewayChats = (allEvents['chats'] as List<dynamic>?)
+      final gatewayChats =
+          (allEvents['chats'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
           <Map<String, dynamic>>[];
-      final gatewayUsers = (allEvents['users'] as List<dynamic>?)
+      final gatewayUsers =
+          (allEvents['users'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
           <Map<String, dynamic>>[];
@@ -251,12 +257,16 @@ class SyncService {
       final local = res['local'] as List<dynamic>? ?? [];
 
       // 1. New chats
-      if (chats is Map && chats['new'] is List && (chats['new'] as List).isNotEmpty) {
+      if (chats is Map &&
+          chats['new'] is List &&
+          (chats['new'] as List).isNotEmpty) {
         await _db.chat.addMultiple(chats['new'] as List);
       }
 
       // 2. New users
-      if (users is Map && users['new'] is List && (users['new'] as List).isNotEmpty) {
+      if (users is Map &&
+          users['new'] is List &&
+          (users['new'] as List).isNotEmpty) {
         await _db.user.addMultiple(users['new'] as List);
       }
 
@@ -271,7 +281,9 @@ class SyncService {
           if (event is! Map) continue;
           final type = event['type']?.toString();
           final chatUUID = event['chatUUID']?.toString() ?? '';
-          final payload = event['payload'] is Map ? Map<String, dynamic>.from(event['payload'] as Map) : <String, dynamic>{};
+          final payload = event['payload'] is Map
+              ? Map<String, dynamic>.from(event['payload'] as Map)
+              : <String, dynamic>{};
           final eventId = (event['id'] as num?)?.toInt() ?? 0;
           final messageId = payload['messageID']?.toString() ?? '';
           final subId = (payload['subID'] as num?)?.toInt() ?? 0;
@@ -346,52 +358,33 @@ class SyncService {
               );
               break;
             case SyncChatEventType.subCreated:
-              await _emitter.chat.update(
-                chatUUID,
-                'sub_create',
-                eventId,
-                {
-                  'sub': {
-                    'id': payload['subID'],
-                    'name': payload['name'],
-                    'created_at': event['createdAt'],
-                  },
+              await _emitter.chat.update(chatUUID, 'sub_create', eventId, {
+                'sub': {
+                  'id': payload['subID'],
+                  'name': payload['name'],
+                  'created_at': event['createdAt'],
                 },
-              );
+              });
               break;
             case SyncChatEventType.subRenamed:
-              await _emitter.chat.update(
-                chatUUID,
-                'sub_rename',
-                eventId,
-                {
-                  'sub': {
-                    'id': payload['subID'],
-                    'name': payload['name'],
-                  },
-                },
-              );
+              await _emitter.chat.update(chatUUID, 'sub_rename', eventId, {
+                'sub': {'id': payload['subID'], 'name': payload['name']},
+              });
               break;
             case SyncChatEventType.subDeleted:
-              await _emitter.chat.update(
-                chatUUID,
-                'sub_delete',
-                eventId,
-                {'subID': payload['subID']},
-              );
+              await _emitter.chat.update(chatUUID, 'sub_delete', eventId, {
+                'subID': payload['subID'],
+              });
               break;
             case SyncChatEventType.memberJoined:
-              await _emitter.chat.member.join(
-                chatUUID,
-                {'uuid': event['userUUID']},
-                eventId,
-              );
+              await _emitter.chat.member.join(chatUUID, {
+                'uuid': event['userUUID'],
+              }, eventId);
               break;
             case SyncChatEventType.memberLeft:
-              await _emitter.chat.member.leave(
-                chatUUID,
-                {'uuid': event['userUUID']},
-              );
+              await _emitter.chat.member.leave(chatUUID, {
+                'uuid': event['userUUID'],
+              });
               break;
             case SyncChatEventType.messageRead:
               await _emitter.message.update(
@@ -400,10 +393,7 @@ class SyncService {
                 messageId,
                 'read',
                 eventId,
-                {
-                  'userUUID': event['userUUID'],
-                  'readAt': event['createdAt'],
-                },
+                {'userUUID': event['userUUID'], 'readAt': event['createdAt']},
               );
               break;
           }
@@ -416,7 +406,9 @@ class SyncService {
           if (event is! Map) continue;
           final userUUID = event['userUUID']?.toString() ?? '';
           final eventId = (event['id'] as num?)?.toInt() ?? 0;
-          final payload = event['payload'] is Map ? Map<String, dynamic>.from(event['payload'] as Map) : <String, dynamic>{};
+          final payload = event['payload'] is Map
+              ? Map<String, dynamic>.from(event['payload'] as Map)
+              : <String, dynamic>{};
           payload['userUUID'] = userUUID;
 
           await _emitter.user.profile.update(payload, eventId);
@@ -428,8 +420,11 @@ class SyncService {
         if (event is! Map) continue;
         final type = event['type']?.toString();
         final eventId = (event['id'] as num?)?.toInt() ?? 0;
-        final payload = event['payload'] is Map ? Map<String, dynamic>.from(event['payload'] as Map) : <String, dynamic>{};
-        final chatUUID = (event['chatUUID'] ?? payload['chatUUID'])?.toString() ?? '';
+        final payload = event['payload'] is Map
+            ? Map<String, dynamic>.from(event['payload'] as Map)
+            : <String, dynamic>{};
+        final chatUUID =
+            (event['chatUUID'] ?? payload['chatUUID'])?.toString() ?? '';
 
         switch (type) {
           case SyncUserEventType.chatPinned:

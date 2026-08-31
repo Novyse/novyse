@@ -130,10 +130,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/settings',
             pageBuilder: (c, s) => _placeholderPage(s),
           ),
-          GoRoute(
-            path: '/profile',
-            pageBuilder: (c, s) => _placeholderPage(s),
-          ),
+          GoRoute(path: '/profile', pageBuilder: (c, s) => _placeholderPage(s)),
         ],
       ),
       GoRoute(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import 'package:novyse/core/l10n/l10n.dart';
+
 import '../huge_icon.dart';
 
 enum StatusMessageType { success, danger, warning, info }
@@ -147,7 +148,8 @@ class _StatusMessageState extends State<StatusMessage>
         ? widget.contentBuilders!.map((b) => b(l10n)).toList()
         : widget.content;
 
-    final resolvedActionLabel = (widget.actionLabelBuilder != null && l10n != null)
+    final resolvedActionLabel =
+        (widget.actionLabelBuilder != null && l10n != null)
         ? widget.actionLabelBuilder!(l10n)
         : widget.actionLabel;
 
@@ -216,7 +218,8 @@ class _StatusMessageState extends State<StatusMessage>
                           ),
                         ),
                       ),
-                      if (widget.onAction != null && resolvedActionLabel != null)
+                      if (widget.onAction != null &&
+                          resolvedActionLabel != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: InkWell(

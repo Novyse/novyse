@@ -24,37 +24,55 @@ void main() {
       expect(container.read(activeStatusProvider), isNull);
     });
 
-    test('priority ordering selects network offline over initSync and socket', () {
-      final notifier = container.read(statusProvider.notifier);
+    test(
+      'priority ordering selects network offline over initSync and socket',
+      () {
+        final notifier = container.read(statusProvider.notifier);
 
-      // Show socket status (priority 60)
-      notifier.setSocketStatus(isConnected: false, isConnecting: false);
-      expect(container.read(activeStatusProvider)?.source, equals(StatusSource.socket));
+        // Show socket status (priority 60)
+        notifier.setSocketStatus(isConnected: false, isConnecting: false);
+        expect(
+          container.read(activeStatusProvider)?.source,
+          equals(StatusSource.socket),
+        );
 
-      // Show sync status (priority 80)
-      notifier.setSyncProgress(
-        title: 'Syncing',
-        message: 'Loading...',
-        progress: 0.5,
-      );
-      expect(container.read(activeStatusProvider)?.source, equals(StatusSource.initSync));
+        // Show sync status (priority 80)
+        notifier.setSyncProgress(
+          title: 'Syncing',
+          message: 'Loading...',
+          progress: 0.5,
+        );
+        expect(
+          container.read(activeStatusProvider)?.source,
+          equals(StatusSource.initSync),
+        );
 
-      // Show offline status (priority 100)
-      notifier.setOffline(true);
-      expect(container.read(activeStatusProvider)?.source, equals(StatusSource.network));
+        // Show offline status (priority 100)
+        notifier.setOffline(true);
+        expect(
+          container.read(activeStatusProvider)?.source,
+          equals(StatusSource.network),
+        );
 
-      // Clear offline status -> falls back to initSync
-      notifier.setOffline(false);
-      expect(container.read(activeStatusProvider)?.source, equals(StatusSource.initSync));
+        // Clear offline status -> falls back to initSync
+        notifier.setOffline(false);
+        expect(
+          container.read(activeStatusProvider)?.source,
+          equals(StatusSource.initSync),
+        );
 
-      // Dismiss sync -> falls back to socket
-      notifier.dismissStatus('sync_status');
-      expect(container.read(activeStatusProvider)?.source, equals(StatusSource.socket));
+        // Dismiss sync -> falls back to socket
+        notifier.dismissStatus('sync_status');
+        expect(
+          container.read(activeStatusProvider)?.source,
+          equals(StatusSource.socket),
+        );
 
-      // Connect socket -> no statuses left
-      notifier.setSocketStatus(isConnected: true);
-      expect(container.read(activeStatusProvider), isNull);
-    });
+        // Connect socket -> no statuses left
+        notifier.setSocketStatus(isConnected: true);
+        expect(container.read(activeStatusProvider), isNull);
+      },
+    );
 
     test('updateProgress modifies existing status item', () {
       final notifier = container.read(statusProvider.notifier);
@@ -83,7 +101,10 @@ void main() {
 
       notifier.clearSource(StatusSource.apiGateway);
       expect(container.read(statusProvider).activeStatuses.length, equals(1));
-      expect(container.read(activeStatusProvider)?.source, equals(StatusSource.network));
+      expect(
+        container.read(activeStatusProvider)?.source,
+        equals(StatusSource.network),
+      );
     });
 
     test('localized string builders resolve properly against AppLocalizations in English and Italian', () {
@@ -94,9 +115,7 @@ void main() {
         source: StatusSource.initSync,
         type: StatusMessageType.info,
         titleBuilder: (l) => l.syncInitTitle,
-        contentBuilders: [
-          (l) => l.syncProgressMessage(10, 50),
-        ],
+        contentBuilders: [(l) => l.syncProgressMessage(10, 50)],
       );
 
       expect(item.titleBuilder!(l10nEn), equals('Account Initialization'));
