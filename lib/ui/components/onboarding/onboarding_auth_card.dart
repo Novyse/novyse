@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cloudflare_turnstile/cloudflare_turnstile.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -12,6 +11,7 @@ import '../../../core/l10n/l10n.dart';
 import '../../../core/services/api_gateway.dart';
 import '../huge_icon.dart';
 import '../status/status_message.dart';
+import '../turnstile/turnstile_widget.dart';
 import 'onboarding_primary_button.dart';
 import 'onboarding_secondary_button.dart';
 import 'onboarding_text_field.dart';
@@ -65,7 +65,6 @@ class OnboardingAuthCard extends StatefulWidget {
 class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
   late OnboardingAuthMode _mode = widget.initialMode;
   String? _turnstileToken;
-  final TurnstileController _turnstileController = TurnstileController();
   int _turnstileKey = 0;
   bool _acceptLegal = false;
   bool _isOldEnough = false;
@@ -134,7 +133,6 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
     _passwordController.dispose();
     _nameController.dispose();
     _confirmPasswordController.dispose();
-    _turnstileController.dispose();
     super.dispose();
   }
 
@@ -317,9 +315,6 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
           _turnstileToken = null;
           _turnstileKey++;
         });
-        try {
-          _turnstileController.refreshToken();
-        } catch (_) {}
       }
     }
   }
@@ -567,16 +562,13 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
             if (widget.showTurnstile) ...[
               const SizedBox(height: 16),
               Center(
-                child: CloudflareTurnstile(
+                child: TurnstileWidget(
                   key: ValueKey('turnstile_$_turnstileKey'),
-                  controller: _turnstileController,
                   siteKey: cloudflareTurnstilePublic,
-                  baseUrl: "http://localhost",
+                  baseUrl: 'http://localhost',
                   action: _isLoginMode ? 'login' : 'signup',
-                  options: TurnstileOptions(
-                    theme: TurnstileTheme.dark,
-                    language: Localizations.localeOf(context).languageCode,
-                  ),
+                  theme: 'dark',
+                  language: Localizations.localeOf(context).languageCode,
                   onTokenReceived: (token) => setState(() {
                     _turnstileToken = token;
                     _statusError = null;
