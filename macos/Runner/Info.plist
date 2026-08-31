@@ -28,7 +28,7 @@
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Novyse</string>
+	<string>$(PRODUCT_NAME)</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Novyse needs access to your photos to let you share images in chat.</string>
 	<key>NSCameraUsageDescription</key>

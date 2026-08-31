@@ -22,7 +22,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Novyse</string>
+	<string>$(APP_NAME)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -30,7 +30,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Novyse</string>
+	<string>$(APP_NAME)</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Novyse needs access to your photo library to let you share photos and videos in chat.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

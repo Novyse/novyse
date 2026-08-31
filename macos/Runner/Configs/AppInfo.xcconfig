@@ -1,7 +1,7 @@
 #include? "AppEnvironment.xcconfig"
 
 // Application-level settings for the Runner target.
-PRODUCT_NAME = Novyse
+PRODUCT_NAME = $(APP_NAME)
 
 // The application's bundle identifier
 PRODUCT_BUNDLE_IDENTIFIER = $(APP_BUNDLE_IDENTIFIER)

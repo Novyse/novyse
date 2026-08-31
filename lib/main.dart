@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/config/global.dart';
 import 'package:novyse/core/events/global_event_receiver.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 
@@ -19,7 +20,7 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
-      title: 'Novyse',
+      title: appName,
       localizationsDelegates: localizationsDelegates,
       supportedLocales: supportedLocales,
       localeResolutionCallback: resolveLocale,

@@ -58,6 +58,12 @@ val currentAppHost = "app${currentHostSuffix}.novyse.com"
 val currentWebHost = "web${currentHostSuffix}.novyse.com"
 val currentAuthHost = "auth${currentHostSuffix}.novyse.com"
 
+val currentAppName = when (currentBranch) {
+    "production" -> "Novyse"
+    "preview" -> "Novyse.preview"
+    else -> "Novyse.dev"
+}
+
 val currentApplicationId = when (currentBranch) {
     "production" -> "com.novyse"
     "preview" -> "com.novyse.preview"
@@ -76,6 +82,7 @@ android {
 
     defaultConfig {
         applicationId = currentApplicationId
+        manifestPlaceholders["appName"] = currentAppName
         manifestPlaceholders["appScheme"] = currentScheme
         manifestPlaceholders["appHost"] = currentAppHost
         manifestPlaceholders["webHost"] = currentWebHost

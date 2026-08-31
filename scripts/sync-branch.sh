@@ -24,16 +24,19 @@ fi
 
 case "$BRANCH" in
   "production")
+    APP_NAME="Novyse"
     BUNDLE_ID="com.novyse"
     SCHEME="novyse"
     HOST_SUFFIX=""
     ;;
   "preview")
+    APP_NAME="Novyse.preview"
     BUNDLE_ID="com.novyse.preview"
     SCHEME="novyse.preview"
     HOST_SUFFIX=".preview"
     ;;
   "development")
+    APP_NAME="Novyse.dev"
     BUNDLE_ID="com.novyse.dev"
     SCHEME="novyse.dev"
     HOST_SUFFIX=".dev"
@@ -48,6 +51,7 @@ esac
 cat << EOF > "$IOS_XCCONFIG"
 // Generated automatically from lib/core/config/global.dart - DO NOT EDIT MANUALLY
 APP_BRANCH = $BRANCH
+APP_NAME = $APP_NAME
 APP_BUNDLE_IDENTIFIER = $BUNDLE_ID
 APP_SCHEME = $SCHEME
 APP_HOST = app${HOST_SUFFIX}.novyse.com
@@ -56,6 +60,7 @@ EOF
 cat << EOF > "$MACOS_XCCONFIG"
 // Generated automatically from lib/core/config/global.dart - DO NOT EDIT MANUALLY
 APP_BRANCH = $BRANCH
+APP_NAME = $APP_NAME
 APP_BUNDLE_IDENTIFIER = $BUNDLE_ID
 APP_SCHEME = $SCHEME
 APP_HOST = app${HOST_SUFFIX}.novyse.com
