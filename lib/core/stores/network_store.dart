@@ -1,41 +1,31 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'status_store.dart';
+
 // State
 
-/// Immutable snapshot of the network / sync state.
+/// Immutable snapshot of the pure network & sync infrastructure state.
 class NetworkState {
   const NetworkState({
     this.isConnected = false,
     this.connectionType = const [],
     this.isSynced = false,
-    this.isSocketConnected = false,
-    this.apiError,
-    this.syncRetryCountdown = 0,
   });
 
   final bool isConnected;
   final List<ConnectivityResult> connectionType;
   final bool isSynced;
-  final bool isSocketConnected;
-  final String? apiError;
-  final int syncRetryCountdown;
 
   NetworkState copyWith({
     bool? isConnected,
     List<ConnectivityResult>? connectionType,
     bool? isSynced,
-    bool? isSocketConnected,
-    String? Function()? apiError,
-    int? syncRetryCountdown,
   }) {
     return NetworkState(
       isConnected: isConnected ?? this.isConnected,
       connectionType: connectionType ?? this.connectionType,
       isSynced: isSynced ?? this.isSynced,
-      isSocketConnected: isSocketConnected ?? this.isSocketConnected,
-      apiError: apiError != null ? apiError() : this.apiError,
-      syncRetryCountdown: syncRetryCountdown ?? this.syncRetryCountdown,
     );
   }
 }
@@ -60,27 +50,21 @@ class NetworkNotifier extends Notifier<NetworkState> {
       final connected =
           results.isNotEmpty && !results.contains(ConnectivityResult.none);
       state = state.copyWith(isConnected: connected, connectionType: results);
+      ref.read(statusProvider.notifier).setOffline(!connected);
     });
 
     Connectivity().checkConnectivity().then((results) {
+      final connected =
+          results.isNotEmpty && !results.contains(ConnectivityResult.none);
       state = state.copyWith(
-        isConnected:
-            results.isNotEmpty && !results.contains(ConnectivityResult.none),
+        isConnected: connected,
         connectionType: results,
       );
+      ref.read(statusProvider.notifier).setOffline(!connected);
     });
   }
 
   void setSynced(bool synced) => state = state.copyWith(isSynced: synced);
-
-  void setSocketConnected(bool connected) =>
-      state = state.copyWith(isSocketConnected: connected);
-
-  void setApiError(String? error) =>
-      state = state.copyWith(apiError: () => error);
-
-  void setSyncRetryCountdown(int countdown) =>
-      state = state.copyWith(syncRetryCountdown: countdown);
 }
 
 // Provider

@@ -74,5 +74,46 @@
   "openMicrosoftStore": "Open Microsoft Store",
   "openGitHub": "Download from GitHub",
   "refreshPage": "Refresh Page",
-  "updateNow": "Update Now"
+  "updateNow": "Update Now",
+  "networkOfflineTitle": "No Connection",
+  "networkOfflineMessage": "You are offline. Waiting for network connection...",
+  "socketConnectingTitle": "Realtime Connection",
+  "socketConnectingMessage": "Connecting to server...",
+  "socketDisconnectedTitle": "Disconnected",
+  "socketDisconnectedMessage": "Reconnecting to realtime server...",
+  "apiErrorTitle": "Communication Error",
+  "apiErrorServer": "Server error (500)",
+  "apiErrorTimeout": "Request timed out",
+  "syncInitTitle": "Account Initialization",
+  "syncInitMessage": "Connecting to server and fetching data...",
+  "syncProgressTitle": "Syncing",
+  "syncProgressMessage": "Saving {chats} chats and {messages} messages...",
+  "@syncProgressMessage": {
+    "placeholders": {
+      "chats": {
+        "type": "int"
+      },
+      "messages": {
+        "type": "int"
+      }
+    }
+  },
+  "syncMessagesTitle": "Syncing Messages",
+  "syncMessagesMessage": "Processing chat history...",
+  "syncCacheTitle": "Configuring Cache",
+  "syncCacheMessage": "Loading into local store...",
+  "syncCompleteTitle": "Sync Complete",
+  "syncCompleteMessage": "All data loaded successfully!",
+  "syncErrorTitle": "Sync Error",
+  "syncErrorMessage": "Sync failed.",
+  "syncErrorInitMessage": "Unable to initialize data. Network or server error.",
+  "syncRetryCountdown": "Retrying in {seconds} seconds...",
+  "@syncRetryCountdown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "Retry"
 }

@@ -7,6 +7,7 @@ import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:novyse/core/config/global.dart' as config;
 import 'package:novyse/core/services/auth.dart';
 import 'package:novyse/core/stores/network_store.dart';
+import 'package:novyse/core/stores/status_store.dart';
 import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
@@ -84,7 +85,7 @@ class SocketService {
       _socket!.onConnect((_) async {
         debugPrint('Socket.IO connection opened!');
         _isConnecting = false;
-        _ref.read(networkProvider.notifier).setSocketConnected(true);
+        _ref.read(statusProvider.notifier).setSocketStatus(isConnected: true);
         eventReceiver.initialize(
           _socket!,
           _ref.read(globalEventEmitterProvider),
@@ -95,6 +96,14 @@ class SocketService {
       _socket!.on('connect_error', (error) {
         debugPrint('Socket.IO connect_error: $error');
         _isConnecting = false;
+
+        final isOnline = _ref.read(networkProvider).isConnected;
+        if (isOnline) {
+          _ref.read(statusProvider.notifier).setSocketStatus(
+                isConnected: false,
+                isConnecting: false,
+              );
+        }
 
         final errorData = error is Map ? error['data'] : null;
         final errorCode = errorData is Map
@@ -126,7 +135,7 @@ class SocketService {
         _socket?.disconnect();
         _socket = null;
         _isConnecting = false;
-        _ref.read(networkProvider.notifier).setSocketConnected(false);
+        _ref.read(statusProvider.notifier).setSocketStatus(isConnected: false);
         _ref.read(eventBusProvider).emit(const InvalidSessionEvent());
       });
 
@@ -158,7 +167,13 @@ class SocketService {
 
       _socket!.onDisconnect((reason) {
         _isConnecting = false;
-        _ref.read(networkProvider.notifier).setSocketConnected(false);
+        final isOnline = _ref.read(networkProvider).isConnected;
+        if (isOnline) {
+          _ref.read(statusProvider.notifier).setSocketStatus(
+                isConnected: false,
+                isConnecting: false,
+              );
+        }
         debugPrint('Closed Socket.IO connection: $reason');
       });
     } catch (error) {
@@ -173,6 +188,7 @@ class SocketService {
       _socket!.disconnect();
       _socket = null;
     }
+    _ref.read(statusProvider.notifier).setSocketStatus(isConnected: true);
   }
 
   /// Exposes the event sender for sending messages.

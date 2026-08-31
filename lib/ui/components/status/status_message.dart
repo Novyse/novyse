@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import 'package:novyse/core/l10n/l10n.dart';
 import '../huge_icon.dart';
 
 enum StatusMessageType { success, danger, warning, info }
@@ -12,20 +13,32 @@ class StatusMessage extends StatefulWidget {
     super.key,
     required this.type,
     this.title,
+    this.titleBuilder,
     this.content = const [],
+    this.contentBuilders,
     this.visible = true,
+    this.progress,
     this.timeout,
     this.onClose,
     this.closable = true,
+    this.actionLabel,
+    this.actionLabelBuilder,
+    this.onAction,
   });
 
   final StatusMessageType type;
   final String? title;
+  final String Function(AppLocalizations)? titleBuilder;
   final List<String> content;
+  final List<String Function(AppLocalizations)>? contentBuilders;
   final bool visible;
+  final double? progress; // 0.0 to 1.0, or null
   final Duration? timeout;
   final VoidCallback? onClose;
   final bool closable;
+  final String? actionLabel;
+  final String Function(AppLocalizations)? actionLabelBuilder;
+  final VoidCallback? onAction;
 
   @override
   State<StatusMessage> createState() => _StatusMessageState();
@@ -125,7 +138,20 @@ class _StatusMessageState extends State<StatusMessage>
 
   @override
   Widget build(BuildContext context) {
-    if (!_isVisible || widget.content.isEmpty) {
+    final l10n = AppLocalizations.of(context);
+    final resolvedTitle = (widget.titleBuilder != null && l10n != null)
+        ? widget.titleBuilder!(l10n)
+        : widget.title;
+
+    final resolvedContent = (widget.contentBuilders != null && l10n != null)
+        ? widget.contentBuilders!.map((b) => b(l10n)).toList()
+        : widget.content;
+
+    final resolvedActionLabel = (widget.actionLabelBuilder != null && l10n != null)
+        ? widget.actionLabelBuilder!(l10n)
+        : widget.actionLabel;
+
+    if (!_isVisible || (resolvedContent.isEmpty && resolvedTitle == null)) {
       return const SizedBox.shrink();
     }
 
@@ -137,7 +163,7 @@ class _StatusMessageState extends State<StatusMessage>
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: colors.bg,
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: colors.border, width: 1),
         boxShadow: [
           BoxShadow(
@@ -168,20 +194,20 @@ class _StatusMessageState extends State<StatusMessage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (widget.title != null && widget.title!.isNotEmpty)
+                      if (resolvedTitle != null && resolvedTitle.isNotEmpty)
                         Text(
-                          widget.title!,
+                          resolvedTitle,
                           style: TextStyle(
                             color: colors.text,
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                      ...widget.content.map(
+                      ...resolvedContent.map(
                         (item) => Padding(
                           padding: const EdgeInsets.only(top: 2),
                           child: Text(
-                            widget.content.length > 1 ? '• $item' : item,
+                            resolvedContent.length > 1 ? '• $item' : item,
                             style: TextStyle(
                               color: colors.text,
                               fontSize: 13,
@@ -190,6 +216,29 @@ class _StatusMessageState extends State<StatusMessage>
                           ),
                         ),
                       ),
+                      if (widget.onAction != null && resolvedActionLabel != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: InkWell(
+                            onTap: widget.onAction,
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              child: Text(
+                                resolvedActionLabel,
+                                style: TextStyle(
+                                  color: colors.text,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -209,7 +258,14 @@ class _StatusMessageState extends State<StatusMessage>
               ],
             ),
           ),
-          if (_progressController != null)
+          if (widget.progress != null)
+            LinearProgressIndicator(
+              value: widget.progress! >= 0 ? widget.progress : null,
+              backgroundColor: colors.border.withValues(alpha: 0.3),
+              valueColor: AlwaysStoppedAnimation<Color>(colors.text),
+              minHeight: 3,
+            )
+          else if (_progressController != null)
             AnimatedBuilder(
               animation: _progressController!,
               builder: (context, child) {

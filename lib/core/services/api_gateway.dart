@@ -7,6 +7,7 @@ import 'package:novyse/core/config/global.dart' as config;
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/core/services/auth.dart';
 import 'package:novyse/core/stores/network_store.dart';
+import 'package:novyse/core/stores/status_store.dart';
 import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
 
@@ -68,8 +69,8 @@ final dioProvider = Provider<Dio>((ref) {
 
       // Response interceptor: session-id + error handling
       onResponse: (response, handler) async {
-        // Clear API error on success.
-        ref.read(networkProvider.notifier).setApiError(null);
+        // Clear API errors on success.
+        ref.read(statusProvider.notifier).clearSource(StatusSource.apiGateway);
 
         // Persist session ID when the server sends one.
         final newSessionId = response.headers.value('x-set-session-id');
@@ -113,7 +114,19 @@ final dioProvider = Provider<Dio>((ref) {
         }
 
         if (status == 500) {
-          ref.read(networkProvider.notifier).setApiError('Server error (500)');
+          ref.read(statusProvider.notifier).setApiError(
+                'Server error (500)',
+                messageBuilder: (l10n) => l10n.apiErrorServer,
+              );
+        } else if (error.type == DioExceptionType.connectionTimeout ||
+            error.type == DioExceptionType.receiveTimeout) {
+          final isOnline = ref.read(networkProvider).isConnected;
+          if (isOnline) {
+            ref.read(statusProvider.notifier).setApiError(
+                  'Request timed out',
+                  messageBuilder: (l10n) => l10n.apiErrorTimeout,
+                );
+          }
         }
 
         return handler.next(error);

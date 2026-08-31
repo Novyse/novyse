@@ -43,6 +43,16 @@ class OnboardingManager extends StateNotifier<bool> {
     }
   }
 
+  /// Check whether the initial account sync has been completed.
+  Future<bool> isInitialized() async {
+    try {
+      final initVal = await _storage.read(key: 'init');
+      return initVal == 'true';
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Store session identifiers and mark user as logged in.
   Future<void> setLogin({
     String? userUUID,
@@ -77,6 +87,7 @@ class OnboardingManager extends StateNotifier<bool> {
       await _storage.delete(key: 'sessionID');
       await _storage.delete(key: 'sessionId');
       await _storage.delete(key: 'init');
+      await _storage.delete(key: 'localUserEventID');
     } catch (_) {}
     state = false;
     _isLoggingOut = false;

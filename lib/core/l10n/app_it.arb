@@ -74,5 +74,46 @@
   "openMicrosoftStore": "Apri Microsoft Store",
   "openGitHub": "Scarica da GitHub",
   "refreshPage": "Aggiorna la pagina",
-  "updateNow": "Aggiorna ora"
+  "updateNow": "Aggiorna ora",
+  "networkOfflineTitle": "Nessuna Connessione",
+  "networkOfflineMessage": "Sei offline. In attesa del ripristino della rete...",
+  "socketConnectingTitle": "Connessione in tempo reale",
+  "socketConnectingMessage": "Connessione al server in corso...",
+  "socketDisconnectedTitle": "Disconnesso",
+  "socketDisconnectedMessage": "Riconnessione al server in tempo reale...",
+  "apiErrorTitle": "Errore di Comunicazione",
+  "apiErrorServer": "Errore del server (500)",
+  "apiErrorTimeout": "Richiesta scaduta (Timeout)",
+  "syncInitTitle": "Inizializzazione Account",
+  "syncInitMessage": "Connessione al server e recupero dati...",
+  "syncProgressTitle": "Sincronizzazione in corso",
+  "syncProgressMessage": "Salvataggio di {chats} chat e {messages} messaggi...",
+  "@syncProgressMessage": {
+    "placeholders": {
+      "chats": {
+        "type": "int"
+      },
+      "messages": {
+        "type": "int"
+      }
+    }
+  },
+  "syncMessagesTitle": "Sincronizzazione messaggi",
+  "syncMessagesMessage": "Elaborazione cronologia chat...",
+  "syncCacheTitle": "Configurazione cache",
+  "syncCacheMessage": "Caricamento nello store locale...",
+  "syncCompleteTitle": "Sincronizzazione completata",
+  "syncCompleteMessage": "Tutti i dati sono stati caricati con successo!",
+  "syncErrorTitle": "Errore di sincronizzazione",
+  "syncErrorMessage": "Sincronizzazione non riuscita.",
+  "syncErrorInitMessage": "Impossibile inizializzare i dati. Errore di rete o server.",
+  "syncRetryCountdown": "Nuovo tentativo tra {seconds} secondi...",
+  "@syncRetryCountdown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "Riprova"
 }
