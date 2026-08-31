@@ -43,7 +43,8 @@ class MessageRepository {
     try {
       final rawId = message['id'];
       final chatUUID = message['chatUUID']?.toString();
-      final senderUUID = (message['senderUUID'] ?? message['userUUID'])?.toString();
+      final senderUUID = (message['senderUUID'] ?? message['userUUID'])
+          ?.toString();
       final createdAt =
           message['created_at'] ??
           message['createdAt'] ??

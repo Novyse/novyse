@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/chat/message/message_text.dart';
 import 'package:novyse/ui/components/chat/message/message_timestamp.dart';
 
@@ -29,32 +30,13 @@ class MessageBase extends StatelessWidget {
   final VoidCallback? onDoubleTap;
 
   Widget _buildSenderAvatar(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final name = senderUser?.name ?? '';
-    final initial = name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?';
-
-    return Container(
-      width: 32,
-      height: 32,
-      margin: const EdgeInsets.only(right: 8, bottom: 2),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [colorScheme.primary, colorScheme.primaryContainer],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Center(
-        child: Text(
-          initial,
-          style: TextStyle(
-            color: colorScheme.onPrimary,
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-          ),
-        ),
+    return Padding(
+      padding: const EdgeInsets.only(right: 8, bottom: 2),
+      child: Avatar(
+        uuid: senderUser?.profilePictureUUID,
+        name: senderUser?.name ?? '',
+        seedKey: senderUser?.uuid ?? message.userUUID,
+        size: 32,
       ),
     );
   }

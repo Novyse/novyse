@@ -226,7 +226,7 @@ class ChatRepository {
 
       await db.execute(
         '''
-        INSERT OR IGNORE INTO chat (uuid, type, name, description, profilePictureUUID, eventID)
+        INSERT OR REPLACE INTO chat (uuid, type, name, description, profilePictureUUID, eventID)
         VALUES (?, ?, ?, ?, ?, ?);
         ''',
         [
@@ -234,7 +234,7 @@ class ChatRepository {
           type,
           chat['name'],
           chat['description'],
-          chat['profilePictureUUID'] ?? chat['pictureUUID'],
+          chat['profilePictureUUID'],
           chat['eventID'] ?? 0,
         ],
       );
@@ -346,7 +346,7 @@ class ChatRepository {
 
         await db.execute(
           '''
-          INSERT OR IGNORE INTO chat (uuid, type, name, description, profilePictureUUID, eventID)
+          INSERT OR REPLACE INTO chat (uuid, type, name, description, profilePictureUUID, eventID)
           VALUES (?, ?, ?, ?, ?, ?);
           ''',
           [
@@ -354,7 +354,7 @@ class ChatRepository {
             type,
             chat['name'],
             chat['description'],
-            chat['profilePictureUUID'] ?? chat['pictureUUID'],
+            chat['profilePictureUUID'],
             chat['eventID'] ?? 0,
           ],
         );

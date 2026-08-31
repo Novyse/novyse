@@ -166,5 +166,8 @@
   "formatRegular": "Rimuovi formattazione",
   "linkUrlHint": "https://example.com",
   "cancel": "Annulla",
-  "apply": "Applica"
+  "apply": "Applica",
+  "logout": "Disconnettiti",
+  "logoutConfirmTitle": "Disconnessione",
+  "logoutConfirmMessage": "Sei sicuro di voler effettuare il logout dal tuo account?"
 }

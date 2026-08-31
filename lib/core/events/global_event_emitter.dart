@@ -214,10 +214,8 @@ class UserProfileEmitter {
     final name = data['name'] as String?;
     final surname = data['surname'] as String?;
     final biography = data['biography'] as String?;
-    final profilePictureUUID =
-        (data['profilePictureUUID'] ?? data['profilePictureUuid']) as String?;
-    final bannerPictureUUID =
-        (data['bannerPictureUUID'] ?? data['bannerPictureUuid']) as String?;
+    final profilePictureUUID = data['profilePictureUUID'] as String?;
+    final bannerPictureUUID = data['bannerPictureUUID'] as String?;
     final birthday = data['birthday'];
     final region = data['region'] as String?;
     final country = data['country'] as String?;

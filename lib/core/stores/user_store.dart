@@ -88,8 +88,7 @@ class UserModel {
       name: (map['name'] ?? '') as String,
       surname: map['surname'] as String?,
       handle: map['handle'] as String?,
-      profilePictureUUID:
-          (map['profilePictureUUID'] ?? map['profilePictureUuid']) as String?,
+      profilePictureUUID: map['profilePictureUUID'] as String?,
       bannerPictureUUID:
           (map['bannerPictureUUID'] ?? map['bannerPictureUuid']) as String?,
       biography: map['biography'] as String?,
@@ -271,12 +270,8 @@ class UserNotifier extends Notifier<UserStoreState> {
       name: updates['name'] as String?,
       surname: updates['surname'] as String?,
       handle: updates['handle'] as String?,
-      profilePictureUUID:
-          (updates['profilePictureUUID'] ?? updates['profilePictureUuid'])
-              as String?,
-      bannerPictureUUID:
-          (updates['bannerPictureUUID'] ?? updates['bannerPictureUuid'])
-              as String?,
+      profilePictureUUID: updates['profilePictureUUID'] as String?,
+      bannerPictureUUID: updates['bannerPictureUUID'] as String?,
       biography: updates['biography'] as String?,
       birthday: updates['birthday']?.toString(),
       region: updates['region'] as String?,

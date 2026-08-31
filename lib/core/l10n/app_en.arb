@@ -166,5 +166,8 @@
   "formatRegular": "Clear Formatting",
   "linkUrlHint": "https://example.com",
   "cancel": "Cancel",
-  "apply": "Apply"
+  "apply": "Apply",
+  "logout": "Log out",
+  "logoutConfirmTitle": "Log out",
+  "logoutConfirmMessage": "Are you sure you want to log out from your account?"
 }

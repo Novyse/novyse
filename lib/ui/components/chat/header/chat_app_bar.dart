@@ -4,6 +4,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/pages/app/chat_routes.dart';
+import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/chat/chat_list_item.dart';
 
 class ChatAppBar extends ConsumerWidget implements PreferredSizeWidget {
@@ -13,42 +14,6 @@ class ChatAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  Widget _buildAvatar(BuildContext context, ResolvedChatMetadata metadata) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [colorScheme.primary, colorScheme.primaryContainer],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Center(
-        child: metadata.isSavedMessages
-            ? Icon(
-                Icons.bookmark_rounded,
-                color: colorScheme.onPrimary,
-                size: 20,
-              )
-            : Text(
-                metadata.name.isNotEmpty
-                    ? metadata.name.substring(0, 1).toUpperCase()
-                    : '?',
-                style: TextStyle(
-                  color: colorScheme.onPrimary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -96,7 +61,14 @@ class ChatAppBar extends ConsumerWidget implements PreferredSizeWidget {
       titleSpacing: 0,
       title: Row(
         children: [
-          _buildAvatar(context, metadata),
+          Avatar(
+            uuid: metadata.profilePictureUUID,
+            name: metadata.name,
+            seedKey: chatUUID,
+            size: 40,
+            isOnline: metadata.isOnline,
+            isSavedMessages: metadata.isSavedMessages,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

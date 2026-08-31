@@ -86,8 +86,7 @@ class ChatModel {
       uuid: (map['uuid'] ?? map['chatUUID'] ?? '') as String,
       name: (map['name'] ?? '') as String,
       type: (map['type'] ?? 'DM') as String,
-      profilePictureUUID:
-          (map['profilePictureUUID'] ?? map['profilePictureUuid']) as String?,
+      profilePictureUUID: map['profilePictureUUID'] as String?,
       handle: map['handle'] as String?,
       unreadCount: (map['unreadCount'] ?? 0) as int,
       members: parseList(map['members']),
@@ -272,8 +271,7 @@ class ChatListNotifier extends Notifier<ChatListState> {
         case 'picture':
           if (chat.type == 'DM') return chat;
           return chat.copyWith(
-            profilePictureUUID:
-                (data['pictureUUID'] ?? data['profilePictureUUID']) as String?,
+            profilePictureUUID: data['profilePictureUUID'] as String?,
           );
 
         case 'sub_create':

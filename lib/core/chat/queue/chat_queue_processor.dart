@@ -422,8 +422,8 @@ class ChatQueueProcessor {
 
       if (_disposed) return;
 
-      final serverCreatedAt = serverMessage['created_at'] ??
-          serverMessage['createdAt'];
+      final serverCreatedAt =
+          serverMessage['created_at'] ?? serverMessage['createdAt'];
       if (serverCreatedAt != null) {
         serverMessage['createdAt'] = serverCreatedAt.toString();
         serverMessage['created_at'] = serverCreatedAt.toString();

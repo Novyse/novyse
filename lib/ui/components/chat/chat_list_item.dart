@@ -7,6 +7,7 @@ import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/themes/themes.dart';
+import 'package:novyse/ui/components/avatar/avatar.dart';
 
 /// Metadata resolved for displaying a chat header / list item.
 class ResolvedChatMetadata {
@@ -40,10 +41,9 @@ ResolvedChatMetadata resolveChatMetadata({
 
     // Only the local user in the DM -> "Saved Messages"
     if (chat.members.length <= 1 || otherMembers.isEmpty) {
-      final localUser = users[localUserUUID];
       return ResolvedChatMetadata(
         name: l10n.savedMessages,
-        profilePictureUUID: localUser?.profilePictureUUID,
+        profilePictureUUID: null,
         isOnline: true,
         isSavedMessages: true,
         otherUserUUID: localUserUUID,
@@ -88,87 +88,6 @@ ResolvedChatMetadata resolveChatMetadata({
     profilePictureUUID: chat.profilePictureUUID,
     isOnline: isAnyMemberOnline,
     isSavedMessages: false,
-  );
-}
-
-/// Generates a deterministic, vibrant gradient placeholder avatar for the chat.
-Widget _buildPlaceholderAvatar(
-  BuildContext context, {
-  required ResolvedChatMetadata metadata,
-  required String seedKey,
-}) {
-  final colorSchemes = [
-    [const Color(0xFF4F46E5), const Color(0xFF7C3AED)],
-    [const Color(0xFF2563EB), const Color(0xFF38BDF8)],
-    [const Color(0xFF059669), const Color(0xFF34D399)],
-    [const Color(0xFFD97706), const Color(0xFFFBBF24)],
-    [const Color(0xFFDB2777), const Color(0xFFF472B6)],
-    [const Color(0xFF7C2D12), const Color(0xFFF97316)],
-    [const Color(0xFF4C1D95), const Color(0xFFA855F7)],
-    [const Color(0xFF0F766E), const Color(0xFF2DD4BF)],
-  ];
-
-  final hash = seedKey.codeUnits.fold<int>(0, (prev, elem) => prev + elem);
-  final gradientColors = colorSchemes[hash % colorSchemes.length];
-
-  return Stack(
-    clipBehavior: Clip.none,
-    children: [
-      Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: gradientColors,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: gradientColors.first.withValues(alpha: 0.25),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Center(
-          child: metadata.isSavedMessages
-              ? const Icon(
-                  Icons.bookmark_rounded,
-                  color: Colors.white,
-                  size: 24,
-                )
-              : Text(
-                  metadata.name.isNotEmpty
-                      ? metadata.name.characters.first.toUpperCase()
-                      : '?',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-        ),
-      ),
-      if (metadata.isOnline)
-        Positioned(
-          right: 0,
-          bottom: 0,
-          child: Container(
-            width: 13,
-            height: 13,
-            decoration: BoxDecoration(
-              color: AppColors.success,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                width: 2.2,
-              ),
-            ),
-          ),
-        ),
-    ],
   );
 }
 
@@ -267,11 +186,14 @@ class ChatListItem extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
             children: [
-              // Avatar (temporary placeholder avatar)
-              _buildPlaceholderAvatar(
-                context,
-                metadata: metadata,
+              // Avatar
+              Avatar(
+                uuid: metadata.profilePictureUUID,
+                name: metadata.name,
                 seedKey: chat.uuid.isNotEmpty ? chat.uuid : metadata.name,
+                size: 48,
+                isOnline: metadata.isOnline,
+                isSavedMessages: metadata.isSavedMessages,
               ),
               const SizedBox(width: 12),
 

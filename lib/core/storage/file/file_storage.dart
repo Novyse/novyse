@@ -87,6 +87,12 @@ class FileStorage {
     return null;
   }
 
+  /// Synchronously gets bytes from memory store (primarily on web/in-memory).
+  Uint8List? getBytesSync(String ref) {
+    if (ref.isEmpty) return null;
+    return _webMemoryStore[ref];
+  }
+
   /// Reads raw bytes of a file by its URI or reference key.
   Future<Uint8List?> getBytes(String uriOrRef) async {
     if (uriOrRef.isEmpty) return null;
