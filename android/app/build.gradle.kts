@@ -23,7 +23,24 @@ fun getBranchFromGlobalConfig(): String {
     return "development"
 }
 
+fun getAppVersionFromGlobalConfig(): String {
+    val candidateFiles = listOf(
+        rootProject.file("../lib/core/config/global.dart"),
+        rootProject.file("../lib/config/global.dart")
+    )
+    for (file in candidateFiles) {
+        if (file.exists()) {
+            val match = Regex("""const\s+String\s+appVersion\s*=\s*['"]([^'"]+)['"]""").find(file.readText())
+            if (match != null) {
+                return match.groupValues[1]
+            }
+        }
+    }
+    throw IllegalStateException("appVersion must be defined in lib/core/config/global.dart")
+}
+
 val currentBranch = getBranchFromGlobalConfig()
+val currentAppVersion = getAppVersionFromGlobalConfig()
 
 val currentApplicationId = when (currentBranch) {
     "production" -> "com.novyse"
@@ -52,7 +69,7 @@ android {
         // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
         // flag during build.
         versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        versionName = currentAppVersion
     }
 
     signingConfigs {
@@ -108,6 +125,7 @@ flutter {
 tasks.register("printApplicationId") {
     doLast {
         println("CONFIG_BRANCH: $currentBranch")
+        println("CONFIG_VERSION: $currentAppVersion")
         println("RESOLVED_APPLICATION_ID: $currentApplicationId")
     }
 }

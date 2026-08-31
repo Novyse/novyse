@@ -1,11 +1,11 @@
 {
-    "name": "novyse",
-    "short_name": "novyse",
+    "name": "Novyse",
+    "short_name": "Novyse",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#071827",
+    "theme_color": "#0F6FFF",
+    "description": "Novyse - Connect, communicate, and collaborate.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
