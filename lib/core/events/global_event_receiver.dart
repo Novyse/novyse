@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/auth/onboarding_manager.dart';
 import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
+import 'package:novyse/core/router/router.dart';
 
 /// Sets up global event listeners for navigation and critical app state changes.
 /// Equivalent to `SetupGlobalEventReceiver` in the React/TypeScript codebase.
@@ -31,10 +33,14 @@ class _GlobalEventReceiverState extends ConsumerState<GlobalEventReceiver> {
 
     // invalidSession event
     _subscriptions.add(
-      bus.on<InvalidSessionEvent>().listen((_) {
-        debugPrint('User session became invalid. Taking action... 🍹');
-        // TODO: Implement navigation/logout logic
-        // e.g., auth.logout(router);
+      bus.on<InvalidSessionEvent>().listen((_) async {
+        debugPrint(
+          'User session became invalid. Logging out and redirecting... 🍹',
+        );
+        await onboardingManager.logout();
+        if (mounted) {
+          ref.read(routerProvider).go('/welcome');
+        }
       }),
     );
 
@@ -44,8 +50,10 @@ class _GlobalEventReceiverState extends ConsumerState<GlobalEventReceiver> {
         debugPrint(
           'Client update required. Redirecting... 🚀 ${event.minVersion}',
         );
-        // TODO: Implement navigation to updateRequired screen
-        // e.g., router.replace('/updateRequired');
+        final query = event.minVersion != null
+            ? '?minVersion=${Uri.encodeComponent(event.minVersion!)}'
+            : '';
+        ref.read(routerProvider).go('/updateRequired$query');
       }),
     );
   }
