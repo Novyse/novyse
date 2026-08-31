@@ -120,5 +120,39 @@
   "chatDraft": "Bozza",
   "chatYou": "Tu",
   "chatUnknown": "Sconosciuto",
-  "noChats": "Nessuna chat presente"
+  "noChats": "Nessuna chat presente",
+  "chatTitle": "Chat",
+  "chatNotFound": "Chat non trovata",
+  "chatNotFoundWithId": "Nessuna chat con id \"{chatUUID}\"",
+  "@chatNotFoundWithId": {
+    "placeholders": {
+      "chatUUID": {
+        "type": "String"
+      }
+    }
+  },
+  "chatTypeAndMembers": "Tipo: {type} · Membri: {count}",
+  "@chatTypeAndMembers": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "typeMessageHint": "Scrivi un messaggio...",
+  "online": "Online",
+  "offline": "Offline",
+  "membersCount": "{count} membri",
+  "@membersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "edited": "modificato",
+  "selectChatFromList": "Seleziona una chat dalla lista"
 }

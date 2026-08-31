@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../auth/onboarding_manager.dart';
 import '../../pages/app/chat_detail_page.dart';
-import '../../pages/app/chat_info_page.dart';
 import '../../pages/app/main_shell.dart';
 import '../../pages/onboarding/login.dart';
 import '../../pages/onboarding/signup.dart';
@@ -104,27 +103,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(path: '/chats', pageBuilder: (c, s) => _placeholderPage(s)),
           GoRoute(
-            path: '/chats/:chatId',
+            path: '/chats/:chatUUID',
             pageBuilder: (context, state) {
-              final chatId = state.pathParameters['chatId'] ?? '';
-              return _chatStackPage(state, ChatDetailPage(chatId: chatId));
+              final chatUUID = state.pathParameters['chatUUID'] ?? '';
+              return _chatStackPage(state, ChatDetailPage(chatUUID: chatUUID));
             },
-            routes: [
-              GoRoute(
-                path: 'info',
-                pageBuilder: (context, state) {
-                  final chatId = state.pathParameters['chatId'] ?? '';
-                  return _chatStackPage(state, ChatInfoPage(chatId: chatId));
-                },
-              ),
-              GoRoute(
-                path: 'media',
-                pageBuilder: (context, state) {
-                  final chatId = state.pathParameters['chatId'] ?? '';
-                  return _chatStackPage(state, ChatMediaPage(chatId: chatId));
-                },
-              ),
-            ],
           ),
           GoRoute(
             path: '/settings',

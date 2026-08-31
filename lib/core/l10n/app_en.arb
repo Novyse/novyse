@@ -120,5 +120,39 @@
   "chatDraft": "Draft",
   "chatYou": "You",
   "chatUnknown": "Unknown",
-  "noChats": "No chats yet"
+  "noChats": "No chats yet",
+  "chatTitle": "Chat",
+  "chatNotFound": "Chat not found",
+  "chatNotFoundWithId": "No chat found with id \"{chatUUID}\"",
+  "@chatNotFoundWithId": {
+    "placeholders": {
+      "chatUUID": {
+        "type": "String"
+      }
+    }
+  },
+  "chatTypeAndMembers": "Type: {type} · Members: {count}",
+  "@chatTypeAndMembers": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "typeMessageHint": "Type a message...",
+  "online": "Online",
+  "offline": "Offline",
+  "membersCount": "{count} members",
+  "@membersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "edited": "edited",
+  "selectChatFromList": "Select a chat from the list"
 }

@@ -85,13 +85,13 @@ class _HomeShellState extends ConsumerState<HomeShell>
 
   String get _path => GoRouterState.of(context).uri.path;
 
-  String? get _chatId => chatIdFromPath(_path);
+  String? get _chatUUID => chatUUIDFromPath(_path);
 
   void _syncUrlWhenNoChat() {
     if (!mounted || _tabController.indexIsChanging) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _tabController.indexIsChanging) return;
-      if (_chatId != null) return;
+      if (_chatUUID != null) return;
       final target = pathForTab(_tabController.index);
       if (_path != target) {
         context.go(target);
@@ -127,7 +127,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
     if (_tabController.index != index) {
       _tabController.animateTo(index);
     }
-    if (_chatId == null) {
+    if (_chatUUID == null) {
       context.go(pathForTab(index));
     }
   }
@@ -159,7 +159,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
   @override
   Widget build(BuildContext context) {
     final wide = isMasterDetailLayout(context);
-    final chatOpen = _chatId != null;
+    final chatOpen = _chatUUID != null;
     final shellCanPop = shellNavigatorKey.currentState?.canPop() ?? false;
     final tabBar = _FloatingTabBar(
       controller: _tabController,

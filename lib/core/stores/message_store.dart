@@ -14,10 +14,10 @@ class MessageModel {
   final String chatUUID;
   final int subID;
   final String userUUID;
-  final DateTime time;
+  final DateTime createdAt;
   final bool edited;
   final bool pinned;
-  final String? text;
+  final String? content;
   final List<dynamic> replyTos;
   final List<Map<String, dynamic>> reactions;
   final List<dynamic> reads;
@@ -30,10 +30,10 @@ class MessageModel {
     required this.chatUUID,
     this.subID = 0,
     required this.userUUID,
-    required this.time,
+    required this.createdAt,
     this.edited = false,
     this.pinned = false,
-    this.text,
+    this.content,
     this.replyTos = const [],
     this.reactions = const [],
     this.reads = const [],
@@ -42,7 +42,7 @@ class MessageModel {
   });
 
   factory MessageModel.fromMap(Map<String, dynamic> map) {
-    DateTime parseTime(dynamic val) {
+    DateTime parseCreatedAt(dynamic val) {
       if (val is DateTime) return val;
       if (val is String && val.isNotEmpty) {
         return DateTime.tryParse(val) ?? DateTime.now();
@@ -63,15 +63,19 @@ class MessageModel {
     return MessageModel(
       id: map['id'] ?? map['messageID'] ?? 0,
       uuid: map['uuid'] as String?,
-      chatUUID: (map['chatUUID'] ?? '') as String,
-      subID: (map['subID'] ?? 0) as int,
-      userUUID: (map['userUUID'] ?? map['senderUUID'] ?? '') as String,
-      time: parseTime(
-        map['time'] ?? map['createdAt'] ?? map['created_at'] ?? map['at'],
+      chatUUID: (map['chatUUID'] ?? '').toString(),
+      subID: map['subID'] is num
+          ? (map['subID'] as num).toInt()
+          : (int.tryParse(map['subID']?.toString() ?? '0') ?? 0),
+      userUUID:
+          (map['userUUID'] ?? map['senderUUID'] ?? map['sender_uuid'] ?? '')
+              .toString(),
+      createdAt: parseCreatedAt(
+        map['createdAt'] ?? map['created_at'] ?? map['time'] ?? map['at'],
       ),
       edited: map['edited'] == true || map['edited'] == 1,
       pinned: map['pinned'] == true || map['pinned'] == 1,
-      text: map['text'] ?? map['content'] as String?,
+      content: (map['content'] ?? map['text'])?.toString(),
       replyTos: map['replyTos'] is List ? (map['replyTos'] as List) : const [],
       reactions: parseMapList(map['reactions']),
       reads: map['reads'] is List ? (map['reads'] as List) : const [],
@@ -86,10 +90,10 @@ class MessageModel {
     String? chatUUID,
     int? subID,
     String? userUUID,
-    DateTime? time,
+    DateTime? createdAt,
     bool? edited,
     bool? pinned,
-    String? text,
+    String? content,
     List<dynamic>? replyTos,
     List<Map<String, dynamic>>? reactions,
     List<dynamic>? reads,
@@ -102,10 +106,10 @@ class MessageModel {
       chatUUID: chatUUID ?? this.chatUUID,
       subID: subID ?? this.subID,
       userUUID: userUUID ?? this.userUUID,
-      time: time ?? this.time,
+      createdAt: createdAt ?? this.createdAt,
       edited: edited ?? this.edited,
       pinned: pinned ?? this.pinned,
-      text: text ?? this.text,
+      content: content ?? this.content,
       replyTos: replyTos ?? this.replyTos,
       reactions: reactions ?? this.reactions,
       reads: reads ?? this.reads,
@@ -149,6 +153,7 @@ class MessageListState {
 class MessageListNotifier
     extends FamilyNotifier<MessageListState, ({String chatUUID, int subID})> {
   final List<StreamSubscription> _subscriptions = [];
+  bool _isInitInProgress = false;
 
   @override
   MessageListState build(({String chatUUID, int subID}) arg) {
@@ -187,29 +192,36 @@ class MessageListNotifier
 
   /// Initial load of messages for this channel from SQLite.
   Future<void> init({AppDatabase? dbOverride, int limit = 50}) async {
-    if (state.historyLoaded) return;
-
+    if (_isInitInProgress || state.historyLoaded) return;
+    _isInitInProgress = true;
     state = state.copyWith(loading: true);
 
     try {
       final AppDatabase db = dbOverride ?? ref.read(databaseProvider);
+      if (!db.isOpen) {
+        await db.initialize();
+      }
       final rawMessages = await db.message.get.by.sub(
         arg.chatUUID,
         arg.subID,
         limit: limit,
       );
 
-      final list = rawMessages.map((raw) => MessageModel.fromMap(raw)).toList();
+      final list = rawMessages.reversed
+          .map((raw) => MessageModel.fromMap(raw))
+          .toList();
 
       state = state.copyWith(
         messages: list,
         loading: false,
-        hasMore: list.length >= limit,
+        hasMore: rawMessages.length >= limit,
         historyLoaded: true,
       );
     } catch (e) {
       debugPrint('MessageStore init error for ${arg.chatUUID}: $e');
       state = state.copyWith(loading: false);
+    } finally {
+      _isInitInProgress = false;
     }
   }
 
@@ -220,7 +232,7 @@ class MessageListNotifier
     state = state.copyWith(loading: true);
 
     try {
-      final oldestTime = state.messages.last.time.toIso8601String();
+      final oldestTime = state.messages.last.createdAt.toIso8601String();
       final AppDatabase db = dbOverride ?? ref.read(databaseProvider);
       final rawOlder = await db.message.get.by.sub(
         arg.chatUUID,
@@ -277,7 +289,8 @@ class MessageListNotifier
         state = state.copyWith(
           messages: state.messages.map((m) {
             if (m.id.toString() == messageID) {
-              return m.copyWith(text: data['text'] as String?, edited: true);
+              final newContent = (data['content'] ?? data['text']) as String?;
+              return m.copyWith(content: newContent, edited: true);
             }
             return m;
           }).toList(),

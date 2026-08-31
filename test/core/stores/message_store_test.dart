@@ -49,7 +49,7 @@ void main() {
 
       final state = container.read(chatMessagesProvider(key));
       expect(state.messages.length, equals(1));
-      expect(state.messages.first.text, equals('Initial message'));
+      expect(state.messages.first.content, equals('Initial message'));
 
       final bus = container.read(eventBusProvider);
 
@@ -60,8 +60,8 @@ void main() {
           'chatUUID': 'chat-1',
           'subID': 0,
           'userUUID': 'user-2',
-          'text': 'Second message',
-          'time': '2026-08-31T12:01:00.000Z',
+          'content': 'Second message',
+          'createdAt': '2026-08-31T12:01:00.000Z',
         }),
       );
       await Future<void>.delayed(const Duration(milliseconds: 10));
@@ -77,12 +77,12 @@ void main() {
           subID: 0,
           messageID: '2',
           action: 'edit',
-          data: {'text': 'Edited second message'},
+          data: {'content': 'Edited second message'},
         ),
       );
       await Future<void>.delayed(const Duration(milliseconds: 10));
       expect(
-        container.read(chatMessagesProvider(key)).messages.first.text,
+        container.read(chatMessagesProvider(key)).messages.first.content,
         equals('Edited second message'),
       );
       expect(
@@ -136,15 +136,15 @@ void main() {
         id: 1,
         chatUUID: 'chat-1',
         userUUID: 'user-1',
-        time: DateTime.now(),
-        text: 'Forward me',
+        createdAt: DateTime.now(),
+        content: 'Forward me',
       );
 
       forwardNotifier.setForwardMessages([msg]);
 
       expect(container.read(forwardProvider).isForwarding, isTrue);
       expect(
-        container.read(forwardProvider).forwardMessages.first.text,
+        container.read(forwardProvider).forwardMessages.first.content,
         equals('Forward me'),
       );
 

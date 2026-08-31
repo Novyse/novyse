@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/status_store.dart';
 import 'package:novyse/ui/components/chat/chat_list_item.dart';
@@ -13,7 +14,9 @@ class ChatListPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final selectedChatId = GoRouterState.of(context).pathParameters['chatId'];
+    final selectedChatUUID = ref.watch(
+      activeChatProvider.select((s) => s.selectedChatUUID),
+    );
     final activeStatus = ref.watch(activeStatusProvider);
     final chatListState = ref.watch(chatListProvider);
     final chats = chatListState.chats;
@@ -56,12 +59,17 @@ class ChatListPage extends ConsumerWidget {
               separatorBuilder: (_, _) => const SizedBox(height: 4),
               itemBuilder: (context, index) {
                 final chat = chats[index];
-                final selected = selectedChatId == chat.uuid;
+                final selected = selectedChatUUID == chat.uuid;
 
                 return ChatListItem(
                   chat: chat,
                   isSelected: selected,
-                  onTap: () => context.go('/chats/${chat.uuid}'),
+                  onTap: () {
+                    ref
+                        .read(activeChatProvider.notifier)
+                        .setSelectedChatUUID(chat.uuid);
+                    context.go('/chats/${chat.uuid}');
+                  },
                 );
               },
             ),
