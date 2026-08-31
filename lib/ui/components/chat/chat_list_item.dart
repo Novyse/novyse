@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/chat/message_format.dart';
 import 'package:novyse/core/l10n/l10n.dart';
@@ -250,14 +249,17 @@ class ChatListItem extends ConsumerWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (formattedMessageData.prefix.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 4),
-                                  child: Text(
-                                    formattedMessageData.prefix,
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                if (formattedMessageData.prefix.isNotEmpty)
+                                  TextSpan(
+                                    text:
+                                        formattedMessageData.prefix.endsWith(
+                                          ' ',
+                                        )
+                                        ? formattedMessageData.prefix
+                                        : '${formattedMessageData.prefix} ',
                                     style: TextStyle(
                                       color: formattedMessageData.isDraft
                                           ? AppColors.danger
@@ -269,57 +271,28 @@ class ChatListItem extends ConsumerWidget {
                                           : FontWeight.w600,
                                       fontSize: 13.5,
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ),
-                              Flexible(
-                                child: MarkdownBody(
-                                  data: formattedMessageData.content.replaceAll(
+                                TextSpan(
+                                  text: formattedMessageData.content.replaceAll(
                                     '\n',
                                     ' ',
                                   ),
-                                  selectable: false,
-                                  softLineBreak: false,
-                                  styleSheet:
-                                      MarkdownStyleSheet.fromTheme(
-                                        Theme.of(context),
-                                      ).copyWith(
-                                        p: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color:
-                                                  formattedMessageData.isDraft
-                                                  ? Theme.of(context)
-                                                        .colorScheme
-                                                        .onSurface
-                                                  : Theme.of(context)
-                                                        .colorScheme
-                                                        .onSurfaceVariant,
-                                              fontSize: 13.5,
-                                            ),
-                                        pPadding: EdgeInsets.zero,
-                                        code: TextStyle(
-                                          fontSize: 12,
-                                          fontFamily: 'monospace',
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .surfaceContainerHighest,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
-                                        ),
-                                        a: TextStyle(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
-                                          decoration: TextDecoration.underline,
-                                        ),
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: formattedMessageData.isDraft
+                                            ? Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                            : Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                        fontSize: 13.5,
                                       ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (chat.isPinned)
