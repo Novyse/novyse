@@ -7,6 +7,8 @@
 		<string>applinks:app.dev.novyse.com</string>
 		<string>applinks:web.dev.novyse.com</string>
 		<string>applinks:auth.dev.novyse.com</string>
+		<string>webcredentials:app.dev.novyse.com</string>
+		<string>webcredentials:auth.dev.novyse.com</string>
 	</array>
 </dict>
 </plist>

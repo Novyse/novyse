@@ -91,6 +91,8 @@ else
 		<string>applinks:app${HOST_SUFFIX}.novyse.com</string>
 		<string>applinks:web${HOST_SUFFIX}.novyse.com</string>
 		<string>applinks:auth${HOST_SUFFIX}.novyse.com</string>
+		<string>webcredentials:app${HOST_SUFFIX}.novyse.com</string>
+		<string>webcredentials:auth${HOST_SUFFIX}.novyse.com</string>
 	</array>
 </dict>
 </plist>
