@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/events/global_event_receiver.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 
 import 'core/auth/onboarding_manager.dart';
@@ -26,6 +27,8 @@ class MyApp extends ConsumerWidget {
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.light,
       routerConfig: ref.watch(routerProvider),
+      builder: (context, child) =>
+          GlobalEventReceiver(child: child ?? const SizedBox.shrink()),
     );
   }
 }

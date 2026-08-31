@@ -49,5 +49,30 @@
   "statusSuccess": "Success",
   "statusError": "Error",
   "statusWarning": "Warning",
-  "statusInfo": "Info"
+  "statusInfo": "Info",
+  "updateRequiredTitle": "Update Required",
+  "updateRequiredSubtitle": "A new version of Novyse is available and required to continue.\n\nPlease update to access the latest features and security improvements.",
+  "currentVersion": "Current: {version}",
+  "@currentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "requiredVersion": "Required: {version}",
+  "@requiredVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadLatestVersion": "Download Latest Version",
+  "openPlayStore": "Open Play Store",
+  "openAppStore": "Open App Store",
+  "openMicrosoftStore": "Open Microsoft Store",
+  "openGitHub": "Download from GitHub",
+  "refreshPage": "Refresh Page",
+  "updateNow": "Update Now"
 }

@@ -6,6 +6,7 @@ import 'package:novyse/core/auth/onboarding_manager.dart';
 import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
 import 'package:novyse/core/router/router.dart';
+import 'package:novyse/core/services/auth.dart';
 
 /// Sets up global event listeners for navigation and critical app state changes.
 /// Equivalent to `SetupGlobalEventReceiver` in the React/TypeScript codebase.
@@ -30,6 +31,9 @@ class _GlobalEventReceiverState extends ConsumerState<GlobalEventReceiver> {
 
   void _setupListeners() {
     final bus = ref.read(eventBusProvider);
+
+    // Bind auth invalid session callback to global event bus
+    initAuth(bus);
 
     // invalidSession event
     _subscriptions.add(
