@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloudflare_turnstile/cloudflare_turnstile.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -301,7 +302,9 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
       } else {
         widget.onSubmit?.call();
       }
+      TextInput.finishAutofillContext(shouldSave: true);
     } catch (e) {
+      TextInput.finishAutofillContext(shouldSave: false);
       if (mounted) {
         setState(() {
           _statusError = e.toString().replaceAll('Exception: ', '');
@@ -412,183 +415,207 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
     final displayError = _statusError ?? widget.errorMessage;
     final canSubmit = _isSubmitEnabled(l10n);
 
-    final content = Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: widget.embedded
-            ? CrossAxisAlignment.center
-            : CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            textAlign: widget.embedded ? TextAlign.center : null,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            textAlign: widget.embedded ? TextAlign.center : null,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          if (displaySuccess != null && displaySuccess.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            StatusMessage(
-              type: StatusMessageType.success,
-              title: l10n.statusSuccess,
-              content: [displaySuccess],
-              onClose: () => setState(() {
-                _statusSuccess = null;
-                _dismissedSuccess = true;
-              }),
-            ),
-          ],
-          if (displayError != null && displayError.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            StatusMessage(
-              type: StatusMessageType.danger,
-              title: l10n.statusError,
-              content: [displayError],
-              onClose: () => setState(() => _statusError = null),
-            ),
-          ],
-          const SizedBox(height: 20),
-          if (!_isLoginMode) ...[
-            OnboardingTextField(
-              label: l10n.name,
-              hint: l10n.nameHint,
-              controller: _nameController,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              validator: (value) => Validator.validateName(value, l10n),
-            ),
-            const SizedBox(height: 16),
-          ],
-          OnboardingTextField(
-            label: l10n.username,
-            hint: l10n.usernameHint,
-            controller: _usernameController,
-            onChanged: _onUsernameChanged,
-            suffixIcon: _buildUsernameSuffix(),
-            autovalidateMode: _isLoginMode
-                ? AutovalidateMode.disabled
-                : AutovalidateMode.onUserInteraction,
-            validator: _isLoginMode
-                ? null
-                : (value) =>
-                      Validator.validateHandle(value, l10n) ?? _handleApiError,
-          ),
-          const SizedBox(height: 16),
-          OnboardingTextField(
-            label: l10n.password,
-            hint: l10n.passwordHint,
-            controller: _passwordController,
-            obscureText: true,
-            autovalidateMode: _isLoginMode
-                ? AutovalidateMode.disabled
-                : AutovalidateMode.onUserInteraction,
-            validator: _isLoginMode
-                ? null
-                : (value) => Validator.validatePassword(value, l10n),
-          ),
-          if (_isLoginMode) _buildSecuredByOpaque(context),
-          if (!_isLoginMode) ...[
-            const SizedBox(height: 16),
-            OnboardingTextField(
-              label: l10n.confirmPassword,
-              hint: l10n.confirmPasswordHint,
-              controller: _confirmPasswordController,
-              obscureText: true,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              validator: (value) => Validator.validateConfirmPassword(
-                value,
-                _passwordController.text,
-                l10n,
+    final content = AutofillGroup(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: widget.embedded
+              ? CrossAxisAlignment.center
+              : CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              textAlign: widget.embedded ? TextAlign.center : null,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w800,
               ),
             ),
-            _buildSecuredByOpaque(context),
-          ],
-          if (widget.showLegalCheckboxes) ...[
-            const SizedBox(height: 12),
-            _LegalCheckbox(
-              value: _acceptLegal,
-              onChanged: (bool? value) {
-                setState(() {
-                  _acceptLegal = value == true;
-                  if (_acceptLegal && _isOldEnough) _statusError = null;
-                });
-              },
-              text: l10n.acceptLegal,
-              links: [
-                _LegalLink(label: l10n.privacyPolicy, url: privacyPolicyUrl),
-                _LegalLink(label: l10n.termsOfService, url: tosUrl),
-              ],
-              onLinkTap: _openLink,
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              textAlign: widget.embedded ? TextAlign.center : null,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
-            _LegalCheckbox(
-              value: _isOldEnough,
-              onChanged: (bool? value) {
-                setState(() {
-                  _isOldEnough = value == true;
-                  if (_acceptLegal && _isOldEnough) _statusError = null;
-                });
-              },
-              text: l10n.atLeastSixteen,
-            ),
-          ],
-          if (widget.showTurnstile) ...[
-            const SizedBox(height: 16),
-            Center(
-              child: CloudflareTurnstile(
-                key: ValueKey('turnstile_$_turnstileKey'),
-                controller: _turnstileController,
-                siteKey: cloudflareTurnstilePublic,
-                action: _isLoginMode ? 'login' : 'signup',
-                options: TurnstileOptions(
-                  theme: TurnstileTheme.dark,
-                  language: Localizations.localeOf(context).languageCode,
-                ),
-                onTokenReceived: (token) => setState(() {
-                  _turnstileToken = token;
-                  _statusError = null;
+            if (displaySuccess != null && displaySuccess.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              StatusMessage(
+                type: StatusMessageType.success,
+                title: l10n.statusSuccess,
+                content: [displaySuccess],
+                onClose: () => setState(() {
+                  _statusSuccess = null;
+                  _dismissedSuccess = true;
                 }),
-                onTokenExpired: () => setState(() => _turnstileToken = null),
               ),
+            ],
+            if (displayError != null && displayError.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              StatusMessage(
+                type: StatusMessageType.danger,
+                title: l10n.statusError,
+                content: [displayError],
+                onClose: () => setState(() => _statusError = null),
+              ),
+            ],
+            const SizedBox(height: 20),
+            if (!_isLoginMode) ...[
+              OnboardingTextField(
+                label: l10n.name,
+                hint: l10n.nameHint,
+                controller: _nameController,
+                keyboardType: TextInputType.name,
+                autofillHints: const [AutofillHints.name],
+                textInputAction: TextInputAction.next,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: (value) => Validator.validateName(value, l10n),
+              ),
+              const SizedBox(height: 16),
+            ],
+            OnboardingTextField(
+              label: l10n.username,
+              hint: l10n.usernameHint,
+              controller: _usernameController,
+              keyboardType: TextInputType.text,
+              onChanged: _onUsernameChanged,
+              suffixIcon: _buildUsernameSuffix(),
+              autofillHints: const [
+                AutofillHints.username,
+                AutofillHints.email,
+              ],
+              textInputAction: TextInputAction.next,
+              autovalidateMode: _isLoginMode
+                  ? AutovalidateMode.disabled
+                  : AutovalidateMode.onUserInteraction,
+              validator: _isLoginMode
+                  ? null
+                  : (value) =>
+                        Validator.validateHandle(value, l10n) ??
+                        _handleApiError,
             ),
-          ],
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: OnboardingSecondaryButton(
-                  label: l10n.back,
-                  onPressed:
-                      widget.onBack ?? () => Navigator.of(context).maybePop(),
+            const SizedBox(height: 16),
+            OnboardingTextField(
+              label: l10n.password,
+              hint: l10n.passwordHint,
+              controller: _passwordController,
+              keyboardType: TextInputType.visiblePassword,
+              obscureText: true,
+              autofillHints: _isLoginMode
+                  ? const [AutofillHints.password]
+                  : const [AutofillHints.newPassword],
+              textInputAction: _isLoginMode
+                  ? TextInputAction.done
+                  : TextInputAction.next,
+              onFieldSubmitted: _isLoginMode ? (_) => _submit() : null,
+              autovalidateMode: _isLoginMode
+                  ? AutovalidateMode.disabled
+                  : AutovalidateMode.onUserInteraction,
+              validator: _isLoginMode
+                  ? null
+                  : (value) => Validator.validatePassword(value, l10n),
+            ),
+            if (_isLoginMode) _buildSecuredByOpaque(context),
+            if (!_isLoginMode) ...[
+              const SizedBox(height: 16),
+              OnboardingTextField(
+                label: l10n.confirmPassword,
+                hint: l10n.confirmPasswordHint,
+                controller: _confirmPasswordController,
+                keyboardType: TextInputType.visiblePassword,
+                obscureText: true,
+                autofillHints: const [AutofillHints.newPassword],
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _submit(),
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: (value) => Validator.validateConfirmPassword(
+                  value,
+                  _passwordController.text,
+                  l10n,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OnboardingPrimaryButton(
-                  label: _isLoginMode ? l10n.login : l10n.register,
-                  isLoading: _isLoading,
-                  onPressed: canSubmit ? _submit : null,
+              _buildSecuredByOpaque(context),
+            ],
+            if (widget.showLegalCheckboxes) ...[
+              const SizedBox(height: 12),
+              _LegalCheckbox(
+                value: _acceptLegal,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _acceptLegal = value == true;
+                    if (_acceptLegal && _isOldEnough) _statusError = null;
+                  });
+                },
+                text: l10n.acceptLegal,
+                links: [
+                  _LegalLink(label: l10n.privacyPolicy, url: privacyPolicyUrl),
+                  _LegalLink(label: l10n.termsOfService, url: tosUrl),
+                ],
+                onLinkTap: _openLink,
+              ),
+              _LegalCheckbox(
+                value: _isOldEnough,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _isOldEnough = value == true;
+                    if (_acceptLegal && _isOldEnough) _statusError = null;
+                  });
+                },
+                text: l10n.atLeastSixteen,
+              ),
+            ],
+            if (widget.showTurnstile) ...[
+              const SizedBox(height: 16),
+              Center(
+                child: CloudflareTurnstile(
+                  key: ValueKey('turnstile_$_turnstileKey'),
+                  controller: _turnstileController,
+                  siteKey: cloudflareTurnstilePublic,
+                  action: _isLoginMode ? 'login' : 'signup',
+                  options: TurnstileOptions(
+                    theme: TurnstileTheme.dark,
+                    language: Localizations.localeOf(context).languageCode,
+                  ),
+                  onTokenReceived: (token) => setState(() {
+                    _turnstileToken = token;
+                    _statusError = null;
+                  }),
+                  onTokenExpired: () => setState(() => _turnstileToken = null),
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 20),
-          Align(
-            alignment: Alignment.center,
-            child: TextButton(
-              onPressed: _toggleMode,
-              child: Text(
-                _isLoginMode ? l10n.noAccountRegister : l10n.hasAccountLogin,
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OnboardingSecondaryButton(
+                    label: l10n.back,
+                    onPressed:
+                        widget.onBack ?? () => Navigator.of(context).maybePop(),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OnboardingPrimaryButton(
+                    label: _isLoginMode ? l10n.login : l10n.register,
+                    isLoading: _isLoading,
+                    onPressed: canSubmit ? _submit : null,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Align(
+              alignment: Alignment.center,
+              child: TextButton(
+                onPressed: _toggleMode,
+                child: Text(
+                  _isLoginMode ? l10n.noAccountRegister : l10n.hasAccountLogin,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
 

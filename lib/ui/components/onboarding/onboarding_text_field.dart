@@ -12,6 +12,10 @@ class OnboardingTextField extends StatelessWidget {
     this.suffixIcon,
     this.validator,
     this.onChanged,
+    this.autofillHints,
+    this.textInputAction,
+    this.onEditingComplete,
+    this.onFieldSubmitted,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
   });
 
@@ -24,6 +28,10 @@ class OnboardingTextField extends StatelessWidget {
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
   final ValueChanged<String>? onChanged;
+  final Iterable<String>? autofillHints;
+  final TextInputAction? textInputAction;
+  final VoidCallback? onEditingComplete;
+  final ValueChanged<String>? onFieldSubmitted;
   final AutovalidateMode autovalidateMode;
 
   @override
@@ -46,6 +54,10 @@ class OnboardingTextField extends StatelessWidget {
           obscureText: obscureText,
           validator: validator,
           onChanged: onChanged,
+          autofillHints: autofillHints,
+          textInputAction: textInputAction,
+          onEditingComplete: onEditingComplete,
+          onFieldSubmitted: onFieldSubmitted,
           autovalidateMode: autovalidateMode,
           decoration: InputDecoration(
             hintText: hint,
