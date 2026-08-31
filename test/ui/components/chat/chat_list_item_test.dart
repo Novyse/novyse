@@ -200,4 +200,43 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('ChatListItem renders Markdown in last message preview', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final userNotifier = container.read(userStoreProvider.notifier);
+    userNotifier.state = const UserStoreState(
+      localUserUUID: 'user-local',
+      users: {},
+    );
+
+    const chat = ChatModel(
+      uuid: 'chat-md-test',
+      name: 'Markdown Group',
+      type: 'GROUP',
+      lastMessage: {
+        'content': '**Importante**: guarda questo `codice`!',
+        'time': '2026-08-31T12:00:00.000Z',
+      },
+    );
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          localizationsDelegates: localizationsDelegates,
+          supportedLocales: supportedLocales,
+          locale: Locale('it'),
+          home: Scaffold(body: ChatListItem(chat: chat)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Markdown Group'), findsOneWidget);
+    expect(find.textContaining('Importante'), findsOneWidget);
+  });
 }

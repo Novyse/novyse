@@ -113,7 +113,8 @@ class MessageBase extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final maxBubbleWidth = MediaQuery.sizeOf(context).width * 0.78;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final maxBubbleWidth = (screenWidth - 64).clamp(120.0, screenWidth * 0.78);
 
     final senderName = senderUser?.displayName.isNotEmpty == true
         ? senderUser!.displayName
@@ -132,91 +133,93 @@ class MessageBase extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             if (!isSender && showAvatar) _buildSenderAvatar(context),
-            ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxBubbleWidth),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: onTap,
-                  onLongPress: onLongPress,
-                  onDoubleTap: onDoubleTap,
-                  borderRadius: BorderRadius.circular(18),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isSender
-                          ? colorScheme.primary
-                          : colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(18),
-                        topRight: const Radius.circular(18),
-                        bottomLeft: Radius.circular(isSender ? 18 : 4),
-                        bottomRight: Radius.circular(isSender ? 4 : 18),
-                      ),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: colorScheme.primary.withValues(
-                                  alpha: 0.35,
-                                ),
-                                blurRadius: 6,
-                                spreadRadius: 1,
-                              ),
-                            ]
-                          : null,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 13,
-                      vertical: 8,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: isSender
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Group Sender Name
-                        if (!isSender &&
-                            showSenderName &&
-                            senderName.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 3),
-                            child: Text(
-                              senderName,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: colorScheme.primary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-
-                        // Message Text
-                        if (message.content != null &&
-                            message.content!.isNotEmpty)
-                          MessageText(
-                            content: message.content!,
-                            isSender: isSender,
-                            isSelected: isSelected,
-                          ),
-
-                        const SizedBox(height: 4),
-
-                        // Timestamp & Status info
-                        MessageTimestamp(
-                          createdAt: message.createdAt,
-                          isSender: isSender,
-                          hasBeenRead: hasBeenRead,
-                          isEdited: message.edited,
-                          isPinned: message.pinned,
-                          replyCount: message.replyTos.length,
-                          compact: true,
+            Flexible(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxBubbleWidth),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: onTap,
+                    onLongPress: onLongPress,
+                    onDoubleTap: onDoubleTap,
+                    borderRadius: BorderRadius.circular(18),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isSender
+                            ? colorScheme.primary
+                            : colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.only(
+                          topLeft: const Radius.circular(18),
+                          topRight: const Radius.circular(18),
+                          bottomLeft: Radius.circular(isSender ? 18 : 4),
+                          bottomRight: Radius.circular(isSender ? 4 : 18),
                         ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.35,
+                                  ),
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 13,
+                        vertical: 8,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: isSender
+                            ? CrossAxisAlignment.end
+                            : CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Group Sender Name
+                          if (!isSender &&
+                              showSenderName &&
+                              senderName.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 3),
+                              child: Text(
+                                senderName,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: colorScheme.primary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
 
-                        // Reactions
-                        _buildReactionsRow(context),
-                      ],
+                          // Message Text
+                          if (message.content != null &&
+                              message.content!.isNotEmpty)
+                            MessageText(
+                              content: message.content!,
+                              isSender: isSender,
+                              isSelected: isSelected,
+                            ),
+
+                          const SizedBox(height: 4),
+
+                          // Timestamp & Status info
+                          MessageTimestamp(
+                            createdAt: message.createdAt,
+                            isSender: isSender,
+                            hasBeenRead: hasBeenRead,
+                            isEdited: message.edited,
+                            isPinned: message.pinned,
+                            replyCount: message.replyTos.length,
+                            compact: true,
+                          ),
+
+                          // Reactions
+                          _buildReactionsRow(context),
+                        ],
+                      ),
                     ),
                   ),
                 ),

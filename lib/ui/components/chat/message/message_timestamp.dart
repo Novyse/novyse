@@ -34,51 +34,55 @@ class MessageTimestamp extends StatelessWidget {
 
     final timeStr = DateFormat('HH:mm').format(createdAt.toLocal());
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        if (replyCount > 0) ...[
-          Icon(Icons.reply_rounded, size: 13, color: textColor),
-          const SizedBox(width: 2),
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: isSender ? Alignment.centerRight : Alignment.centerLeft,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (replyCount > 0) ...[
+            Icon(Icons.reply_rounded, size: 13, color: textColor),
+            const SizedBox(width: 2),
+            Text(
+              '$replyCount',
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(width: 4),
+          ],
+          if (isPinned) ...[
+            Icon(Icons.push_pin_rounded, size: 12, color: textColor),
+            const SizedBox(width: 4),
+          ],
+          if (isEdited) ...[
+            Text(
+              l10n?.edited ?? 'edited',
+              style: TextStyle(fontSize: 10, color: textColor),
+            ),
+            const SizedBox(width: 4),
+          ],
           Text(
-            '$replyCount',
+            timeStr,
             style: TextStyle(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w600,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
               color: textColor,
             ),
           ),
-          const SizedBox(width: 4),
+          if (isSender) ...[
+            const SizedBox(width: 4),
+            Icon(
+              hasBeenRead ? Icons.done_all_rounded : Icons.check_rounded,
+              size: 14,
+              color: textColor,
+            ),
+          ],
         ],
-        if (isPinned) ...[
-          Icon(Icons.push_pin_rounded, size: 12, color: textColor),
-          const SizedBox(width: 4),
-        ],
-        if (isEdited) ...[
-          Text(
-            l10n?.edited ?? 'edited',
-            style: TextStyle(fontSize: 10, color: textColor),
-          ),
-          const SizedBox(width: 4),
-        ],
-        Text(
-          timeStr,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-            color: textColor,
-          ),
-        ),
-        if (isSender) ...[
-          const SizedBox(width: 4),
-          Icon(
-            hasBeenRead ? Icons.done_all_rounded : Icons.check_rounded,
-            size: 14,
-            color: textColor,
-          ),
-        ],
-      ],
+      ),
     );
   }
 }

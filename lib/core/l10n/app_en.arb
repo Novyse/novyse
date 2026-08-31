@@ -154,5 +154,17 @@
     }
   },
   "edited": "edited",
-  "selectChatFromList": "Select a chat from the list"
+  "selectChatFromList": "Select a chat from the list",
+  "formatting": "Formatting",
+  "formatBold": "Bold",
+  "formatItalic": "Italic",
+  "formatMonospace": "Monospace",
+  "formatStrikethrough": "Strikethrough",
+  "formatUnderline": "Underline",
+  "formatSpoiler": "Spoiler",
+  "formatLink": "Create Link",
+  "formatRegular": "Clear Formatting",
+  "linkUrlHint": "https://example.com",
+  "cancel": "Cancel",
+  "apply": "Apply"
 }
