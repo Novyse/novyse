@@ -434,8 +434,8 @@ class ChatListItem extends ConsumerWidget {
 
     final rawContent = formatted['content']?.toString() ?? '';
     final msgType = lastMsg['type'] as String?;
-    final senderUUID =
-        (lastMsg['senderUUID'] ?? lastMsg['sender_uuid']) as String?;
+    final senderUUID = (lastMsg['userUUID'] ?? lastMsg['senderUUID'])
+        ?.toString();
 
     String prefix = '';
     if (msgType == 'system') {

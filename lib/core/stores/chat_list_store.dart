@@ -355,14 +355,22 @@ class ChatListNotifier extends Notifier<ChatListState> {
   }
 
   void onNewMessage(Map<String, dynamic> message) {
-    final chatUUID = message['chatUUID'] as String?;
-    if (chatUUID == null) return;
+    final chatUUID = (message['chatUUID'] ?? '').toString();
+    if (chatUUID.isEmpty) return;
+
+    final localUserUUID = ref.read(userStoreProvider).localUserUUID;
+    final senderUUID = (message['userUUID'] ?? message['senderUUID'])
+        ?.toString();
+    final isFromMe =
+        senderUUID != null &&
+        senderUUID.isNotEmpty &&
+        senderUUID == localUserUUID;
 
     final updated = state.chats.map((chat) {
       if (chat.uuid != chatUUID) return chat;
       return chat.copyWith(
         lastMessage: message,
-        unreadCount: chat.unreadCount + 1,
+        unreadCount: isFromMe ? chat.unreadCount : chat.unreadCount + 1,
       );
     }).toList();
 
@@ -439,7 +447,8 @@ class ChatListNotifier extends Notifier<ChatListState> {
 
   DateTime _getMessageTime(Map<String, dynamic>? msg) {
     if (msg == null) return DateTime.fromMillisecondsSinceEpoch(0);
-    final val = msg['time'] ?? msg['createdAt'] ?? msg['at'];
+    final val =
+        msg['createdAt'] ?? msg['created_at'] ?? msg['time'] ?? msg['at'];
     if (val != null) {
       final parsed = DateTime.tryParse(val.toString());
       if (parsed != null) return parsed;

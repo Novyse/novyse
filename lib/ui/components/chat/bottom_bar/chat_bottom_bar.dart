@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
-import 'package:novyse/core/stores/message_store.dart';
 
 class ChatBottomBar extends ConsumerStatefulWidget {
   const ChatBottomBar({super.key, required this.chatUUID, this.subID = 0});
@@ -64,14 +64,11 @@ class _ChatBottomBarState extends ConsumerState<ChatBottomBar> {
       );
 
       if (res.success && res.message != null) {
-        ref
-            .read(
-              chatMessagesProvider((
-                chatUUID: widget.chatUUID,
-                subID: widget.subID,
-              )).notifier,
-            )
-            .onNewMessage(res.message!);
+        final message = Map<String, dynamic>.from(res.message!);
+        message['chatUUID'] ??= widget.chatUUID;
+        message['subID'] ??= widget.subID;
+
+        await ref.read(globalEventEmitterProvider).message.add(message);
       }
     } catch (e) {
       debugPrint('[ChatBottomBar] Error sending message: $e');
