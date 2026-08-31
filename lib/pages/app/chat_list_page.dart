@@ -8,12 +8,112 @@ import 'package:novyse/ui/components/chat/chat_list_item.dart';
 import 'package:novyse/ui/components/status/global_status_bar.dart';
 
 const _statusBarPadding = EdgeInsets.symmetric(horizontal: 16, vertical: 4);
+const _appBarSidePadding = 4.0;
 
-class ChatListPage extends ConsumerWidget {
+class ChatListPage extends ConsumerStatefulWidget {
   const ChatListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ChatListPage> createState() => _ChatListPageState();
+}
+
+class _ChatListPageState extends ConsumerState<ChatListPage> {
+  bool _searching = false;
+  final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _openSearch() {
+    setState(() => _searching = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _searchFocusNode.requestFocus();
+      }
+    });
+  }
+
+  void _closeSearch() {
+    _searchController.clear();
+    _searchFocusNode.unfocus();
+    setState(() => _searching = false);
+  }
+
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return AppBar(
+      automaticallyImplyLeading: false,
+      titleSpacing: _appBarSidePadding,
+      actionsPadding: EdgeInsets.zero,
+      title: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: _searching ? null : _openSearch,
+          ),
+          Expanded(
+            child: _searching
+                ? TextField(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: 'Search',
+                      isDense: true,
+                      filled: true,
+                      fillColor: colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.55,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(
+                          color: colorScheme.primary.withValues(alpha: 0.45),
+                        ),
+                      ),
+                    ),
+                  )
+                : Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _openSearch,
+                      borderRadius: BorderRadius.circular(8),
+                      child: const SizedBox(
+                        height: kToolbarHeight,
+                        width: double.infinity,
+                      ),
+                    ),
+                  ),
+          ),
+          IconButton(
+            icon: Icon(_searching ? Icons.close : Icons.more_vert),
+            onPressed: _searching ? _closeSearch : () {},
+          ),
+        ],
+      ),
+      scrolledUnderElevation: 0,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final selectedChatUUID = ref.watch(
       activeChatProvider.select((s) => s.selectedChatUUID),
@@ -24,10 +124,7 @@ class ChatListPage extends ConsumerWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text('Chat'),
-        scrolledUnderElevation: 0,
-      ),
+      appBar: _buildAppBar(context),
       body: Stack(
         children: [
           CustomScrollView(
