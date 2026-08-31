@@ -94,7 +94,7 @@ class ChatListPage extends ConsumerWidget {
                           ref
                               .read(activeChatProvider.notifier)
                               .setSelectedChatUUID(chat.uuid);
-                          context.go('/chats/${chat.uuid}');
+                          context.push('/chats/${chat.uuid}');
                         },
                       );
                     },

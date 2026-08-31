@@ -178,10 +178,11 @@ class _HomeShellState extends ConsumerState<HomeShell>
         ],
       );
     } else {
+      final overlayOpen = chatOpen || shellCanPop;
       body = Stack(
         children: [
-          master,
-          IgnorePointer(ignoring: !chatOpen && !shellCanPop, child: detail),
+          ExcludeFocus(excluding: overlayOpen, child: master),
+          IgnorePointer(ignoring: !overlayOpen, child: detail),
         ],
       );
     }
@@ -203,6 +204,7 @@ class _TabNavigator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Navigator(
       key: navigatorKey,
+      requestFocus: false,
       onGenerateInitialRoutes: (navigator, initialRoute) {
         return [MaterialPageRoute(builder: (_) => root)];
       },

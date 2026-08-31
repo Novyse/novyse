@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/router/navigator_keys.dart';
+
 String? chatUUIDFromPath(String path) {
   final segments = Uri.parse(path).pathSegments;
   if (segments.length >= 2 && segments.first == 'chats') {
@@ -31,7 +33,12 @@ int? tabIndexFromPath(String path) {
 void popOrChats(BuildContext context) {
   if (context.canPop()) {
     context.pop();
-  } else {
-    context.go('/chats');
+    return;
   }
+  final shell = shellNavigatorKey.currentState;
+  if (shell != null && shell.canPop()) {
+    shell.pop();
+    return;
+  }
+  context.go('/chats');
 }
