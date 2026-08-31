@@ -1,20 +1,21 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:novyse_auth/novyse_auth.dart' show NovyseAuth;
 
 import '../services/api_gateway.dart';
-import '../services/auth.dart';
+import '../services/auth.dart' as auth_service;
 
 /// Onboarding and session lifecycle manager.
-/// Ported from React Native `src/utils/welcome/auth.js`.
+/// Directly interfaces with Novyse Authentication backend and API Gateway.
 class OnboardingManager {
-  OnboardingManager({FlutterSecureStorage? storage})
-    : _storage = storage ?? const FlutterSecureStorage();
+  OnboardingManager();
 
-  final FlutterSecureStorage _storage;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  NovyseAuth get _auth => auth_service.auth;
 
   /// Check if the user is currently logged in based on session tokens.
   Future<bool> isLoggedIn() async {
     try {
-      final token = await auth.token.get();
+      final token = await _auth.token.get();
       if (token != null && token.isNotEmpty) return true;
 
       final sessionId = await _storage.read(key: 'sessionId');
@@ -52,14 +53,13 @@ class OnboardingManager {
       if (resolvedSessionId != null) {
         await _storage.write(key: 'sessionId', value: resolvedSessionId);
       }
-    } catch (e) {
-      // Ignore or log error
-    }
+    } catch (_) {}
   }
 
   /// Clear all stored session markers and log out.
   Future<void> logout() async {
     try {
+      await _auth.logout();
       await _storage.delete(key: 'userUUID');
       await _storage.delete(key: 'sessionID');
       await _storage.delete(key: 'sessionId');
@@ -80,20 +80,48 @@ class OnboardingManager {
   }
 
   /// Sign in with credentials and required Cloudflare Turnstile token.
-  Future<({bool success, String? error})> login({
+  /// `{ success: true, userUUID: string, sessionID: number, session_id: string, token: string }`
+  Future<({bool success, String? error, Map<String, dynamic>? data})> login({
     required String username,
     required String password,
     required String captchaToken,
   }) async {
     try {
-      return (success: true, error: null);
+      final res = await _auth.signin.signIn(
+        username.trim().toLowerCase(),
+        password,
+        captchaToken,
+      );
+
+      if (res.success) {
+        final data = res.data;
+        if (data != null) {
+          final userUUID = data['userUUID']?.toString();
+          final sessionID = data['sessionID']?.toString();
+          final sessionId = data['session_id']?.toString();
+
+          await setLogin(
+            userUUID: userUUID,
+            sessionID: sessionID,
+            sessionId: sessionId,
+          );
+        }
+        return (success: true, error: null, data: data);
+      } else {
+        return (
+          success: false,
+          error: res.error ?? 'Incorrect username or password',
+          data: null,
+        );
+      }
     } catch (e) {
-      return (success: false, error: e.toString());
+      return (success: false, error: e.toString(), data: null);
     }
   }
 
   /// Register new user with required Cloudflare Turnstile token and legal consent.
-  Future<({bool success, String? error})> signup({
+  /// `{ success: true }`
+  Future<({bool success, String? error, Map<String, dynamic>? data})> signup({
     required String username,
     required String password,
     required String name,
@@ -102,9 +130,29 @@ class OnboardingManager {
     required bool isOldEnough,
   }) async {
     try {
-      return (success: true, error: null);
+      final res = await _auth.signup.signUp(
+        username.trim().toLowerCase(),
+        password,
+        name.trim(),
+        <String, dynamic>{
+          'privacy': acceptLegal,
+          'tos': acceptLegal,
+          'isOver16': isOldEnough,
+        },
+        captchaToken,
+      );
+
+      if (res.success) {
+        return (success: true, error: null, data: res.data);
+      } else {
+        return (
+          success: false,
+          error: res.error ?? 'Signup failed. Please try again.',
+          data: null,
+        );
+      }
     } catch (e) {
-      return (success: false, error: e.toString());
+      return (success: false, error: e.toString(), data: null);
     }
   }
 }
