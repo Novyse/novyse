@@ -646,7 +646,7 @@ class MessageGetByRepository {
         '''
         SELECT m.*, u.name as sender_name, u.profilePictureUUID as profile_picture_uuid
         FROM message m
-        JOIN user u ON m.senderUUID = u.uuid
+        LEFT JOIN user u ON m.senderUUID = u.uuid
         WHERE m.chatUUID = ? AND m.subID = ? AND m.id = ? LIMIT 1;
         ''',
         [chatUUID, subID, parsedId],
@@ -672,7 +672,7 @@ class MessageGetByRepository {
         '''
         SELECT m.*, u.name as sender_name, u.profilePictureUUID as profile_picture_uuid
         FROM message m
-        JOIN user u ON m.senderUUID = u.uuid
+        LEFT JOIN user u ON m.senderUUID = u.uuid
         WHERE m.chatUUID = ?
         ORDER BY m.created_at DESC
         LIMIT ? OFFSET ?;
@@ -690,6 +690,45 @@ class MessageGetByRepository {
       return messages;
     } catch (e) {
       debugPrint('Error retrieving messages by chat UUID: $e');
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> sub(
+    String chatUUID,
+    int subID, {
+    int limit = 50,
+    int offset = 0,
+    String? beforeTime,
+  }) async {
+    try {
+      final List<dynamic> args = [chatUUID, subID];
+      String timeClause = '';
+      if (beforeTime != null && beforeTime.isNotEmpty) {
+        timeClause = 'AND m.created_at < ? ';
+        args.add(beforeTime);
+      }
+      args.add(limit);
+      args.add(offset);
+
+      final rows = await _repo.db.rawQuery('''
+        SELECT m.*, u.name as sender_name, u.profilePictureUUID as profile_picture_uuid
+        FROM message m
+        LEFT JOIN user u ON m.senderUUID = u.uuid
+        WHERE m.chatUUID = ? AND m.subID = ? $timeClause
+        ORDER BY m.created_at DESC
+        LIMIT ? OFFSET ?;
+        ''', args);
+
+      final messages = rows.reversed
+          .map((r) => Map<String, dynamic>.from(r))
+          .toList();
+      for (final message in messages) {
+        await _repo.addInfos(message);
+      }
+      return messages;
+    } catch (e) {
+      debugPrint('Error retrieving messages by chatUUID and subID: $e');
       return [];
     }
   }
