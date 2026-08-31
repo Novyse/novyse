@@ -64,6 +64,8 @@ class OnboardingAuthCard extends StatefulWidget {
 class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
   late OnboardingAuthMode _mode = widget.initialMode;
   String? _turnstileToken;
+  final TurnstileController _turnstileController = TurnstileController();
+  int _turnstileKey = 0;
   bool _acceptLegal = false;
   bool _isOldEnough = false;
   bool _isLoading = false;
@@ -131,6 +133,7 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
     _passwordController.dispose();
     _nameController.dispose();
     _confirmPasswordController.dispose();
+    _turnstileController.dispose();
     super.dispose();
   }
 
@@ -280,6 +283,8 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
 
     setState(() => _isLoading = true);
 
+    final captchaTokenToUse = _turnstileToken;
+
     try {
       if (widget.onSubmitData != null) {
         await widget.onSubmitData!(
@@ -289,7 +294,7 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
           confirmPassword: _isLoginMode
               ? null
               : _confirmPasswordController.text,
-          captchaToken: _turnstileToken,
+          captchaToken: captchaTokenToUse,
           acceptLegal: _acceptLegal,
           isOldEnough: _isOldEnough,
         );
@@ -304,7 +309,14 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
       }
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+          _turnstileToken = null;
+          _turnstileKey++;
+        });
+        try {
+          _turnstileController.refreshToken();
+        } catch (_) {}
       }
     }
   }
@@ -530,6 +542,8 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
             const SizedBox(height: 16),
             Center(
               child: CloudflareTurnstile(
+                key: ValueKey('turnstile_$_turnstileKey'),
+                controller: _turnstileController,
                 siteKey: cloudflareTurnstilePublic,
                 action: _isLoginMode ? 'login' : 'signup',
                 options: TurnstileOptions(
