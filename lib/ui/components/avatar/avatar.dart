@@ -60,6 +60,12 @@ class Avatar extends ConsumerStatefulWidget {
     [Color(0xFF0F766E), Color(0xFF2DD4BF)],
   ];
 
+  /// Curated gradient for Saved Messages (vibrant Novyse blue gradient).
+  static const List<Color> savedMessagesGradient = [
+    Color(0xFF0F6FFF),
+    Color(0xFF38BDF8),
+  ];
+
   @override
   ConsumerState<Avatar> createState() => _AvatarState();
 }
@@ -223,12 +229,17 @@ class _AvatarState extends ConsumerState<Avatar> {
 
   /// Generates the deterministic vibrant gradient and initial letter placeholder.
   Widget _buildPlaceholder() {
-    final seed = widget.seedKey ?? widget.uuid ?? widget.name ?? 'default';
-    final hash = seed.isEmpty
-        ? 0
-        : seed.codeUnits.fold<int>(0, (prev, elem) => prev + elem);
-    final gradientColors =
-        Avatar.colorSchemes[hash.abs() % Avatar.colorSchemes.length];
+    final List<Color> gradientColors;
+    if (widget.isSavedMessages) {
+      gradientColors = Avatar.savedMessagesGradient;
+    } else {
+      final seed = widget.seedKey ?? widget.uuid ?? widget.name ?? 'default';
+      final hash = seed.isEmpty
+          ? 0
+          : seed.codeUnits.fold<int>(0, (prev, elem) => prev + elem);
+      gradientColors =
+          Avatar.colorSchemes[hash.abs() % Avatar.colorSchemes.length];
+    }
 
     final initial = (widget.name != null && widget.name!.trim().isNotEmpty)
         ? widget.name!.trim().characters.first.toUpperCase()

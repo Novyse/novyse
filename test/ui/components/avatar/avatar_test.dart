@@ -56,6 +56,18 @@ void main() {
 
       expect(find.byIcon(Icons.bookmark_rounded), findsOneWidget);
       expect(find.text('S'), findsNothing);
+
+      final containerFinder = find.byWidgetPredicate((widget) {
+        if (widget is Container && widget.decoration is BoxDecoration) {
+          final decoration = widget.decoration as BoxDecoration;
+          if (decoration.gradient is LinearGradient) {
+            final gradient = decoration.gradient as LinearGradient;
+            return gradient.colors == Avatar.savedMessagesGradient;
+          }
+        }
+        return false;
+      });
+      expect(containerFinder, findsOneWidget);
     });
 
     testWidgets('renders online indicator badge when isOnline is true', (

@@ -43,7 +43,7 @@ ResolvedChatMetadata resolveChatMetadata({
       return ResolvedChatMetadata(
         name: l10n.savedMessages,
         profilePictureUUID: null,
-        isOnline: true,
+        isOnline: false,
         isSavedMessages: true,
         otherUserUUID: localUserUUID,
       );
