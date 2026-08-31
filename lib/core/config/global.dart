@@ -5,7 +5,7 @@ const String branch = 'development'; // 'development' | 'preview' | 'production'
 
 /// Application metadata.
 const String appName = 'Novyse';
-const String appVersion = '1.1.0-20260614.0';
+const String appVersion = '1.2.0-20260831.0';
 
 // Domain helpers
 

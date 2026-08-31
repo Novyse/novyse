@@ -9,7 +9,6 @@ void main() {
       final dio = createDefaultDio();
 
       expect(dio.options.headers['x-app-version'], equals(config.appVersion));
-      expect(dio.options.headers['x-app-version'], equals('1.1.0-20260614.0'));
       expect(dio.options.headers['x-platform'], isNotNull);
       expect(dio.options.headers['x-operating-system'], isNotNull);
     },
