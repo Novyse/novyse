@@ -9,7 +9,7 @@ class TurnstileWidget extends StatefulWidget {
   const TurnstileWidget({
     super.key,
     required this.siteKey,
-    this.baseUrl = 'http://localhost',
+    this.baseUrl = 'https://app.novyse.com',
     this.action,
     this.theme = 'dark',
     this.language,

@@ -565,7 +565,7 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
                 child: TurnstileWidget(
                   key: ValueKey('turnstile_$_turnstileKey'),
                   siteKey: cloudflareTurnstilePublic,
-                  baseUrl: 'http://localhost',
+                  baseUrl: 'https://app.novyse.com',
                   action: _isLoginMode ? 'login' : 'signup',
                   theme: 'dark',
                   language: Localizations.localeOf(context).languageCode,
