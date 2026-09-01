@@ -63,9 +63,9 @@ dependencies:
   markdown_editor_live: ^0.6.0
   record: ^7.1.1
   record_web: ^2.1.2
-  desktop_drop: 0.8.2
   web: ^1.1.1
-  pasteboard: ^0.5.0
+  super_clipboard: ^0.10.0-dev.2
+  super_drag_and_drop: ^0.10.0-dev.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

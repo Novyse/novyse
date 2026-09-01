@@ -5,6 +5,7 @@ import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/pages/app/chat_routes.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/chat_bottom_bar.dart';
+import 'package:novyse/ui/components/chat/chat_drop_zone.dart';
 import 'package:novyse/ui/components/chat/header/chat_app_bar.dart';
 import 'package:novyse/ui/components/chat/message_list.dart';
 
@@ -65,11 +66,14 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
 
     return Scaffold(
       appBar: ChatAppBar(chatUUID: chatUUID),
-      body: Column(
-        children: [
-          Expanded(child: MessageList(chatUUID: chatUUID, subID: 0)),
-          ChatBottomBar(chatUUID: chatUUID, subID: 0),
-        ],
+      body: ChatDropZone(
+        chatUUID: chatUUID,
+        child: Column(
+          children: [
+            Expanded(child: MessageList(chatUUID: chatUUID, subID: 0)),
+            ChatBottomBar(chatUUID: chatUUID, subID: 0),
+          ],
+        ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:markdown_editor_live/markdown_editor_live.dart';
 
 /// Available content views in active chat: 'chat' | 'vocal' | 'both'.
 enum ContentView {
@@ -116,3 +117,29 @@ final chatDraftProvider =
     NotifierProvider.family<ChatDraftNotifier, ChatDraftState, String>(
       ChatDraftNotifier.new,
     );
+
+/// Provider that holds the text controller for each chat.
+/// The controller is automatically synced with the draft store.
+/// Changes to the controller update the draft store, and changes to the
+/// draft store are reflected in the controller.
+final chatTextControllerProvider =
+    Provider.family<MarkdownEditingController, String>((ref, chatUUID) {
+      final controller = MarkdownEditingController();
+      final draftText = ref.read(chatDraftProvider(chatUUID)).newMessageText;
+      if (draftText.isNotEmpty && controller.text != draftText) {
+        controller.text = draftText;
+      }
+
+      // Listen to controller changes and update draft store
+      void onControllerChanged() {
+        ref.read(chatDraftProvider(chatUUID).notifier).setText(controller.text);
+      }
+
+      controller.addListener(onControllerChanged);
+      ref.onDispose(() {
+        controller.removeListener(onControllerChanged);
+        controller.dispose();
+      });
+
+      return controller;
+    });

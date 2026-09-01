@@ -11,10 +11,12 @@ class ChatContextMenu extends StatefulWidget {
     super.key,
     required this.editableTextState,
     required this.controller,
+    this.onPaste,
   });
 
   final EditableTextState editableTextState;
   final TextEditingController controller;
+  final VoidCallback? onPaste;
 
   @override
   State<ChatContextMenu> createState() => _ChatContextMenuState();
@@ -237,19 +239,46 @@ class _ChatContextMenuState extends State<ChatContextMenu> {
     final selection = widget.controller.selection;
     final hasSelection = selection.isValid && !selection.isCollapsed;
 
+    final hasPasteButton =
+        defaultButtons.any((item) => item.type == ContextMenuButtonType.paste);
+    final buttons = [
+      if (!hasPasteButton && widget.onPaste != null)
+        ContextMenuButtonItem(
+          type: ContextMenuButtonType.paste,
+          label: MaterialLocalizations.of(context).pasteButtonLabel,
+          onPressed: () {
+            widget.editableTextState.hideToolbar();
+            widget.onPaste?.call();
+          },
+        ),
+      ...defaultButtons.map((item) {
+        if (item.type == ContextMenuButtonType.paste) {
+          return ContextMenuButtonItem(
+            type: item.type,
+            label: item.label,
+            onPressed: () {
+              item.onPressed?.call();
+              widget.onPaste?.call();
+            },
+          );
+        }
+        return item;
+      }),
+    ];
+
     if (!hasSelection) {
-      return defaultButtons;
+      return buttons;
     }
 
     if (_isMobile) {
       return [
-        ...defaultButtons,
+        ...buttons,
         ..._buildRawFormattingButtons(context, l10n, includeBackButton: false),
       ];
     }
 
     return [
-      ...defaultButtons,
+      ...buttons,
       ContextMenuButtonItem(
         label: '${l10n.formatting} ▸',
         onPressed: () {

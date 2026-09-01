@@ -340,13 +340,26 @@ class ChatQueueProcessor {
     final type = (message['type'] ?? 'message') as String;
     final replyTos = message['replyTos'] as List<dynamic>?;
 
+    // Clean files for server schema (exclude local-only fields: type, duration, path, uri, bytes, ref, uuid, waveform)
+    final cleanFiles = files.map((file) {
+      final clean = <String, dynamic>{
+        'name': file['name'] ?? 'file',
+        'size': file['size'] ?? 0,
+      };
+      if (file['mimeType'] != null &&
+          (file['mimeType'] as String).isNotEmpty) {
+        clean['mimeType'] = file['mimeType'];
+      }
+      return clean;
+    }).toList();
+
     try {
       final sendResult = await apiGateway.message.send(
         chatUUID,
         subID: subID,
         content: content,
         type: type,
-        files: files.isNotEmpty ? files : null,
+        files: cleanFiles.isNotEmpty ? cleanFiles : null,
         replyTos: replyTos,
       );
 
@@ -373,16 +386,19 @@ class ChatQueueProcessor {
               final fileUUID = sFile['uuid'] as String?;
               final localFile = files.firstWhere(
                 (f) => f['uuid'] == fileUUID || f['name'] == sFile['name'],
-                orElse: () => Map<String, dynamic>.from(sFile),
+                orElse: () =>
+                    (i < files.length ? files[i] : Map<String, dynamic>.from(sFile)),
               );
-              final uri = localFile['uri'] as String?;
+              final uri = (localFile['uri'] ?? localFile['path']) as String?;
               final bytes = localFile['bytes'] as Uint8List?;
 
               if (uploadURL != null &&
                   fileUUID != null &&
                   (uri != null || bytes != null)) {
-                final fileBytes =
-                    bytes ?? await FileStorage.instance.getBytes(uri!);
+                final fileBytes = bytes ??
+                    (uri != null
+                        ? await FileStorage.instance.getBytes(uri)
+                        : null);
                 await S3Adapter.instance.upload(
                   fileUUID: fileUUID,
                   uploadURL: uploadURL,

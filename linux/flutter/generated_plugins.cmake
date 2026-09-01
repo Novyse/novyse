@@ -6,6 +6,9 @@ list(APPEND FLUTTER_PLUGIN_LIST
   audioplayers_linux
   flutter_opaque
   flutter_secure_storage_linux
+  irondash_engine_context
+  record_linux
+  super_native_extensions
   url_launcher_linux
   webview_all_linux
 )

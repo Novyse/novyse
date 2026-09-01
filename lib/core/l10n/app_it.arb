@@ -169,5 +169,28 @@
   "apply": "Applica",
   "logout": "Disconnettiti",
   "logoutConfirmTitle": "Disconnessione",
-  "logoutConfirmMessage": "Sei sicuro di voler effettuare il logout dal tuo account?"
+  "logoutConfirmMessage": "Sei sicuro di voler effettuare il logout dal tuo account?",
+  "dropFilesHint": "Rilascia i file qui per aggiungerli alla bozza",
+  "channelReadOnlyHint": "Non hai i permessi per inviare messaggi in questo canale.",
+  "removeInvalidFilesBeforeSending": "Rimuovi i file non validi prima di inviare.",
+  "editingMessage": "Modifica messaggio",
+  "filesCount": "{count, plural, =1{1 file} other{{count} file}}",
+  "@filesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "emojiTooltip": "Emoji",
+  "addToDraftTooltip": "Aggiungi alla bozza",
+  "pauseTooltip": "Pausa",
+  "resumeTooltip": "Riprendi",
+  "attachFilesTooltip": "Allega file",
+  "cancelRecordingTooltip": "Annulla registrazione",
+  "sendMessageTooltip": "Invia messaggio",
+  "sendVoiceTooltip": "Invia messaggio vocale",
+  "recordVoiceTooltip": "Registra messaggio vocale",
+  "clearAllFilesTooltip": "Rimuovi tutto",
+  "removeFileTooltip": "Rimuovi file"
 }

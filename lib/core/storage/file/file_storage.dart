@@ -1,6 +1,7 @@
 import 'dart:io' as io;
 import 'dart:typed_data';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -97,7 +98,27 @@ class FileStorage {
   Future<Uint8List?> getBytes(String uriOrRef) async {
     if (uriOrRef.isEmpty) return null;
     if (kIsWeb) {
-      return _webMemoryStore[uriOrRef];
+      if (_webMemoryStore.containsKey(uriOrRef)) {
+        return _webMemoryStore[uriOrRef];
+      }
+      if (uriOrRef.startsWith('blob:') ||
+          uriOrRef.startsWith('http://') ||
+          uriOrRef.startsWith('https://') ||
+          uriOrRef.startsWith('data:')) {
+        try {
+          final dioInstance = Dio();
+          final res = await dioInstance.get<List<int>>(
+            uriOrRef,
+            options: Options(responseType: ResponseType.bytes),
+          );
+          if (res.data != null) {
+            return Uint8List.fromList(res.data!);
+          }
+        } catch (e) {
+          debugPrint('[FileStorage] Error fetching web URI bytes: $e');
+        }
+      }
+      return null;
     }
 
     try {

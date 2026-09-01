@@ -169,5 +169,28 @@
   "apply": "Apply",
   "logout": "Log out",
   "logoutConfirmTitle": "Log out",
-  "logoutConfirmMessage": "Are you sure you want to log out from your account?"
+  "logoutConfirmMessage": "Are you sure you want to log out from your account?",
+  "dropFilesHint": "Drop files here to add to draft",
+  "channelReadOnlyHint": "You do not have permission to send messages in this channel.",
+  "removeInvalidFilesBeforeSending": "Please remove invalid files before sending.",
+  "editingMessage": "Editing message",
+  "filesCount": "{count, plural, =1{1 file} other{{count} files}}",
+  "@filesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "emojiTooltip": "Emoji",
+  "addToDraftTooltip": "Add to draft",
+  "pauseTooltip": "Pause",
+  "resumeTooltip": "Resume",
+  "attachFilesTooltip": "Attach files",
+  "cancelRecordingTooltip": "Cancel recording",
+  "sendMessageTooltip": "Send message",
+  "sendVoiceTooltip": "Send voice message",
+  "recordVoiceTooltip": "Record voice message",
+  "clearAllFilesTooltip": "Clear all",
+  "removeFileTooltip": "Remove file"
 }
