@@ -104,4 +104,13 @@ else
 EOF
 fi
 
+# 3. Stage configuration files if modified
+for f in "$IOS_XCCONFIG" "$MACOS_XCCONFIG" "$IOS_ENTITLEMENTS"; do
+  rel_path="${f#$ROOT_DIR/}"
+  if git diff --name-only "$f" 2>/dev/null | grep -q . || git status --porcelain "$f" 2>/dev/null | grep -q "^??"; then
+    git add "$f"
+    echo "🔄 [SYNC-BRANCH] Staged $rel_path"
+  fi
+done
+
 echo "✅ [SYNC-BRANCH] Configured iOS/macOS environment: Branch=$BRANCH, BundleID=$BUNDLE_ID, Scheme=$SCHEME, Host=app${HOST_SUFFIX}.novyse.com"

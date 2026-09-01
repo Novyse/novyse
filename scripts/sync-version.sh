@@ -36,6 +36,9 @@ CURRENT_VERSION=$(grep "^version:" "$PUBSPEC" | head -n 1)
 
 if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
   sed -i "s/^version:.*/${NEW_VERSION}/" "$PUBSPEC"
+  if git diff --name-only "$PUBSPEC" 2>/dev/null | grep -q .; then
+    git add "$PUBSPEC"
+  fi
   echo "🔄 [SYNC-VERSION] Updated pubspec.yaml to: $NEW_VERSION"
 else
   echo "✅ [SYNC-VERSION] pubspec.yaml is already up to date ($NEW_VERSION)"

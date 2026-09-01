@@ -9,13 +9,6 @@ echo "🔄 [Pre-Commit] Syncing version..."
 echo "🔄 [Pre-Commit] Syncing branch & environment..."
 ./scripts/sync-branch.sh
 
-# Stage any configuration files updated by the sync scripts
-for f in pubspec.yaml ios/Flutter/AppEnvironment.xcconfig macos/Runner/Configs/AppEnvironment.xcconfig ios/Runner/Runner.entitlements; do
-  if git diff --name-only | grep -q "^${f}$"; then
-    git add "$f"
-  fi
-done
-
 echo "🔍 [Pre-Commit] Running Flutter Analyze..."
 flutter analyze
 
