@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class OnboardingTextField extends StatelessWidget {
+class OnboardingTextField extends StatefulWidget {
   const OnboardingTextField({
     super.key,
     required this.label,
@@ -35,34 +35,55 @@ class OnboardingTextField extends StatelessWidget {
   final AutovalidateMode autovalidateMode;
 
   @override
+  State<OnboardingTextField> createState() => _OnboardingTextFieldState();
+}
+
+class _OnboardingTextFieldState extends State<OnboardingTextField> {
+  late bool _obscured = widget.obscureText;
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    final Widget? effectiveSuffixIcon = widget.obscureText
+        ? Padding(
+            padding: const EdgeInsets.only(right: 5),
+            child: IconButton(
+              icon: Icon(
+                _obscured
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+              ),
+              onPressed: () => setState(() => _obscured = !_obscured),
+            ),
+          )
+        : widget.suffixIcon;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
+          widget.label,
           style: theme.textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 8),
         TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          obscureText: obscureText,
-          validator: validator,
-          onChanged: onChanged,
-          autofillHints: autofillHints,
-          textInputAction: textInputAction,
-          onEditingComplete: onEditingComplete,
-          onFieldSubmitted: onFieldSubmitted,
-          autovalidateMode: autovalidateMode,
+          controller: widget.controller,
+          keyboardType: widget.keyboardType,
+          obscureText: _obscured,
+          validator: widget.validator,
+          onChanged: widget.onChanged,
+          autofillHints: widget.autofillHints,
+          textInputAction: widget.textInputAction,
+          onEditingComplete: widget.onEditingComplete,
+          onFieldSubmitted: widget.onFieldSubmitted,
+          autovalidateMode: widget.autovalidateMode,
           decoration: InputDecoration(
-            hintText: hint,
-            prefixIcon: prefixIcon,
-            suffixIcon: suffixIcon,
+            hintText: widget.hint,
+            prefixIcon: widget.prefixIcon,
+            suffixIcon: effectiveSuffixIcon,
             filled: true,
             fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
               alpha: 0.35,
@@ -72,22 +93,22 @@ class OnboardingTextField extends StatelessWidget {
               vertical: 18,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(100),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(100),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(100),
               borderSide: BorderSide(
                 color: theme.colorScheme.primary,
                 width: 1.5,
               ),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(100),
               borderSide: BorderSide(color: theme.colorScheme.error, width: 1),
             ),
           ),

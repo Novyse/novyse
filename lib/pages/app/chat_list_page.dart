@@ -8,7 +8,6 @@ import 'package:novyse/ui/components/chat/chat_list_item.dart';
 import 'package:novyse/ui/components/status/global_status_bar.dart';
 
 const _statusBarPadding = EdgeInsets.symmetric(horizontal: 16, vertical: 4);
-const _appBarSidePadding = 4.0;
 
 class ChatListPage extends ConsumerStatefulWidget {
   const ChatListPage({super.key});
@@ -45,70 +44,64 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    if (_searching) {
+      final colorScheme = Theme.of(context).colorScheme;
+      final fieldBorder = OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: BorderSide.none,
+      );
+
+      return AppBar(
+        automaticallyImplyLeading: false,
+        scrolledUnderElevation: 0,
+        titleSpacing: 16,
+        title: TextField(
+          controller: _searchController,
+          focusNode: _searchFocusNode,
+          textInputAction: TextInputAction.search,
+          decoration: InputDecoration(
+            hintText: 'Search...',
+            isDense: true,
+            filled: true,
+            fillColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.55,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 10,
+            ),
+            border: fieldBorder,
+            enabledBorder: fieldBorder,
+            focusedBorder: fieldBorder.copyWith(
+              borderSide: BorderSide(
+                color: colorScheme.primary.withValues(alpha: 0.45),
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: _closeSearch,
+          ),
+        ],
+      );
+    }
 
     return AppBar(
       automaticallyImplyLeading: false,
-      titleSpacing: _appBarSidePadding,
-      actionsPadding: EdgeInsets.zero,
-      title: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: _searching ? null : _openSearch,
-          ),
-          Expanded(
-            child: _searching
-                ? TextField(
-                    controller: _searchController,
-                    focusNode: _searchFocusNode,
-                    textInputAction: TextInputAction.search,
-                    decoration: InputDecoration(
-                      hintText: 'Search',
-                      isDense: true,
-                      filled: true,
-                      fillColor: colorScheme.surfaceContainerHighest.withValues(
-                        alpha: 0.55,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(
-                          color: colorScheme.primary.withValues(alpha: 0.45),
-                        ),
-                      ),
-                    ),
-                  )
-                : Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: _openSearch,
-                      borderRadius: BorderRadius.circular(8),
-                      child: const SizedBox(
-                        height: kToolbarHeight,
-                        width: double.infinity,
-                      ),
-                    ),
-                  ),
-          ),
-          IconButton(
-            icon: Icon(_searching ? Icons.close : Icons.more_vert),
-            onPressed: _searching ? _closeSearch : () {},
-          ),
-        ],
-      ),
       scrolledUnderElevation: 0,
+      titleSpacing: 16,
+      leading: IconButton(
+        icon: const Icon(Icons.search),
+        onPressed: _openSearch,
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.more_vert),
+          onPressed: () {},
+        ),
+      ],
     );
   }
 
@@ -156,18 +149,17 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
                         Icon(
                           Icons.chat_bubble_outline_rounded,
                           size: 64,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withValues(alpha: 0.4),
+                          color: Theme.of(context).colorScheme.outline
+                              .withValues(alpha: 0.4),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           l10n.noChats,
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                               ),
                         ),
                       ],
