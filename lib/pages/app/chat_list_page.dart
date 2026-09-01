@@ -8,6 +8,7 @@ import 'package:novyse/ui/components/chat/chat_list_item.dart';
 import 'package:novyse/ui/components/status/global_status_bar.dart';
 
 const _statusBarPadding = EdgeInsets.symmetric(horizontal: 16, vertical: 4);
+const _appBarEdgePadding = 8.0;
 
 class ChatListPage extends ConsumerStatefulWidget {
   const ChatListPage({super.key});
@@ -55,6 +56,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
         automaticallyImplyLeading: false,
         scrolledUnderElevation: 0,
         titleSpacing: 16,
+        actionsPadding: const EdgeInsets.only(right: _appBarEdgePadding),
         title: TextField(
           controller: _searchController,
           focusNode: _searchFocusNode,
@@ -93,9 +95,10 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
       scrolledUnderElevation: 0,
       titleSpacing: 16,
       leading: IconButton(
-        icon: const Icon(Icons.search),
-        onPressed: _openSearch,
-      ),
+          icon: const Icon(Icons.search),
+          onPressed: _openSearch,
+        ),
+      actionsPadding: const EdgeInsets.only(right: _appBarEdgePadding),
       actions: [
         IconButton(
           icon: const Icon(Icons.more_vert),

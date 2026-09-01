@@ -114,16 +114,18 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
     final colorScheme = theme.colorScheme;
 
     if (!widget.isRecording) {
-      return Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.65),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-            width: 1.0,
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.65),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+              width: 1.0,
+            ),
           ),
-        ),
-        child: Actions(
+          child: Actions(
           actions: {
             PasteTextIntent: CallbackAction<PasteTextIntent>(
               onInvoke: (intent) async {
@@ -166,6 +168,7 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
               );
             },
             decoration: InputDecoration(
+              filled: false,
               hintText: l10n.typeMessageHint,
               hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
               border: InputBorder.none,
@@ -190,7 +193,8 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
             onSubmitted: (_) => widget.onSendMessage(),
           ),
         ),
-      );
+      ),
+    );
     }
 
     // Recording Mode
