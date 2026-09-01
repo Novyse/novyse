@@ -17,6 +17,10 @@ import 'package:novyse/core/services/socket/event_sender.dart';
 /// Default transports for Socket.IO connection.
 const _transports = ['websocket', 'polling'];
 
+const _maxAuthRetries = 4;
+/// Base delay for exponential backoff when retrying after auth errors.
+const _baseRetryDelay = Duration(seconds: 1);
+
 /// Manages the Socket.IO connection lifecycle.
 ///
 /// Equivalent of `SocketIO` object in the TypeScript codebase.
@@ -24,6 +28,9 @@ class SocketService {
   final Ref _ref;
   io.Socket? _socket;
   bool _isConnecting = false;
+
+  int _authFailures = 0;
+  Timer? _retryTimer;
 
   SocketService(this._ref) {
     // Auto connect/disconnect when network state changes
@@ -54,7 +61,8 @@ class SocketService {
 
   io.Socket? get socket => _socket;
 
-  Future<void> open() async {
+  /// Opens the Socket.IO connection.
+  Future<void> open({bool forceRefreshToken = false}) async {
     try {
       final networkState = _ref.read(networkProvider);
       if (!networkState.isConnected || !networkState.isSynced) {
@@ -70,7 +78,24 @@ class SocketService {
       }
 
       _isConnecting = true;
-      final accessToken = await auth.token.get();
+      _retryTimer?.cancel();
+      _retryTimer = null;
+
+      final accessToken = await auth.token.get(
+        forceRefresh: forceRefreshToken,
+      );
+
+      if (accessToken == null) {
+        // No token available even after a (forced) refresh: the session is
+        // invalid. Surface it instead of retrying forever.
+        debugPrint('Socket.IO open aborted: no access token available');
+        _isConnecting = false;
+        _ref
+            .read(statusProvider.notifier)
+            .setSocketStatus(isConnected: false);
+        _ref.read(eventBusProvider).emit(const InvalidSessionEvent());
+        return;
+      }
 
       _socket = io.io(
         config.socketBaseUrl,
@@ -85,6 +110,9 @@ class SocketService {
       _socket!.onConnect((_) async {
         debugPrint('Socket.IO connection opened!');
         _isConnecting = false;
+        _authFailures = 0;
+        _retryTimer?.cancel();
+        _retryTimer = null;
         _ref.read(statusProvider.notifier).setSocketStatus(isConnected: true);
         eventReceiver.initialize(
           _socket!,
@@ -111,22 +139,20 @@ class SocketService {
         if (errorCode == 'AUTH_NO_TOKEN' ||
             errorCode == 'AUTH_INVALID_TOKEN' ||
             errorCode == 'AUTH_TOKEN_EXPIRED') {
-          debugPrint(
-            'Socket auth error ($errorCode), reconnecting with fresh token...',
-          );
           _socket?.disconnect();
           _socket = null;
-          _isConnecting = false;
-          Future.delayed(const Duration(seconds: 1), open);
+          _scheduleAuthRetry(errorCode!);
         }
       });
 
       _socket!.on('auth:expired', (_) {
-        debugPrint('Server notified token expired, reconnecting...');
+        debugPrint(
+          'Server notified token expired, reconnecting with fresh token...',
+        );
         _socket?.disconnect();
         _socket = null;
         _isConnecting = false;
-        Future.delayed(const Duration(milliseconds: 500), open);
+        _scheduleAuthRetry('AUTH_TOKEN_EXPIRED');
       });
 
       _socket!.on('auth:session-revoked', (_) {
@@ -134,6 +160,8 @@ class SocketService {
         _socket?.disconnect();
         _socket = null;
         _isConnecting = false;
+        _retryTimer?.cancel();
+        _retryTimer = null;
         _ref.read(statusProvider.notifier).setSocketStatus(isConnected: false);
         _ref.read(eventBusProvider).emit(const InvalidSessionEvent());
       });
@@ -154,7 +182,7 @@ class SocketService {
             _socket?.disconnect();
             _socket = null;
             _isConnecting = false;
-            open();
+            _scheduleAuthRetry('AUTH_IDENTITY_MISMATCH');
           }
         }
       });
@@ -180,13 +208,51 @@ class SocketService {
     }
   }
 
+  /// Schedules a reconnect with a forcibly refreshed token after an
+  /// auth-related failure.
+  ///
+  /// Uses exponential backoff (1s, 2s, 4s, 8s) and gives up after
+  /// [_maxAuthRetries] consecutive failures, emitting [InvalidSessionEvent]
+  /// so the app can route the user back to login instead of looping forever.
+  /// Only one retry is ever pending at a time: scheduling a new retry cancels
+  /// any previously scheduled one.
+  void _scheduleAuthRetry(String errorCode) {
+    _authFailures++;
+
+    if (_authFailures > _maxAuthRetries) {
+      debugPrint(
+        'Socket auth retries exhausted after $_authFailures failures '
+        '(last error: $errorCode). Treating session as invalid.',
+      );
+      _retryTimer?.cancel();
+      _retryTimer = null;
+      _ref.read(statusProvider.notifier).setSocketStatus(isConnected: false);
+      _ref.read(eventBusProvider).emit(const InvalidSessionEvent());
+      return;
+    }
+
+    final delay = _baseRetryDelay * (1 << (_authFailures - 1));
+    debugPrint(
+      'Socket auth error ($errorCode), retry $_authFailures/$_maxAuthRetries '
+      'with fresh token in ${delay.inSeconds}s...',
+    );
+    _retryTimer?.cancel();
+    _retryTimer = Timer(delay, () {
+      _retryTimer = null;
+      open(forceRefreshToken: true);
+    });
+  }
+
   void close() {
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    _authFailures = 0;
     if (_socket != null) {
       debugPrint('Closing Socket.IO connection');
       _socket!.disconnect();
       _socket = null;
     }
-    _ref.read(statusProvider.notifier).setSocketStatus(isConnected: true);
+    _ref.read(statusProvider.notifier).setSocketStatus(isConnected: false);
   }
 
   /// Exposes the event sender for sending messages.
