@@ -70,6 +70,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
   final _chatTabNavKey = GlobalKey<NavigatorState>();
   final _settingsTabNavKey = GlobalKey<NavigatorState>();
   final _profileTabNavKey = GlobalKey<NavigatorState>();
+  double _masterPaneWidth = kMasterPaneWidth;
 
   @override
   void initState() {
@@ -156,14 +157,28 @@ class _HomeShellState extends ConsumerState<HomeShell>
     );
   }
 
+  void _resizeMasterPane(double delta, double screenWidth) {
+    setState(() {
+      _masterPaneWidth = clampMasterPaneWidth(
+        _masterPaneWidth + delta,
+        screenWidth,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
     final wide = isMasterDetailLayout(context);
     final chatOpen = _chatUUID != null;
     final shellCanPop = shellNavigatorKey.currentState?.canPop() ?? false;
+    final masterPaneWidth = wide
+        ? clampMasterPaneWidth(_masterPaneWidth, screenWidth)
+        : screenWidth;
     final tabBar = _FloatingTabBar(
       controller: _tabController,
       onTabPressed: _onTabPressed,
+      masterPaneWidth: masterPaneWidth,
     );
     final master = _masterPane(tabBar: tabBar);
     final detail = widget.detailNavigator;
@@ -172,8 +187,10 @@ class _HomeShellState extends ConsumerState<HomeShell>
     if (wide) {
       body = Row(
         children: [
-          SizedBox(width: kMasterPaneWidth, child: master),
-          const VerticalDivider(width: 1),
+          SizedBox(width: masterPaneWidth, child: master),
+          _MasterPaneResizer(
+            onDrag: (delta) => _resizeMasterPane(delta, screenWidth),
+          ),
           Expanded(child: detail),
         ],
       );
@@ -235,11 +252,63 @@ class EmptyDetailPane extends StatelessWidget {
   }
 }
 
+class _MasterPaneResizer extends StatefulWidget {
+  const _MasterPaneResizer({required this.onDrag});
+
+  final ValueChanged<double> onDrag;
+
+  @override
+  State<_MasterPaneResizer> createState() => _MasterPaneResizerState();
+}
+
+class _MasterPaneResizerState extends State<_MasterPaneResizer> {
+  bool _hovered = false;
+  bool _dragging = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final active = _hovered || _dragging;
+    final dividerColor = active
+        ? scheme.primary.withValues(alpha: 0.55)
+        : scheme.outlineVariant.withValues(alpha: 0.65);
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.resizeColumn,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onHorizontalDragStart: (_) => setState(() => _dragging = true),
+        onHorizontalDragUpdate: (details) =>
+            widget.onDrag(details.delta.dx),
+        onHorizontalDragEnd: (_) => setState(() => _dragging = false),
+        onHorizontalDragCancel: () => setState(() => _dragging = false),
+        child: SizedBox(
+          width: 8,
+          child: Center(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              width: active ? 3 : 1,
+              color: dividerColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _FloatingTabBar extends StatelessWidget {
-  const _FloatingTabBar({required this.controller, required this.onTabPressed});
+  const _FloatingTabBar({
+    required this.controller,
+    required this.onTabPressed,
+    required this.masterPaneWidth,
+  });
 
   final TabController controller;
   final ValueChanged<int> onTabPressed;
+  final double masterPaneWidth;
 
   static const List<_TabSpec> _items = [
     _TabSpec(icon: Icons.chat_bubble_outline, activeIcon: Icons.chat_bubble),
@@ -250,7 +319,7 @@ class _FloatingTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final paneWidth = isMasterDetailLayout(context)
-        ? kMasterPaneWidth
+        ? masterPaneWidth
         : MediaQuery.sizeOf(context).width;
     final barWidth = (paneWidth * 0.64).clamp(220.0, 420.0);
     final scheme = Theme.of(context).colorScheme;
