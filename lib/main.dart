@@ -32,7 +32,7 @@ class MyApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.light,
+      themeMode: ThemeMode.dark,
       routerConfig: ref.watch(routerProvider),
       builder: (context, child) =>
           GlobalEventReceiver(child: child ?? const SizedBox.shrink()),
