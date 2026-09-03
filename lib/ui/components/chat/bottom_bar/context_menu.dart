@@ -253,12 +253,13 @@ class _ChatContextMenuState extends State<ChatContextMenu> {
           },
         ),
       ...defaultButtons.map((item) {
-        if (item.type == ContextMenuButtonType.paste) {
+        if (item.type == ContextMenuButtonType.paste &&
+            widget.onPaste != null) {
           return ContextMenuButtonItem(
             type: item.type,
             label: item.label,
             onPressed: () {
-              item.onPressed?.call();
+              widget.editableTextState.hideToolbar();
               widget.onPaste?.call();
             },
           );
