@@ -18,6 +18,7 @@ import 'package:novyse/core/services/socket/event_sender.dart';
 const _transports = ['websocket', 'polling'];
 
 const _maxAuthRetries = 4;
+
 /// Base delay for exponential backoff when retrying after auth errors.
 const _baseRetryDelay = Duration(seconds: 1);
 
@@ -30,6 +31,7 @@ class SocketService {
   bool _isConnecting = false;
 
   int _authFailures = 0;
+
   Timer? _retryTimer;
 
   SocketService(this._ref) {
@@ -47,19 +49,23 @@ class SocketService {
         }
       }
     });
-
-    // In-band token refresh: send new token over existing socket
-    auth.token.onUpdate((newToken) {
-      if (newToken != null && _socket != null && _socket!.connected) {
-        debugPrint('Token updated, sending auth:refresh over existing socket');
-        _socket!.emit('auth:refresh', {'token': newToken});
-      }
-    });
   }
 
   bool get isOpen => _socket != null && _socket!.connected;
 
   io.Socket? get socket => _socket;
+
+  void _destroySocket() {
+    final socket = _socket;
+    _socket = null;
+    _isConnecting = false;
+    if (socket == null) return;
+    try {
+      socket.dispose();
+    } catch (error) {
+      debugPrint('Error disposing Socket.IO instance: $error');
+    }
+  }
 
   /// Opens the Socket.IO connection.
   Future<void> open({bool forceRefreshToken = false}) async {
@@ -81,47 +87,54 @@ class SocketService {
       _retryTimer?.cancel();
       _retryTimer = null;
 
-      final accessToken = await auth.token.get(
-        forceRefresh: forceRefreshToken,
-      );
+      final accessToken = await auth.token.get(forceRefresh: forceRefreshToken);
 
       if (accessToken == null) {
         // No token available even after a (forced) refresh: the session is
         // invalid. Surface it instead of retrying forever.
         debugPrint('Socket.IO open aborted: no access token available');
         _isConnecting = false;
-        _ref
-            .read(statusProvider.notifier)
-            .setSocketStatus(isConnected: false);
+        _ref.read(statusProvider.notifier).setSocketStatus(isConnected: false);
         _ref.read(eventBusProvider).emit(const InvalidSessionEvent());
         return;
       }
 
-      _socket = io.io(
+      // Make sure no previous instance is left behind listening.
+      // Evict the global cache of Manager instances to ensure a fresh token is used on each handshake.
+      io.cache.clear();
+      _destroySocket();
+      _isConnecting = true;
+
+      final socket = io.io(
         config.socketBaseUrl,
         io.OptionBuilder()
             .setPath('/socket.io')
             .setTransports(_transports)
             .enableAutoConnect()
-            .setAuth({'token': accessToken})
+            .enableForceNew()
+            .setAuthFn((callback) {
+              auth.token.get().then((token) => callback({'token': token}));
+            })
             .build(),
       );
+      _socket = socket;
 
-      _socket!.onConnect((_) async {
+      bool isCurrent() => identical(socket, _socket);
+
+      socket.onConnect((_) async {
+        if (!isCurrent()) return;
         debugPrint('Socket.IO connection opened!');
         _isConnecting = false;
         _authFailures = 0;
         _retryTimer?.cancel();
         _retryTimer = null;
         _ref.read(statusProvider.notifier).setSocketStatus(isConnected: true);
-        eventReceiver.initialize(
-          _socket!,
-          _ref.read(globalEventEmitterProvider),
-        );
-        eventSender.initialize(_socket!);
+        eventReceiver.initialize(socket, _ref.read(globalEventEmitterProvider));
+        eventSender.initialize(socket);
       });
 
-      _socket!.on('connect_error', (error) {
+      socket.on('connect_error', (error) {
+        if (!isCurrent()) return;
         debugPrint('Socket.IO connect_error: $error');
         _isConnecting = false;
 
@@ -139,60 +152,60 @@ class SocketService {
         if (errorCode == 'AUTH_NO_TOKEN' ||
             errorCode == 'AUTH_INVALID_TOKEN' ||
             errorCode == 'AUTH_TOKEN_EXPIRED') {
-          _socket?.disconnect();
-          _socket = null;
+          _destroySocket();
           _scheduleAuthRetry(errorCode!);
         }
       });
 
-      _socket!.on('auth:expired', (_) {
+      socket.on('auth:expired', (_) {
+        if (!isCurrent()) return;
         debugPrint(
           'Server notified token expired, reconnecting with fresh token...',
         );
-        _socket?.disconnect();
-        _socket = null;
-        _isConnecting = false;
+        _destroySocket();
         _scheduleAuthRetry('AUTH_TOKEN_EXPIRED');
       });
 
-      _socket!.on('auth:session-revoked', (_) {
+      socket.on('auth:session-revoked', (_) {
+        if (!isCurrent()) return;
         debugPrint('Session has been revoked by the server');
-        _socket?.disconnect();
-        _socket = null;
-        _isConnecting = false;
+        _destroySocket();
         _retryTimer?.cancel();
         _retryTimer = null;
+        _authFailures = 0;
         _ref.read(statusProvider.notifier).setSocketStatus(isConnected: false);
         _ref.read(eventBusProvider).emit(const InvalidSessionEvent());
       });
 
-      _socket!.on('auth:refreshed', (data) {
+      socket.on('auth:refreshed', (data) {
+        if (!isCurrent()) return;
         if (data is Map) {
           final expiresAt = data['expiresAt'];
           debugPrint('Socket token refreshed, new expiry: $expiresAt');
         }
       });
 
-      _socket!.on('auth:refresh:error', (data) {
+      socket.on('auth:refresh:error', (data) {
+        if (!isCurrent()) return;
         if (data is Map) {
           debugPrint(
             'Socket token refresh failed: ${data['code']} — ${data['message']}',
           );
           if (data['code'] == 'AUTH_IDENTITY_MISMATCH') {
-            _socket?.disconnect();
-            _socket = null;
-            _isConnecting = false;
+            _destroySocket();
             _scheduleAuthRetry('AUTH_IDENTITY_MISMATCH');
           }
         }
       });
 
-      _socket!.on('error', (error) {
+      socket.on('error', (error) {
+        if (!isCurrent()) return;
         debugPrint('Socket.IO error: $error');
         _isConnecting = false;
       });
 
-      _socket!.onDisconnect((reason) {
+      socket.onDisconnect((reason) {
+        if (!isCurrent()) return;
         _isConnecting = false;
         final isOnline = _ref.read(networkProvider).isConnected;
         if (isOnline) {
@@ -217,6 +230,9 @@ class SocketService {
   /// Only one retry is ever pending at a time: scheduling a new retry cancels
   /// any previously scheduled one.
   void _scheduleAuthRetry(String errorCode) {
+    _retryTimer?.cancel();
+    _retryTimer = null;
+
     _authFailures++;
 
     if (_authFailures > _maxAuthRetries) {
@@ -224,8 +240,7 @@ class SocketService {
         'Socket auth retries exhausted after $_authFailures failures '
         '(last error: $errorCode). Treating session as invalid.',
       );
-      _retryTimer?.cancel();
-      _retryTimer = null;
+      _authFailures = 0;
       _ref.read(statusProvider.notifier).setSocketStatus(isConnected: false);
       _ref.read(eventBusProvider).emit(const InvalidSessionEvent());
       return;
@@ -236,7 +251,6 @@ class SocketService {
       'Socket auth error ($errorCode), retry $_authFailures/$_maxAuthRetries '
       'with fresh token in ${delay.inSeconds}s...',
     );
-    _retryTimer?.cancel();
     _retryTimer = Timer(delay, () {
       _retryTimer = null;
       open(forceRefreshToken: true);
@@ -249,9 +263,8 @@ class SocketService {
     _authFailures = 0;
     if (_socket != null) {
       debugPrint('Closing Socket.IO connection');
-      _socket!.disconnect();
-      _socket = null;
     }
+    _destroySocket();
     _ref.read(statusProvider.notifier).setSocketStatus(isConnected: false);
   }
 
