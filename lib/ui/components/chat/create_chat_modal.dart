@@ -265,10 +265,7 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final errors = [
-      if (_nameError != null) _nameError!,
-      if (_handleError != null) _handleError!,
-    ];
+    final errors = [_nameError, _handleError].whereType<String>().toList();
 
     return SingleChildScrollView(
       child: Column(
