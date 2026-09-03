@@ -3,6 +3,9 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+echo "🔄 [Pre-Commit] Pulling latest changes..."
+git pull
+
 echo "🔄 [Pre-Commit] Syncing version..."
 ./scripts/sync-version.sh
 
