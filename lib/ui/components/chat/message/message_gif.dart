@@ -14,10 +14,25 @@ class MessageGif extends StatefulWidget {
 }
 
 class _MessageGifState extends State<MessageGif> {
-  final double _aspectRatio = 1.2;
+  double _aspectRatio = 1.2;
 
   static const double _maxWidth = 240.0;
   static const double _maxHeight = 320.0;
+  bool _resolved = false;
+
+  void _resolveAspect(ImageProvider provider) {
+    if (_resolved) return;
+    _resolved = true;
+    final stream = provider.resolve(const ImageConfiguration());
+    stream.addListener(
+      ImageStreamListener((info, _) {
+        if (!mounted || info.image.height <= 0) return;
+        setState(() {
+          _aspectRatio = info.image.width / info.image.height;
+        });
+      }),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,8 +41,13 @@ class _MessageGifState extends State<MessageGif> {
 
     if (mediaUrl == null) return const SizedBox.shrink();
 
+    final capWidth = (MediaQuery.sizeOf(context).width * 0.6 - 32).clamp(
+      120.0,
+      _maxWidth,
+    );
+
     final clampedRatio = _aspectRatio.clamp(0.5, 2.5);
-    var width = _maxWidth;
+    var width = capWidth;
     var height = width / clampedRatio;
     if (height > _maxHeight) {
       height = _maxHeight;
@@ -65,6 +85,7 @@ class _MessageGifState extends State<MessageGif> {
               ),
             ),
             imageBuilder: (context, imageProvider) {
+              _resolveAspect(imageProvider);
               return Image(
                 image: imageProvider,
                 fit: BoxFit.cover,

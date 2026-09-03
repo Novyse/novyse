@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
 import 'package:photo_view/photo_view.dart';
 
-/// Displays an image message with tap-to-zoom and loading states.
 class MessageImage extends StatefulWidget {
   const MessageImage({
     super.key,
@@ -35,18 +34,63 @@ class MessageImage extends StatefulWidget {
 class _MessageImageState extends State<MessageImage> {
   static const double _maxWidth = 240.0;
   static const double _maxHeight = 320.0;
+  static const double _fallbackAspect = 4 / 3;
+  static const double _minBoxHeight = 50.0;
+  static const double _maxBoxHeight = 1000.0;
 
-  double get _computedWidth {
+  double? _resolvedAspect;
+  String? _listenedKey;
+  ImageStream? _stream;
+  ImageStreamListener? _listener;
+
+  @override
+  void dispose() {
+    _detachListener();
+    super.dispose();
+  }
+
+  void _detachListener() {
+    if (_stream != null && _listener != null) {
+      _stream!.removeListener(_listener!);
+    }
+    _stream = null;
+    _listener = null;
+  }
+
+  void _ensureResolved(String key, ImageProvider provider) {
+    if (_listenedKey == key) return;
+    _detachListener();
+    _listenedKey = key;
+    _stream = provider.resolve(const ImageConfiguration());
+    _listener = ImageStreamListener(
+      (info, _) {
+        if (!mounted) return;
+        if (info.image.height > 0) {
+          setState(() {
+            _resolvedAspect = info.image.width / info.image.height;
+          });
+        }
+      },
+    );
+    _stream!.addListener(_listener!);
+  }
+
+  double _capWidth(BuildContext context) {
+    return (MediaQuery.sizeOf(context).width * 0.6 - 32).clamp(120.0, _maxWidth);
+  }
+
+  double _boxWidth(BuildContext context) {
     if (widget.width != null && widget.height != null && widget.height! > 0) {
-      final wScale = _maxWidth / widget.width!;
+      final cap = _capWidth(context);
+      final wScale = cap / widget.width!;
       final hScale = _maxHeight / widget.height!;
       final scale = [1.0, wScale, hScale].reduce((a, b) => a < b ? a : b);
       return widget.width! * scale;
     }
-    return 220;
+    return _capWidth(context);
   }
 
-  double? get _computedAspectRatio {
+  double? get _metadataAspect {
     if (widget.aspectRatio != null) return widget.aspectRatio;
     if (widget.width != null && widget.height != null && widget.height! > 0) {
       return widget.width! / widget.height!;
@@ -54,61 +98,82 @@ class _MessageImageState extends State<MessageImage> {
     return null;
   }
 
-  Widget _buildImageWidget(String displayUri, ThemeData theme) {
-    if (kIsWeb ||
-        displayUri.startsWith('blob:') ||
-        displayUri.startsWith('data:') ||
-        displayUri.startsWith('http://') ||
-        displayUri.startsWith('https://')) {
-      return Image.network(
-        displayUri,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildError(theme),
-      );
-    }
+  double get _effectiveAspect => _metadataAspect ?? _resolvedAspect ?? _fallbackAspect;
 
-    // Local file on native
-    final cleanPath = displayUri.startsWith('file://')
-        ? displayUri.replaceFirst('file://', '')
-        : displayUri;
-    return Image.file(
-      io.File(cleanPath),
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) => _buildError(theme),
-    );
+  (double, double) _boxSize(BuildContext context) {
+    final width = _boxWidth(context);
+    final height = width / _effectiveAspect;
+    if (height > _maxBoxHeight) {
+      return (_maxBoxHeight * _effectiveAspect, _maxBoxHeight);
+    }
+    if (height < _minBoxHeight) {
+      var clampedWidth = _minBoxHeight * _effectiveAspect;
+      final cap = _capWidth(context);
+      if (clampedWidth > cap) clampedWidth = cap;
+      return (clampedWidth, _minBoxHeight);
+    }
+    return (width, height);
+  }
+
+  double _gridAspect() => _effectiveAspect.clamp(0.5, 2.0);
+
+  bool _isRemote(String uri) {
+    return kIsWeb ||
+        uri.startsWith('blob:') ||
+        uri.startsWith('data:') ||
+        uri.startsWith('http://') ||
+        uri.startsWith('https://');
+  }
+
+  ImageProvider _providerFor(String uri) {
+    if (_isRemote(uri)) return NetworkImage(uri);
+    final cleanPath = uri.startsWith('file://')
+        ? uri.replaceFirst('file://', '')
+        : uri;
+    return FileImage(io.File(cleanPath));
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Use UriResolver to resolve local file refs or download via fileUUID
     return UriResolver(
       ref: widget.fileRef,
       fileUUID: widget.uuid,
       mimeType: 'image/jpeg',
       autoDownload: true,
-      placeholder: _buildPlaceholder(theme),
+      placeholder: _buildPlaceholder(theme, context),
       builder: (context, resolvedUri) {
         final displayUri = resolvedUri ?? widget.fileRef;
 
         if (displayUri == null || displayUri.isEmpty) {
-          return _buildPlaceholder(theme);
+          return _buildPlaceholder(theme, context);
         }
 
-        final imageWidget = _buildImageWidget(displayUri, theme);
+        final provider = _providerFor(displayUri);
+        _ensureResolved(displayUri, provider);
+
+        final imageWidget = Image(
+          image: provider,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) =>
+              _buildError(theme, context),
+        );
 
         final container = ClipRRect(
           borderRadius: BorderRadius.circular(widget.isSingle ? 12 : 4),
           child: widget.isSingle
-              ? SizedBox(
-                  width: _computedWidth,
-                  height: _computedAspectRatio != null
-                      ? _computedWidth / _computedAspectRatio!
-                      : 200,
-                  child: imageWidget,
+              ? Builder(
+                  builder: (context) {
+                    final (width, height) = _boxSize(context);
+                    return SizedBox(
+                      width: width,
+                      height: height,
+                      child: imageWidget,
+                    );
+                  },
                 )
-              : AspectRatio(aspectRatio: 1.0, child: imageWidget),
+              : AspectRatio(aspectRatio: _gridAspect(), child: imageWidget),
         );
 
         return GestureDetector(
@@ -121,7 +186,7 @@ class _MessageImageState extends State<MessageImage> {
     );
   }
 
-  Widget _buildPlaceholder(ThemeData theme) {
+  Widget _buildPlaceholder(ThemeData theme, BuildContext context) {
     final indicator = Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
@@ -136,13 +201,14 @@ class _MessageImageState extends State<MessageImage> {
     );
 
     if (!widget.isSingle) {
-      return AspectRatio(aspectRatio: 1.0, child: indicator);
+      return AspectRatio(aspectRatio: _gridAspect(), child: indicator);
     }
 
-    return SizedBox(width: _computedWidth, height: 180, child: indicator);
+    final (width, height) = _boxSize(context);
+    return SizedBox(width: width, height: height, child: indicator);
   }
 
-  Widget _buildError(ThemeData theme) {
+  Widget _buildError(ThemeData theme, BuildContext context) {
     final errorWidget = Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.errorContainer,
@@ -156,10 +222,11 @@ class _MessageImageState extends State<MessageImage> {
     );
 
     if (!widget.isSingle) {
-      return AspectRatio(aspectRatio: 1.0, child: errorWidget);
+      return AspectRatio(aspectRatio: _gridAspect(), child: errorWidget);
     }
 
-    return SizedBox(width: _computedWidth, height: 180, child: errorWidget);
+    final (width, height) = _boxSize(context);
+    return SizedBox(width: width, height: height, child: errorWidget);
   }
 
   void _openViewer(BuildContext context, String imageUrl) {

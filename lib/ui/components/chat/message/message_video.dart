@@ -7,7 +7,6 @@ import 'package:universal_video_controls/universal_video_controls.dart';
 import 'package:universal_video_controls_video_player/universal_video_controls_video_player.dart';
 import 'package:video_player/video_player.dart';
 
-/// Displays a video message with inline playback controls.
 class MessageVideo extends StatefulWidget {
   const MessageVideo({
     super.key,
@@ -39,29 +38,39 @@ class MessageVideo extends StatefulWidget {
 class _MessageVideoState extends State<MessageVideo> {
   static const double _maxWidth = 260.0;
   static const double _maxHeight = 320.0;
+  static const double _fallbackAspect = 16 / 9;
 
   VideoPlayerController? _controller;
   VideoPlayerControlsWrapper? _playerWrapper;
   bool _initialized = false;
   bool _hasError = false;
 
-  double get _computedWidth {
+  double _capWidth(BuildContext context) {
+    return (MediaQuery.sizeOf(context).width * 0.6 - 32).clamp(120.0, _maxWidth);
+  }
+
+  double _boxWidth(BuildContext context) {
     if (widget.width != null && widget.height != null && widget.height! > 0) {
-      final wScale = _maxWidth / widget.width!;
+      final cap = _capWidth(context);
+      final wScale = cap / widget.width!;
       final hScale = _maxHeight / widget.height!;
       final scale = [1.0, wScale, hScale].reduce((a, b) => a < b ? a : b);
       return widget.width! * scale;
     }
-    return 240;
+    return _capWidth(context);
   }
 
-  double? get _computedAspectRatio {
+  double? get _metadataAspect {
     if (widget.aspectRatio != null) return widget.aspectRatio;
     if (widget.width != null && widget.height != null && widget.height! > 0) {
       return widget.width! / widget.height!;
     }
     return null;
   }
+
+  double get _effectiveAspect => _metadataAspect ?? _fallbackAspect;
+
+  double _gridAspect() => _effectiveAspect.clamp(0.5, 2.0);
 
   @override
   void dispose() {
@@ -99,27 +108,26 @@ class _MessageVideoState extends State<MessageVideo> {
     final theme = Theme.of(context);
 
     if (_hasError) {
-      return _buildError(theme);
+      return _buildError(theme, context);
     }
 
-    // Use UriResolver to resolve local file refs to playable URIs or download via fileUUID
     return UriResolver(
       ref: widget.fileRef,
       fileUUID: widget.uuid,
       mimeType: 'video/mp4',
       autoDownload: true,
-      placeholder: _buildThumbnail(theme),
+      placeholder: _buildThumbnail(theme, context),
       builder: (context, resolvedUri) {
         final displayUri = resolvedUri ?? widget.fileRef;
 
         if (displayUri == null || displayUri.isEmpty) {
-          return _buildPlaceholder(theme);
+          return _buildPlaceholder(theme, context);
         }
 
         if (!_initialized) {
           return GestureDetector(
             onTap: () => _initializePlayer(displayUri),
-            child: _buildThumbnail(theme),
+            child: _buildThumbnail(theme, context),
           );
         }
 
@@ -132,21 +140,21 @@ class _MessageVideoState extends State<MessageVideo> {
           borderRadius: BorderRadius.circular(widget.isSingle ? 12 : 4),
           child: widget.isSingle
               ? SizedBox(
-                  width: _computedWidth,
+                  width: _boxWidth(context),
                   child: AspectRatio(
                     aspectRatio: _controller!.value.aspectRatio > 0
                         ? _controller!.value.aspectRatio
-                        : (_computedAspectRatio ?? 16 / 9),
+                        : _effectiveAspect,
                     child: playerWidget,
                   ),
                 )
-              : AspectRatio(aspectRatio: 1.0, child: playerWidget),
+              : AspectRatio(aspectRatio: _gridAspect(), child: playerWidget),
         );
       },
     );
   }
 
-  Widget _buildThumbnail(ThemeData theme) {
+  Widget _buildThumbnail(ThemeData theme, BuildContext context) {
     final content = Stack(
       alignment: Alignment.center,
       children: [
@@ -196,7 +204,7 @@ class _MessageVideoState extends State<MessageVideo> {
 
     if (!widget.isSingle) {
       return AspectRatio(
-        aspectRatio: 1.0,
+        aspectRatio: _gridAspect(),
         child: Container(
           color: theme.colorScheme.surfaceContainerHighest,
           child: content,
@@ -205,17 +213,16 @@ class _MessageVideoState extends State<MessageVideo> {
     }
 
     return Container(
-      width: _computedWidth,
-      height: 180,
+      width: _boxWidth(context),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: content,
+      child: AspectRatio(aspectRatio: _effectiveAspect, child: content),
     );
   }
 
-  Widget _buildPlaceholder(ThemeData theme) {
+  Widget _buildPlaceholder(ThemeData theme, BuildContext context) {
     final indicator = Center(
       child: CircularProgressIndicator(
         strokeWidth: 2,
@@ -225,7 +232,7 @@ class _MessageVideoState extends State<MessageVideo> {
 
     if (!widget.isSingle) {
       return AspectRatio(
-        aspectRatio: 1.0,
+        aspectRatio: _gridAspect(),
         child: Container(
           color: theme.colorScheme.surfaceContainerHighest,
           child: indicator,
@@ -234,17 +241,16 @@ class _MessageVideoState extends State<MessageVideo> {
     }
 
     return Container(
-      width: _computedWidth,
-      height: 180,
+      width: _boxWidth(context),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: indicator,
+      child: AspectRatio(aspectRatio: _effectiveAspect, child: indicator),
     );
   }
 
-  Widget _buildError(ThemeData theme) {
+  Widget _buildError(ThemeData theme, BuildContext context) {
     final errorIcon = Icon(
       Icons.videocam_off_rounded,
       size: 36,
@@ -253,7 +259,7 @@ class _MessageVideoState extends State<MessageVideo> {
 
     if (!widget.isSingle) {
       return AspectRatio(
-        aspectRatio: 1.0,
+        aspectRatio: _gridAspect(),
         child: Container(
           color: theme.colorScheme.errorContainer,
           child: Center(child: errorIcon),
@@ -262,13 +268,12 @@ class _MessageVideoState extends State<MessageVideo> {
     }
 
     return Container(
-      width: _computedWidth,
-      height: 180,
+      width: _boxWidth(context),
       decoration: BoxDecoration(
         color: theme.colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Center(child: errorIcon),
+      child: AspectRatio(aspectRatio: _effectiveAspect, child: Center(child: errorIcon)),
     );
   }
 

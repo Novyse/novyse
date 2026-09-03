@@ -413,7 +413,7 @@ class MessageBase extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final maxBubbleWidth = (screenWidth - 64).clamp(120.0, screenWidth * 0.78);
+    final maxBubbleWidth = (screenWidth - 64).clamp(120.0, screenWidth * 0.6);
 
     final senderName = senderUser?.displayName.isNotEmpty == true
         ? senderUser!.displayName
