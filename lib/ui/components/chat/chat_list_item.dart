@@ -105,8 +105,20 @@ class ChatListItem extends ConsumerWidget {
     this.onLongPress,
   });
 
-  String _formatChatTime(ChatModel chat) {
-    final msg = chat.lastMessage;
+  IconData? get _chatTypeIcon {
+    switch (chat.type) {
+      case 'GROUP':
+        return Icons.group_outlined;
+      case 'CHANNEL':
+        return Icons.campaign_outlined;
+      case 'FORUM':
+        return Icons.forum_outlined;
+      default:
+        return null;
+    }
+  }
+
+  String _formatChatTime(ChatModel chat) {    final msg = chat.lastMessage;
     final rawTime =
         msg?['createdAt'] ??
         msg?['created_at'] ??
@@ -205,6 +217,17 @@ class ChatListItem extends ConsumerWidget {
                     // Top Row: Chat Name + Time / Clock
                     Row(
                       children: [
+                        if (_chatTypeIcon != null)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: Icon(
+                              _chatTypeIcon,
+                              size: 15,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                          ),
                         Expanded(
                           child: Text(
                             metadata.name,

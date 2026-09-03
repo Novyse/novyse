@@ -5,6 +5,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/ui/components/chat/chat_list_app_menu.dart';
+import 'package:novyse/ui/components/chat/create_chat_modal.dart';
 import 'package:novyse/ui/components/chat/chat_list_item.dart';
 import 'package:novyse/ui/components/status/global_status_bar.dart';
 
@@ -100,7 +101,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
           onPressed: _openSearch,
         ),
       actionsPadding: const EdgeInsets.only(right: _appBarEdgePadding),
-      actions: [ChatListAppMenu(onNewChat: () {})],
+      actions: [ChatListAppMenu(onNewChat: () => showCreateChatModal(context))],
     );
   }
 
