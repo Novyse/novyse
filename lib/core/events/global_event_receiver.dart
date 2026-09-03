@@ -7,6 +7,8 @@ import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
 import 'package:novyse/core/router/router.dart';
 import 'package:novyse/core/services/auth.dart';
+import 'package:novyse/core/services/socket_service.dart';
+import 'package:novyse/core/services/sync_service.dart';
 
 /// Sets up global event listeners for navigation and critical app state changes.
 /// Equivalent to `SetupGlobalEventReceiver` in the React/TypeScript codebase.
@@ -41,6 +43,14 @@ class _GlobalEventReceiverState extends ConsumerState<GlobalEventReceiver> {
         debugPrint(
           'User session became invalid. Logging out and redirecting... 🍹',
         );
+        // Stop anything that would hit the API with an invalid token,
+        // otherwise sync/socket retries loop with 401s after logout.
+        try {
+          ref.read(syncServiceProvider).cancelRetry();
+        } catch (_) {}
+        try {
+          ref.read(socketServiceProvider).close();
+        } catch (_) {}
         await onboardingManager.logout();
         if (mounted) {
           ref.read(routerProvider).go('/welcome');

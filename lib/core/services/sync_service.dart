@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'package:novyse/core/auth/onboarding_manager.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/services/socket_service.dart';
@@ -59,6 +60,14 @@ class SyncService {
 
   bool get isSyncing => _isSyncing;
 
+  /// Synchronous auth guard: true when the user is logged out.
+  /// Reads the in-memory auth state (no async token fetch) so a pending
+  /// retry never fires an authenticated request after logout.
+  bool get _isLoggedOut => !_ref.read(authProvider);
+
+  /// Public hook to stop a pending retry loop (e.g. on logout).
+  void cancelRetry() => _cancelRetry();
+
   Gateway get _gateway => apiGateway;
   AppDatabase get _db => _ref.read(databaseProvider);
   StatusNotifier get _status => _ref.read(statusProvider.notifier);
@@ -70,6 +79,12 @@ class SyncService {
   Future<bool> ensureInitialized() async {
     if (_isSyncing) {
       debugPrint('[SyncService] Sync already in progress, skipping...');
+      return false;
+    }
+    // Never sync when logged out (e.g. after an InvalidSession logout
+    // while a retry timer is still pending).
+    if (_isLoggedOut) {
+      _cancelRetry();
       return false;
     }
 
@@ -99,6 +114,10 @@ class SyncService {
   /// Full initialization (/user/initialize).
   Future<bool> initializeDatabase() async {
     if (_isSyncing) return false;
+    if (_isLoggedOut) {
+      _cancelRetry();
+      return false;
+    }
     _isSyncing = true;
     _cancelRetry();
 
@@ -204,12 +223,16 @@ class SyncService {
     } catch (e) {
       debugPrint('[SyncService] Error during initializeDatabase: $e');
       _network.setSynced(false);
+      _isSyncing = false;
+      if (_isLoggedOut) {
+        _cancelRetry();
+        return false;
+      }
       _status.setSyncError(
         'Initialization failed',
         errorBuilder: (l10n) => l10n.syncErrorInitMessage,
         onRetry: () => initializeDatabase(),
       );
-      _isSyncing = false;
       return false;
     }
   }
@@ -217,6 +240,10 @@ class SyncService {
   /// Incremental delta sync (/user/update).
   Future<bool> updateDatabase() async {
     if (_isSyncing) return false;
+    if (_isLoggedOut) {
+      _cancelRetry();
+      return false;
+    }
     _isSyncing = true;
     _cancelRetry();
 
@@ -464,12 +491,20 @@ class SyncService {
       debugPrint('[SyncService] Delta sync failed: $e');
       _network.setSynced(false);
       _isSyncing = false;
+      if (_isLoggedOut) {
+        _cancelRetry();
+        return false;
+      }
       _startRetryLoop();
       return false;
     }
   }
 
   void _startRetryLoop() {
+    if (_isLoggedOut) {
+      _cancelRetry();
+      return;
+    }
     _cancelRetry();
     _retryCountdown = 5;
     _status.setSyncError(
@@ -480,6 +515,10 @@ class SyncService {
     );
 
     _retryTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+      if (_isLoggedOut) {
+        _cancelRetry();
+        return;
+      }
       _retryCountdown--;
 
       if (_retryCountdown > 0) {
