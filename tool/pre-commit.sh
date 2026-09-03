@@ -4,6 +4,7 @@
 set -e
 
 echo "🔄 [Pre-Commit] Pulling latest changes..."
+git fetch
 git pull
 
 echo "🔄 [Pre-Commit] Syncing version..."
