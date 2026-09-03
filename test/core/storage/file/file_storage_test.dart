@@ -154,7 +154,7 @@ void main() {
     final storage = FileStorage.instance;
 
     setUp(() async {
-      await storage.clearAll();
+      await storage.delete('test_file.txt');
     });
 
     test('saves and reads file by bytes', () async {
