@@ -185,13 +185,27 @@ class _HomeShellState extends ConsumerState<HomeShell>
 
     final Widget body;
     if (wide) {
-      body = Row(
+      body = Stack(
         children: [
-          SizedBox(width: masterPaneWidth, child: master),
-          _MasterPaneResizer(
-            onDrag: (delta) => _resizeMasterPane(delta, screenWidth),
+          // Layout principale senza spaziatura aggiuntiva per il resizer
+          Row(
+            children: [
+              SizedBox(width: masterPaneWidth, child: master),
+              Expanded(child: detail),
+            ],
           ),
-          Expanded(child: detail),
+          // Resizer trasparente e invisibile posizionato esattamente sul bordo
+          Positioned(
+            left:
+                masterPaneWidth -
+                8, // Shift a sinistra per centrare la hit area
+            top: 0,
+            bottom: 0,
+            width: 16, // Ampia hit area per un drag/hover agevole (16px)
+            child: _MasterPaneResizer(
+              onDrag: (delta) => _resizeMasterPane(delta, screenWidth),
+            ),
+          ),
         ],
       );
     } else {
@@ -280,16 +294,16 @@ class _MasterPaneResizerState extends State<_MasterPaneResizer> {
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onHorizontalDragStart: (_) => setState(() => _dragging = true),
-        onHorizontalDragUpdate: (details) =>
-            widget.onDrag(details.delta.dx),
+        onHorizontalDragUpdate: (details) => widget.onDrag(details.delta.dx),
         onHorizontalDragEnd: (_) => setState(() => _dragging = false),
         onHorizontalDragCancel: () => setState(() => _dragging = false),
-        child: SizedBox(
-          width: 8,
+        child: SizedBox.expand(
           child: Center(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 120),
-              width: active ? 3 : 1,
+              width: active
+                  ? 3
+                  : 1, // Cambia solo l'aspetto visivo, non la Hit Area
               color: dividerColor,
             ),
           ),

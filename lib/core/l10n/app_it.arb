@@ -192,5 +192,6 @@
   "sendVoiceTooltip": "Invia messaggio vocale",
   "recordVoiceTooltip": "Registra messaggio vocale",
   "clearAllFilesTooltip": "Rimuovi tutto",
-  "removeFileTooltip": "Rimuovi file"
+  "removeFileTooltip": "Rimuovi file",
+  "newChat": "Nuova chat"
 }
