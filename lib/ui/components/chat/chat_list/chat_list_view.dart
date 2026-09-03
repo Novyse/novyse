@@ -17,7 +17,7 @@ class ChatListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 96),
       sliver: SliverList.separated(
         itemCount: chats.length,
         separatorBuilder: (_, _) => const SizedBox(height: 4),
