@@ -39,7 +39,12 @@ class ReplyBar extends ConsumerWidget {
           String content = '';
 
           if (msg is Map) {
-            senderName = (msg['sender_name'] ?? msg['senderName'] ?? msg['user']?['name'] ?? 'Reply').toString();
+            senderName =
+                (msg['sender_name'] ??
+                        msg['senderName'] ??
+                        msg['user']?['name'] ??
+                        'Reply')
+                    .toString();
             content = (msg['content'] ?? '').toString();
           }
 

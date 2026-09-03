@@ -97,6 +97,21 @@ class _MessageListState extends ConsumerState<MessageList> {
           showAvatar: isGroup && !isSender,
           showSenderName: isGroup && !isSender,
           senderUser: senderUser,
+          getMessage: (chatUUID, subID, messageID) {
+            // Look up message from the store
+            try {
+              final state = ref.read(
+                chatMessagesProvider((chatUUID: chatUUID, subID: subID)),
+              );
+              return state.messages.firstWhere(
+                (m) => m.id == messageID,
+                orElse: () => throw Exception('Message not found'),
+              );
+            } catch (_) {
+              return null;
+            }
+          },
+          getUser: (uuid) => users[uuid],
         );
       },
     );

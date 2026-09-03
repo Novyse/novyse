@@ -239,8 +239,9 @@ class _ChatContextMenuState extends State<ChatContextMenu> {
     final selection = widget.controller.selection;
     final hasSelection = selection.isValid && !selection.isCollapsed;
 
-    final hasPasteButton =
-        defaultButtons.any((item) => item.type == ContextMenuButtonType.paste);
+    final hasPasteButton = defaultButtons.any(
+      (item) => item.type == ContextMenuButtonType.paste,
+    );
     final buttons = [
       if (!hasPasteButton && widget.onPaste != null)
         ContextMenuButtonItem(

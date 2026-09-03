@@ -8,11 +8,7 @@ import 'package:novyse/ui/components/chat/paste/chat_paste_helper.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class ChatDropZone extends ConsumerStatefulWidget {
-  const ChatDropZone({
-    super.key,
-    required this.chatUUID,
-    required this.child,
-  });
+  const ChatDropZone({super.key, required this.chatUUID, required this.child});
 
   final String chatUUID;
   final Widget child;
@@ -102,10 +98,7 @@ class _ChatDropZoneState extends ConsumerState<ChatDropZone> {
                     decoration: BoxDecoration(
                       color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: colorScheme.primary,
-                        width: 2,
-                      ),
+                      border: Border.all(color: colorScheme.primary, width: 2),
                       boxShadow: [
                         BoxShadow(
                           color: colorScheme.primary.withValues(alpha: 0.15),

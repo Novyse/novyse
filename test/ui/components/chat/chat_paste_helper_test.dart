@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/chat/queue/queue_manager.dart';
@@ -39,23 +40,25 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      await ChatPasteHelper.addDroppedFiles(
-        container,
-        'chat-helper-dropped',
-        [
-          _FakeDropFile(name: 'doc.pdf', path: '/fake/doc.pdf', lengthVal: 1024),
-          _FakeDropFile(name: 'photo.jpg', path: '/fake/photo.jpg', lengthVal: 2048),
-        ],
-      );
+      await ChatPasteHelper.addDroppedFiles(container, 'chat-helper-dropped', [
+        _FakeDropFile(name: 'doc.pdf', path: '/fake/doc.pdf', lengthVal: 1024),
+        _FakeDropFile(
+          name: 'photo.jpg',
+          path: '/fake/photo.jpg',
+          lengthVal: 2048,
+        ),
+      ]);
 
-      final draftState = container.read(chatDraftProvider('chat-helper-dropped'));
+      final draftState = container.read(
+        chatDraftProvider('chat-helper-dropped'),
+      );
       expect(draftState.files.length, 2);
       final file1 = draftState.files[0] as Map;
       final file2 = draftState.files[1] as Map;
       expect(file1['name'], 'doc.pdf');
       expect(file1['mimeType'], 'application/pdf');
       expect(file2['name'], 'photo.jpg');
-      expect(file2['mimeType'], 'image/jpeg');
+      expect(file2['mimeType'], 'image/jpg');
     });
 
     test('handleKeyboardInserted sends GIF or sticker directly via queue and matches format', () async {
@@ -64,7 +67,16 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final pngBytes = Uint8List.fromList([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+      final pngBytes = Uint8List.fromList([
+        0x89,
+        0x50,
+        0x4E,
+        0x47,
+        0x0D,
+        0x0A,
+        0x1A,
+        0x0A,
+      ]);
 
       // 1. Insert PNG (Sticker) -> sent directly, not added to draft
       await ChatPasteHelper.handleKeyboardInserted(
@@ -96,7 +108,9 @@ void main() {
         ),
       );
 
-      final draft2 = container.read(chatDraftProvider('chat-keyboard-test-gif'));
+      final draft2 = container.read(
+        chatDraftProvider('chat-keyboard-test-gif'),
+      );
       expect(draft2.files.isEmpty, isTrue);
       final p2 = queueManager.getProcessor('chat-keyboard-test-gif');
       expect(p2, isNotNull);
@@ -130,24 +144,28 @@ void main() {
       expect(res3, isFalse);
     });
 
-    test('appendFiles correctly adds files and updates draft and invalid files', () async {
-      final container = ProviderContainer(
-        overrides: [queueManagerProvider.overrideWithValue(queueManager)],
-      );
-      addTearDown(container.dispose);
+    test(
+      'appendFiles correctly adds files and updates draft and invalid files',
+      () async {
+        final container = ProviderContainer(
+          overrides: [queueManagerProvider.overrideWithValue(queueManager)],
+        );
+        addTearDown(container.dispose);
 
-      ChatPasteHelper.appendFiles(
-        container,
-        'chat-append-test',
-        [
-          {'name': 'test.png', 'size': 500, 'mimeType': 'image/png', 'type': 'IMAGE'},
-        ],
-      );
+        ChatPasteHelper.appendFiles(container, 'chat-append-test', [
+          {
+            'name': 'test.png',
+            'size': 500,
+            'mimeType': 'image/png',
+            'type': 'IMAGE',
+          },
+        ]);
 
-      final draft = container.read(chatDraftProvider('chat-append-test'));
-      expect(draft.files.length, 1);
-      expect((draft.files.first as Map)['name'], 'test.png');
-    });
+        final draft = container.read(chatDraftProvider('chat-append-test'));
+        expect(draft.files.length, 1);
+        expect((draft.files.first as Map)['name'], 'test.png');
+      },
+    );
   });
 }
 
@@ -156,7 +174,11 @@ class _FakeDropFile {
   final String path;
   final int lengthVal;
 
-  _FakeDropFile({required this.name, required this.path, required this.lengthVal});
+  _FakeDropFile({
+    required this.name,
+    required this.path,
+    required this.lengthVal,
+  });
 
   Future<int> length() async => lengthVal;
   Future<Uint8List> readAsBytes() async => Uint8List(0);
@@ -167,9 +189,5 @@ class _FakeKeyboardInsertedContent {
   final String mimeType;
   final String? uri;
 
-  _FakeKeyboardInsertedContent({
-    this.data,
-    required this.mimeType,
-    this.uri,
-  });
+  _FakeKeyboardInsertedContent({this.data, required this.mimeType, this.uri});
 }

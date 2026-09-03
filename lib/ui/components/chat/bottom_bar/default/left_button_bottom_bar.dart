@@ -94,8 +94,9 @@ class _LeftButtonBottomBarState extends State<LeftButtonBottomBar>
             width: 45,
             height: 45,
             decoration: BoxDecoration(
-              color:
-                  colorScheme.surfaceContainerHighest.withValues(alpha: 0.65),
+              color: colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.65,
+              ),
               shape: BoxShape.circle,
               border: Border.all(
                 color: colorScheme.outlineVariant.withValues(alpha: 0.5),

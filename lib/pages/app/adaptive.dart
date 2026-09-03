@@ -18,10 +18,7 @@ double clampMasterPaneWidth(double width, double screenWidth) {
 
   final maxWidth = math.max(
     kMasterPaneMinWidth,
-    math.min(
-      screenWidth - kMasterDetailMinDetailWidth,
-      screenWidth * 0.6,
-    ),
+    math.min(screenWidth - kMasterDetailMinDetailWidth, screenWidth * 0.6),
   );
   final minWidth = math.min(kMasterPaneMinWidth, maxWidth);
   return width.clamp(minWidth, maxWidth);

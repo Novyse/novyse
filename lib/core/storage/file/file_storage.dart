@@ -4,6 +4,9 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/storage/file/web_blob_url_stub.dart'
+    if (dart.library.html) 'package:novyse/core/storage/file/web_blob_url_web.dart'
+    as web_blob;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -58,8 +61,8 @@ class FileStorage {
         final storageDir = io.Directory(
           p.join(sysTemp.path, 'novyse_local_files'),
         );
-        if (!await storageDir.exists()) {
-          await storageDir.create(recursive: true);
+        if (!storageDir.existsSync()) {
+          storageDir.createSync(recursive: true);
         }
         return storageDir.path;
       }
@@ -67,10 +70,20 @@ class FileStorage {
   }
 
   /// Retrieves the file URI for a given reference key.
-  Future<String?> read(String ref) async {
+  Future<String?> read(String ref, [String? mimeType]) async {
     if (ref.isEmpty) return null;
     if (kIsWeb) {
-      return _webMemoryStore.containsKey(ref) ? ref : null;
+      if (ref.startsWith('blob:') ||
+          ref.startsWith('http://') ||
+          ref.startsWith('https://') ||
+          ref.startsWith('data:')) {
+        return ref;
+      }
+      final bytes = _webMemoryStore[ref];
+      if (bytes != null) {
+        return web_blob.createWebBlobUrl(bytes, mimeType);
+      }
+      return null;
     }
 
     // If already a full file path that exists

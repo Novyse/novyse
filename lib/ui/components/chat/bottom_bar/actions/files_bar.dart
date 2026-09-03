@@ -166,7 +166,8 @@ class FilesBar extends ConsumerWidget {
                 var mimeType = defaultMimeType;
 
                 if (file is Map) {
-                  fileName = (file['name'] ?? file['fileName'] ?? 'File').toString();
+                  fileName = (file['name'] ?? file['fileName'] ?? 'File')
+                      .toString();
                   final sizeVal = file['size'] ?? file['fileSize'] ?? 0;
                   fileSize = sizeVal is num ? sizeVal.toInt() : 0;
                   mimeType = getMimeType(file);
@@ -177,7 +178,10 @@ class FilesBar extends ConsumerWidget {
 
                 return Container(
                   key: ValueKey('file_chip_$fileName'),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
@@ -193,7 +197,9 @@ class FilesBar extends ConsumerWidget {
                       AppHugeIcon(
                         icon: icon,
                         size: 18,
-                        color: isInvalid ? AppColors.danger : colorScheme.primary,
+                        color: isInvalid
+                            ? AppColors.danger
+                            : colorScheme.primary,
                       ),
                       const SizedBox(width: 8),
                       ConstrainedBox(

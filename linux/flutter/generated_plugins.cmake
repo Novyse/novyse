@@ -7,10 +7,15 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_opaque
   flutter_secure_storage_linux
   irondash_engine_context
+  open_file_linux
   record_linux
+  screen_retriever_linux
   super_native_extensions
+  universal_video_controls
   url_launcher_linux
+  volume_controller
   webview_all_linux
+  window_manager
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

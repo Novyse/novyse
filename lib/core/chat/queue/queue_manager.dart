@@ -163,7 +163,7 @@ class QueueManager {
     required String id,
     required String chatUUID,
     required String fileUUID,
-    required String downloadURL,
+    String? downloadURL,
     String? name,
     int priority = JobPriority.background,
   }) async {
@@ -172,7 +172,11 @@ class QueueManager {
       chatUUID: chatUUID,
       type: JobType.fileDownload,
       priority: priority,
-      payload: {'fileUUID': fileUUID, 'downloadURL': downloadURL, 'name': name},
+      payload: {
+        'fileUUID': fileUUID,
+        'downloadURL': ?downloadURL,
+        'name': ?name,
+      },
     );
 
     await AppDatabase.instance.job.save(job.toMap());
@@ -244,16 +248,17 @@ class QueueManager {
       final chatUUID = (data['chatUUID'] ?? data['chat_uuid']) as String?;
       if (files is List && files.isNotEmpty && chatUUID != null) {
         for (final file in files) {
-          if (file is Map &&
-              file['downloadURL'] != null &&
-              file['uuid'] != null) {
-            addInboundDownloadJob(
-              id: 'dl_${file['uuid']}',
-              chatUUID: chatUUID,
-              fileUUID: file['uuid'] as String,
-              downloadURL: file['downloadURL'] as String,
-              name: file['name'] as String?,
-            );
+          if (file is Map && file['uuid'] != null) {
+            final uuid = file['uuid'] as String;
+            if (uuid.isNotEmpty) {
+              addInboundDownloadJob(
+                id: 'dl_$uuid',
+                chatUUID: chatUUID,
+                fileUUID: uuid,
+                downloadURL: file['downloadURL'] as String?,
+                name: file['name'] as String?,
+              );
+            }
           }
         }
       }

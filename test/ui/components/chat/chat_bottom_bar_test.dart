@@ -33,49 +33,50 @@ void main() {
   });
 
   group('ChatBottomBar and Components Tests', () {
-    testWidgets('Renders normal bottom bar with +, text input and Mic icon when empty', (
-      tester,
-    ) async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    testWidgets(
+      'Renders normal bottom bar with +, text input and Mic icon when empty',
+      (tester) async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: const MaterialApp(
-            localizationsDelegates: localizationsDelegates,
-            supportedLocales: supportedLocales,
-            locale: Locale('en'),
-            home: Scaffold(
-              body: Column(
-                children: [
-                  Spacer(),
-                  ChatBottomBar(chatUUID: 'chat-test-1'),
-                ],
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: const MaterialApp(
+              localizationsDelegates: localizationsDelegates,
+              supportedLocales: supportedLocales,
+              locale: Locale('en'),
+              home: Scaffold(
+                body: Column(
+                  children: [
+                    Spacer(),
+                    ChatBottomBar(chatUUID: 'chat-test-1'),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.byType(LeftButtonBottomBar), findsOneWidget);
-      expect(find.byType(MiddleBarBottomBar), findsOneWidget);
-      expect(find.byType(RightButtonBottomBar), findsOneWidget);
-      expect(find.byType(TextField), findsOneWidget);
+        expect(find.byType(LeftButtonBottomBar), findsOneWidget);
+        expect(find.byType(MiddleBarBottomBar), findsOneWidget);
+        expect(find.byType(RightButtonBottomBar), findsOneWidget);
+        expect(find.byType(TextField), findsOneWidget);
 
-      // Verify mic icon is shown on RightButton when input is empty
-      final micIcon = find.byWidgetPredicate(
-        (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedMic02,
-      );
-      expect(micIcon, findsOneWidget);
+        // Verify mic icon is shown on RightButton when input is empty
+        final micIcon = find.byWidgetPredicate(
+          (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedMic02,
+        );
+        expect(micIcon, findsOneWidget);
 
-      // Verify + icon is shown on LeftButton
-      final plusIcon = find.byWidgetPredicate(
-        (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedAdd01,
-      );
-      expect(plusIcon, findsWidgets);
-    });
+        // Verify + icon is shown on LeftButton
+        final plusIcon = find.byWidgetPredicate(
+          (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedAdd01,
+        );
+        expect(plusIcon, findsWidgets);
+      },
+    );
 
     testWidgets('Right button switches to Send icon when text is entered', (
       tester,
@@ -121,11 +122,7 @@ void main() {
 
       // Seed draft with a file
       container.read(chatDraftProvider('chat-test-1').notifier).setFiles([
-        {
-          'name': 'image.png',
-          'size': 1024 * 1024,
-          'mimeType': 'image/png',
-        }
+        {'name': 'image.png', 'size': 1024 * 1024, 'mimeType': 'image/png'},
       ]);
 
       await tester.pumpWidget(
@@ -208,97 +205,103 @@ void main() {
       expect(find.text('first.jpg'), findsNothing);
     });
 
-    testWidgets('Voice recording state shows RecordingDot, SpeechIndicator and duration', (
-      tester,
-    ) async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    testWidgets(
+      'Voice recording state shows RecordingDot, SpeechIndicator and duration',
+      (tester) async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: const MaterialApp(
-            localizationsDelegates: localizationsDelegates,
-            supportedLocales: supportedLocales,
-            locale: Locale('en'),
-            home: Scaffold(
-              body: Column(
-                children: [
-                  Spacer(),
-                  ChatBottomBar(chatUUID: 'chat-test-1'),
-                ],
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: const MaterialApp(
+              localizationsDelegates: localizationsDelegates,
+              supportedLocales: supportedLocales,
+              locale: Locale('en'),
+              home: Scaffold(
+                body: Column(
+                  children: [
+                    Spacer(),
+                    ChatBottomBar(chatUUID: 'chat-test-1'),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      // Trigger recording state manually in provider
-      container.read(voiceRecorderProvider('chat-test-1').notifier).state =
-          const VoiceRecorderState(
-        isRecording: true,
-        isPaused: false,
-        duration: Duration(seconds: 5, milliseconds: 320),
-        amplitude: -18.5,
-      );
-      await tester.pump();
+        // Trigger recording state manually in provider
+        container
+            .read(voiceRecorderProvider('chat-test-1').notifier)
+            .state = const VoiceRecorderState(
+          isRecording: true,
+          isPaused: false,
+          duration: Duration(seconds: 5, milliseconds: 320),
+          amplitude: -18.5,
+        );
+        await tester.pump();
 
-      expect(find.byType(RecordingDot), findsOneWidget);
-      expect(find.byType(SpeechIndicator), findsOneWidget);
-      expect(find.text('0:05.320'), findsOneWidget);
+        expect(find.byType(RecordingDot), findsOneWidget);
+        expect(find.byType(SpeechIndicator), findsOneWidget);
+        expect(find.text('0:05.320'), findsOneWidget);
 
-      // Right button shows Sent icon to stop & send
-      final sendIcon = find.byWidgetPredicate(
-        (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedSent,
-      );
-      expect(sendIcon, findsOneWidget);
-    });
+        // Right button shows Sent icon to stop & send
+        final sendIcon = find.byWidgetPredicate(
+          (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedSent,
+        );
+        expect(sendIcon, findsOneWidget);
+      },
+    );
 
-    testWidgets('Sending text message with files delegates to queue and clears draft', (
-      tester,
-    ) async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    testWidgets(
+      'Sending text message with files delegates to queue and clears draft',
+      (tester) async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      // Seed draft
-      container.read(chatDraftProvider('chat-test-1').notifier).setFiles([
-        {'name': 'attachment.png', 'size': 1024, 'mimeType': 'image/png'},
-      ]);
+        // Seed draft
+        container.read(chatDraftProvider('chat-test-1').notifier).setFiles([
+          {'name': 'attachment.png', 'size': 1024, 'mimeType': 'image/png'},
+        ]);
 
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: const MaterialApp(
-            localizationsDelegates: localizationsDelegates,
-            supportedLocales: supportedLocales,
-            locale: Locale('en'),
-            home: Scaffold(
-              body: Column(
-                children: [
-                  Spacer(),
-                  ChatBottomBar(chatUUID: 'chat-test-1'),
-                ],
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: const MaterialApp(
+              localizationsDelegates: localizationsDelegates,
+              supportedLocales: supportedLocales,
+              locale: Locale('en'),
+              home: Scaffold(
+                body: Column(
+                  children: [
+                    Spacer(),
+                    ChatBottomBar(chatUUID: 'chat-test-1'),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField), 'Message with attachment');
-      await tester.pump();
+        await tester.enterText(
+          find.byType(TextField),
+          'Message with attachment',
+        );
+        await tester.pump();
 
-      // Tap send button
-      final sendBtn = find.byType(RightButtonBottomBar);
-      await tester.tap(sendBtn);
-      await tester.pump(const Duration(milliseconds: 100));
+        // Tap send button
+        final sendBtn = find.byType(RightButtonBottomBar);
+        await tester.tap(sendBtn);
+        await tester.pump(const Duration(milliseconds: 100));
 
-      // Verify draft state was cleared
-      final draftState = container.read(chatDraftProvider('chat-test-1'));
-      expect(draftState.newMessageText, isEmpty);
-      expect(draftState.files, isEmpty);
-    });
+        // Verify draft state was cleared
+        final draftState = container.read(chatDraftProvider('chat-test-1'));
+        expect(draftState.newMessageText, isEmpty);
+        expect(draftState.files, isEmpty);
+      },
+    );
 
     testWidgets('Left button cancel button cancels voice recording', (
       tester,
@@ -327,8 +330,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Set recording state
-      container.read(voiceRecorderProvider('chat-test-1').notifier).state =
-          const VoiceRecorderState(
+      container
+          .read(voiceRecorderProvider('chat-test-1').notifier)
+          .state = const VoiceRecorderState(
         isRecording: true,
         isPaused: false,
         duration: Duration(seconds: 2),
@@ -345,9 +349,7 @@ void main() {
       expect(recState.isRecording, isFalse);
     });
 
-    testWidgets('Middle bar pause/resume and draft actions', (
-      tester,
-    ) async {
+    testWidgets('Middle bar pause/resume and draft actions', (tester) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -372,8 +374,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Set recording state
-      container.read(voiceRecorderProvider('chat-test-1').notifier).state =
-          const VoiceRecorderState(
+      container
+          .read(voiceRecorderProvider('chat-test-1').notifier)
+          .state = const VoiceRecorderState(
         isRecording: true,
         isPaused: false,
         duration: Duration(seconds: 4),
@@ -385,8 +388,9 @@ void main() {
       expect(find.byTooltip('Add to draft'), findsOneWidget);
 
       // Toggle pause state
-      container.read(voiceRecorderProvider('chat-test-1').notifier).state =
-          const VoiceRecorderState(
+      container
+          .read(voiceRecorderProvider('chat-test-1').notifier)
+          .state = const VoiceRecorderState(
         isRecording: true,
         isPaused: true,
         duration: Duration(seconds: 4),
@@ -396,9 +400,7 @@ void main() {
       expect(find.byTooltip('Resume'), findsOneWidget);
     });
 
-    testWidgets('ChatDropZone wraps children correctly', (
-      tester,
-    ) async {
+    testWidgets('ChatDropZone wraps children correctly', (tester) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -424,58 +426,59 @@ void main() {
       expect(find.text('Chat Content Area'), findsOneWidget);
     });
 
-    testWidgets('Keyboard inserted content (sticker/GIF) sends directly to queue', (
-      tester,
-    ) async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    testWidgets(
+      'Keyboard inserted content (sticker/GIF) sends directly to queue',
+      (tester) async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: const MaterialApp(
-            localizationsDelegates: localizationsDelegates,
-            supportedLocales: supportedLocales,
-            locale: Locale('en'),
-            home: Scaffold(
-              body: Column(
-                children: [
-                  Spacer(),
-                  ChatBottomBar(chatUUID: 'chat-test-1'),
-                ],
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: const MaterialApp(
+              localizationsDelegates: localizationsDelegates,
+              supportedLocales: supportedLocales,
+              locale: Locale('en'),
+              home: Scaffold(
+                body: Column(
+                  children: [
+                    Spacer(),
+                    ChatBottomBar(chatUUID: 'chat-test-1'),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      final textField = tester.widget<TextField>(find.byType(TextField));
-      expect(textField.contentInsertionConfiguration, isNotNull);
-      expect(
-        textField.contentInsertionConfiguration!.allowedMimeTypes,
-        contains('image/png'),
-      );
+        final textField = tester.widget<TextField>(find.byType(TextField));
+        expect(textField.contentInsertionConfiguration, isNotNull);
+        expect(
+          textField.contentInsertionConfiguration!.allowedMimeTypes,
+          contains('image/png'),
+        );
 
-      // Simulate content insertion (pasting a sticker/image)
-      final dummyBytes = Uint8List.fromList([1, 2, 3, 4, 5]);
-      final content = KeyboardInsertedContent(
-        mimeType: 'image/png',
-        uri: 'content://media/external/images/media/123',
-        data: dummyBytes,
-      );
+        // Simulate content insertion (pasting a sticker/image)
+        final dummyBytes = Uint8List.fromList([1, 2, 3, 4, 5]);
+        final content = KeyboardInsertedContent(
+          mimeType: 'image/png',
+          uri: 'content://media/external/images/media/123',
+          data: dummyBytes,
+        );
 
-      textField.contentInsertionConfiguration!.onContentInserted(content);
-      await tester.pumpAndSettle();
+        textField.contentInsertionConfiguration!.onContentInserted(content);
+        await tester.pumpAndSettle();
 
-      // Draft must remain empty (sent directly to chat queue)
-      final draftState = container.read(chatDraftProvider('chat-test-1'));
-      expect(draftState.files.isEmpty, isTrue);
+        // Draft must remain empty (sent directly to chat queue)
+        final draftState = container.read(chatDraftProvider('chat-test-1'));
+        expect(draftState.files.isEmpty, isTrue);
 
-      final queueManager = container.read(queueManagerProvider);
-      final p = queueManager.getProcessor('chat-test-1');
-      expect(p, isNotNull);
-    });
+        final queueManager = container.read(queueManagerProvider);
+        final p = queueManager.getProcessor('chat-test-1');
+        expect(p, isNotNull);
+      },
+    );
 
     testWidgets('ChatDropZone contains DropTarget for entire chat view', (
       tester,

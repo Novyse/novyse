@@ -85,17 +85,13 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
         final newText = currentText.replaceRange(start, end, text);
         controller.value = TextEditingValue(
           text: newText,
-          selection: TextSelection.collapsed(
-            offset: start + text.length,
-          ),
+          selection: TextSelection.collapsed(offset: start + text.length),
         );
       } else {
         final newText = '$currentText$text';
         controller.value = TextEditingValue(
           text: newText,
-          selection: TextSelection.collapsed(
-            offset: newText.length,
-          ),
+          selection: TextSelection.collapsed(offset: newText.length),
         );
       }
       ref
@@ -126,75 +122,75 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
             ),
           ),
           child: Actions(
-          actions: {
-            PasteTextIntent: CallbackAction<PasteTextIntent>(
-              onInvoke: (intent) async {
-                return await _handlePaste();
-              },
-            ),
-          },
-          child: TextField(
-            controller: widget.textController,
-            focusNode: widget.focusNode,
-            textCapitalization: TextCapitalization.sentences,
-            maxLines: 4,
-            minLines: 1,
-            style: TextStyle(color: colorScheme.onSurface, fontSize: 15),
-            contentInsertionConfiguration: ContentInsertionConfiguration(
-              allowedMimeTypes: const <String>[
-                'image/png',
-                'image/jpeg',
-                'image/gif',
-                'image/webp',
-                'image/heic',
-                'image/svg+xml',
-              ],
-              onContentInserted: (KeyboardInsertedContent data) async {
-                await ChatPasteHelper.handleKeyboardInserted(
-                  ref,
-                  widget.chatUUID,
-                  data,
-                  subID: widget.subID,
+            actions: {
+              PasteTextIntent: CallbackAction<PasteTextIntent>(
+                onInvoke: (intent) async {
+                  return await _handlePaste();
+                },
+              ),
+            },
+            child: TextField(
+              controller: widget.textController,
+              focusNode: widget.focusNode,
+              textCapitalization: TextCapitalization.sentences,
+              maxLines: 4,
+              minLines: 1,
+              style: TextStyle(color: colorScheme.onSurface, fontSize: 15),
+              contentInsertionConfiguration: ContentInsertionConfiguration(
+                allowedMimeTypes: const <String>[
+                  'image/png',
+                  'image/jpeg',
+                  'image/gif',
+                  'image/webp',
+                  'image/heic',
+                  'image/svg+xml',
+                ],
+                onContentInserted: (KeyboardInsertedContent data) async {
+                  await ChatPasteHelper.handleKeyboardInserted(
+                    ref,
+                    widget.chatUUID,
+                    data,
+                    subID: widget.subID,
+                  );
+                },
+              ),
+              contextMenuBuilder: (context, editableTextState) {
+                return ChatContextMenu(
+                  editableTextState: editableTextState,
+                  controller: widget.textController,
+                  onPaste: () async {
+                    await _handlePaste();
+                  },
                 );
               },
-            ),
-            contextMenuBuilder: (context, editableTextState) {
-              return ChatContextMenu(
-                editableTextState: editableTextState,
-                controller: widget.textController,
-                onPaste: () async {
-                  await _handlePaste();
-                },
-              );
-            },
-            decoration: InputDecoration(
-              filled: false,
-              hintText: l10n.typeMessageHint,
-              hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-              border: InputBorder.none,
-              isDense: true,
-              contentPadding: const EdgeInsets.fromLTRB(16, 11, 4, 11),
-              suffixIcon: IconButton(
-                icon: AppHugeIcon(
-                  icon: HugeIcons.strokeRoundedSmile,
-                  size: 20,
-                  color: colorScheme.onSurfaceVariant,
+              decoration: InputDecoration(
+                filled: false,
+                hintText: l10n.typeMessageHint,
+                hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.fromLTRB(16, 11, 4, 11),
+                suffixIcon: IconButton(
+                  icon: AppHugeIcon(
+                    icon: HugeIcons.strokeRoundedSmile,
+                    size: 20,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  onPressed: widget.onToggleEmoji,
+                  tooltip: l10n.emojiTooltip,
+                  splashRadius: 20,
                 ),
-                onPressed: widget.onToggleEmoji,
-                tooltip: l10n.emojiTooltip,
-                splashRadius: 20,
               ),
+              onChanged: (text) {
+                ref
+                    .read(chatDraftProvider(widget.chatUUID).notifier)
+                    .setText(text);
+              },
+              onSubmitted: (_) => widget.onSendMessage(),
             ),
-            onChanged: (text) {
-              ref
-                  .read(chatDraftProvider(widget.chatUUID).notifier)
-                  .setText(text);
-            },
-            onSubmitted: (_) => widget.onSendMessage(),
           ),
         ),
-      ),
-    );
+      );
     }
 
     // Recording Mode

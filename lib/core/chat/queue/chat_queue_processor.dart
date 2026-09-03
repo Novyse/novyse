@@ -346,8 +346,7 @@ class ChatQueueProcessor {
         'name': file['name'] ?? 'file',
         'size': file['size'] ?? 0,
       };
-      if (file['mimeType'] != null &&
-          (file['mimeType'] as String).isNotEmpty) {
+      if (file['mimeType'] != null && (file['mimeType'] as String).isNotEmpty) {
         clean['mimeType'] = file['mimeType'];
       }
       return clean;
@@ -386,8 +385,9 @@ class ChatQueueProcessor {
               final fileUUID = sFile['uuid'] as String?;
               final localFile = files.firstWhere(
                 (f) => f['uuid'] == fileUUID || f['name'] == sFile['name'],
-                orElse: () =>
-                    (i < files.length ? files[i] : Map<String, dynamic>.from(sFile)),
+                orElse: () => (i < files.length
+                    ? files[i]
+                    : Map<String, dynamic>.from(sFile)),
               );
               final uri = (localFile['uri'] ?? localFile['path']) as String?;
               final bytes = localFile['bytes'] as Uint8List?;
@@ -395,7 +395,8 @@ class ChatQueueProcessor {
               if (uploadURL != null &&
                   fileUUID != null &&
                   (uri != null || bytes != null)) {
-                final fileBytes = bytes ??
+                final fileBytes =
+                    bytes ??
                     (uri != null
                         ? await FileStorage.instance.getBytes(uri)
                         : null);
@@ -433,10 +434,49 @@ class ChatQueueProcessor {
           if (!confirmResult.success) {
             throw Exception('Message confirmation failed on server');
           }
+          if (confirmResult.message != null) {
+            serverMessage.addAll(confirmResult.message!);
+          }
         }
       }
 
       if (_disposed) return;
+
+      // Merge local file metadata (uri, path, waveform, duration, width, height, mimeType)
+      if (serverMessage['files'] is List && files.isNotEmpty) {
+        final serverFilesList = (serverMessage['files'] as List).map((sf) {
+          if (sf is! Map) return sf;
+          final sMap = Map<String, dynamic>.from(sf);
+          final sUuid = sMap['uuid'] as String?;
+          final sName = sMap['name'] as String?;
+          final local = files.firstWhere(
+            (f) =>
+                (sUuid != null && f['uuid'] == sUuid) ||
+                (sName != null && f['name'] == sName),
+            orElse: () => <String, dynamic>{},
+          );
+
+          if (local.isNotEmpty) {
+            sMap['uri'] ??= local['uri'] ?? local['path'];
+            sMap['path'] ??= local['path'] ?? local['uri'];
+            sMap['waveform'] ??= local['waveform'];
+            sMap['duration'] ??= local['duration'];
+            sMap['width'] ??= local['width'];
+            sMap['height'] ??= local['height'];
+            if ((sMap['name'] == null || sMap['name'].toString().isEmpty) &&
+                local['name'] != null) {
+              sMap['name'] = local['name'];
+            }
+            if ((sMap['mimeType'] == null ||
+                    sMap['mimeType'] == 'application/octet-stream') &&
+                local['mimeType'] != null) {
+              sMap['mimeType'] = local['mimeType'];
+            }
+          }
+          return sMap;
+        }).toList();
+        serverMessage['files'] = serverFilesList;
+      }
 
       final serverCreatedAt =
           serverMessage['created_at'] ?? serverMessage['createdAt'];
@@ -517,7 +557,20 @@ class ChatQueueProcessor {
     }
 
     final fileUUID = job.payload['fileUUID'] as String;
-    final downloadURL = job.payload['downloadURL'] as String;
+    String? downloadURL = job.payload['downloadURL'] as String?;
+
+    if (downloadURL == null || downloadURL.isEmpty) {
+      final meta = await apiGateway.file.retrieve(fileUUID);
+      if (!meta.success ||
+          meta.downloadURL == null ||
+          meta.downloadURL!.isEmpty) {
+        throw Exception('Failed to retrieve download URL for $fileUUID');
+      }
+      downloadURL = meta.downloadURL!;
+      if (job.payload['name'] == null && meta.name != null) {
+        job.payload['name'] = meta.name;
+      }
+    }
 
     final bytes = await S3Adapter.instance.download(
       fileUUID: fileUUID,

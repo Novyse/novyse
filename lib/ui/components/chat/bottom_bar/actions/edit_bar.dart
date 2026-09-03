@@ -13,7 +13,9 @@ class EditBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final editingMessage = ref.watch(chatDraftProvider(chatUUID)).editingMessage;
+    final editingMessage = ref
+        .watch(chatDraftProvider(chatUUID))
+        .editingMessage;
     if (editingMessage == null) return const SizedBox.shrink();
 
     final theme = Theme.of(context);

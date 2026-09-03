@@ -35,7 +35,11 @@ class SpeechIndicator extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: List.generate(barScales.length, (index) {
         final scale = barScales[index];
-        final targetHeight = (barWidth + (maxHeight * scale - barWidth) * normalized).clamp(barWidth, maxHeight);
+        final targetHeight =
+            (barWidth + (maxHeight * scale - barWidth) * normalized).clamp(
+              barWidth,
+              maxHeight,
+            );
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2.5),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io' as io;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:super_clipboard/super_clipboard.dart';
@@ -56,39 +57,44 @@ class ChatPasteHelper {
 
     // 3. Stream/bytes for in-memory files (Web, Screenshots, VirtualFiles, Images)
     final fileCompleter = Completer<Map<String, dynamic>?>();
-    final progress = item.getFile(null, (file) async {
-      try {
-        final suggestedName = await item.getSuggestedName();
-        final fileName = file.fileName ?? suggestedName;
+    final progress = item.getFile(
+      null,
+      (file) async {
+        try {
+          final suggestedName = await item.getSuggestedName();
+          final fileName = file.fileName ?? suggestedName;
 
-        // Plain text clipboard data has no file name; do not treat it as a file
-        if (isText && fileName == null) {
+          // Plain text clipboard data has no file name; do not treat it as a file
+          if (isText && fileName == null) {
+            if (!fileCompleter.isCompleted) fileCompleter.complete(null);
+            return;
+          }
+
+          final bytes = await file.readAll();
+          final name =
+              file.fileName ??
+              await item.getSuggestedName() ??
+              'file_${DateTime.now().millisecondsSinceEpoch}';
+          final mimeType = getMimeTypeByName(name);
+          final isImage = mimeType.startsWith('image/');
+          fileCompleter.complete({
+            'name': name,
+            'bytes': bytes,
+            'size': bytes.length,
+            'mimeType': mimeType,
+            'type': isImage ? 'IMAGE' : 'FILE',
+            'uri': name,
+            'path': null,
+          });
+        } catch (e) {
+          debugPrint('[ChatPasteHelper] Error reading file: $e');
           if (!fileCompleter.isCompleted) fileCompleter.complete(null);
-          return;
         }
-
-        final bytes = await file.readAll();
-        final name = file.fileName ??
-            await item.getSuggestedName() ??
-            'file_${DateTime.now().millisecondsSinceEpoch}';
-        final mimeType = getMimeTypeByName(name);
-        final isImage = mimeType.startsWith('image/');
-        fileCompleter.complete({
-          'name': name,
-          'bytes': bytes,
-          'size': bytes.length,
-          'mimeType': mimeType,
-          'type': isImage ? 'IMAGE' : 'FILE',
-          'uri': name,
-          'path': null,
-        });
-      } catch (e) {
-        debugPrint('[ChatPasteHelper] Error reading file: $e');
+      },
+      onError: (_) {
         if (!fileCompleter.isCompleted) fileCompleter.complete(null);
-      }
-    }, onError: (_) {
-      if (!fileCompleter.isCompleted) fileCompleter.complete(null);
-    });
+      },
+    );
 
     if (progress != null) {
       return await fileCompleter.future;
@@ -280,8 +286,8 @@ class ChatPasteHelper {
   }) async {
     try {
       final bytes = data.data as Uint8List?;
-      final mimeType =
-          ((data.mimeType as String?) ?? 'image/png').toLowerCase();
+      final mimeType = ((data.mimeType as String?) ?? 'image/png')
+          .toLowerCase();
       final uri = data.uri as String?;
 
       final isGif =
@@ -289,7 +295,8 @@ class ChatPasteHelper {
           (uri != null && uri.toLowerCase().endsWith('.gif'));
       final ext = isGif ? 'gif' : (mimeType.split('/').last.split('+').first);
       final prefix = isGif ? 'gif' : 'sticker';
-      final fileName = '${prefix}_${DateTime.now().millisecondsSinceEpoch}.$ext';
+      final fileName =
+          '${prefix}_${DateTime.now().millisecondsSinceEpoch}.$ext';
       final fileType = isGif ? 'GIF' : 'STICKER';
       final resolvedMime = isGif ? 'image/gif' : mimeType;
 
@@ -372,20 +379,23 @@ class ChatPasteHelper {
 
     if (ref is WidgetRef) {
       draftNotifier = ref.read(chatDraftProvider(chatUUID).notifier);
-      currentFiles =
-          List<dynamic>.from(ref.read(chatDraftProvider(chatUUID)).files);
+      currentFiles = List<dynamic>.from(
+        ref.read(chatDraftProvider(chatUUID)).files,
+      );
     } else if (ref is Ref) {
       draftNotifier = ref.read(chatDraftProvider(chatUUID).notifier);
-      currentFiles =
-          List<dynamic>.from(ref.read(chatDraftProvider(chatUUID)).files);
+      currentFiles = List<dynamic>.from(
+        ref.read(chatDraftProvider(chatUUID)).files,
+      );
     } else if (ref is ProviderContainer) {
       draftNotifier = ref.read(chatDraftProvider(chatUUID).notifier);
-      currentFiles =
-          List<dynamic>.from(ref.read(chatDraftProvider(chatUUID)).files);
+      currentFiles = List<dynamic>.from(
+        ref.read(chatDraftProvider(chatUUID)).files,
+      );
     } else {
-      draftNotifier =
-          (ref as dynamic).read(chatDraftProvider(chatUUID).notifier)
-              as ChatDraftNotifier;
+      draftNotifier = (ref as dynamic).read(
+        chatDraftProvider(chatUUID).notifier,
+      ) as ChatDraftNotifier;
       currentFiles = List<dynamic>.from(
         (ref as dynamic).read(chatDraftProvider(chatUUID)).files as Iterable,
       );

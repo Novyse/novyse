@@ -34,8 +34,8 @@ class RightButtonBottomBar extends StatelessWidget {
     final tooltip = isRecording
         ? l10n.sendVoiceTooltip
         : shouldShowSend
-            ? l10n.sendMessageTooltip
-            : l10n.recordVoiceTooltip;
+        ? l10n.sendMessageTooltip
+        : l10n.recordVoiceTooltip;
 
     return Tooltip(
       message: tooltip,

@@ -23,9 +23,10 @@ class _RecordingDotState extends State<RecordingDot>
       duration: const Duration(milliseconds: 800),
     );
 
-    _opacityAnimation = Tween<double>(begin: 1.0, end: 0.3).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _opacityAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.3,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     if (widget.isRecording) {
       _controller.repeat(reverse: true);

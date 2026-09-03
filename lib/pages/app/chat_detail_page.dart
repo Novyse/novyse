@@ -86,9 +86,9 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         appBar: AppBar(
           title: Text(l10n.chatTitle),
           leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => popOrChats(context),
-            ),
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => popOrChats(context),
+          ),
         ),
         body: Center(child: Text(l10n.chatNotFoundWithId(chatUUID))),
       );
@@ -120,9 +120,9 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
       elevation: 0,
       scrolledUnderElevation: 0,
       leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: _handleBack,
-        ),
+        icon: const Icon(Icons.arrow_back),
+        onPressed: _handleBack,
+      ),
       titleSpacing: 0,
       title: Row(
         children: [

@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart' show Color, ColorScheme, Colors;
+import 'package:hugeicons/hugeicons.dart';
+
 /// High-level categories for file types.
 enum FileTypeCategory {
   image('IMAGE'),
@@ -106,7 +109,7 @@ const Map<String, FileTypeCategory> mimeToType = {
 /// Maps file extensions (without leading dot) to standard MIME types.
 const Map<String, String> extToMime = {
   // Images
-  'jpg': 'image/jpeg',
+  'jpg': 'image/jpg',
   'jpeg': 'image/jpeg',
   'png': 'image/png',
   'gif': 'image/gif',
@@ -139,7 +142,7 @@ const Map<String, String> extToMime = {
   // Audio
   'mp3': 'audio/mpeg',
   'wav': 'audio/wav',
-  'm4a': 'audio/x-m4a',
+  'm4a': 'audio/m4a',
   'flac': 'audio/flac',
   'ogg': 'audio/ogg',
   'oga': 'audio/ogg',
@@ -285,4 +288,75 @@ String getMimeTypeByName(String fileName) {
   if (fileName.isEmpty) return defaultMimeType;
   final ext = fileName.split('.').last.toLowerCase();
   return extToMime[ext] ?? defaultMimeType;
+}
+
+/// Returns the preferred file extension (without leading dot) for a MIME
+/// type, via reverse lookup over [extToMime].
+/// Returns an empty string when [mimeType] maps to no known extension.
+String extensionFromMime(String mimeType) {
+  final clean = mimeType.split(';').first.trim().toLowerCase();
+  if (clean.isEmpty) return '';
+  for (final entry in extToMime.entries) {
+    if (entry.value == clean) return entry.key;
+  }
+  return '';
+}
+
+/// Hugeicons (stroke-rounded) icon data for a MIME type.
+/// Centralizes the attachment-icon selection previously in
+/// `MessageFileAttachment`, preserving its per-subtype distinctions.
+List<List<dynamic>> fileIconForMime(String mimeType) {
+  final mime = mimeType.split(';').first.trim().toLowerCase();
+  if (mime.startsWith('application/pdf')) return HugeIcons.strokeRoundedPdf01;
+  if (mime.contains('word') || mime.contains('document')) {
+    return HugeIcons.strokeRoundedDoc01;
+  }
+  if (mime.contains('sheet') || mime.contains('excel')) {
+    return HugeIcons.strokeRoundedFileSpreadsheet;
+  }
+  if (mime.contains('presentation') || mime.contains('powerpoint')) {
+    return HugeIcons.strokeRoundedPpt01;
+  }
+  if (mime.startsWith('text/')) return HugeIcons.strokeRoundedTxt01;
+  if (mime.contains('zip') ||
+      mime.contains('rar') ||
+      mime.contains('tar') ||
+      mime.contains('7z') ||
+      mime.contains('gzip')) {
+    return HugeIcons.strokeRoundedFileZip;
+  }
+  if (mime.contains('javascript') ||
+      mime.contains('python') ||
+      mime.contains('java') ||
+      mime.contains('html') ||
+      mime.contains('css') ||
+      mime.contains('json') ||
+      mime.contains('xml') ||
+      mime.contains('typescript')) {
+    return HugeIcons.strokeRoundedFileCode;
+  }
+  return HugeIcons.strokeRoundedFile01;
+}
+
+/// Icon tint for a MIME type, mirroring the previous per-subtype colors.
+/// [colorScheme] supplies the theme-aware fallbacks (code → tertiary,
+/// default → onSurfaceVariant).
+Color fileIconColorForMime(String mimeType, ColorScheme colorScheme) {
+  final mime = mimeType.split(';').first.trim().toLowerCase();
+  if (mime.startsWith('application/pdf')) return Colors.red;
+  if (mime.contains('word') || mime.contains('document')) return Colors.blue;
+  if (mime.contains('sheet') || mime.contains('excel')) return Colors.green;
+  if (mime.contains('presentation') || mime.contains('powerpoint')) {
+    return Colors.orange;
+  }
+  if (mime.contains('zip') || mime.contains('rar') || mime.contains('tar')) {
+    return Colors.brown;
+  }
+  if (mime.contains('javascript') ||
+      mime.contains('python') ||
+      mime.contains('code') ||
+      mime.contains('html')) {
+    return colorScheme.tertiary;
+  }
+  return colorScheme.onSurfaceVariant;
 }

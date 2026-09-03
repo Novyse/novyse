@@ -22,6 +22,8 @@ class MessageModel {
   final List<dynamic> reads;
   final List<Map<String, dynamic>> files;
   final String status;
+  final String type;
+  final String? systemAction;
 
   const MessageModel({
     required this.id,
@@ -37,9 +39,13 @@ class MessageModel {
     this.reads = const [],
     this.files = const [],
     this.status = 'sent',
+    this.type = 'message',
+    this.systemAction,
   });
 
   bool get isPending => status == 'PENDING_SEND';
+
+  bool get isSystem => type == 'system';
 
   factory MessageModel.fromMap(Map<String, dynamic> map) {
     DateTime parseCreatedAt(dynamic val) {
@@ -81,6 +87,8 @@ class MessageModel {
       reads: map['reads'] is List ? (map['reads'] as List) : const [],
       files: parseMapList(map['files']),
       status: (map['status'] ?? 'sent').toString(),
+      type: (map['type'] ?? 'message').toString(),
+      systemAction: (map['system_action'] ?? map['systemAction'])?.toString(),
     );
   }
 
@@ -98,6 +106,8 @@ class MessageModel {
     List<dynamic>? reads,
     List<Map<String, dynamic>>? files,
     String? status,
+    String? type,
+    String? systemAction,
   }) {
     return MessageModel(
       id: id ?? this.id,
@@ -113,6 +123,8 @@ class MessageModel {
       reads: reads ?? this.reads,
       files: files ?? this.files,
       status: status ?? this.status,
+      type: type ?? this.type,
+      systemAction: systemAction ?? this.systemAction,
     );
   }
 }
