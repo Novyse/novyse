@@ -96,7 +96,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
       l10n: l10n,
     );
 
-    final searchMessages = q.length >= 2;
+    final searchMessages = q.length >= 1;
     if (!mounted) return;
     setState(() {
       _matchedChats = matchedChats;
