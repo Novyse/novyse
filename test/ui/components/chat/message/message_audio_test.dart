@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/chat/chat_audio_service.dart';
 import 'package:novyse/ui/components/chat/message/message_audio.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
+
+Finder findPlayIcon() => find.byWidgetPredicate(
+  (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedPlay,
+);
+
+Finder findPauseIcon() => find.byWidgetPredicate(
+  (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedPause,
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +42,7 @@ void main() {
 
       expect(find.text('track.mp3'), findsOneWidget);
       expect(find.byType(Slider), findsOneWidget);
-      expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
+      expect(findPlayIcon(), findsOneWidget);
     });
 
     testWidgets(
@@ -53,7 +63,7 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        final playButton = find.byIcon(Icons.play_arrow_rounded);
+        final playButton = findPlayIcon();
         expect(playButton, findsOneWidget);
 
         await tester.tap(playButton);
@@ -82,7 +92,7 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
+        expect(findPlayIcon(), findsOneWidget);
 
         // Simulate ChatAudioService active item for this UUID
         ChatAudioService.instance.setActiveItemForTesting(
@@ -93,7 +103,7 @@ void main() {
         await tester.pump();
 
         expect(ChatAudioService.instance.isItemActive('audio-uuid-3'), isTrue);
-        expect(find.byIcon(Icons.pause_rounded), findsOneWidget);
+        expect(findPauseIcon(), findsOneWidget);
       },
     );
   });

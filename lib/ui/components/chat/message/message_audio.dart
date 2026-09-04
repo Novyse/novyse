@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/chat/chat_audio_service.dart';
 import 'package:novyse/core/storage/file/file_utils.dart';
 import 'package:novyse/core/storage/file/playable_uri.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Displays an audio file message with playback controls and progress slider.
 class MessageAudio extends StatefulWidget {
@@ -194,8 +196,10 @@ class _MessageAudioState extends State<MessageAudio> {
                   color: colorScheme.onSurfaceVariant,
                 ),
               )
-            : Icon(
-                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+            : AppHugeIcon(
+                icon: isPlaying
+                    ? HugeIcons.strokeRoundedPause
+                    : HugeIcons.strokeRoundedPlay,
                 color: isAvailable
                     ? colorScheme.onPrimary
                     : colorScheme.onSurfaceVariant,

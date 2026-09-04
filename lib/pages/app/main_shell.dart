@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 import 'adaptive.dart';
 import 'chat_list_page.dart';
@@ -325,9 +327,18 @@ class _FloatingTabBar extends StatelessWidget {
   final double masterPaneWidth;
 
   static const List<_TabSpec> _items = [
-    _TabSpec(icon: Icons.chat_bubble_outline, activeIcon: Icons.chat_bubble),
-    _TabSpec(icon: Icons.settings_outlined, activeIcon: Icons.settings),
-    _TabSpec(icon: Icons.person_outline, activeIcon: Icons.person),
+    _TabSpec(
+      icon: HugeIcons.strokeRoundedChat01,
+      activeIcon: HugeIcons.strokeRoundedChat01,
+    ),
+    _TabSpec(
+      icon: HugeIcons.strokeRoundedSettings01,
+      activeIcon: HugeIcons.strokeRoundedSettings01,
+    ),
+    _TabSpec(
+      icon: HugeIcons.strokeRoundedUser,
+      activeIcon: HugeIcons.strokeRoundedUser,
+    ),
   ];
 
   @override
@@ -413,8 +424,8 @@ class _FloatingTabBar extends StatelessWidget {
                                         ),
                                         onTap: () => onTabPressed(index),
                                         child: Center(
-                                          child: Icon(
-                                            selectedAmount > 0.5
+                                          child: AppHugeIcon(
+                                            icon: selectedAmount > 0.5
                                                 ? item.activeIcon
                                                 : item.icon,
                                             color: iconColor,
@@ -443,8 +454,8 @@ class _FloatingTabBar extends StatelessWidget {
 }
 
 class _TabSpec {
-  final IconData icon;
-  final IconData activeIcon;
+  final List<List<dynamic>> icon;
+  final List<List<dynamic>> activeIcon;
 
   const _TabSpec({required this.icon, required this.activeIcon});
 }

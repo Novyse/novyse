@@ -2,7 +2,9 @@ import 'dart:io' as io;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:photo_view/photo_view.dart';
 
 class MessageImage extends StatefulWidget {
@@ -214,8 +216,8 @@ class _MessageImageState extends State<MessageImage> {
         color: theme.colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(widget.isSingle ? 12 : 4),
       ),
-      child: Icon(
-        Icons.broken_image_rounded,
+      child: AppHugeIcon(
+        icon: HugeIcons.strokeRoundedImageNotFound01,
         size: 36,
         color: theme.colorScheme.onErrorContainer,
       ),

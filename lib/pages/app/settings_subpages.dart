@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 class SettingsAccountPage extends StatelessWidget {
   const SettingsAccountPage({super.key});
@@ -9,7 +11,7 @@ class SettingsAccountPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Account'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
       ),
@@ -33,7 +35,7 @@ class SettingsNotificationsPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Notifiche'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
       ),

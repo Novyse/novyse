@@ -9,6 +9,7 @@ import 'package:novyse/core/storage/file/uri_resolver.dart';
 import 'package:novyse/core/storage/file/web_blob_url_stub.dart'
     if (dart.library.html) 'package:novyse/core/storage/file/web_blob_url_web.dart'
     as web_file;
+import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:open_file/open_file.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -237,10 +238,10 @@ class _MessageFileAttachmentState extends State<MessageFileAttachment> {
                 if (!widget.isPending && !_isDownloading)
                   Padding(
                     padding: const EdgeInsets.only(left: 6),
-                    child: Icon(
-                      isDownloaded
-                          ? Icons.file_open_outlined
-                          : Icons.download_rounded,
+                    child: AppHugeIcon(
+                      icon: isDownloaded
+                          ? HugeIcons.strokeRoundedDocumentAttachment
+                          : HugeIcons.strokeRoundedDownload01,
                       size: 20,
                       color: isDownloaded
                           ? colorScheme.primary

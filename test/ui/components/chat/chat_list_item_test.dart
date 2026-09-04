@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/chat/chat_list_item.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 void main() {
   testWidgets(
@@ -278,6 +280,13 @@ void main() {
 
     expect(find.text('Pending Group'), findsOneWidget);
     expect(find.textContaining('Messaggio in invio...'), findsOneWidget);
-    expect(find.byIcon(Icons.access_time_rounded), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is AppHugeIcon &&
+            w.icon == HugeIcons.strokeRoundedClock01,
+      ),
+      findsOneWidget,
+    );
   });
 }

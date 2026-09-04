@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/chat/chat_list_app_menu.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 class ChatListAppBar extends StatelessWidget implements PreferredSizeWidget {
   const ChatListAppBar({
@@ -54,7 +56,18 @@ class ChatListAppBar extends StatelessWidget implements PreferredSizeWidget {
             fillColor: colorScheme.surfaceContainerHighest.withValues(
               alpha: 0.55,
             ),
-            prefixIcon: const Icon(Icons.search, size: 20),
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 48,
+              minHeight: 48,
+            ),
+            prefixIcon: Padding(
+              padding: const EdgeInsets.all(14),
+              child: AppHugeIcon(
+                icon: HugeIcons.strokeRoundedSearch01,
+                size: 20,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 12,
               vertical: 10,
@@ -69,7 +82,10 @@ class ChatListAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.close), onPressed: onCloseSearch),
+          IconButton(
+            icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
+            onPressed: onCloseSearch,
+          ),
         ],
       );
     }
@@ -78,7 +94,10 @@ class ChatListAppBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       scrolledUnderElevation: 0,
       titleSpacing: 8,
-      leading: IconButton(icon: const Icon(Icons.search), onPressed: onOpenSearch),
+      leading: IconButton(
+        icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedSearch01),
+        onPressed: onOpenSearch,
+      ),
       actionsPadding: const EdgeInsets.only(right: _appBarEdgePadding),
       actions: [ChatListAppMenu(onNewChat: onNewChat)],
     );

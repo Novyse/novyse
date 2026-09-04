@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/auth/onboarding_manager.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -67,7 +69,7 @@ class ProfilePage extends ConsumerWidget {
         title: const Text('Profile'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout_rounded),
+            icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedLogout01),
             color: AppColors.danger,
             tooltip: l10n.logout,
             onPressed: () => _handleLogout(context, ref),
@@ -131,7 +133,7 @@ class ProfilePage extends ConsumerWidget {
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () => ResponsiveOverlay.show(context: context),
-            icon: const Icon(Icons.edit_outlined),
+            icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02),
             label: const Text('Modifica profilo'),
           ),
           const SizedBox(height: 12),
@@ -141,7 +143,7 @@ class ProfilePage extends ConsumerWidget {
               side: const BorderSide(color: AppColors.danger),
             ),
             onPressed: () => _handleLogout(context, ref),
-            icon: const Icon(Icons.logout_rounded),
+            icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedLogout01),
             label: Text(l10n.logout),
           ),
         ],

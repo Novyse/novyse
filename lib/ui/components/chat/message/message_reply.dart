@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/stores/message_store.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Displays a reply preview (quoted message) inside a message bubble.
 class MessageReply extends StatelessWidget {
@@ -82,8 +84,8 @@ class MessageReply extends StatelessWidget {
                               ),
                             ),
                             if (_isQuote)
-                              Icon(
-                                Icons.format_quote_rounded,
+                              AppHugeIcon(
+                                icon: HugeIcons.strokeRoundedArrowMoveUpLeft,
                                 size: 14,
                                 color: colorScheme.onSurfaceVariant,
                               ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 import 'settings_subpages.dart';
 
@@ -14,7 +16,7 @@ class SettingsPage extends StatelessWidget {
         children: [
           const _SettingsSection(title: 'Generali'),
           _SettingsTile(
-            icon: Icons.person_outline,
+            icon: HugeIcons.strokeRoundedSmile,
             title: 'Account',
             subtitle: 'Gestisci il tuo profilo',
             onTap: () => Navigator.of(context).push(
@@ -24,7 +26,7 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
           _SettingsTile(
-            icon: Icons.notifications_none,
+            icon: HugeIcons.strokeRoundedNotification01,
             title: 'Notifiche',
             subtitle: 'Preferenze di notifica',
             onTap: () => Navigator.of(context).push(
@@ -34,24 +36,24 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
           const _SettingsTile(
-            icon: Icons.security,
+            icon: HugeIcons.strokeRoundedShield01,
             title: 'Privacy',
             subtitle: 'Controlla i permessi e la sicurezza',
           ),
           const SizedBox(height: 20),
           const _SettingsSection(title: 'App'),
           const _SettingsTile(
-            icon: Icons.palette_outlined,
+            icon: HugeIcons.strokeRoundedAlbum01,
             title: 'Tema',
             subtitle: 'Leggero, scuro e automatico',
           ),
           const _SettingsTile(
-            icon: Icons.language_outlined,
+            icon: HugeIcons.strokeRoundedChat01,
             title: 'Lingua',
             subtitle: 'Italiano',
           ),
           const _SettingsTile(
-            icon: Icons.info_outline,
+            icon: HugeIcons.strokeRoundedInformationCircle,
             title: 'Info',
             subtitle: 'Versione e dettagli',
           ),
@@ -82,7 +84,7 @@ class _SettingsSection extends StatelessWidget {
 }
 
 class _SettingsTile extends StatelessWidget {
-  final IconData icon;
+  final List<List<dynamic>> icon;
   final String title;
   final String subtitle;
   final VoidCallback? onTap;
@@ -99,10 +101,15 @@ class _SettingsTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
-        leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+        leading: AppHugeIcon(
+          icon: icon,
+          color: Theme.of(context).colorScheme.primary,
+        ),
         title: Text(title),
         subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: const AppHugeIcon(
+          icon: HugeIcons.strokeRoundedArrowRight01,
+        ),
         onTap: onTap,
       ),
     );

@@ -9,12 +9,48 @@ class MessageText extends StatelessWidget {
     this.isSender = false,
     this.isSelected = false,
     this.onLinkTap,
+    this.highlightQuery = '',
+    this.isCurrentMatch = false,
   });
 
   final String content;
   final bool isSender;
   final bool isSelected;
   final void Function(String url)? onLinkTap;
+  final String highlightQuery;
+  final bool isCurrentMatch;
+
+  List<TextSpan> _highlightSpans(
+    String source,
+    String query,
+    TextStyle base,
+    TextStyle highlight,
+  ) {
+    final spans = <TextSpan>[];
+    final lowerSource = source.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    int start = 0;
+    while (true) {
+      final index = lowerSource.indexOf(lowerQuery, start);
+      if (index < 0) {
+        spans.add(TextSpan(text: source.substring(start), style: base));
+        break;
+      }
+      if (index > start) {
+        spans.add(
+          TextSpan(text: source.substring(start, index), style: base),
+        );
+      }
+      spans.add(
+        TextSpan(
+          text: source.substring(index, index + query.length),
+          style: highlight,
+        ),
+      );
+      start = index + query.length;
+    }
+    return spans;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +58,32 @@ class MessageText extends StatelessWidget {
 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final trimmedHighlight = highlightQuery.trim();
+    if (trimmedHighlight.isNotEmpty &&
+        content.toLowerCase().contains(trimmedHighlight.toLowerCase())) {
+      final baseStyle = TextStyle(
+        fontSize: 15,
+        height: 1.35,
+        color: isSender ? colorScheme.onPrimary : colorScheme.onSurface,
+      );
+      final highlightStyle = baseStyle.copyWith(
+        backgroundColor: isCurrentMatch
+            ? colorScheme.primaryContainer.withValues(alpha: 0.85)
+            : colorScheme.primaryContainer.withValues(alpha: 0.35),
+        color: isCurrentMatch ? colorScheme.onPrimary : baseStyle.color,
+        fontWeight: FontWeight.w700,
+      );
+      return SelectableText.rich(
+        TextSpan(
+          children: _highlightSpans(
+            content,
+            trimmedHighlight,
+            baseStyle,
+            highlightStyle,
+          ),
+        ),
+      );
+    }
 
     final textColor = isSender ? colorScheme.onPrimary : colorScheme.onSurface;
 

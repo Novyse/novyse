@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/chat/message_format.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
@@ -7,6 +8,7 @@ import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Metadata resolved for displaying a chat header / list item.
 class ResolvedChatMetadata {
@@ -105,14 +107,14 @@ class ChatListItem extends ConsumerWidget {
     this.onLongPress,
   });
 
-  IconData? get _chatTypeIcon {
+  List<List<dynamic>>? get _chatTypeIcon {
     switch (chat.type) {
       case 'GROUP':
-        return Icons.group_outlined;
+        return HugeIcons.strokeRoundedChat01;
       case 'CHANNEL':
-        return Icons.campaign_outlined;
+        return HugeIcons.strokeRoundedMegaphone01;
       case 'FORUM':
-        return Icons.forum_outlined;
+        return HugeIcons.strokeRoundedDocumentAttachment;
       default:
         return null;
     }
@@ -220,8 +222,8 @@ class ChatListItem extends ConsumerWidget {
                         if (_chatTypeIcon != null)
                           Padding(
                             padding: const EdgeInsets.only(right: 4),
-                            child: Icon(
-                              _chatTypeIcon,
+                            child: AppHugeIcon(
+                              icon: _chatTypeIcon!,
                               size: 15,
                               color: Theme.of(context)
                                   .colorScheme
@@ -243,8 +245,8 @@ class ChatListItem extends ConsumerWidget {
                             !formattedMessageData.isDraft)
                           Padding(
                             padding: const EdgeInsets.only(left: 8),
-                            child: Icon(
-                              Icons.access_time_rounded,
+                            child: AppHugeIcon(
+                              icon: HugeIcons.strokeRoundedClock01,
                               size: 14,
                               color: Theme.of(context)
                                   .colorScheme
@@ -321,8 +323,8 @@ class ChatListItem extends ConsumerWidget {
                         if (chat.isPinned)
                           Padding(
                             padding: const EdgeInsets.only(left: 6),
-                            child: Icon(
-                              Icons.push_pin_rounded,
+                            child: AppHugeIcon(
+                              icon: HugeIcons.strokeRoundedPin02,
                               size: 15,
                               color: Theme.of(context).colorScheme.primary,
                             ),

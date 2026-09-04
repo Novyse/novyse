@@ -2,7 +2,9 @@ import 'dart:io' as io;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:universal_video_controls/universal_video_controls.dart';
 import 'package:universal_video_controls_video_player/universal_video_controls_video_player.dart';
 import 'package:video_player/video_player.dart';
@@ -185,8 +187,8 @@ class _MessageVideoState extends State<MessageVideo> {
             color: Colors.black54,
             shape: BoxShape.circle,
           ),
-          child: const Icon(
-            Icons.play_arrow_rounded,
+          child: const AppHugeIcon(
+            icon: HugeIcons.strokeRoundedPlay,
             color: Colors.white,
             size: 32,
           ),
@@ -251,8 +253,8 @@ class _MessageVideoState extends State<MessageVideo> {
   }
 
   Widget _buildError(ThemeData theme, BuildContext context) {
-    final errorIcon = Icon(
-      Icons.videocam_off_rounded,
+    final errorIcon = AppHugeIcon(
+      icon: HugeIcons.strokeRoundedVideoOff,
       size: 36,
       color: theme.colorScheme.onErrorContainer,
     );

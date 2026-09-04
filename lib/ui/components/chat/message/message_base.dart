@@ -31,6 +31,8 @@ class MessageBase extends ConsumerWidget {
     this.onReply,
     this.getMessage,
     this.getUser,
+    this.searchHighlight = '',
+    this.isCurrentSearchMatch = false,
   });
 
   final MessageModel message;
@@ -38,6 +40,8 @@ class MessageBase extends ConsumerWidget {
   final bool isSelected;
   final bool showAvatar;
   final bool showSenderName;
+  final String searchHighlight;
+  final bool isCurrentSearchMatch;
   final UserModel? senderUser;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
@@ -527,6 +531,8 @@ class MessageBase extends ConsumerWidget {
                                 content: textWithoutGifs,
                                 isSender: isSender,
                                 isSelected: isSelected,
+                                highlightQuery: searchHighlight,
+                                isCurrentMatch: isCurrentSearchMatch,
                               ),
                             ),
 

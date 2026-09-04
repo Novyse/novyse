@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/chat/chat_audio_service.dart';
 import 'package:novyse/core/storage/file/file_utils.dart';
 import 'package:novyse/core/storage/file/media_utils.dart';
 import 'package:novyse/core/storage/file/playable_uri.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Displays a voice message with waveform visualization and playback controls.
 class MessageVoice extends StatefulWidget {
@@ -179,8 +181,10 @@ class _MessageVoiceState extends State<MessageVoice> {
                   color: colorScheme.onSurfaceVariant,
                 ),
               )
-            : Icon(
-                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+            : AppHugeIcon(
+                icon: isPlaying
+                    ? HugeIcons.strokeRoundedPause
+                    : HugeIcons.strokeRoundedPlay,
                 color: isAvailable
                     ? colorScheme.onPrimary
                     : colorScheme.onSurfaceVariant,

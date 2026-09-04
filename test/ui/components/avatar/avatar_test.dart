@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 void main() {
   group('Avatar Component Tests', () {
@@ -54,7 +56,14 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.bookmark_rounded), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is AppHugeIcon &&
+              w.icon == HugeIcons.strokeRoundedBookmark01,
+        ),
+        findsOneWidget,
+      );
       expect(find.text('S'), findsNothing);
 
       final containerFinder = find.byWidgetPredicate((widget) {

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/ui/components/chat/message/message_video.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +27,13 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
 
         expect(find.byType(MessageVideo), findsOneWidget);
-        expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
+        expect(
+          find.byWidgetPredicate(
+            (w) =>
+                w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedPlay,
+          ),
+          findsOneWidget,
+        );
         expect(find.text('2:05'), findsOneWidget);
       },
     );
