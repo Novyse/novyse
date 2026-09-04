@@ -7,6 +7,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/pages/app/chat_routes.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_list_app_bar.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_list_empty_view.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_list_view.dart';
@@ -114,6 +115,10 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
   }
 
   void _openChat(String chatUUID) {
+    final currentUUID = chatUUIDFromPath(
+      GoRouterState.of(context).uri.path,
+    );
+    if (currentUUID == chatUUID) return;
     ref.read(activeChatProvider.notifier).setSelectedChatUUID(chatUUID);
     context.push('/chats/$chatUUID');
   }
@@ -131,6 +136,10 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
       notifier.setScrollToMessageID(messageID);
       notifier.setMessageHighlight(messageID);
     }
+    final currentUUID = chatUUIDFromPath(
+      GoRouterState.of(context).uri.path,
+    );
+    if (currentUUID == chatUUID) return;
     context.push('/chats/$chatUUID');
   }
 
