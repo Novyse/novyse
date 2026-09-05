@@ -15,15 +15,16 @@ class LoginPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       body: DecoratedBox(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF013480), Color(0xFF177FC0)],
+            colors: [theme.colorScheme.primary, theme.colorScheme.primaryContainer],
           ),
         ),
         child: SafeArea(
@@ -35,8 +36,8 @@ class LoginPage extends ConsumerWidget {
                 child: Container(
                   padding: const EdgeInsets.fromLTRB(28, 34, 28, 20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF9DB8D5),
-                    borderRadius: BorderRadius.circular(25),
+                    color: theme.colorScheme.surface.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(24),
                   ),
                   child: OnboardingAuthCard(
                     embedded: true,

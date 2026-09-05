@@ -8,7 +8,7 @@ class StyledQrCode extends StatelessWidget {
     super.key,
     required this.data,
     this.size = 220,
-    this.gradientColors = const [Color(0xFF2241D3), Color(0xFF1FA6D3)],
+    this.gradientColors,
     this.embeddedLogo,
     this.logoSize = 50,
     this.logoRadius = 10,
@@ -16,13 +16,17 @@ class StyledQrCode extends StatelessWidget {
 
   final String data;
   final double size;
-  final List<Color> gradientColors;
+  final List<Color>? gradientColors;
   final Widget? embeddedLogo;
   final double logoSize;
   final double logoRadius;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final effectiveGradient =
+        gradientColors ??
+        [theme.colorScheme.primary, theme.colorScheme.primaryContainer];
     return SizedBox(
       width: size,
       height: size,
@@ -33,7 +37,7 @@ class StyledQrCode extends StatelessWidget {
             size: Size(size, size),
             painter: _StyledQrPainter(
               data: data,
-              gradientColors: gradientColors,
+              gradientColors: effectiveGradient,
               hasCenterLogo: embeddedLogo != null,
               logoSize: logoSize,
             ),
@@ -43,7 +47,7 @@ class StyledQrCode extends StatelessWidget {
               width: logoSize,
               height: logoSize,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: theme.colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(logoRadius),
               ),
               padding: const EdgeInsets.all(2),

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class AppColors {
   static const Color primary = Color(0xFF0F6FFF);
   static const Color primaryLight = Color(0xFF5AA7FF);
-  static const Color primaryDark = Color(0xFF0A4DB8);
+  static const Color primaryDark = Color(0xFF013480);
   static const Color accent = Color(0xFF69D2FF);
   static const Color surface = Color(0xFFF5FAFF);
   static const Color surfaceAlt = Color(0xFFEAF4FF);
@@ -68,7 +68,7 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -89,7 +89,7 @@ class AppTheme {
         dragHandleColor: lightScheme.outline,
         clipBehavior: Clip.antiAlias,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
       ),
       dialogTheme: DialogThemeData(
@@ -98,7 +98,7 @@ class AppTheme {
         elevation: 0,
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(24),
           side: BorderSide(color: lightScheme.outline),
         ),
       ),
@@ -146,7 +146,7 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -167,7 +167,7 @@ class AppTheme {
         dragHandleColor: darkScheme.outline,
         clipBehavior: Clip.antiAlias,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
       ),
       dialogTheme: DialogThemeData(
@@ -176,7 +176,7 @@ class AppTheme {
         elevation: 0,
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(24),
           side: BorderSide(color: darkScheme.outline),
         ),
       ),

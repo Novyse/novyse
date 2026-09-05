@@ -56,14 +56,15 @@ class UpdateRequiredPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
 
     return Scaffold(
       body: DecoratedBox(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF013480), Color(0xFF177FC0)],
+            colors: [theme.colorScheme.primary, theme.colorScheme.primaryContainer],
           ),
         ),
         child: SafeArea(
@@ -78,13 +79,13 @@ class UpdateRequiredPage extends StatelessWidget {
                     vertical: 40,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF9DB8D5),
-                    borderRadius: BorderRadius.circular(25),
-                    boxShadow: const [
+                    color: theme.colorScheme.surface.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
                       BoxShadow(
-                        color: Colors.black26,
+                        color: theme.shadowColor.withValues(alpha: 0.1),
                         blurRadius: 20,
-                        offset: Offset(0, 10),
+                        offset: const Offset(0, 10),
                       ),
                     ],
                   ),
@@ -101,19 +102,19 @@ class UpdateRequiredPage extends StatelessWidget {
                       Text(
                         l10n.updateRequiredTitle,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF073B82),
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 12),
                       Text(
                         l10n.updateRequiredSubtitle,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: Color(0xFF1E293B),
+                          color: theme.colorScheme.onSurfaceVariant,
                           height: 1.5,
                         ),
                       ),
@@ -124,8 +125,8 @@ class UpdateRequiredPage extends StatelessWidget {
                           vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          borderRadius: BorderRadius.circular(25),
+                          color: theme.colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(24),
                         ),
                         child: Wrap(
                           spacing: 16,
@@ -134,19 +135,19 @@ class UpdateRequiredPage extends StatelessWidget {
                           children: [
                             Text(
                               l10n.currentVersion(config.appVersion),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFF073B82),
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                             if (minVersion != null && minVersion!.isNotEmpty)
                               Text(
                                 l10n.requiredVersion(minVersion!),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFFC026D3),
+                                  color: theme.colorScheme.primary,
                                 ),
                               ),
                           ],
@@ -159,10 +160,10 @@ class UpdateRequiredPage extends StatelessWidget {
                         child: FilledButton(
                           onPressed: _handleAction,
                           style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF013480),
-                            foregroundColor: Colors.white,
+                            backgroundColor: theme.colorScheme.primary,
+                            foregroundColor: theme.colorScheme.onPrimary,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
+                              borderRadius: BorderRadius.circular(24),
                             ),
                           ),
                           child: Text(
