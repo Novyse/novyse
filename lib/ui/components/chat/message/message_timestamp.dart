@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 class MessageTimestamp extends StatelessWidget {
   const MessageTimestamp({
@@ -44,7 +46,11 @@ class MessageTimestamp extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           if (replyCount > 0) ...[
-            Icon(Icons.reply_rounded, size: 13, color: textColor),
+            AppHugeIcon(
+              icon: HugeIcons.strokeRoundedArrowMoveUpLeft,
+              size: 13,
+              color: textColor,
+            ),
             const SizedBox(width: 2),
             Text(
               '$replyCount',
@@ -57,7 +63,11 @@ class MessageTimestamp extends StatelessWidget {
             const SizedBox(width: 4),
           ],
           if (isPinned) ...[
-            Icon(Icons.push_pin_rounded, size: 12, color: textColor),
+            AppHugeIcon(
+              icon: HugeIcons.strokeRoundedPin02,
+              size: 12,
+              color: textColor,
+            ),
             const SizedBox(width: 4),
           ],
           if (isEdited) ...[
@@ -68,7 +78,11 @@ class MessageTimestamp extends StatelessWidget {
             const SizedBox(width: 4),
           ],
           if (isPending) ...[
-            Icon(Icons.access_time_rounded, size: 13, color: textColor),
+            AppHugeIcon(
+              icon: HugeIcons.strokeRoundedClock01,
+              size: 13,
+              color: textColor,
+            ),
           ] else ...[
             Text(
               timeStr,
@@ -80,8 +94,10 @@ class MessageTimestamp extends StatelessWidget {
             ),
             if (isSender) ...[
               const SizedBox(width: 4),
-              Icon(
-                hasBeenRead ? Icons.done_all_rounded : Icons.check_rounded,
+              AppHugeIcon(
+                icon: hasBeenRead
+                    ? HugeIcons.strokeRoundedTick02
+                    : HugeIcons.strokeRoundedTick01,
                 size: 14,
                 color: textColor,
               ),

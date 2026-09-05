@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 class ChatListAppMenu extends StatefulWidget {
   const ChatListAppMenu({super.key, required this.onNewChat});
@@ -43,7 +45,7 @@ class _ChatListAppMenuState extends State<ChatListAppMenu> {
       builder: (_, controller, child) {
         return IconButton(
           focusNode: _buttonFocusNode,
-          icon: const Icon(Icons.more_vert),
+          icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedMoreVertical),
           tooltip: l10n.newChat,
           onPressed: () {
             if (controller.isOpen) {
@@ -102,8 +104,8 @@ class _ChatListAppMenuState extends State<ChatListAppMenu> {
                     color: scheme.primary.withValues(alpha: 0.22),
                   ),
                 ),
-                child: Icon(
-                  Icons.add_comment_outlined,
+                child: AppHugeIcon(
+                  icon: HugeIcons.strokeRoundedCommentAdd01,
                   size: 20,
                   color: scheme.primary,
                 ),
@@ -117,8 +119,8 @@ class _ChatListAppMenuState extends State<ChatListAppMenu> {
                   ),
                 ),
               ),
-              Icon(
-                Icons.arrow_outward_rounded,
+              AppHugeIcon(
+                icon: HugeIcons.strokeRoundedArrowUpRight01,
                 size: 18,
                 color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
               ),

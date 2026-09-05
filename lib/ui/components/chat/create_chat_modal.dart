@@ -295,7 +295,7 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close),
+                icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
                 onPressed: () =>
                     Navigator.of(context, rootNavigator: true).pop(),
               ),
@@ -322,7 +322,7 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
               Expanded(
                 child: _TypeCard(
                   selected: _type == CreateChatType.group,
-                  icon: Icons.group_outlined,
+                  icon: HugeIcons.strokeRoundedChat01,
                   title: l10n.createChatGroup,
                   subtitle: l10n.createChatGroupDesc,
                   onTap: () =>
@@ -333,7 +333,7 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
               Expanded(
                 child: _TypeCard(
                   selected: _type == CreateChatType.channel,
-                  icon: Icons.campaign_outlined,
+                  icon: HugeIcons.strokeRoundedMegaphone01,
                   title: l10n.createChatChannel,
                   subtitle: l10n.createChatChannelDesc,
                   onTap: () =>
@@ -344,7 +344,7 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
               Expanded(
                 child: _TypeCard(
                   selected: _type == CreateChatType.forum,
-                  icon: Icons.forum_outlined,
+                  icon: HugeIcons.strokeRoundedDocumentAttachment,
                   title: l10n.createChatForum,
                   subtitle: l10n.createChatForumDesc,
                   onTap: () =>
@@ -366,12 +366,18 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
               ButtonSegment(
                 value: CreateChatPrivacy.private,
                 label: Text(l10n.createChatPrivate),
-                icon: const Icon(Icons.lock_outline, size: 16),
+                icon: const AppHugeIcon(
+                  icon: HugeIcons.strokeRoundedShield01,
+                  size: 16,
+                ),
               ),
               ButtonSegment(
                 value: CreateChatPrivacy.public,
                 label: Text(l10n.createChatPublic),
-                icon: const Icon(Icons.public_outlined, size: 16),
+                icon: const AppHugeIcon(
+                  icon: HugeIcons.strokeRoundedMegaphone01,
+                  size: 16,
+                ),
               ),
             ],
             selected: {_privacy},
@@ -440,7 +446,7 @@ class _TypeCard extends StatelessWidget {
   });
 
   final bool selected;
-  final IconData icon;
+  final List<List<dynamic>> icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
@@ -466,7 +472,7 @@ class _TypeCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(icon, color: scheme.primary, size: 22),
+            AppHugeIcon(icon: icon, color: scheme.primary, size: 22),
             const SizedBox(height: 6),
             Text(
               title,

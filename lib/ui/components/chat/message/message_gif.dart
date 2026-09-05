@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:novyse/core/chat/message_format.dart';
 
@@ -79,8 +81,8 @@ class _MessageGifState extends State<MessageGif> {
               width: width,
               height: height,
               color: theme.colorScheme.errorContainer,
-              child: Icon(
-                Icons.broken_image_rounded,
+              child: AppHugeIcon(
+                icon: HugeIcons.strokeRoundedImageNotFound01,
                 color: theme.colorScheme.onErrorContainer,
               ),
             ),

@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/chat/chat_audio_service.dart';
 import 'package:novyse/ui/components/chat/message/message_voice.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
+
+Finder findPlayIcon() => find.byWidgetPredicate(
+  (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedPlay,
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +36,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
 
         expect(find.byType(MessageVoice), findsOneWidget);
-        expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
+        expect(findPlayIcon(), findsOneWidget);
         expect(find.text('45s'), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
@@ -53,7 +59,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      final playButton = find.byIcon(Icons.play_arrow_rounded);
+      final playButton = findPlayIcon();
       expect(playButton, findsOneWidget);
 
       await tester.tap(playButton);

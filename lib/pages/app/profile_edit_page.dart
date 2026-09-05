@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 class ProfileEditPage extends StatelessWidget {
   const ProfileEditPage({super.key});
@@ -9,7 +11,7 @@ class ProfileEditPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Modifica profilo'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
       ),

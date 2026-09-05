@@ -4,10 +4,12 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import 'package:novyse/core/services/profile_picture_service.dart';
 import 'package:novyse/core/storage/file/file_storage.dart';
 import 'package:novyse/core/themes/themes.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Universal, cross-platform Avatar component.
 ///
@@ -124,8 +126,8 @@ class _AvatarState extends ConsumerState<Avatar> {
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: Icon(
-                  Icons.edit_rounded,
+                child: AppHugeIcon(
+                  icon: HugeIcons.strokeRoundedPencilEdit02,
                   color: Colors.white,
                   size: math.max(widget.size * 0.35, 14.0),
                 ),
@@ -258,8 +260,8 @@ class _AvatarState extends ConsumerState<Avatar> {
       ),
       child: Center(
         child: widget.isSavedMessages
-            ? Icon(
-                Icons.bookmark_rounded,
+            ? AppHugeIcon(
+                icon: HugeIcons.strokeRoundedBookmark01,
                 color: Colors.white,
                 size: math.max(widget.size * 0.48, 12.0),
               )

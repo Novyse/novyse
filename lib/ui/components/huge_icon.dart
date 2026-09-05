@@ -24,7 +24,7 @@ class AppHugeIcon extends StatelessWidget {
     return HugeIcon(
       icon: icon,
       size: size,
-      color: color ?? theme.colorScheme.primary,
+      color: color ?? theme.colorScheme.onSurface,
       secondaryColor: secondaryColor,
       strokeWidth: strokeWidth,
     );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 class ChatListEmptyView extends StatelessWidget {
   const ChatListEmptyView({super.key});
@@ -13,8 +15,8 @@ class ChatListEmptyView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.chat_bubble_outline_rounded,
+            AppHugeIcon(
+              icon: HugeIcons.strokeRoundedChat01,
               size: 64,
               color: Theme.of(
                 context,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 class OnboardingTextField extends StatefulWidget {
   const OnboardingTextField({
@@ -49,10 +51,10 @@ class _OnboardingTextFieldState extends State<OnboardingTextField> {
         ? Padding(
             padding: const EdgeInsets.only(right: 5),
             child: IconButton(
-              icon: Icon(
-                _obscured
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
+              icon: AppHugeIcon(
+                icon: _obscured
+                    ? HugeIcons.strokeRoundedSearch01
+                    : HugeIcons.strokeRoundedCancel01,
               ),
               onPressed: () => setState(() => _obscured = !_obscured),
             ),
