@@ -53,8 +53,8 @@ class _OnboardingTextFieldState extends State<OnboardingTextField> {
             child: IconButton(
               icon: AppHugeIcon(
                 icon: _obscured
-                    ? HugeIcons.strokeRoundedSearch01
-                    : HugeIcons.strokeRoundedCancel01,
+                    ? HugeIcons.strokeRoundedView
+                    : HugeIcons.strokeRoundedViewOff,
               ),
               onPressed: () => setState(() => _obscured = !_obscured),
             ),

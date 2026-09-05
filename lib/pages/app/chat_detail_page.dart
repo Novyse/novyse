@@ -74,6 +74,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
 
   void _openCall() {
     if (_callOpen) return;
+    _closeSearch(resetText: true);
     setState(() => _callOpen = true);
   }
 
@@ -257,13 +258,14 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         ),
         actionsPadding: const EdgeInsets.only(right: _appBarEdgePadding),
         actions: [
-          IconButton(
-            icon: AppHugeIcon(
-              icon: HugeIcons.strokeRoundedSearch01,
-              color: colorScheme.onSurface,
+          if (!_callOpen)
+            IconButton(
+              icon: AppHugeIcon(
+                icon: HugeIcons.strokeRoundedSearch01,
+                color: colorScheme.onSurface,
+              ),
+              onPressed: _openSearch,
             ),
-            onPressed: _openSearch,
-          ),
           IconButton(
             icon: AppHugeIcon(
               icon: _callOpen
