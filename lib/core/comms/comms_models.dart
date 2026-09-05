@@ -95,15 +95,15 @@ class CommsTileItem {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        userUUID,
-        isScreenShare,
-        isLocal,
-        videoTrack,
-        trackSid,
-        isSpeaking,
-        isMuted,
-      );
+    id,
+    userUUID,
+    isScreenShare,
+    isLocal,
+    videoTrack,
+    trackSid,
+    isSpeaking,
+    isMuted,
+  );
 }
 
 /// Data model representing the state of a room fetched from server REST API
@@ -118,7 +118,10 @@ class CommsRoomRemoteData {
     this.participantUserUUIDs = const [],
   });
 
-  factory CommsRoomRemoteData.fromApi(dynamic rawRoom, dynamic rawParticipants) {
+  factory CommsRoomRemoteData.fromApi(
+    dynamic rawRoom,
+    dynamic rawParticipants,
+  ) {
     Map<String, dynamic>? info;
     if (rawRoom is Map<String, dynamic>) {
       info = rawRoom;
@@ -146,9 +149,6 @@ class CommsRoomRemoteData {
       }
     }
 
-    return CommsRoomRemoteData(
-      roomInfo: info,
-      participantUserUUIDs: userUUIDs,
-    );
+    return CommsRoomRemoteData(roomInfo: info, participantUserUUIDs: userUUIDs);
   }
 }

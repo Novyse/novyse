@@ -107,9 +107,7 @@ class _SettingsTile extends StatelessWidget {
         ),
         title: Text(title),
         subtitle: Text(subtitle),
-        trailing: const AppHugeIcon(
-          icon: HugeIcons.strokeRoundedArrowRight01,
-        ),
+        trailing: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowRight01),
         onTap: onTap,
       ),
     );

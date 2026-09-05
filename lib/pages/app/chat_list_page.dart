@@ -115,9 +115,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
   }
 
   void _openChat(String chatUUID) {
-    final currentUUID = chatUUIDFromPath(
-      GoRouterState.of(context).uri.path,
-    );
+    final currentUUID = chatUUIDFromPath(GoRouterState.of(context).uri.path);
     if (currentUUID == chatUUID) return;
     ref.read(activeChatProvider.notifier).setSelectedChatUUID(chatUUID);
     context.push('/chats/$chatUUID');
@@ -136,9 +134,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
       notifier.setScrollToMessageID(messageID);
       notifier.setMessageHighlight(messageID);
     }
-    final currentUUID = chatUUIDFromPath(
-      GoRouterState.of(context).uri.path,
-    );
+    final currentUUID = chatUUIDFromPath(GoRouterState.of(context).uri.path);
     if (currentUUID == chatUUID) return;
     context.push('/chats/$chatUUID');
   }

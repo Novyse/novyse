@@ -170,9 +170,8 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     }
 
     final messages = ref.watch(
-      chatMessagesProvider((chatUUID: chatUUID, subID: 0)).select(
-        (s) => s.messages,
-      ),
+      chatMessagesProvider((chatUUID: chatUUID, subID: 0))
+          .select((s) => s.messages),
     );
     final trimmedQuery = _searchQuery.trim();
     final lowerQuery = trimmedQuery.toLowerCase();
@@ -187,9 +186,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     final searchIndex = searchTotal == 0
         ? 0
         : _searchIndex.clamp(0, searchTotal - 1);
-    final displayIndex = searchTotal == 0
-        ? 0
-        : searchTotal - 1 - searchIndex;
+    final displayIndex = searchTotal == 0 ? 0 : searchTotal - 1 - searchIndex;
     final highlightedMessageId = searchTotal == 0
         ? null
         : searchMatches[searchIndex].id;

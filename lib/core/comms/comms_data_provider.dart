@@ -155,8 +155,9 @@ class CommsDataNotifier
       );
 
       // 2. Screen share tracks (support multiple 1..N screenshares per participant)
-      final screenPubs = participant.videoTrackPublications
-          .where((p) => p.source == TrackSource.screenShareVideo);
+      final screenPubs = participant.videoTrackPublications.where(
+        (p) => p.source == TrackSource.screenShareVideo,
+      );
 
       for (final screenPub in screenPubs) {
         tiles.add(
@@ -182,9 +183,9 @@ class CommsDataNotifier
   }
 }
 
-final commsDataProvider = AutoDisposeNotifierProviderFamily<
-    CommsDataNotifier,
-    CommsRoomViewData,
-    CommsRoomKey>(
-  CommsDataNotifier.new,
-);
+final commsDataProvider =
+    AutoDisposeNotifierProviderFamily<
+      CommsDataNotifier,
+      CommsRoomViewData,
+      CommsRoomKey
+    >(CommsDataNotifier.new);

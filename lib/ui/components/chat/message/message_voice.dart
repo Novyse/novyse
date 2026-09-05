@@ -51,9 +51,9 @@ class _MessageVoiceState extends State<MessageVoice> {
 
     final mimeType =
         (widget.fileRef != null && widget.fileRef!.contains('.webm')) ||
-                widget.uuid.contains('.webm')
-            ? 'audio/webm'
-            : (kIsWeb ? 'audio/webm' : 'audio/aac');
+            widget.uuid.contains('.webm')
+        ? 'audio/webm'
+        : (kIsWeb ? 'audio/webm' : 'audio/aac');
 
     // Use UriResolver to resolve local file refs or download via fileUUID
     return UriResolver(
@@ -66,8 +66,7 @@ class _MessageVoiceState extends State<MessageVoice> {
 
         return ListenableBuilder(
           listenable: ChatAudioService.instance,
-          builder: (context, _) =>
-              _buildPlayerWidget(colorScheme, displayUri),
+          builder: (context, _) => _buildPlayerWidget(colorScheme, displayUri),
         );
       },
     );

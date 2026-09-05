@@ -144,9 +144,8 @@ class _ChatMediaViewerPageState extends ConsumerState<ChatMediaViewerPage> {
   @override
   Widget build(BuildContext context) {
     final messages = ref.watch(
-      chatMessagesProvider((chatUUID: widget.chatUUID, subID: 0)).select(
-        (s) => s.messages,
-      ),
+      chatMessagesProvider((chatUUID: widget.chatUUID, subID: 0))
+          .select((s) => s.messages),
     );
     final items = widget.items ?? collectChatMedia(messages);
     _ensureController(items);

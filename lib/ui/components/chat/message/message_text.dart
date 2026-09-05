@@ -37,9 +37,7 @@ class MessageText extends StatelessWidget {
         break;
       }
       if (index > start) {
-        spans.add(
-          TextSpan(text: source.substring(start, index), style: base),
-        );
+        spans.add(TextSpan(text: source.substring(start, index), style: base));
       }
       spans.add(
         TextSpan(

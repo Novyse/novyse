@@ -5,11 +5,7 @@ import 'package:novyse/ui/components/comms/comms_bottom_bar.dart';
 import 'package:novyse/ui/components/comms/comms_members_layout.dart';
 
 class ChatCallPage extends ConsumerWidget {
-  const ChatCallPage({
-    super.key,
-    required this.chatUUID,
-    required this.subID,
-  });
+  const ChatCallPage({super.key, required this.chatUUID, required this.subID});
 
   final String chatUUID;
   final int subID;
@@ -42,10 +38,7 @@ class ChatCallPage extends ConsumerWidget {
           ),
 
           // Floating bottom controls
-          CommsBottomBar(
-            chatUUID: chatUUID,
-            sub: subID,
-          ),
+          CommsBottomBar(chatUUID: chatUUID, sub: subID),
         ],
       ),
     );

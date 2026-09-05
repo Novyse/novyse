@@ -141,7 +141,8 @@ class ChatAudioService extends ChangeNotifier {
   }
 
   Future<void> _startPlayback(String uri) async {
-    final isValid = uri.startsWith('http://') ||
+    final isValid =
+        uri.startsWith('http://') ||
         uri.startsWith('https://') ||
         uri.startsWith('blob:') ||
         uri.startsWith('data:') ||

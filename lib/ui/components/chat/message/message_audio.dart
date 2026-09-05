@@ -64,8 +64,7 @@ class _MessageAudioState extends State<MessageAudio> {
 
         return ListenableBuilder(
           listenable: ChatAudioService.instance,
-          builder: (context, _) =>
-              _buildPlayerWidget(colorScheme, displayUri),
+          builder: (context, _) => _buildPlayerWidget(colorScheme, displayUri),
         );
       },
     );
@@ -172,8 +171,7 @@ class _MessageAudioState extends State<MessageAudio> {
     bool isPlaying,
     String? displayUri,
   ) {
-    final isAvailable =
-        isPlayableMediaUri(displayUri) || widget.isPending;
+    final isAvailable = isPlayableMediaUri(displayUri) || widget.isPending;
 
     return GestureDetector(
       onTap: isAvailable && !widget.isPending

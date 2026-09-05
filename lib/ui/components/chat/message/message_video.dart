@@ -49,7 +49,10 @@ class _MessageVideoState extends State<MessageVideo> {
   bool _hasError = false;
 
   double _capWidth(BuildContext context) {
-    return (MediaQuery.sizeOf(context).width * 0.6 - 32).clamp(120.0, _maxWidth);
+    return (MediaQuery.sizeOf(context).width * 0.6 - 32).clamp(
+      120.0,
+      _maxWidth,
+    );
   }
 
   double _boxWidth(BuildContext context) {
@@ -339,7 +342,10 @@ class _MessageVideoState extends State<MessageVideo> {
         color: theme.colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: AspectRatio(aspectRatio: _effectiveAspect, child: Center(child: errorIcon)),
+      child: AspectRatio(
+        aspectRatio: _effectiveAspect,
+        child: Center(child: errorIcon),
+      ),
     );
   }
 

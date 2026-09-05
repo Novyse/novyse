@@ -55,7 +55,8 @@ class CommsNotifier extends Notifier<CommsState> {
           tokenResult.url == null) {
         state = state.copyWith(
           connecting: false,
-          errorMessageBuilder: () => (l10n) => l10n.commsTokenError,
+          errorMessageBuilder: () =>
+              (l10n) => l10n.commsTokenError,
         );
         return;
       }
@@ -64,12 +65,8 @@ class CommsNotifier extends Notifier<CommsState> {
         roomOptions: const RoomOptions(
           adaptiveStream: true,
           dynacast: true,
-          defaultAudioPublishOptions: AudioPublishOptions(
-            dtx: true,
-          ),
-          defaultVideoPublishOptions: VideoPublishOptions(
-            simulcast: true,
-          ),
+          defaultAudioPublishOptions: AudioPublishOptions(dtx: true),
+          defaultVideoPublishOptions: VideoPublishOptions(simulcast: true),
         ),
       );
 
@@ -138,21 +135,27 @@ class CommsNotifier extends Notifier<CommsState> {
   void _setupRoomListeners(EventsListener<RoomEvent> listener, Room room) {
     listener
       ..on<ParticipantConnectedEvent>((event) {
-        debugPrint('[CommsController] Participant joined: ${event.participant.identity}');
+        debugPrint(
+          '[CommsController] Participant joined: ${event.participant.identity}',
+        );
         SoundPlayer.instance.playSound('comms.join');
         _notifyStateChange();
       })
       ..on<ParticipantDisconnectedEvent>((event) {
-        debugPrint('[CommsController] Participant left: ${event.participant.identity}');
+        debugPrint(
+          '[CommsController] Participant left: ${event.participant.identity}',
+        );
         SoundPlayer.instance.playSound('comms.leave');
 
         // Clear pin/fullscreen if disconnected participant had it
         final identity = event.participant.identity;
         final userUUID = extractUserUUID(identity);
-        if (state.pinnedStreamId == identity || state.pinnedStreamId == userUUID) {
+        if (state.pinnedStreamId == identity ||
+            state.pinnedStreamId == userUUID) {
           state = state.copyWith(pinnedStreamId: () => null);
         }
-        if (state.fullscreenStreamId == identity || state.fullscreenStreamId == userUUID) {
+        if (state.fullscreenStreamId == identity ||
+            state.fullscreenStreamId == userUUID) {
           state = state.copyWith(fullscreenStreamId: () => null);
         }
 
@@ -293,7 +296,8 @@ class CommsNotifier extends Notifier<CommsState> {
     } catch (e) {
       debugPrint('[CommsController] Failed to toggle microphone: $e');
       state = state.copyWith(
-        errorMessageBuilder: () => (l10n) => l10n.commsMicAccessError,
+        errorMessageBuilder: () =>
+            (l10n) => l10n.commsMicAccessError,
       );
     }
   }
@@ -310,7 +314,8 @@ class CommsNotifier extends Notifier<CommsState> {
     } catch (e) {
       debugPrint('[CommsController] Failed to toggle camera: $e');
       state = state.copyWith(
-        errorMessageBuilder: () => (l10n) => l10n.commsCameraAccessError,
+        errorMessageBuilder: () =>
+            (l10n) => l10n.commsCameraAccessError,
       );
     }
   }
@@ -430,7 +435,8 @@ class CommsNotifier extends Notifier<CommsState> {
 
   /// Set volume for a remote participant or track.
   void setRemoteVolume(String id, double volume) {
-    final updated = Map<String, double>.from(state.remoteVolumes)..[id] = volume;
+    final updated = Map<String, double>.from(state.remoteVolumes)
+      ..[id] = volume;
     state = state.copyWith(remoteVolumes: updated);
   }
 

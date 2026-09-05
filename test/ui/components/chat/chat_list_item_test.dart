@@ -282,9 +282,7 @@ void main() {
     expect(find.textContaining('Messaggio in invio...'), findsOneWidget);
     expect(
       find.byWidgetPredicate(
-        (w) =>
-            w is AppHugeIcon &&
-            w.icon == HugeIcons.strokeRoundedClock01,
+        (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedClock01,
       ),
       findsOneWidget,
     );

@@ -45,7 +45,8 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
 
     // Fetch user details solely via userUUID from the local store
     final user = ref.watch(userProvider(tile.userUUID));
-    final displayName = user?.displayName ?? (tile.isLocal ? l10n.chatYou : l10n.user);
+    final displayName =
+        user?.displayName ?? (tile.isLocal ? l10n.chatYou : l10n.user);
     final pfpUUID = user?.profilePictureUUID ?? tile.userUUID;
 
     final String labelText;
@@ -129,7 +130,9 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                               ),
                               visualDensity: VisualDensity.compact,
                               padding: const EdgeInsets.all(6),
-                              tooltip: widget.isPinned ? l10n.commsUnpin : l10n.commsPin,
+                              tooltip: widget.isPinned
+                                  ? l10n.commsUnpin
+                                  : l10n.commsPin,
                               onPressed: widget.onPin,
                             ),
                           IconButton(
@@ -230,7 +233,8 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.8),
+            Theme.of(context).colorScheme.surfaceContainerHighest
+                .withValues(alpha: 0.8),
             Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
           ],
         ),
@@ -243,11 +247,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                 : constraints.maxHeight;
             final avatarSize = (cardMinDim * 0.35).clamp(36.0, 96.0);
 
-            return Avatar(
-              uuid: pfpUUID,
-              name: displayName,
-              size: avatarSize,
-            );
+            return Avatar(uuid: pfpUUID, name: displayName, size: avatarSize);
           },
         ),
       ),

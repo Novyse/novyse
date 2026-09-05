@@ -29,9 +29,7 @@ void main() {
 
     expect(
       find.byWidgetPredicate(
-        (w) =>
-            w is AppHugeIcon &&
-            w.icon == HugeIcons.strokeRoundedClock01,
+        (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedClock01,
       ),
       findsOneWidget,
     );
@@ -71,18 +69,14 @@ void main() {
 
     expect(
       find.byWidgetPredicate(
-        (w) =>
-            w is AppHugeIcon &&
-            w.icon == HugeIcons.strokeRoundedClock01,
+        (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedClock01,
       ),
       findsNothing,
     );
     expect(find.text('14:30'), findsOneWidget);
     expect(
       find.byWidgetPredicate(
-        (w) =>
-            w is AppHugeIcon &&
-            w.icon == HugeIcons.strokeRoundedTick02,
+        (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedTick02,
       ),
       findsOneWidget,
     );

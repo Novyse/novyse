@@ -120,7 +120,8 @@ class ChatListItem extends ConsumerWidget {
     }
   }
 
-  String _formatChatTime(ChatModel chat) {    final msg = chat.lastMessage;
+  String _formatChatTime(ChatModel chat) {
+    final msg = chat.lastMessage;
     final rawTime =
         msg?['createdAt'] ??
         msg?['created_at'] ??

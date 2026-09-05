@@ -36,8 +36,7 @@ class MessageSearchTile extends ConsumerWidget {
           ).name;
 
     final senderUUID = result['senderUUID']?.toString() ?? '';
-    final senderName =
-        users[senderUUID]?.displayName.trim().isNotEmpty == true
+    final senderName = users[senderUUID]?.displayName.trim().isNotEmpty == true
         ? users[senderUUID]!.displayName.trim()
         : (result['sender_name']?.toString().isNotEmpty == true
               ? result['sender_name'].toString()
@@ -139,11 +138,7 @@ class MessageSearchTile extends ConsumerWidget {
     return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
   }
 
-  TextSpan _highlightSnippet(
-    String text,
-    String query,
-    BuildContext context,
-  ) {
+  TextSpan _highlightSnippet(String text, String query, BuildContext context) {
     if (query.isEmpty) return TextSpan(text: text);
     final lower = text.toLowerCase();
     final needle = query.toLowerCase();
@@ -164,9 +159,8 @@ class MessageSearchTile extends ConsumerWidget {
           style: TextStyle(
             fontWeight: FontWeight.w700,
             color: Theme.of(context).colorScheme.onSurface,
-            backgroundColor: Theme.of(
-              context,
-            ).colorScheme.primary.withValues(alpha: 0.18),
+            backgroundColor: Theme.of(context).colorScheme.primary
+                .withValues(alpha: 0.18),
           ),
         ),
       );

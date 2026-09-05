@@ -35,9 +35,7 @@ class _ChatListAppMenuState extends State<ChatListAppMenu> {
         shadowColor: const WidgetStatePropertyAll(Colors.transparent),
         padding: const WidgetStatePropertyAll(EdgeInsets.only(right: 8)),
         shape: WidgetStatePropertyAll(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         ),
         alignment: AlignmentDirectional.bottomEnd,
       ),
@@ -62,9 +60,7 @@ class _ChatListAppMenuState extends State<ChatListAppMenu> {
           decoration: BoxDecoration(
             color: scheme.surface,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: scheme.outline.withValues(alpha: 0.4),
-            ),
+            border: Border.all(color: scheme.outline.withValues(alpha: 0.4)),
             boxShadow: [
               BoxShadow(
                 color: scheme.shadow.withValues(alpha: 0.2),
@@ -74,58 +70,56 @@ class _ChatListAppMenuState extends State<ChatListAppMenu> {
             ],
           ),
           child: MenuItemButton(
-          style: ButtonStyle(
-            shape: WidgetStatePropertyAll(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+            style: ButtonStyle(
+              shape: WidgetStatePropertyAll(
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              padding: const WidgetStatePropertyAll(
+                EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               ),
             ),
-            padding: const WidgetStatePropertyAll(
-              EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            onPressed: () => widget.onNewChat(),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        scheme.primary.withValues(alpha: 0.22),
+                        scheme.primary.withValues(alpha: 0.1),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(
+                      color: scheme.primary.withValues(alpha: 0.22),
+                    ),
+                  ),
+                  child: AppHugeIcon(
+                    icon: HugeIcons.strokeRoundedCommentAdd01,
+                    size: 20,
+                    color: scheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    l10n.newChat,
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                AppHugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowUpRight01,
+                  size: 18,
+                  color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
+                ),
+              ],
             ),
-          ),
-          onPressed: () => widget.onNewChat(),
-          child: Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      scheme.primary.withValues(alpha: 0.22),
-                      scheme.primary.withValues(alpha: 0.1),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(13),
-                  border: Border.all(
-                    color: scheme.primary.withValues(alpha: 0.22),
-                  ),
-                ),
-                child: AppHugeIcon(
-                  icon: HugeIcons.strokeRoundedCommentAdd01,
-                  size: 20,
-                  color: scheme.primary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  l10n.newChat,
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              AppHugeIcon(
-                icon: HugeIcons.strokeRoundedArrowUpRight01,
-                size: 18,
-                color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
-              ),
-            ],
-          ),
           ),
         ),
       ],

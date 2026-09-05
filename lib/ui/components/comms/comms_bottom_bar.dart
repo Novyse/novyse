@@ -17,11 +17,7 @@ class CommsBottomBar extends ConsumerWidget {
   final String chatUUID;
   final int sub;
 
-  const CommsBottomBar({
-    super.key,
-    required this.chatUUID,
-    this.sub = 0,
-  });
+  const CommsBottomBar({super.key, required this.chatUUID, this.sub = 0});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -82,9 +78,7 @@ class CommsBottomBar extends ConsumerWidget {
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.45),
             shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.15),
-            ),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.3),
@@ -125,7 +119,8 @@ class CommsBottomBar extends ConsumerWidget {
     commsState,
     CommsNotifier controller,
   ) {
-    final isDesktop = !kIsWeb &&
+    final isDesktop =
+        !kIsWeb &&
         (io.Platform.isLinux || io.Platform.isMacOS || io.Platform.isWindows);
 
     return ClipRRect(
@@ -137,9 +132,7 @@ class CommsBottomBar extends ConsumerWidget {
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.45),
             borderRadius: BorderRadius.circular(100),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.12),
-            ),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.25),
@@ -207,8 +200,9 @@ class CommsBottomBar extends ConsumerWidget {
                 iconColor: Colors.white,
                 onPressed: () async {
                   if (isDesktop) {
-                    final selection =
-                        await ScreenShareSelectorModal.show(context);
+                    final selection = await ScreenShareSelectorModal.show(
+                      context,
+                    );
                     if (selection != null) {
                       await controller.startScreenShare(
                         sourceId: selection.source?.id,
@@ -269,11 +263,7 @@ class CommsBottomBar extends ConsumerWidget {
             width: 44,
             height: 44,
             child: Center(
-              child: AppHugeIcon(
-                icon: icon,
-                color: iconColor,
-                size: 20,
-              ),
+              child: AppHugeIcon(icon: icon, color: iconColor, size: 20),
             ),
           ),
         ),

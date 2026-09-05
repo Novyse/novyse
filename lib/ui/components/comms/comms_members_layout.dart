@@ -13,10 +13,7 @@ import 'package:novyse/ui/components/huge_icon.dart';
 class CommsMembersLayout extends ConsumerWidget {
   final List<CommsTileItem> tiles;
 
-  const CommsMembersLayout({
-    super.key,
-    required this.tiles,
-  });
+  const CommsMembersLayout({super.key, required this.tiles});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,7 +25,9 @@ class CommsMembersLayout extends ConsumerWidget {
 
     // If an item is in fullscreen mode, render only that item filling the view
     if (fullscreenId != null) {
-      final fullscreenTile = tiles.where((t) => t.id == fullscreenId).firstOrNull;
+      final fullscreenTile = tiles
+          .where((t) => t.id == fullscreenId)
+          .firstOrNull;
       if (fullscreenTile != null) {
         return Container(
           color: Colors.black,
@@ -91,7 +90,8 @@ class CommsMembersLayout extends ConsumerWidget {
         }
 
         const margin = 8.0;
-        final cellWidth = (availableWidth - (numColumns + 1) * margin) / numColumns;
+        final cellWidth =
+            (availableWidth - (numColumns + 1) * margin) / numColumns;
         final cellHeight = (availableHeight - (numRows + 1) * margin) / numRows;
 
         // Keep 16:9 aspect ratio or adapt to fill nicely

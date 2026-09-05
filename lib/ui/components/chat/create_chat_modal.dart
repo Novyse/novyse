@@ -130,9 +130,7 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
                 : AppLocalizations.of(context)?.createChatHandleTaken;
           } else {
             _handleAvailable = false;
-            _handleError = AppLocalizations.of(
-              context,
-            )?.createChatHandleError;
+            _handleError = AppLocalizations.of(context)?.createChatHandleError;
           }
         });
       } catch (_) {
@@ -173,8 +171,7 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
       _nameError = nameError;
       if (_privacy == CreateChatPrivacy.public) {
         if (handleValidation != null) {
-          _handleError =
-              '$handleValidation ${l10n.createChatPublicRequired}';
+          _handleError = '$handleValidation ${l10n.createChatPublicRequired}';
         } else if (_handleAvailable == false || _handleAvailable == null) {
           _handleError = l10n.createChatHandleTaken;
         } else {
@@ -233,7 +230,10 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
         child: SizedBox(
           width: 16,
           height: 16,
-          child: CircularProgressIndicator(strokeWidth: 2, color: scheme.primary),
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: scheme.primary,
+          ),
         ),
       );
     }
@@ -325,8 +325,7 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
                   icon: HugeIcons.strokeRoundedChat01,
                   title: l10n.createChatGroup,
                   subtitle: l10n.createChatGroupDesc,
-                  onTap: () =>
-                      setState(() => _type = CreateChatType.group),
+                  onTap: () => setState(() => _type = CreateChatType.group),
                 ),
               ),
               const SizedBox(width: 10),
@@ -336,8 +335,7 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
                   icon: HugeIcons.strokeRoundedMegaphone01,
                   title: l10n.createChatChannel,
                   subtitle: l10n.createChatChannelDesc,
-                  onTap: () =>
-                      setState(() => _type = CreateChatType.channel),
+                  onTap: () => setState(() => _type = CreateChatType.channel),
                 ),
               ),
               const SizedBox(width: 10),
@@ -347,8 +345,7 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
                   icon: HugeIcons.strokeRoundedDocumentAttachment,
                   title: l10n.createChatForum,
                   subtitle: l10n.createChatForumDesc,
-                  onTap: () =>
-                      setState(() => _type = CreateChatType.forum),
+                  onTap: () => setState(() => _type = CreateChatType.forum),
                 ),
               ),
             ],

@@ -18,9 +18,8 @@ class ChatListEmptyView extends StatelessWidget {
             AppHugeIcon(
               icon: HugeIcons.strokeRoundedChat01,
               size: 64,
-              color: Theme.of(
-                context,
-              ).colorScheme.outline.withValues(alpha: 0.4),
+              color: Theme.of(context).colorScheme.outline
+                  .withValues(alpha: 0.4),
             ),
             const SizedBox(height: 16),
             Text(

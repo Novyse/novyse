@@ -29,8 +29,7 @@ void main() {
         expect(find.byType(MessageVideo), findsOneWidget);
         expect(
           find.byWidgetPredicate(
-            (w) =>
-                w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedPlay,
+            (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedPlay,
           ),
           findsOneWidget,
         );

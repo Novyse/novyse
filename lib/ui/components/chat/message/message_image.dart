@@ -67,21 +67,22 @@ class _MessageImageState extends State<MessageImage> {
     _detachListener();
     _listenedKey = key;
     _stream = provider.resolve(const ImageConfiguration());
-    _listener = ImageStreamListener(
-      (info, _) {
-        if (!mounted) return;
-        if (info.image.height > 0) {
-          setState(() {
-            _resolvedAspect = info.image.width / info.image.height;
-          });
-        }
-      },
-    );
+    _listener = ImageStreamListener((info, _) {
+      if (!mounted) return;
+      if (info.image.height > 0) {
+        setState(() {
+          _resolvedAspect = info.image.width / info.image.height;
+        });
+      }
+    });
     _stream!.addListener(_listener!);
   }
 
   double _capWidth(BuildContext context) {
-    return (MediaQuery.sizeOf(context).width * 0.6 - 32).clamp(120.0, _maxWidth);
+    return (MediaQuery.sizeOf(context).width * 0.6 - 32).clamp(
+      120.0,
+      _maxWidth,
+    );
   }
 
   double _boxWidth(BuildContext context) {
@@ -103,7 +104,8 @@ class _MessageImageState extends State<MessageImage> {
     return null;
   }
 
-  double get _effectiveAspect => _metadataAspect ?? _resolvedAspect ?? _fallbackAspect;
+  double get _effectiveAspect =>
+      _metadataAspect ?? _resolvedAspect ?? _fallbackAspect;
 
   (double, double) _boxSize(BuildContext context) {
     final width = _boxWidth(context);

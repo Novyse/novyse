@@ -116,12 +116,14 @@ class _MessageListState extends ConsumerState<MessageList> {
   void _scrollTowardTarget(String id) {
     if (_scrollAttempts >= 25 || !mounted) return;
     _scrollAttempts++;
-    final messages = ref.read(
-      chatMessagesProvider((
-        chatUUID: widget.chatUUID,
-        subID: widget.subID,
-      )),
-    ).messages;
+    final messages = ref
+        .read(
+          chatMessagesProvider((
+            chatUUID: widget.chatUUID,
+            subID: widget.subID,
+          )),
+        )
+        .messages;
     final index = messages.indexWhere((m) => m.id.toString() == id);
     if (index < 0 || messages.isEmpty) {
       _scheduleRetry();
@@ -187,8 +189,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         final senderUser = users[message.userUUID];
         final isCurrentMatch =
             widget.highlightedMessageId != null &&
-            message.id.toString() ==
-                widget.highlightedMessageId.toString();
+            message.id.toString() == widget.highlightedMessageId.toString();
         final itemKey = _itemKeys.putIfAbsent(
           message.id.toString(),
           () => GlobalKey(),
@@ -205,21 +206,21 @@ class _MessageListState extends ConsumerState<MessageList> {
             senderUser: senderUser,
             searchHighlight: widget.searchQuery,
             isCurrentSearchMatch: isCurrentMatch,
-          getMessage: (chatUUID, subID, messageID) {
-            // Look up message from the store
-            try {
-              final state = ref.read(
-                chatMessagesProvider((chatUUID: chatUUID, subID: subID)),
-              );
-              return state.messages.firstWhere(
-                (m) => m.id == messageID,
-                orElse: () => throw Exception('Message not found'),
-              );
-            } catch (_) {
-              return null;
-            }
-          },
-          getUser: (uuid) => users[uuid],
+            getMessage: (chatUUID, subID, messageID) {
+              // Look up message from the store
+              try {
+                final state = ref.read(
+                  chatMessagesProvider((chatUUID: chatUUID, subID: subID)),
+                );
+                return state.messages.firstWhere(
+                  (m) => m.id == messageID,
+                  orElse: () => throw Exception('Message not found'),
+                );
+              } catch (_) {
+                return null;
+              }
+            },
+            getUser: (uuid) => users[uuid],
           ),
         );
       },

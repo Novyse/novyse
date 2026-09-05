@@ -49,10 +49,7 @@ void main() {
     });
 
     test('CommsRoomRemoteData.fromApi parses server response correctly', () {
-      final rawRoom = {
-        'name': 'chat123_0',
-        'creationTimeMs': 1700000000000,
-      };
+      final rawRoom = {'name': 'chat123_0', 'creationTimeMs': 1700000000000};
 
       final rawParticipants = [
         {'identity': 'uuid-aaa_session1', 'tracks': []},
@@ -68,20 +65,23 @@ void main() {
   });
 
   group('CommsState Tests', () {
-    test('isRoomMatch correctly identifies if current session matches room', () {
-      const defaultState = CommsState();
-      expect(defaultState.isRoomMatch('chat-1', 0), false);
+    test(
+      'isRoomMatch correctly identifies if current session matches room',
+      () {
+        const defaultState = CommsState();
+        expect(defaultState.isRoomMatch('chat-1', 0), false);
 
-      final connectedState = defaultState.copyWith(
-        connected: true,
-        currentChatUUID: () => 'chat-1',
-        currentSub: 0,
-      );
+        final connectedState = defaultState.copyWith(
+          connected: true,
+          currentChatUUID: () => 'chat-1',
+          currentSub: 0,
+        );
 
-      expect(connectedState.isRoomMatch('chat-1', 0), true);
-      expect(connectedState.isRoomMatch('chat-1', 1), false);
-      expect(connectedState.isRoomMatch('chat-2', 0), false);
-    });
+        expect(connectedState.isRoomMatch('chat-1', 0), true);
+        expect(connectedState.isRoomMatch('chat-1', 1), false);
+        expect(connectedState.isRoomMatch('chat-2', 0), false);
+      },
+    );
 
     test('isScreenSharing reflects active screen share SIDs', () {
       const state = CommsState();
@@ -93,20 +93,24 @@ void main() {
       expect(sharingState.isScreenSharing, true);
     });
 
-    test('errorMessageBuilder is properly updated and cleared in CommsState', () {
-      const state = CommsState();
-      expect(state.errorMessageBuilder, isNull);
+    test(
+      'errorMessageBuilder is properly updated and cleared in CommsState',
+      () {
+        const state = CommsState();
+        expect(state.errorMessageBuilder, isNull);
 
-      final errorState = state.copyWith(
-        errorMessageBuilder: () => (l10n) => l10n.commsTokenError,
-      );
-      expect(errorState.errorMessageBuilder, isNotNull);
+        final errorState = state.copyWith(
+          errorMessageBuilder: () =>
+              (l10n) => l10n.commsTokenError,
+        );
+        expect(errorState.errorMessageBuilder, isNotNull);
 
-      final clearedState = errorState.copyWith(
-        errorMessageBuilder: () => null,
-      );
-      expect(clearedState.errorMessageBuilder, isNull);
-    });
+        final clearedState = errorState.copyWith(
+          errorMessageBuilder: () => null,
+        );
+        expect(clearedState.errorMessageBuilder, isNull);
+      },
+    );
   });
 
   group('CommsNotifier Lifecycle Tests', () {
@@ -138,11 +142,7 @@ void main() {
       addTearDown(container.dispose);
 
       final notifier = container.read(commsProvider.notifier);
-      await Future.wait([
-        notifier.leave(),
-        notifier.leave(),
-        notifier.leave(),
-      ]);
+      await Future.wait([notifier.leave(), notifier.leave(), notifier.leave()]);
 
       final state = container.read(commsProvider);
       expect(state.connected, false);

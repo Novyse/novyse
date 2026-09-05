@@ -59,8 +59,7 @@ void main() {
       expect(
         find.byWidgetPredicate(
           (w) =>
-              w is AppHugeIcon &&
-              w.icon == HugeIcons.strokeRoundedBookmark01,
+              w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedBookmark01,
         ),
         findsOneWidget,
       );
