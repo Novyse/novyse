@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
+import 'package:novyse/ui/components/chat/media/chat_media_viewer.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:photo_view/photo_view.dart';
 
@@ -18,10 +19,12 @@ class MessageImage extends StatefulWidget {
     this.isSingle = true,
     this.isPending = false,
     this.aspectRatio,
+    this.chatUUID,
   });
 
   final String? fileRef;
   final String uuid;
+  final String? chatUUID;
   final int? size;
   final int? width;
   final int? height;
@@ -233,8 +236,18 @@ class _MessageImageState extends State<MessageImage> {
 
   void _openViewer(BuildContext context, String imageUrl) {
     if (imageUrl.isEmpty) return;
-    Navigator.of(context).push(
+    final chatUUID = widget.chatUUID;
+    if (chatUUID != null) {
+      showChatMediaViewer(
+        context,
+        chatUUID: chatUUID,
+        initialFileUUID: widget.uuid,
+      );
+      return;
+    }
+    Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
+        fullscreenDialog: true,
         builder: (_) => _ImageViewerPage(
           imageUrl: imageUrl,
           heroTag: 'image-${widget.uuid}',

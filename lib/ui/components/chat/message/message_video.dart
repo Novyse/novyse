@@ -1,13 +1,11 @@
-import 'dart:io' as io;
-
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
+import 'package:novyse/ui/components/chat/media/chat_media_viewer.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
-import 'package:universal_video_controls/universal_video_controls.dart';
-import 'package:universal_video_controls_video_player/universal_video_controls_video_player.dart';
-import 'package:video_player/video_player.dart';
 
 class MessageVideo extends StatefulWidget {
   const MessageVideo({
@@ -21,10 +19,12 @@ class MessageVideo extends StatefulWidget {
     this.isSingle = true,
     this.isPending = false,
     this.aspectRatio,
+    this.chatUUID,
   });
 
   final String? fileRef;
   final String uuid;
+  final String? chatUUID;
   final int? size;
   final int? width;
   final int? height;
@@ -42,8 +42,9 @@ class _MessageVideoState extends State<MessageVideo> {
   static const double _maxHeight = 320.0;
   static const double _fallbackAspect = 16 / 9;
 
-  VideoPlayerController? _controller;
-  VideoPlayerControlsWrapper? _playerWrapper;
+  Player? _player;
+  VideoController? _controller;
+  String? _openedUri;
   bool _initialized = false;
   bool _hasError = false;
 
@@ -75,34 +76,73 @@ class _MessageVideoState extends State<MessageVideo> {
   double _gridAspect() => _effectiveAspect.clamp(0.5, 2.0);
 
   @override
+  void didUpdateWidget(MessageVideo oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.fileRef != widget.fileRef || oldWidget.uuid != widget.uuid) {
+      _player?.dispose();
+      _player = null;
+      _controller = null;
+      _openedUri = null;
+      _initialized = false;
+      _hasError = false;
+    }
+  }
+
+  @override
   void dispose() {
-    _playerWrapper?.dispose();
-    _controller?.dispose();
+    _player?.dispose();
     super.dispose();
   }
 
+  String _toMediaUri(String uri) {
+    if (kIsWeb) return uri;
+    if (uri.startsWith('http://') ||
+        uri.startsWith('https://') ||
+        uri.startsWith('blob:') ||
+        uri.startsWith('data:')) {
+      return uri;
+    }
+    if (uri.startsWith('file://')) return uri;
+    return 'file://$uri';
+  }
+
   Future<void> _initializePlayer(String uri) async {
+    if (_initialized && _openedUri == uri) return;
     try {
-      if (!kIsWeb && (uri.startsWith('file://') || uri.startsWith('/'))) {
-        final cleanPath = uri.startsWith('file://')
-            ? uri.replaceFirst('file://', '')
-            : uri;
-        _controller = VideoPlayerController.file(io.File(cleanPath));
+      await _player?.dispose();
+      final player = Player();
+      final controller = VideoController(player);
+      if (mounted) {
+        setState(() {
+          _player = player;
+          _controller = controller;
+        });
       } else {
-        _controller = VideoPlayerController.networkUrl(Uri.parse(uri));
+        await player.dispose();
+        return;
       }
-      await _controller!.initialize();
-
+      await player.open(Media(_toMediaUri(uri)));
       if (!mounted) return;
-
-      _playerWrapper = VideoPlayerControlsWrapper(_controller!);
-
-      setState(() => _initialized = true);
+      setState(() {
+        _initialized = true;
+        _openedUri = uri;
+      });
     } catch (e) {
       if (mounted) {
         setState(() => _hasError = true);
       }
     }
+  }
+
+  void _openFullscreen(BuildContext context) {
+    final chatUUID = widget.chatUUID;
+    if (chatUUID == null) return;
+    _player?.pause();
+    showChatMediaViewer(
+      context,
+      chatUUID: chatUUID,
+      initialFileUUID: widget.uuid,
+    );
   }
 
   @override
@@ -126,16 +166,42 @@ class _MessageVideoState extends State<MessageVideo> {
           return _buildPlaceholder(theme, context);
         }
 
-        if (!_initialized) {
+        if (!_initialized || _controller == null) {
           return GestureDetector(
             onTap: () => _initializePlayer(displayUri),
             child: _buildThumbnail(theme, context),
           );
         }
 
-        final playerWidget = VideoControls(
-          player: _playerWrapper!,
-          controls: AdaptiveVideoControls,
+        if (_openedUri != null && _openedUri != displayUri) {
+          _player?.open(Media(_toMediaUri(displayUri)));
+          _openedUri = displayUri;
+        }
+
+        final playerWidget = Stack(
+          children: [
+            Video(controller: _controller!, controls: AdaptiveVideoControls),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Material(
+                color: Colors.black45,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: () => _openFullscreen(context),
+                  child: const Padding(
+                    padding: EdgeInsets.all(6),
+                    child: Icon(
+                      Icons.fullscreen,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         );
 
         return ClipRRect(
@@ -144,9 +210,7 @@ class _MessageVideoState extends State<MessageVideo> {
               ? SizedBox(
                   width: _boxWidth(context),
                   child: AspectRatio(
-                    aspectRatio: _controller!.value.aspectRatio > 0
-                        ? _controller!.value.aspectRatio
-                        : _effectiveAspect,
+                    aspectRatio: _effectiveAspect,
                     child: playerWidget,
                   ),
                 )

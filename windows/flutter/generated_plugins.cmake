@@ -7,15 +7,12 @@ list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   flutter_secure_storage_windows
   irondash_engine_context
+  media_kit_libs_windows_video
+  media_kit_video
   record_windows
-  screen_brightness_windows
-  screen_retriever_windows
   super_native_extensions
-  universal_video_controls
   url_launcher_windows
-  volume_controller
   webview_all_windows
-  window_manager
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

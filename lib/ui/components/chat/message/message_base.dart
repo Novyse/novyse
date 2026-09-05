@@ -218,6 +218,7 @@ class MessageBase extends ConsumerWidget {
               height: img.height,
               isSingle: true,
               isPending: message.isPending,
+              chatUUID: message.chatUUID,
             ),
           ),
         );
@@ -241,6 +242,7 @@ class MessageBase extends ConsumerWidget {
               duration: video.duration,
               isSingle: true,
               isPending: message.isPending,
+              chatUUID: message.chatUUID,
             ),
           ),
         );
@@ -259,6 +261,7 @@ class MessageBase extends ConsumerWidget {
             duration: video.duration,
             isSingle: true,
             isPending: message.isPending,
+            chatUUID: message.chatUUID,
           ),
         ),
       );
@@ -335,6 +338,7 @@ class MessageBase extends ConsumerWidget {
                         height: media.height,
                         isSingle: false,
                         isPending: message.isPending,
+                        chatUUID: message.chatUUID,
                       )
                     : MessageVideo(
                         fileRef: media.playableUri ?? media.ref,
@@ -345,6 +349,7 @@ class MessageBase extends ConsumerWidget {
                         duration: media.duration,
                         isSingle: false,
                         isPending: message.isPending,
+                        chatUUID: message.chatUUID,
                       ),
               ),
             );
@@ -366,6 +371,7 @@ class MessageBase extends ConsumerWidget {
                           height: media.height,
                           isSingle: false,
                           isPending: message.isPending,
+                          chatUUID: message.chatUUID,
                         )
                       : MessageVideo(
                           fileRef: media.playableUri ?? media.ref,
@@ -376,6 +382,7 @@ class MessageBase extends ConsumerWidget {
                           duration: media.duration,
                           isSingle: false,
                           isPending: message.isPending,
+                          chatUUID: message.chatUUID,
                         ),
                 ),
               );
