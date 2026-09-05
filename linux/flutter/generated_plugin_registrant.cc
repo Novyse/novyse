@@ -9,9 +9,11 @@
 #include <audioplayers_linux/audioplayers_linux_plugin.h>
 #include <flutter_opaque/flutter_opaque_plugin.h>
 #include <flutter_secure_storage_linux/flutter_secure_storage_linux_plugin.h>
+#include <flutter_webrtc/flutter_web_r_t_c_plugin.h>
 #include <irondash_engine_context/irondash_engine_context_plugin.h>
 #include <media_kit_libs_linux/media_kit_libs_linux_plugin.h>
 #include <media_kit_video/media_kit_video_plugin.h>
+#include <livekit_client/live_kit_plugin.h>
 #include <open_file_linux/open_file_linux_plugin.h>
 #include <record_linux/record_linux_plugin.h>
 #include <super_native_extensions/super_native_extensions_plugin.h>
@@ -28,6 +30,9 @@ void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) flutter_secure_storage_linux_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "FlutterSecureStorageLinuxPlugin");
   flutter_secure_storage_linux_plugin_register_with_registrar(flutter_secure_storage_linux_registrar);
+  g_autoptr(FlPluginRegistrar) flutter_webrtc_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "FlutterWebRTCPlugin");
+  flutter_web_r_t_c_plugin_register_with_registrar(flutter_webrtc_registrar);
   g_autoptr(FlPluginRegistrar) irondash_engine_context_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "IrondashEngineContextPlugin");
   irondash_engine_context_plugin_register_with_registrar(irondash_engine_context_registrar);
@@ -37,6 +42,9 @@ void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) media_kit_video_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "MediaKitVideoPlugin");
   media_kit_video_plugin_register_with_registrar(media_kit_video_registrar);
+  g_autoptr(FlPluginRegistrar) livekit_client_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "LiveKitPlugin");
+  live_kit_plugin_register_with_registrar(livekit_client_registrar);
   g_autoptr(FlPluginRegistrar) open_file_linux_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "OpenFileLinuxPlugin");
   open_file_linux_plugin_register_with_registrar(open_file_linux_registrar);

@@ -219,5 +219,59 @@
   "createChatHandleError": "Unable to verify handle availability",
   "createChatPublicRequired": "Handle is required for public chats.",
   "createChatAction": "Create",
-  "createChatError": "Error during chat creation"
+  "createChatError": "Error during chat creation",
+  "settings": "Settings",
+  "user": "User",
+  "screenShareModalTitle": "Share screen",
+  "screenShareEntireScreen": "Entire screen",
+  "screenShareWindow": "Window",
+  "screenShareEntireScreenTitle": "Entire screen sharing",
+  "screenShareWindowSharingTitle": "Window sharing",
+  "screenShareNativePickerNotice": "Screen or window selection will be handled by the native system interface.",
+  "screenShareNoScreensDetected": "No screens detected",
+  "screenShareNoWindowsDetected": "No windows detected",
+  "screenShareIncludeSystemAudio": "Share system audio as well",
+  "screenShareStart": "Start sharing",
+  "commsJoinRoom": "Join voice room",
+  "commsLeaveRoom": "Leave voice room",
+  "commsMuteMic": "Mute microphone",
+  "commsUnmuteMic": "Unmute microphone",
+  "commsTurnOffCamera": "Turn off camera",
+  "commsTurnOnCamera": "Turn on camera",
+  "commsDeafen": "Deafen room audio",
+  "commsUndeafen": "Undeafen room audio",
+  "commsShareScreen": "Share screen",
+  "commsNoParticipants": "No participants in the voice room",
+  "commsUserScreenShare": "{name} (Sharing)",
+  "@commsUserScreenShare": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "commsUserYou": "{name} (You)",
+  "@commsUserYou": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "commsUnpin": "Unpin",
+  "commsPin": "Pin to spotlight",
+  "commsExitFullScreen": "Exit full screen",
+  "commsFullScreen": "Full screen",
+  "commsStopScreenShare": "Stop sharing",
+  "commsTokenError": "Unable to obtain token for voice room.",
+  "commsConnectionError": "LiveKit connection error: {error}",
+  "@commsConnectionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "commsMicAccessError": "Unable to access microphone.",
+  "commsCameraAccessError": "Unable to access camera."
 }

@@ -6,9 +6,11 @@ list(APPEND FLUTTER_PLUGIN_LIST
   audioplayers_linux
   flutter_opaque
   flutter_secure_storage_linux
+  flutter_webrtc
   irondash_engine_context
   media_kit_libs_linux
   media_kit_video
+  livekit_client
   open_file_linux
   record_linux
   super_native_extensions
