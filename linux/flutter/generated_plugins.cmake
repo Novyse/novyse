@@ -6,7 +6,9 @@ list(APPEND FLUTTER_PLUGIN_LIST
   audioplayers_linux
   flutter_opaque
   flutter_secure_storage_linux
+  flutter_webrtc
   irondash_engine_context
+  livekit_client
   open_file_linux
   record_linux
   screen_retriever_linux

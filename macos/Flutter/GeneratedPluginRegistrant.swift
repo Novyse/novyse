@@ -11,7 +11,9 @@ import device_info_plus
 import file_picker_darwin
 import flutter_opaque
 import flutter_secure_storage_darwin
+import flutter_webrtc
 import irondash_engine_context
+import livekit_client
 import open_file_mac
 import package_info_plus
 import record_macos
@@ -34,7 +36,9 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   FilePickerPlugin.register(with: registry.registrar(forPlugin: "FilePickerPlugin"))
   FlutterOpaquePlugin.register(with: registry.registrar(forPlugin: "FlutterOpaquePlugin"))
   FlutterSecureStorageDarwinPlugin.register(with: registry.registrar(forPlugin: "FlutterSecureStorageDarwinPlugin"))
+  FlutterWebRTCPlugin.register(with: registry.registrar(forPlugin: "FlutterWebRTCPlugin"))
   IrondashEngineContextPlugin.register(with: registry.registrar(forPlugin: "IrondashEngineContextPlugin"))
+  LiveKitPlugin.register(with: registry.registrar(forPlugin: "LiveKitPlugin"))
   OpenFilePlugin.register(with: registry.registrar(forPlugin: "OpenFilePlugin"))
   FPPPackageInfoPlusPlugin.register(with: registry.registrar(forPlugin: "FPPPackageInfoPlusPlugin"))
   RecordMacOsPlugin.register(with: registry.registrar(forPlugin: "RecordMacOsPlugin"))

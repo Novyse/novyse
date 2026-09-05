@@ -219,5 +219,59 @@
   "createChatHandleError": "Impossibile verificare la disponibilità dell'handle",
   "createChatPublicRequired": "L'handle è obbligatorio per le chat pubbliche.",
   "createChatAction": "Crea",
-  "createChatError": "Errore durante la creazione della chat"
+  "createChatError": "Errore durante la creazione della chat",
+  "settings": "Impostazioni",
+  "user": "Utente",
+  "screenShareModalTitle": "Condividi schermo",
+  "screenShareEntireScreen": "Schermo intero",
+  "screenShareWindow": "Finestra",
+  "screenShareEntireScreenTitle": "Condivisione Schermo intero",
+  "screenShareWindowSharingTitle": "Condivisione Finestra",
+  "screenShareNativePickerNotice": "La selezione specifica dello schermo o della finestra verrà effettuata tramite l'interfaccia nativa di sistema.",
+  "screenShareNoScreensDetected": "Nessuno schermo rilevato",
+  "screenShareNoWindowsDetected": "Nessuna finestra rilevata",
+  "screenShareIncludeSystemAudio": "Condividi anche l'audio del sistema",
+  "screenShareStart": "Avvia condivisione",
+  "commsJoinRoom": "Entra nella stanza vocale",
+  "commsLeaveRoom": "Esci dalla stanza",
+  "commsMuteMic": "Disattiva microfono",
+  "commsUnmuteMic": "Attiva microfono",
+  "commsTurnOffCamera": "Disattiva videocamera",
+  "commsTurnOnCamera": "Attiva videocamera",
+  "commsDeafen": "Disattiva audio stanza",
+  "commsUndeafen": "Attiva audio stanza",
+  "commsShareScreen": "Condividi schermo",
+  "commsNoParticipants": "Nessun partecipante nella stanza vocale",
+  "commsUserScreenShare": "{name} (Condivisione)",
+  "@commsUserScreenShare": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "commsUserYou": "{name} (Tu)",
+  "@commsUserYou": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "commsUnpin": "Sblocca",
+  "commsPin": "Fissa in primo piano",
+  "commsExitFullScreen": "Riduci",
+  "commsFullScreen": "Schermo intero",
+  "commsStopScreenShare": "Interrompi condivisione",
+  "commsTokenError": "Impossibile ottenere il token per la stanza vocale.",
+  "commsConnectionError": "Errore di connessione a LiveKit: {error}",
+  "@commsConnectionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "commsMicAccessError": "Impossibile accedere al microfono.",
+  "commsCameraAccessError": "Impossibile accedere alla videocamera."
 }

@@ -17,6 +17,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.7.0"
+  asn1lib:
+    dependency: transitive
+    description:
+      name: asn1lib
+      sha256: "9a8f69025044eb466b9b60ef3bc3ac99b4dc6c158ae9c56d25eeccf5bc56d024"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.6.5"
   async:
     dependency: transitive
     description:
@@ -157,10 +165,10 @@ packages:
     dependency: "direct main"
     description:
       name: connectivity_plus
-      sha256: b5e72753cf63becce2c61fd04dfe0f1c430cc5278b53a1342dc5ad839eab29ec
+      sha256: "762c99f890ca8bf87f7337236f99edd42793843bc6c3631da294a76653a54bd0"
       url: "https://pub.dev"
     source: hosted
-    version: "6.1.5"
+    version: "7.3.1"
   connectivity_plus_platform_interface:
     dependency: transitive
     description:
@@ -169,6 +177,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  convert:
+    dependency: transitive
+    description:
+      name: convert
+      sha256: b30acd5944035672bc15c6b7a8b47d773e41e2f17de064350988c5d02adb1c68
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.2"
   cross_file:
     dependency: transitive
     description:
@@ -209,6 +225,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.1"
+  dart_jsonwebtoken:
+    dependency: transitive
+    description:
+      name: dart_jsonwebtoken
+      sha256: ad84e60181696513d04d5f2078e0bbc20365b911f46f647797317414bdc88fbe
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.4.1"
+  dart_webrtc:
+    dependency: transitive
+    description:
+      name: dart_webrtc
+      sha256: "078e3c431500147e5cc52b3c6ea41ed538f30c7720cc2467d2186c9251e62716"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.8.2"
   dbus:
     dependency: transitive
     description:
@@ -462,6 +494,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_webrtc:
+    dependency: "direct main"
+    description:
+      name: flutter_webrtc
+      sha256: e997161d7da3adedd3d430691b20931b0b4d96fa48bb60938d9ba0bf6fca98be
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.6.0"
   glob:
     dependency: transitive
     description:
@@ -606,6 +646,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.0"
+  livekit_client:
+    dependency: "direct main"
+    description:
+      name: livekit_client
+      sha256: "165d04b06d1d828ae85dc7ef5ffcbebf8d50f2cc7b02f3b8955fbeed96828c04"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.11.0"
+  logger:
+    dependency: transitive
+    description:
+      name: logger
+      sha256: "25aee487596a6257655a1e091ec2ae66bc30e7af663592cc3a27e6591e05035c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.7.0"
   logging:
     dependency: transitive
     description:
@@ -670,6 +726,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  mime_type:
+    dependency: transitive
+    description:
+      name: mime_type
+      sha256: d652b613e84dac1af28030a9fba82c0999be05b98163f9e18a0849c6e63838bb
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   native_toolchain_c:
     dependency: transitive
     description:
@@ -911,6 +975,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
+  pointycastle:
+    dependency: transitive
+    description:
+      name: pointycastle
+      sha256: "92aa3841d083cc4b0f4709b5c74fd6409a3e6ba833ffc7dc6a8fee096366acf5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.0"
   pool:
     dependency: transitive
     description:
@@ -927,6 +999,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.5"
+  protobuf:
+    dependency: transitive
+    description:
+      name: protobuf
+      sha256: "75ec242d22e950bdcc79ee38dd520ce4ee0bc491d7fadc4ea47694604d22bf06"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.0"
   pub_semver:
     dependency: transitive
     description:
@@ -1136,6 +1216,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.2"
+  sdp_transform:
+    dependency: transitive
+    description:
+      name: sdp_transform
+      sha256: "73e412a5279a5c2de74001535208e20fff88f225c9a4571af0f7146202755e45"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.2"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -1541,6 +1629,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.1"
+  webrtc_interface:
+    dependency: transitive
+    description:
+      name: webrtc_interface
+      sha256: c6f100eac5057d9a817a60473126f9828c796d42884d498af4f339c97b21014f
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.5.1"
   webview_all:
     dependency: "direct main"
     description:

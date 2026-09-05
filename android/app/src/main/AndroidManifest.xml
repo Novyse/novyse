@@ -9,8 +9,10 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
 
-    <!-- Audio recording permissions -->
+    <!-- Audio recording and camera permissions -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
 
     <!-- Notification and Vibration permissions -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>

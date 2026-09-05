@@ -9,7 +9,9 @@
 #include <audioplayers_windows/audioplayers_windows_plugin.h>
 #include <connectivity_plus/connectivity_plus_windows_plugin.h>
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
+#include <flutter_webrtc/flutter_web_r_t_c_plugin.h>
 #include <irondash_engine_context/irondash_engine_context_plugin_c_api.h>
+#include <livekit_client/live_kit_plugin.h>
 #include <record_windows/record_windows_plugin_c_api.h>
 #include <screen_brightness_windows/screen_brightness_windows_plugin_c_api.h>
 #include <screen_retriever_windows/screen_retriever_windows_plugin_c_api.h>
@@ -27,8 +29,12 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("ConnectivityPlusWindowsPlugin"));
   FlutterSecureStorageWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FlutterSecureStorageWindowsPlugin"));
+  FlutterWebRTCPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("FlutterWebRTCPlugin"));
   IrondashEngineContextPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("IrondashEngineContextPluginCApi"));
+  LiveKitPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("LiveKitPlugin"));
   RecordWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("RecordWindowsPluginCApi"));
   ScreenBrightnessWindowsPluginCApiRegisterWithRegistrar(

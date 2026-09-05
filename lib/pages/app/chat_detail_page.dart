@@ -205,7 +205,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
                     ChatBottomBar(chatUUID: chatUUID, subID: 0),
                   ],
                 ),
-                ChatCallPage(chatUUID: chatUUID),
+                ChatCallPage(chatUUID: chatUUID, subID: 0),
               ],
             ),
             Positioned(
