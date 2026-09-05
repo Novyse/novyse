@@ -1,6 +1,5 @@
 import 'dart:io' as io;
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,7 +9,6 @@ import 'package:media_kit_video/media_kit_video.dart';
 import 'package:photo_view/photo_view.dart';
 
 import 'package:novyse/core/chat/message_file.dart';
-import 'package:novyse/core/chat/message_format.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
 import 'package:novyse/core/stores/message_store.dart';
 
