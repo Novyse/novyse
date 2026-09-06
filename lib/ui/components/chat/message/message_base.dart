@@ -16,12 +16,15 @@ import 'package:novyse/ui/components/chat/message/message_timestamp.dart';
 import 'package:novyse/ui/components/chat/message/message_video.dart';
 import 'package:novyse/ui/components/chat/message/message_voice.dart';
 
-class MessageBase extends ConsumerWidget {
+import 'package:novyse/core/utils/platform.dart';
+
+class MessageBase extends ConsumerStatefulWidget {
   const MessageBase({
     super.key,
     required this.message,
     this.isSender = false,
     this.isSelected = false,
+    this.isSelectionMode = false,
     this.showAvatar = false,
     this.showSenderName = false,
     this.senderUser,
@@ -29,15 +32,20 @@ class MessageBase extends ConsumerWidget {
     this.onLongPress,
     this.onDoubleTap,
     this.onReply,
+    this.onSelectionToggle,
+    this.onOpenContextMenu,
     this.getMessage,
     this.getUser,
     this.searchHighlight = '',
     this.isCurrentSearchMatch = false,
+    this.onReplyTap,
+    this.quoteHighlightRange,
   });
 
   final MessageModel message;
   final bool isSender;
   final bool isSelected;
+  final bool isSelectionMode;
   final bool showAvatar;
   final bool showSenderName;
   final String searchHighlight;
@@ -46,11 +54,42 @@ class MessageBase extends ConsumerWidget {
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final VoidCallback? onDoubleTap;
+  final VoidCallback? onSelectionToggle;
+  final void Function(Offset position, String? selectedText)? onOpenContextMenu;
   final void Function(MessageModel message, int? rangeStart, int? rangeEnd)?
   onReply;
+  final void Function({
+    required String chatUUID,
+    required int subID,
+    required int messageID,
+    int? rangeStart,
+    int? rangeEnd,
+  })? onReplyTap;
+  final TextRange? quoteHighlightRange;
   final MessageModel? Function(String chatUUID, int subID, int messageID)?
   getMessage;
   final UserModel? Function(String uuid)? getUser;
+
+  @override
+  ConsumerState<MessageBase> createState() => _MessageBaseState();
+}
+
+class _MessageBaseState extends ConsumerState<MessageBase> {
+  String? _selectedText;
+  Offset _lastTapPosition = Offset.zero;
+
+  MessageModel get message => widget.message;
+  bool get isSender => widget.isSender;
+  bool get isSelected => widget.isSelected;
+  bool get isSelectionMode => widget.isSelectionMode;
+  bool get showAvatar => widget.showAvatar;
+  bool get showSenderName => widget.showSenderName;
+  UserModel? get senderUser => widget.senderUser;
+  String get searchHighlight => widget.searchHighlight;
+  bool get isCurrentSearchMatch => widget.isCurrentSearchMatch;
+  MessageModel? Function(String chatUUID, int subID, int messageID)?
+  get getMessage => widget.getMessage;
+  UserModel? Function(String uuid)? get getUser => widget.getUser;
 
   Widget _buildSenderAvatar(BuildContext context) {
     return Padding(
@@ -174,7 +213,13 @@ class MessageBase extends ConsumerWidget {
           rangeStart: rangeStart,
           rangeEnd: rangeEnd,
           onTap: () {
-            // TODO: Navigate to the replied message
+            widget.onReplyTap?.call(
+              chatUUID: chatUUID,
+              subID: subID,
+              messageID: messageID,
+              rangeStart: rangeStart,
+              rangeEnd: rangeEnd,
+            );
           },
         ),
       );
@@ -399,7 +444,7 @@ class MessageBase extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     // System messages (e.g. CHAT_CREATED, USER_JOINED, USER_LEFT) render as
     // centered pills, not chat bubbles.
     if (message.isSystem) {
@@ -460,9 +505,36 @@ class MessageBase extends ConsumerWidget {
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: onTap,
-                    onLongPress: onLongPress,
-                    onDoubleTap: onDoubleTap,
+                    onTapDown: (details) =>
+                        _lastTapPosition = details.globalPosition,
+                    onSecondaryTapDown: (details) =>
+                        _lastTapPosition = details.globalPosition,
+                    onSecondaryTap: () {
+                      widget.onOpenContextMenu?.call(
+                        _lastTapPosition,
+                        _selectedText,
+                      );
+                    },
+                    onTap: () {
+                      if (isSelectionMode) {
+                        widget.onSelectionToggle?.call();
+                      } else if (currentPlatform == AppPlatform.mobile) {
+                        widget.onOpenContextMenu?.call(
+                          _lastTapPosition,
+                          _selectedText,
+                        );
+                      } else {
+                        widget.onTap?.call();
+                      }
+                    },
+                    onLongPress: () {
+                      if (widget.onSelectionToggle != null) {
+                        widget.onSelectionToggle!();
+                      } else {
+                        widget.onLongPress?.call();
+                      }
+                    },
+                    onDoubleTap: widget.onDoubleTap,
                     borderRadius: BorderRadius.circular(18),
                     child: Container(
                       decoration: BoxDecoration(
@@ -475,6 +547,14 @@ class MessageBase extends ConsumerWidget {
                           bottomLeft: Radius.circular(isSender ? 18 : 4),
                           bottomRight: Radius.circular(isSender ? 4 : 18),
                         ),
+                        border: isSelected
+                            ? Border.all(
+                                color: isSender
+                                    ? colorScheme.onPrimary
+                                    : colorScheme.primary,
+                                width: 2,
+                              )
+                            : null,
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
@@ -540,6 +620,21 @@ class MessageBase extends ConsumerWidget {
                                 isSelected: isSelected,
                                 highlightQuery: searchHighlight,
                                 isCurrentMatch: isCurrentSearchMatch,
+                                quoteHighlightRange: widget.quoteHighlightRange,
+                                onSelectionChanged: (text) {
+                                  _selectedText =
+                                      (text != null && text.trim().isNotEmpty)
+                                          ? text
+                                          : null;
+                                },
+                                onOpenContextMenu: isSelectionMode
+                                    ? null
+                                    : (pos) {
+                                        widget.onOpenContextMenu?.call(
+                                          pos,
+                                          _selectedText,
+                                        );
+                                      },
                               ),
                             ),
 

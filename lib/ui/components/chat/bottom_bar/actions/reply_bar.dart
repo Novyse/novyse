@@ -4,6 +4,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
+import 'package:novyse/core/stores/user_store.dart';
+
 class ReplyBar extends ConsumerWidget {
   const ReplyBar({super.key, required this.chatUUID});
 
@@ -16,10 +18,10 @@ class ReplyBar extends ConsumerWidget {
 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final users = ref.watch(userStoreProvider.select((s) => s.users));
 
-    void handleCancelReply(dynamic item) {
-      final updated = List<dynamic>.from(replyingTo)..remove(item);
-      ref.read(chatDraftProvider(chatUUID).notifier).setReplyingTo(updated);
+    void handleCancelReply(ChatReplyItem item) {
+      ref.read(chatDraftProvider(chatUUID).notifier).removeReply(item.message.id);
     }
 
     return Container(
@@ -34,66 +36,72 @@ class ReplyBar extends ConsumerWidget {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: replyingTo.map((msg) {
-          String senderName = 'Reply';
-          String content = '';
+        children: replyingTo.map((item) {
+          final message = item.message;
+          final senderName = users[message.userUUID]?.name ?? message.userUUID;
+          var content = message.content ?? '';
 
-          if (msg is Map) {
-            senderName =
-                (msg['sender_name'] ??
-                        msg['senderName'] ??
-                        msg['user']?['name'] ??
-                        'Reply')
-                    .toString();
-            content = (msg['content'] ?? '').toString();
+          if (item.isQuote && content.isNotEmpty) {
+            final start = item.rangeStart!.clamp(0, content.length);
+            final end = item.rangeEnd!.clamp(start, content.length);
+            content = content.substring(start, end);
           }
 
           return Row(
             children: [
-              AppHugeIcon(
-                icon: HugeIcons.strokeRoundedArrowMoveUpLeft,
-                size: 18,
-                color: colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              Container(
-                width: 3,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 8),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+                child: Row(
                   children: [
-                    Text(
-                      senderName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface,
+                      AppHugeIcon(
+                        icon: item.isQuote
+                            ? HugeIcons.strokeRoundedArrowMoveUpLeft
+                            : HugeIcons.strokeRoundedArrowMoveUpLeft,
+                        size: 18,
+                        color: colorScheme.primary,
                       ),
-                    ),
-                    Text(
-                      content,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.onSurfaceVariant,
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 3,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              senderName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            Text(
+                              content,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              const SizedBox(width: 4),
               InkWell(
-                onTap: () => handleCancelReply(msg),
+                onTap: () => handleCancelReply(item),
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
                   padding: const EdgeInsets.all(4),

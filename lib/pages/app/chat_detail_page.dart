@@ -3,9 +3,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
+import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
+import 'package:novyse/core/stores/forward_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/pages/app/chat_call_page.dart';
@@ -13,6 +17,7 @@ import 'package:novyse/pages/app/chat_routes.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/chat_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_detail_search_app_bar.dart';
+import 'package:novyse/ui/components/chat/chat_detail/chat_selected_header.dart';
 import 'package:novyse/ui/components/chat/chat_drop_zone.dart';
 import 'package:novyse/ui/components/chat/chat_list_item.dart';
 import 'package:novyse/ui/components/chat/message_list.dart';
@@ -119,6 +124,12 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   }
 
   void _handleBack() {
+    final hasSelection =
+        ref.read(chatDraftProvider(widget.chatUUID)).selectedMessages.isNotEmpty;
+    if (hasSelection) {
+      ref.read(chatDraftProvider(widget.chatUUID).notifier).clearSelectedMessages();
+      return;
+    }
     if (_searching) {
       _closeSearch();
       return;
@@ -192,8 +203,47 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         ? null
         : searchMatches[searchIndex].id;
 
+    final draftState = ref.watch(chatDraftProvider(chatUUID));
+    final selectedMessages = draftState.selectedMessages;
+    final hasSelection = selectedMessages.isNotEmpty;
+
     final Widget appBar;
-    if (_searching) {
+    if (hasSelection) {
+      appBar = ChatSelectedHeader(
+        selectedCount: selectedMessages.length,
+        onClose: () {
+          ref.read(chatDraftProvider(chatUUID).notifier).clearSelectedMessages();
+        },
+        onReply: () {
+          for (final m in selectedMessages) {
+            ref.read(chatDraftProvider(chatUUID).notifier).addReply(m);
+          }
+          ref.read(chatDraftProvider(chatUUID).notifier).clearSelectedMessages();
+        },
+        onForward: () {
+          ref.read(forwardProvider.notifier).setForwardMessages(selectedMessages);
+          ref.read(chatDraftProvider(chatUUID).notifier).clearSelectedMessages();
+        },
+        onDelete: () async {
+          for (final m in selectedMessages) {
+            try {
+              await apiGateway.message.delete(chatUUID, m.subID, m.id.toString());
+            } catch (e) {
+              debugPrint('Error deleting message: $e');
+            }
+            await GlobalEventEmitter.instance.message.update(
+              chatUUID,
+              m.subID,
+              m.id.toString(),
+              'delete',
+              null,
+              {},
+            );
+          }
+          ref.read(chatDraftProvider(chatUUID).notifier).clearSelectedMessages();
+        },
+      );
+    } else if (_searching) {
       appBar = ChatDetailSearchAppBar(
         controller: _searchController,
         focusNode: _searchFocusNode,
@@ -281,9 +331,13 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     }
 
     return PopScope(
-      canPop: !_callOpen && !_searching,
+      canPop: !_callOpen && !_searching && !hasSelection,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
+        if (hasSelection) {
+          ref.read(chatDraftProvider(chatUUID).notifier).clearSelectedMessages();
+          return;
+        }
         if (_searching) {
           _closeSearch();
           return;

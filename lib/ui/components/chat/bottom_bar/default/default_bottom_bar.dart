@@ -88,11 +88,14 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
       return;
     }
 
+    final replyingTo = List<ChatReplyItem>.from(draftState.replyingTo);
+
     setState(() => _isSending = true);
     controller.clear();
     ref.read(chatDraftProvider(widget.chatUUID).notifier).setText('');
     ref.read(chatDraftProvider(widget.chatUUID).notifier).setFiles([]);
     ref.read(chatDraftProvider(widget.chatUUID).notifier).setInvalidFiles([]);
+    ref.read(chatDraftProvider(widget.chatUUID).notifier).setReplyingTo([]);
 
     try {
       final localUserUUID = ref.read(userStoreProvider).localUserUUID;
@@ -103,6 +106,16 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
       final filesPayload = files.isNotEmpty
           ? files.map((f) => Map<String, dynamic>.from(f as Map)).toList()
           : null;
+
+      final replyTos = replyingTo.map((item) {
+        return <String, dynamic>{
+          'chatUUID': item.message.chatUUID,
+          'subID': item.message.subID,
+          'messageID': item.message.id,
+          'rangeStart': ?item.rangeStart,
+          'rangeEnd': ?item.rangeEnd,
+        };
+      }).toList();
 
       await queueManager.addOutgoingMessageJob(
         id: tempId.toString(),
@@ -119,6 +132,7 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
           'createdAt': now,
           'status': 'PENDING_SEND',
           'files': ?filesPayload,
+          if (replyTos.isNotEmpty) 'replyTos': replyTos,
         },
         files: filesPayload,
       );

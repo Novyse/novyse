@@ -286,5 +286,34 @@
   "joinCreateNotificationDesc": "Puoi sempre silenziare le notifiche o lasciare la chat in seguito.",
   "joinCreateProcessing": "Elaborazione...",
   "joinCreateError": "Impossibile entrare o creare la chat. Riprova.",
-  "searchGlobalChats": "Chat globali"
+  "searchGlobalChats": "Chat globali",
+  "reply": "Rispondi",
+  "quoteAndReply": "Cita e rispondi",
+  "pin": "Fissa",
+  "unpin": "Rimuovi",
+  "copy": "Copia",
+  "copySelected": "Copia selezione",
+  "download": "Scarica",
+  "cancelEdit": "Annulla Modifica",
+  "edit": "Modifica",
+  "forward": "Inoltra",
+  "select": "Seleziona",
+  "delete": "Elimina",
+  "selectedCount": "{count, plural, =1{1 selezionato} other{{count} selezionati}}",
+  "@selectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteMessageConfirm": "Sei sicuro di voler eliminare questo messaggio?",
+  "deleteMessagesConfirm": "Sei sicuro di voler eliminare {count} messaggi?",
+  "@deleteMessagesConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

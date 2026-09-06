@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:markdown_editor_live/markdown_editor_live.dart';
+import 'package:novyse/core/stores/message_store.dart';
 
 /// Available content views in active chat: 'chat' | 'vocal' | 'both'.
 enum ContentView {
@@ -20,15 +21,31 @@ enum ContentView {
   }
 }
 
+/// Represents a message being replied to or quoted in the draft.
+@immutable
+class ChatReplyItem {
+  final MessageModel message;
+  final int? rangeStart;
+  final int? rangeEnd;
+
+  const ChatReplyItem({
+    required this.message,
+    this.rangeStart,
+    this.rangeEnd,
+  });
+
+  bool get isQuote => rangeStart != null && rangeEnd != null;
+}
+
 /// Immutable state representing unsent draft and UI controls for a specific chat matching `ChatUIState`.
 @immutable
 class ChatDraftState {
   final String newMessageText;
   final List<dynamic> files;
   final List<dynamic> invalidFiles;
-  final dynamic editingMessage;
-  final List<dynamic> selectedMessages;
-  final List<dynamic> replyingTo;
+  final MessageModel? editingMessage;
+  final List<MessageModel> selectedMessages;
+  final List<ChatReplyItem> replyingTo;
   final int selectedSub;
   final String contentView; // 'chat' | 'vocal' | 'both'
 
@@ -47,9 +64,9 @@ class ChatDraftState {
     String? newMessageText,
     List<dynamic>? files,
     List<dynamic>? invalidFiles,
-    dynamic Function()? editingMessage,
-    List<dynamic>? selectedMessages,
-    List<dynamic>? replyingTo,
+    MessageModel? Function()? editingMessage,
+    List<MessageModel>? selectedMessages,
+    List<ChatReplyItem>? replyingTo,
     int? selectedSub,
     String? contentView,
   }) {
@@ -87,16 +104,79 @@ class ChatDraftNotifier extends FamilyNotifier<ChatDraftState, String> {
     state = state.copyWith(invalidFiles: invalidFiles);
   }
 
-  void setReplyingTo(List<dynamic> replyingTo) {
+  void setReplyingTo(List<ChatReplyItem> replyingTo) {
     state = state.copyWith(replyingTo: replyingTo);
   }
 
-  void setEditingMessage(dynamic message) {
+  /// Adds a reply, adhering to the 3-reply limit FIFO eviction rule and duplicate avoidance.
+  void addReply(MessageModel message, {int? rangeStart, int? rangeEnd}) {
+    // Avoid duplicate message + range
+    final alreadyExists = state.replyingTo.any(
+      (r) =>
+          r.message.id.toString() == message.id.toString() &&
+          r.rangeStart == rangeStart &&
+          r.rangeEnd == rangeEnd,
+    );
+    if (alreadyExists) return;
+
+    final item = ChatReplyItem(
+      message: message,
+      rangeStart: rangeStart,
+      rangeEnd: rangeEnd,
+    );
+
+    List<ChatReplyItem> updated = List<ChatReplyItem>.from(state.replyingTo);
+    if (updated.length >= 3) {
+      updated = [...updated.sublist(1), item];
+    } else {
+      updated.add(item);
+    }
+
+    state = state.copyWith(
+      replyingTo: updated,
+      editingMessage: () => null,
+    );
+  }
+
+  /// Removes a reply item by its message ID.
+  void removeReply(dynamic id) {
+    final targetId = id?.toString();
+    final updated = state.replyingTo
+        .where((r) => r.message.id.toString() != targetId)
+        .toList();
+    state = state.copyWith(replyingTo: updated);
+  }
+
+  void setEditingMessage(MessageModel? message) {
     state = state.copyWith(editingMessage: () => message);
   }
 
-  void setSelectedMessages(List<dynamic> messages) {
+  void setSelectedMessages(List<MessageModel> messages) {
     state = state.copyWith(selectedMessages: messages);
+  }
+
+  /// Toggles selection of a message.
+  void toggleSelectMessage(MessageModel message) {
+    final exists = state.selectedMessages.any(
+      (m) => m.id.toString() == message.id.toString(),
+    );
+
+    if (exists) {
+      state = state.copyWith(
+        selectedMessages: state.selectedMessages
+            .where((m) => m.id.toString() != message.id.toString())
+            .toList(),
+      );
+    } else {
+      state = state.copyWith(
+        selectedMessages: [...state.selectedMessages, message],
+      );
+    }
+  }
+
+  /// Clears all selected messages.
+  void clearSelectedMessages() {
+    state = state.copyWith(selectedMessages: const []);
   }
 
   void setSelectedSub(int sub) {

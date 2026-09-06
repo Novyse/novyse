@@ -21,12 +21,7 @@ class EditBar extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    String content = '';
-    if (editingMessage is Map) {
-      content = (editingMessage['content'] ?? '').toString();
-    } else if (editingMessage is String) {
-      content = editingMessage;
-    }
+    final content = editingMessage.content ?? '';
 
     void handleCancelEdit() {
       ref.read(chatDraftProvider(chatUUID).notifier).setEditingMessage(null);

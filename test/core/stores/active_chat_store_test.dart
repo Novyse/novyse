@@ -4,6 +4,7 @@ import 'package:novyse/core/storage/database/database.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
+import 'package:novyse/core/stores/message_store.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
@@ -50,11 +51,17 @@ void main() {
         equals('Draft for chat 2'),
       );
 
+      final testMsg = MessageModel(
+        id: 'msg-10',
+        chatUUID: 'chat-1',
+        userUUID: 'user-1',
+        createdAt: DateTime.now(),
+      );
       draft1Notifier.setReplyingTo([
-        {'id': 'msg-10'},
+        ChatReplyItem(message: testMsg),
       ]);
       expect(
-        container.read(chatDraftProvider('chat-1')).replyingTo.first['id'],
+        container.read(chatDraftProvider('chat-1')).replyingTo.first.message.id,
         equals('msg-10'),
       );
       expect(container.read(chatDraftProvider('chat-2')).replyingTo, isEmpty);
