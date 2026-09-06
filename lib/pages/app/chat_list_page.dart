@@ -14,6 +14,7 @@ import 'package:novyse/ui/components/chat/chat_list/chat_list_view.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_search.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_search_results.dart';
 import 'package:novyse/ui/components/chat/create_chat_modal.dart';
+import 'package:novyse/ui/components/chat/join_or_create_chat_modal.dart';
 import 'package:novyse/ui/components/status/global_status_bar.dart';
 
 const _statusBarPadding = EdgeInsets.symmetric(horizontal: 16, vertical: 4);
@@ -31,9 +32,11 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
   Timer? _debounce;
   int _searchToken = 0;
 
-  List<ChatModel> _matchedChats = [];
+  List<ChatModel> _localChats = [];
+  List<ChatModel> _remoteChats = [];
   List<Map<String, dynamic>> _matchedMessages = [];
   bool _messagesLoading = false;
+  bool _remoteLoading = false;
 
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
@@ -60,9 +63,11 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     setState(() {
       _searching = false;
       _query = '';
-      _matchedChats = [];
+      _localChats = [];
+      _remoteChats = [];
       _matchedMessages = [];
       _messagesLoading = false;
+      _remoteLoading = false;
     });
   }
 
@@ -77,9 +82,11 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     if (q.isEmpty) {
       if (!mounted) return;
       setState(() {
-        _matchedChats = [];
+        _localChats = [];
+        _remoteChats = [];
         _matchedMessages = [];
         _messagesLoading = false;
+        _remoteLoading = false;
       });
       return;
     }
@@ -88,7 +95,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     if (l10n == null) return;
     final userState = ref.read(userStoreProvider);
 
-    final matchedChats = filterChatsByQuery(
+    final localMatches = filterChatsByQuery(
       chats: ref.read(chatListProvider).chats,
       query: q,
       localUserUUID: userState.localUserUUID,
@@ -97,22 +104,53 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     );
 
     final searchMessages = q.isNotEmpty;
+    final canSearchRemote = q.length >= 3;
+    final token = ++_searchToken;
+
     if (!mounted) return;
     setState(() {
-      _matchedChats = matchedChats;
+      _localChats = localMatches;
+      _remoteChats = [];
       _matchedMessages = [];
       _messagesLoading = searchMessages;
+      _remoteLoading = canSearchRemote;
     });
-    if (!searchMessages) return;
 
-    final token = ++_searchToken;
-    final results = await searchMessagesByQuery(q);
-    if (!mounted || token != _searchToken || _query.trim() != q) return;
-    setState(() {
-      _matchedMessages = results;
-      _messagesLoading = false;
-    });
+    if (searchMessages) {
+      searchMessagesByQuery(q).then((results) {
+        if (!mounted || token != _searchToken || _query.trim() != q) return;
+        setState(() {
+          _matchedMessages = results;
+          _messagesLoading = false;
+        });
+      }).catchError((_) {
+        if (!mounted || token != _searchToken || _query.trim() != q) return;
+        setState(() {
+          _messagesLoading = false;
+        });
+      });
+    }
+
+    if (canSearchRemote) {
+      searchRemoteChats(q).then((remoteResults) {
+        if (!mounted || token != _searchToken || _query.trim() != q) return;
+        setState(() {
+          _remoteChats = filterRemoteChats(
+            local: localMatches,
+            remote: remoteResults,
+          );
+          _remoteLoading = false;
+        });
+      }).catchError((_) {
+        if (!mounted || token != _searchToken || _query.trim() != q) return;
+        setState(() {
+          _remoteLoading = false;
+        });
+      });
+    }
+
   }
+
 
   void _openChat(String chatUUID) {
     final currentUUID = chatUUIDFromPath(GoRouterState.of(context).uri.path);
@@ -120,6 +158,21 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     ref.read(activeChatProvider.notifier).setSelectedChatUUID(chatUUID);
     context.push('/chats/$chatUUID');
   }
+
+  void _onChatSelected(ChatModel chat) {
+    final isLocal =
+        ref.read(chatListProvider).chats.any((c) => c.uuid == chat.uuid);
+    if (isLocal) {
+      _openChat(chat.uuid);
+    } else {
+      showJoinOrCreateChatModal(
+        context: context,
+        chat: chat,
+        onJoined: (chatUUID) => _openChat(chatUUID),
+      );
+    }
+  }
+
 
   void _openMessageResult(Map<String, dynamic> result) {
     final chatUUID = result['chatUUID']?.toString() ?? '';
@@ -185,12 +238,14 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
                 const ChatListEmptyView()
               else if (isFiltering)
                 ChatSearchResults(
-                  matchedChats: _matchedChats,
+                  localChats: _localChats,
+                  remoteChats: _remoteChats,
                   matchedMessages: _matchedMessages,
                   messagesLoading: _messagesLoading,
+                  remoteLoading: _remoteLoading,
                   query: _query.trim(),
                   selectedChatUUID: selectedChatUUID,
-                  onOpenChat: _openChat,
+                  onOpenChat: _onChatSelected,
                   onOpenMessage: _openMessageResult,
                 )
               else
@@ -212,3 +267,4 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     );
   }
 }
+

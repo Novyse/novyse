@@ -273,5 +273,18 @@
     }
   },
   "commsMicAccessError": "Impossibile accedere al microfono.",
-  "commsCameraAccessError": "Impossibile accedere alla videocamera."
+  "commsCameraAccessError": "Impossibile accedere alla videocamera.",
+  "joinCreateStartDm": "Inizia DM",
+  "joinCreateJoin": "Entra",
+  "joinCreateJoinChat": "Entra nella chat",
+  "joinCreateJoinGroup": "Entra nel gruppo",
+  "joinCreateJoinChannel": "Entra nel canale",
+  "joinCreateJoinForum": "Entra nel forum",
+  "joinCreateUserDesc": "Crea una nuova conversazione di messaggistica diretta con questo utente.",
+  "joinCreateChatDesc": "Questa è una chat pubblica. Entra per vedere i messaggi e partecipare.",
+  "joinCreateSecurityDesc": "(WIP) Conversazione crittografata end-to-end. I tuoi dati rimangono al sicuro.",
+  "joinCreateNotificationDesc": "Puoi sempre silenziare le notifiche o lasciare la chat in seguito.",
+  "joinCreateProcessing": "Elaborazione...",
+  "joinCreateError": "Impossibile entrare o creare la chat. Riprova.",
+  "searchGlobalChats": "Chat globali"
 }

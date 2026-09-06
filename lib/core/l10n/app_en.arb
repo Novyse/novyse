@@ -273,5 +273,18 @@
     }
   },
   "commsMicAccessError": "Unable to access microphone.",
-  "commsCameraAccessError": "Unable to access camera."
+  "commsCameraAccessError": "Unable to access camera.",
+  "joinCreateStartDm": "Start DM",
+  "joinCreateJoin": "Join",
+  "joinCreateJoinChat": "Join Chat",
+  "joinCreateJoinGroup": "Join Group",
+  "joinCreateJoinChannel": "Join Channel",
+  "joinCreateJoinForum": "Join Forum",
+  "joinCreateUserDesc": "Create a new direct message conversation with this user.",
+  "joinCreateChatDesc": "This is a public chat. Join to see messages and participate.",
+  "joinCreateSecurityDesc": "(WIP) End-to-End Encrypted conversation. Your data remains secure.",
+  "joinCreateNotificationDesc": "You can always mute notifications or leave the chat later.",
+  "joinCreateProcessing": "Processing...",
+  "joinCreateError": "Failed to join or create chat. Please try again.",
+  "searchGlobalChats": "Global chats"
 }
