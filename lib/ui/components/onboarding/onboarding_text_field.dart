@@ -53,8 +53,8 @@ class _OnboardingTextFieldState extends State<OnboardingTextField> {
             child: IconButton(
               icon: AppHugeIcon(
                 icon: _obscured
-                    ? HugeIcons.strokeRoundedSearch01
-                    : HugeIcons.strokeRoundedCancel01,
+                    ? HugeIcons.strokeRoundedView
+                    : HugeIcons.strokeRoundedViewOff,
               ),
               onPressed: () => setState(() => _obscured = !_obscured),
             ),
@@ -68,6 +68,7 @@ class _OnboardingTextFieldState extends State<OnboardingTextField> {
           widget.label,
           style: theme.textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
@@ -82,14 +83,15 @@ class _OnboardingTextFieldState extends State<OnboardingTextField> {
           onEditingComplete: widget.onEditingComplete,
           onFieldSubmitted: widget.onFieldSubmitted,
           autovalidateMode: widget.autovalidateMode,
+          style: TextStyle(color: theme.colorScheme.onSurface),
           decoration: InputDecoration(
             hintText: widget.hint,
+            hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+            errorStyle: TextStyle(color: theme.colorScheme.error),
             prefixIcon: widget.prefixIcon,
             suffixIcon: effectiveSuffixIcon,
             filled: true,
-            fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
-              alpha: 0.35,
-            ),
+            fillColor: theme.colorScheme.surfaceContainerHighest,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 18,
@@ -112,6 +114,13 @@ class _OnboardingTextFieldState extends State<OnboardingTextField> {
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(100),
               borderSide: BorderSide(color: theme.colorScheme.error, width: 1),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(100),
+              borderSide: BorderSide(
+                color: theme.colorScheme.error,
+                width: 1.5,
+              ),
             ),
           ),
         ),

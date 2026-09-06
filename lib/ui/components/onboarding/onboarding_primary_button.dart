@@ -12,8 +12,6 @@ class OnboardingPrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
 
-  static const _buttonColor = Color(0xFF013480);
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -24,7 +22,7 @@ class OnboardingPrimaryButton extends StatelessWidget {
       child: FilledButton(
         onPressed: isLoading ? null : onPressed,
         style: FilledButton.styleFrom(
-          backgroundColor: _buttonColor,
+          backgroundColor: theme.colorScheme.primary,
           foregroundColor: theme.colorScheme.onPrimary,
           disabledBackgroundColor: theme.colorScheme.primary.withValues(
             alpha: 0.35,

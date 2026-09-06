@@ -34,7 +34,7 @@ class MessageSystem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.7),
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(24),
         ),
         child: Text(
           data,
@@ -66,7 +66,7 @@ class MessageSystem extends StatelessWidget {
                 color: colorScheme.surfaceContainerHighest.withValues(
                   alpha: 0.7,
                 ),
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(24),
               ),
               child: Text(
                 data,

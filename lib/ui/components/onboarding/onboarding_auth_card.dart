@@ -322,6 +322,7 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
 
   Widget _buildSecuredByOpaque(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(top: 6),
       child: Row(
@@ -329,18 +330,18 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
         children: [
           Text(
             '${l10n.securedBy} ',
-            style: const TextStyle(
-              color: Color(0xFF505D69),
+            style: TextStyle(
+              color: theme.colorScheme.onSurfaceVariant,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
           ),
           InkWell(
             onTap: () => _openLink('https://opaque-auth.com/'),
-            child: const Text(
+            child: Text(
               'OPAQUE',
               style: TextStyle(
-                color: Color(0xFF013480),
+                color: theme.colorScheme.primary,
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 decoration: TextDecoration.underline,
@@ -352,40 +353,41 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
     );
   }
 
-  Widget? _buildUsernameSuffix() {
+  Widget? _buildUsernameSuffix(BuildContext context) {
     if (_isLoginMode) return null;
+    final theme = Theme.of(context);
 
     if (_isCheckingHandle) {
-      return const Padding(
-        padding: EdgeInsets.all(14),
+      return Padding(
+        padding: const EdgeInsets.all(14),
         child: SizedBox(
           width: 16,
           height: 16,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            color: Color(0xFF003B70),
+            color: theme.colorScheme.primary,
           ),
         ),
       );
     }
 
     if (_isHandleAvailable == true && _handleApiError == null) {
-      return const Padding(
-        padding: EdgeInsets.all(12),
+      return Padding(
+        padding: const EdgeInsets.all(12),
         child: AppHugeIcon(
           icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-          color: Color(0xFF2E7D32),
+          color: theme.colorScheme.primary,
           size: 20,
         ),
       );
     }
 
     if (_handleApiError != null) {
-      return const Padding(
-        padding: EdgeInsets.all(12),
+      return Padding(
+        padding: const EdgeInsets.all(12),
         child: AppHugeIcon(
           icon: HugeIcons.strokeRoundedAlertCircle,
-          color: Color(0xFFC62828),
+          color: theme.colorScheme.error,
           size: 20,
         ),
       );
@@ -420,6 +422,7 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
               textAlign: widget.embedded ? TextAlign.center : null,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w800,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
@@ -471,7 +474,7 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
               controller: _usernameController,
               keyboardType: TextInputType.text,
               onChanged: _onUsernameChanged,
-              suffixIcon: _buildUsernameSuffix(),
+              suffixIcon: _buildUsernameSuffix(context),
               autofillHints: const [
                 AutofillHints.username,
                 AutofillHints.email,
@@ -564,7 +567,7 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
                   siteKey: cloudflareTurnstilePublic,
                   baseUrl: 'http://localhost',
                   action: _isLoginMode ? 'login' : 'signup',
-                  theme: 'dark',
+                  theme: theme.brightness == Brightness.dark ? 'dark' : 'light',
                   language: Localizations.localeOf(context).languageCode,
                   onTokenReceived: (token) => setState(() {
                     _turnstileToken = token;
@@ -616,7 +619,7 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
@@ -673,7 +676,7 @@ class _LegalCheckbox extends StatelessWidget {
                 ? Text(
                     text,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.surface,
+                      color: theme.colorScheme.onSurface,
                     ),
                   )
                 : Wrap(
@@ -681,7 +684,7 @@ class _LegalCheckbox extends StatelessWidget {
                       Text(
                         text,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.surface,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       const Text(' '),

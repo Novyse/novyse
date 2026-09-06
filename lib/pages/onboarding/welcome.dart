@@ -12,20 +12,19 @@ import '../../ui/components/onboarding/styled_qr_code.dart';
 class WelcomePage extends ConsumerWidget {
   const WelcomePage({super.key});
 
-  static const _backgroundStart = Color(0xFF013480);
-  static const _backgroundEnd = Color(0xFF177FC0);
-  static const _panelColor = Color(0xFF9DB8D5);
-  static const _headingColor = Color(0xFF073B82);
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     return Scaffold(
       body: DecoratedBox(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [_backgroundStart, _backgroundEnd],
+            colors: [
+              theme.colorScheme.primary,
+              theme.colorScheme.primaryContainer,
+            ],
           ),
         ),
         child: SafeArea(
@@ -42,8 +41,10 @@ class WelcomePage extends ConsumerWidget {
                         vertical: isCompact ? 34 : 24,
                       ),
                       decoration: BoxDecoration(
-                        color: _panelColor,
-                        borderRadius: BorderRadius.circular(25),
+                        color: theme.colorScheme.surface.withValues(
+                          alpha: 0.55,
+                        ),
+                        borderRadius: BorderRadius.circular(24),
                       ),
                       child: isCompact
                           ? const _CompactWelcomeContent()
@@ -66,6 +67,7 @@ class _CompactWelcomeContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -78,8 +80,8 @@ class _CompactWelcomeContent extends StatelessWidget {
         const SizedBox(height: 12),
         Text(
           l10n.welcomeTitle,
-          style: const TextStyle(
-            color: WelcomePage._headingColor,
+          style: TextStyle(
+            color: theme.colorScheme.onSurface,
             fontSize: 40,
             fontWeight: FontWeight.w700,
           ),
@@ -127,6 +129,7 @@ class _WideWelcomeContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -146,8 +149,8 @@ class _WideWelcomeContent extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(
                     l10n.welcomeTitle,
-                    style: const TextStyle(
-                      color: WelcomePage._headingColor,
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
                       fontSize: 42,
                       fontWeight: FontWeight.w700,
                     ),
@@ -177,8 +180,8 @@ class _WideWelcomeContent extends StatelessWidget {
               ),
             ),
           ),
-          const VerticalDivider(
-            color: Color(0xFFD6E3F0),
+          VerticalDivider(
+            color: theme.colorScheme.outlineVariant,
             thickness: 1,
             width: 1,
           ),
@@ -236,6 +239,7 @@ class _QrContentState extends ConsumerState<_QrContent> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     return ListenableBuilder(
       listenable: _qrController,
       builder: (context, _) {
@@ -250,21 +254,21 @@ class _QrContentState extends ConsumerState<_QrContent> {
               height: 252,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: theme.colorScheme.surfaceContainerHighest,
                 border: Border.all(
-                  color: WelcomePage._headingColor,
+                  color: theme.colorScheme.primary,
                   width: 1.5,
                 ),
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(24),
               ),
               child: hasToken
                   ? Center(
                       child: StyledQrCode(
                         data: state.qrToken!,
                         size: 220,
-                        gradientColors: const [
-                          Color(0xFF2241D3),
-                          Color(0xFF1FA6D3),
+                        gradientColors: [
+                          theme.colorScheme.primary,
+                          theme.colorScheme.secondary,
                         ],
                         embeddedLogo: Image.asset(
                           'assets/images/logo-novyse.png',
@@ -272,9 +276,9 @@ class _QrContentState extends ConsumerState<_QrContent> {
                         ),
                       ),
                     )
-                  : const Center(
+                  : Center(
                       child: CircularProgressIndicator(
-                        color: WelcomePage._headingColor,
+                        color: theme.colorScheme.primary,
                       ),
                     ),
             ),
@@ -282,8 +286,8 @@ class _QrContentState extends ConsumerState<_QrContent> {
             Text(
               l10n.scanQrToLogin,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFF101820),
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
               ),
@@ -294,8 +298,8 @@ class _QrContentState extends ConsumerState<_QrContent> {
                       QrCodeController.formatTime(state.remainingTime),
                     )
                   : '',
-              style: const TextStyle(
-                color: Color(0xFF101820),
+              style: TextStyle(
+                color: theme.colorScheme.onSurfaceVariant,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
