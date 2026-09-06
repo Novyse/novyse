@@ -132,6 +132,70 @@ void main() {
       },
     );
 
+    testWidgets(
+      'does not render online indicator badge when type is not user (e.g. GROUP) even if isOnline is true',
+      (tester) async {
+        await tester.pumpWidget(
+          const ProviderScope(
+            child: MaterialApp(
+              home: Scaffold(
+                body: Avatar(
+                  name: 'Tech Group',
+                  isOnline: true,
+                  type: 'GROUP',
+                  size: 48,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final indicatorFinder = find.byWidgetPredicate((widget) {
+          if (widget is Container && widget.decoration is BoxDecoration) {
+            final decoration = widget.decoration as BoxDecoration;
+            return decoration.shape == BoxShape.circle &&
+                decoration.color == AppColors.success;
+          }
+          return false;
+        });
+
+        expect(indicatorFinder, findsNothing);
+      },
+    );
+
+    testWidgets(
+      'renders online indicator badge when type is USER or DM and isOnline is true',
+      (tester) async {
+        await tester.pumpWidget(
+          const ProviderScope(
+            child: MaterialApp(
+              home: Scaffold(
+                body: Avatar(
+                  name: 'Alice',
+                  isOnline: true,
+                  type: 'USER',
+                  size: 48,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final indicatorFinder = find.byWidgetPredicate((widget) {
+          if (widget is Container && widget.decoration is BoxDecoration) {
+            final decoration = widget.decoration as BoxDecoration;
+            return decoration.shape == BoxShape.circle &&
+                decoration.color == AppColors.success;
+          }
+          return false;
+        });
+
+        expect(indicatorFinder, findsOneWidget);
+      },
+    );
+
     testWidgets('triggers onTap callback when tapped', (tester) async {
       bool tapped = false;
       await tester.pumpWidget(

@@ -160,6 +160,65 @@ void main() {
     },
   );
 
+  testWidgets(
+    'ChatListItem does not show online indicator badge for GROUP even if members are online',
+    (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final userNotifier = container.read(userStoreProvider.notifier);
+      userNotifier.state = const UserStoreState(
+        localUserUUID: 'user-local',
+        users: {
+          'user-local': UserModel(uuid: 'user-local', name: 'Mario'),
+          'user-bob': UserModel(
+            uuid: 'user-bob',
+            name: 'Bob',
+            status: 'ONLINE',
+          ),
+        },
+      );
+
+      const chat = ChatModel(
+        uuid: 'chat-group-online-member',
+        name: 'Novyse Team',
+        type: 'GROUP',
+        members: [
+          {'uuid': 'user-local'},
+          {'uuid': 'user-bob'},
+        ],
+        lastMessage: {
+          'content': 'Hello team',
+          'createdAt': '2026-08-31T12:00:00.000Z',
+        },
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            localizationsDelegates: localizationsDelegates,
+            supportedLocales: supportedLocales,
+            locale: Locale('it'),
+            home: Scaffold(body: ChatListItem(chat: chat)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final indicatorFinder = find.byWidgetPredicate((widget) {
+        if (widget is Container && widget.decoration is BoxDecoration) {
+          final decoration = widget.decoration as BoxDecoration;
+          return decoration.shape == BoxShape.circle &&
+              decoration.color == const Color(0xFF10B981); // AppColors.success
+        }
+        return false;
+      });
+
+      expect(indicatorFinder, findsNothing);
+    },
+  );
+
   testWidgets('ChatListItem displays draft with red prefix when present', (
     tester,
   ) async {

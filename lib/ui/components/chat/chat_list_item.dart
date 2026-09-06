@@ -79,15 +79,10 @@ ResolvedChatMetadata resolveChatMetadata({
             ? '@${chat.handle}'
             : (chat.type == 'CHANNEL' ? 'Channel' : 'Group'));
 
-  final isAnyMemberOnline = chat.members.any((m) {
-    final uuid = (m['uuid'] ?? m['userUUID']) as String?;
-    return uuid != null && users[uuid]?.isOnline == true;
-  });
-
   return ResolvedChatMetadata(
     name: displayName,
     profilePictureUUID: chat.profilePictureUUID,
-    isOnline: isAnyMemberOnline,
+    isOnline: false,
     isSavedMessages: false,
   );
 }
@@ -208,6 +203,7 @@ class ChatListItem extends ConsumerWidget {
                 size: 48,
                 isOnline: metadata.isOnline,
                 isSavedMessages: metadata.isSavedMessages,
+                type: chat.type,
               ),
               const SizedBox(width: 12),
 

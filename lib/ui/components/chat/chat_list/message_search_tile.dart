@@ -59,6 +59,7 @@ class MessageSearchTile extends ConsumerWidget {
                 name: chatName,
                 seedKey: chatUUID.isNotEmpty ? chatUUID : chatName,
                 size: 44,
+                type: chat?.type,
               ),
               const SizedBox(width: 12),
               Expanded(

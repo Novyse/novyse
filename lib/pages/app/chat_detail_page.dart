@@ -223,6 +223,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
               size: 40,
               isOnline: metadata.isOnline,
               isSavedMessages: metadata.isSavedMessages,
+              type: chat.type,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -244,7 +245,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
                       subtitleText,
                       style: TextStyle(
                         fontSize: 12,
-                        color: metadata.isOnline
+                        color: (chat.type == 'DM' && metadata.isOnline)
                             ? colorScheme.primary
                             : colorScheme.onSurfaceVariant,
                       ),
@@ -316,7 +317,10 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
                     ChatBottomBar(chatUUID: chatUUID, subID: 0),
                   ],
                 ),
-                ChatCallPage(chatUUID: chatUUID, subID: 0),
+                if (_callOpen)
+                  ChatCallPage(chatUUID: chatUUID, subID: 0)
+                else
+                  const SizedBox.shrink(),
               ],
             ),
             Positioned(

@@ -26,6 +26,7 @@ class Avatar extends ConsumerStatefulWidget {
   final double size;
   final bool isOnline;
   final bool isSavedMessages;
+  final String? type;
   final VoidCallback? onEdit;
   final VoidCallback? onTap;
   final BoxBorder? border;
@@ -42,6 +43,7 @@ class Avatar extends ConsumerStatefulWidget {
     this.size = 32.0,
     this.isOnline = false,
     this.isSavedMessages = false,
+    this.type,
     this.onEdit,
     this.onTap,
     this.border,
@@ -137,12 +139,17 @@ class _AvatarState extends ConsumerState<Avatar> {
       ),
     );
 
+    final isUserType = widget.type == null ||
+        widget.type!.toUpperCase() == 'USER' ||
+        widget.type!.toUpperCase() == 'DM';
+    final showOnlineBadge = widget.isOnline && isUserType;
+
     // Online indicator badge outside the clip
     final contentWithIndicator = Stack(
       clipBehavior: Clip.none,
       children: [
         avatarContent,
-        if (widget.isOnline)
+        if (showOnlineBadge)
           Positioned(
             right: 0,
             bottom: 0,

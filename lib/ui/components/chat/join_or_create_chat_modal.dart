@@ -170,6 +170,7 @@ class _JoinOrCreateChatModalState extends ConsumerState<JoinOrCreateChatModal> {
                   name: chat.name,
                   seedKey: chat.uuid.isNotEmpty ? chat.uuid : chat.name,
                   size: 84,
+                  type: chat.type,
                 ),
                 const SizedBox(height: 12),
                 Text(
