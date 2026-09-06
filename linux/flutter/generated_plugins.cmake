@@ -13,9 +13,11 @@ list(APPEND FLUTTER_PLUGIN_LIST
   media_kit_video
   open_file_linux
   record_linux
+  screen_retriever_linux
   super_native_extensions
   url_launcher_linux
   webview_all_linux
+  window_manager
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
