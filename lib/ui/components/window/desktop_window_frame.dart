@@ -100,9 +100,6 @@ class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
       height: 40,
       decoration: BoxDecoration(
         color: background,
-        border: Border(
-          bottom: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.6)),
-        ),
       ),
       child: Row(
         children: [

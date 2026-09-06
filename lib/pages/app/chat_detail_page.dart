@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
@@ -17,13 +18,38 @@ import 'package:novyse/pages/app/chat_routes.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/chat_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_detail_search_app_bar.dart';
+import 'package:novyse/ui/components/chat/chat_detail/chat_detail_full_width_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_selected_header.dart';
 import 'package:novyse/ui/components/chat/chat_drop_zone.dart';
 import 'package:novyse/ui/components/chat/chat_list_item.dart';
 import 'package:novyse/ui/components/chat/message_list.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
-const _appBarEdgePadding = 8.0;
+const _floatingBarPadding = EdgeInsets.fromLTRB(12, 8, 12, 0);
+const _floatingPillSpacing = 8.0;
+
+Widget _floatingPill({
+  required ColorScheme scheme,
+  required Widget child,
+  EdgeInsetsGeometry padding = EdgeInsets.zero,
+  double radius = 100,
+}) {
+  return ClipRRect(
+    borderRadius: BorderRadius.circular(radius),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+      child: Container(
+        padding: padding,
+        decoration: BoxDecoration(
+          color: scheme.surface.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(radius),
+          border: Border.all(color: scheme.outline.withValues(alpha: 0.25)),
+        ),
+        child: child,
+      ),
+    ),
+  );
+}
 
 class ChatDetailPage extends ConsumerStatefulWidget {
   const ChatDetailPage({super.key, required this.chatUUID});
@@ -124,10 +150,14 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   }
 
   void _handleBack() {
-    final hasSelection =
-        ref.read(chatDraftProvider(widget.chatUUID)).selectedMessages.isNotEmpty;
+    final hasSelection = ref
+        .read(chatDraftProvider(widget.chatUUID))
+        .selectedMessages
+        .isNotEmpty;
     if (hasSelection) {
-      ref.read(chatDraftProvider(widget.chatUUID).notifier).clearSelectedMessages();
+      ref
+          .read(chatDraftProvider(widget.chatUUID).notifier)
+          .clearSelectedMessages();
       return;
     }
     if (_searching) {
@@ -207,27 +237,41 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     final selectedMessages = draftState.selectedMessages;
     final hasSelection = selectedMessages.isNotEmpty;
 
-    final Widget appBar;
+    final Widget? appBar;
+    final Widget? floatingBar;
     if (hasSelection) {
+      floatingBar = null;
       appBar = ChatSelectedHeader(
         selectedCount: selectedMessages.length,
         onClose: () {
-          ref.read(chatDraftProvider(chatUUID).notifier).clearSelectedMessages();
+          ref
+              .read(chatDraftProvider(chatUUID).notifier)
+              .clearSelectedMessages();
         },
         onReply: () {
           for (final m in selectedMessages) {
             ref.read(chatDraftProvider(chatUUID).notifier).addReply(m);
           }
-          ref.read(chatDraftProvider(chatUUID).notifier).clearSelectedMessages();
+          ref
+              .read(chatDraftProvider(chatUUID).notifier)
+              .clearSelectedMessages();
         },
         onForward: () {
-          ref.read(forwardProvider.notifier).setForwardMessages(selectedMessages);
-          ref.read(chatDraftProvider(chatUUID).notifier).clearSelectedMessages();
+          ref
+              .read(forwardProvider.notifier)
+              .setForwardMessages(selectedMessages);
+          ref
+              .read(chatDraftProvider(chatUUID).notifier)
+              .clearSelectedMessages();
         },
         onDelete: () async {
           for (final m in selectedMessages) {
             try {
-              await apiGateway.message.delete(chatUUID, m.subID, m.id.toString());
+              await apiGateway.message.delete(
+                chatUUID,
+                m.subID,
+                m.id.toString(),
+              );
             } catch (e) {
               debugPrint('Error deleting message: $e');
             }
@@ -240,10 +284,13 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
               {},
             );
           }
-          ref.read(chatDraftProvider(chatUUID).notifier).clearSelectedMessages();
+          ref
+              .read(chatDraftProvider(chatUUID).notifier)
+              .clearSelectedMessages();
         },
       );
     } else if (_searching) {
+      floatingBar = null;
       appBar = ChatDetailSearchAppBar(
         controller: _searchController,
         focusNode: _searchFocusNode,
@@ -255,76 +302,97 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         onPrevious: () => _goToPreviousResult(searchTotal),
       );
     } else {
-      appBar = AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
-          onPressed: _handleBack,
-        ),
-        titleSpacing: 0,
-        title: Row(
-          children: [
-            Avatar(
-              uuid: metadata.profilePictureUUID,
-              name: metadata.name,
-              seedKey: chatUUID,
-              size: 40,
-              isOnline: metadata.isOnline,
-              isSavedMessages: metadata.isSavedMessages,
-              type: chat.type,
+      appBar = null;
+      floatingBar = Row(
+        children: [
+          _floatingPill(
+            scheme: colorScheme,
+            padding: const EdgeInsets.all(2),
+            child: IconButton(
+              icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
+              onPressed: _handleBack,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    metadata.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+          ),
+          const SizedBox(width: _floatingPillSpacing),
+          Expanded(
+            child: _floatingPill(
+              scheme: colorScheme,
+              radius: 28,
+              padding: const EdgeInsets.fromLTRB(2, 2, 2, 2),
+              child: Semantics(
+                header: true,
+                child: Row(
+                  children: [
+                    Avatar(
+                      uuid: metadata.profilePictureUUID,
+                      name: metadata.name,
+                      seedKey: chatUUID,
+                      size: 40,
+                      isOnline: metadata.isOnline,
+                      isSavedMessages: metadata.isSavedMessages,
+                      type: chat.type,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (subtitleText.isNotEmpty)
-                    Text(
-                      subtitleText,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: (chat.type == 'DM' && metadata.isOnline)
-                            ? colorScheme.primary
-                            : colorScheme.onSurfaceVariant,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            metadata.name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (subtitleText.isNotEmpty)
+                            Text(
+                              subtitleText,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: (chat.type == 'DM' && metadata.isOnline)
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurfaceVariant,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
-        actionsPadding: const EdgeInsets.only(right: _appBarEdgePadding),
-        actions: [
-          if (!_callOpen)
-            IconButton(
-              icon: AppHugeIcon(
-                icon: HugeIcons.strokeRoundedSearch01,
-                color: colorScheme.onSurface,
-              ),
-              onPressed: _openSearch,
+          ),
+          const SizedBox(width: _floatingPillSpacing),
+          _floatingPill(
+            scheme: colorScheme,
+            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!_callOpen)
+                  IconButton(
+                    icon: AppHugeIcon(
+                      icon: HugeIcons.strokeRoundedSearch01,
+                      color: colorScheme.onSurface,
+                    ),
+                    onPressed: _openSearch,
+                  ),
+                IconButton(
+                  icon: AppHugeIcon(
+                    icon: _callOpen
+                        ? HugeIcons.strokeRoundedChat01
+                        : HugeIcons.strokeRoundedAudioWave01,
+                    color: colorScheme.onSurface,
+                  ),
+                  onPressed: _callOpen ? _closeCall : _openCall,
+                ),
+              ],
             ),
-          IconButton(
-            icon: AppHugeIcon(
-              icon: _callOpen
-                  ? HugeIcons.strokeRoundedChat01
-                  : HugeIcons.strokeRoundedAudioWave01,
-              color: colorScheme.onSurface,
-            ),
-            onPressed: _callOpen ? _closeCall : _openCall,
           ),
         ],
       );
@@ -335,7 +403,9 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (hasSelection) {
-          ref.read(chatDraftProvider(chatUUID).notifier).clearSelectedMessages();
+          ref
+              .read(chatDraftProvider(chatUUID).notifier)
+              .clearSelectedMessages();
           return;
         }
         if (_searching) {
@@ -381,15 +451,35 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
               top: 0,
               left: 0,
               right: 0,
-              child: ClipRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-                  child: ColoredBox(
-                    color: colorScheme.surface.withValues(alpha: 0.55),
-                    child: appBar,
-                  ),
-                ),
-              ),
+              child: floatingBar != null
+                  ? AnnotatedRegion<SystemUiOverlayStyle>(
+                      value: colorScheme.brightness == Brightness.dark
+                          ? SystemUiOverlayStyle.light
+                          : SystemUiOverlayStyle.dark,
+                      child: SafeArea(
+                        bottom: false,
+                        child: Padding(
+                          padding: _floatingBarPadding,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              floatingBar,
+                              const SizedBox(height: _floatingPillSpacing),
+                              const ChatDetailFullWidthBar(),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  : ClipRect(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                        child: ColoredBox(
+                          color: colorScheme.surface.withValues(alpha: 0.55),
+                          child: appBar,
+                        ),
+                      ),
+                    ),
             ),
           ],
         ),
