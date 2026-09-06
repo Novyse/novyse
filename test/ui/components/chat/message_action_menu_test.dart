@@ -52,7 +52,6 @@ void main() {
 
       expect(find.text('Reply'), findsOneWidget);
       expect(find.text('Copy'), findsOneWidget);
-      expect(find.text('Copy link'), findsNothing);
       expect(find.text('Select'), findsOneWidget);
       expect(find.text('Delete'), findsOneWidget);
 

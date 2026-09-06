@@ -6,6 +6,7 @@ import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/edit_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/files_bar.dart';
+import 'package:novyse/ui/components/chat/bottom_bar/actions/mention_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/reply_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/left_button_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/middle_bar_bottom_bar.dart';
@@ -33,6 +34,7 @@ class DefaultBottomBar extends ConsumerStatefulWidget {
 class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
   final FocusNode _focusNode = FocusNode();
   bool _isSending = false;
+  TextEditingController? _textController;
 
   @override
   void initState() {
@@ -41,28 +43,39 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
     final draftText = ref
         .read(chatDraftProvider(widget.chatUUID))
         .newMessageText;
-    final controller = ref.read(chatTextControllerProvider(widget.chatUUID));
-    if (draftText.isNotEmpty && controller.text != draftText) {
-      controller.text = draftText;
+    _textController = ref.read(chatTextControllerProvider(widget.chatUUID));
+    if (draftText.isNotEmpty && _textController!.text != draftText) {
+      _textController!.text = draftText;
     }
+    _textController!.addListener(_onControllerChanged);
+  }
+
+  void _onControllerChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void didUpdateWidget(covariant DefaultBottomBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.chatUUID != widget.chatUUID) {
+      _textController?.removeListener(_onControllerChanged);
+
+      _textController = ref.read(chatTextControllerProvider(widget.chatUUID));
+      _textController!.addListener(_onControllerChanged);
+
       final draftText = ref
           .read(chatDraftProvider(widget.chatUUID))
           .newMessageText;
-      final controller = ref.read(chatTextControllerProvider(widget.chatUUID));
-      if (controller.text != draftText) {
-        controller.text = draftText;
+      if (_textController!.text != draftText) {
+        _textController!.text = draftText;
       }
     }
   }
 
   @override
   void dispose() {
+    _textController?.removeListener(_onControllerChanged);
+    _textController = null;
     _focusNode.dispose();
     super.dispose();
   }
@@ -160,6 +173,12 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // Mention Bar
+        MentionBar(
+          chatUUID: chatUUID,
+          focusNode: _focusNode,
+        ),
+
         // Edit Bar (Priority over Reply)
         EditBar(chatUUID: chatUUID),
 
