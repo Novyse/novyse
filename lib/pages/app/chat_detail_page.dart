@@ -290,12 +290,12 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         },
       );
     } else if (_searching) {
-      floatingBar = null;
-      appBar = ChatDetailSearchAppBar(
+      appBar = null;
+      floatingBar = ChatDetailSearchAppBar(
         controller: _searchController,
         focusNode: _searchFocusNode,
         onQueryChanged: _onSearchQueryChanged,
-        onClose: _closeSearch,
+        onClose: () => _closeSearch(),
         totalResults: searchTotal,
         currentIndex: displayIndex,
         onNext: () => _goToNextResult(searchTotal),

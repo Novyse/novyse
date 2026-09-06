@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:novyse/core/l10n/l10n.dart';
@@ -17,7 +18,9 @@ import 'package:novyse/ui/components/chat/create_chat_modal.dart';
 import 'package:novyse/ui/components/chat/join_or_create_chat_modal.dart';
 import 'package:novyse/ui/components/status/global_status_bar.dart';
 
-const _statusBarPadding = EdgeInsets.symmetric(horizontal: 16, vertical: 4);
+const _statusBarPadding = EdgeInsets.symmetric(horizontal: 4, vertical: 4);
+const _floatingBarPadding = EdgeInsets.fromLTRB(12, 8, 12, 0);
+const _floatingPillSpacing = 8.0;
 
 class ChatListPage extends ConsumerStatefulWidget {
   const ChatListPage({super.key});
@@ -199,70 +202,86 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     );
     final chatListState = ref.watch(chatListProvider);
     final chats = chatListState.chats;
+    final colorScheme = Theme.of(context).colorScheme;
     final topInset = MediaQuery.paddingOf(context).top;
     final isFiltering = _searching && _query.trim().isNotEmpty;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: ChatListAppBar(
-        searching: _searching,
-        searchController: _searchController,
-        searchFocusNode: _searchFocusNode,
-        onQueryChanged: _onQueryChanged,
-        onOpenSearch: _openSearch,
-        onCloseSearch: _closeSearch,
-        onNewChat: () => showCreateChatModal(context),
-      ),
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: SizedBox(height: topInset + kToolbarHeight),
-              ),
-              const SliverToBoxAdapter(
-                child: Visibility(
-                  visible: false,
-                  maintainSize: true,
-                  maintainAnimation: true,
-                  maintainState: true,
-                  child: GlobalStatusBar(padding: _statusBarPadding),
+    return PopScope(
+      canPop: !_searching,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (_searching) _closeSearch();
+      },
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        body: Stack(
+          children: [
+            CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: SizedBox(height: topInset + 68),
+                ),
+                if (chatListState.loading && chats.isEmpty)
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (!isFiltering && chats.isEmpty)
+                  const ChatListEmptyView()
+                else if (isFiltering)
+                  ChatSearchResults(
+                    localChats: _localChats,
+                    remoteChats: _remoteChats,
+                    matchedMessages: _matchedMessages,
+                    messagesLoading: _messagesLoading,
+                    remoteLoading: _remoteLoading,
+                    query: _query.trim(),
+                    selectedChatUUID: selectedChatUUID,
+                    onOpenChat: _onChatSelected,
+                    onOpenMessage: _openMessageResult,
+                  )
+                else
+                  ChatListView(
+                    chats: chats,
+                    selectedChatUUID: selectedChatUUID,
+                    onOpenChat: _openChat,
+                  ),
+              ],
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: AnnotatedRegion<SystemUiOverlayStyle>(
+                value: colorScheme.brightness == Brightness.dark
+                    ? SystemUiOverlayStyle.light
+                    : SystemUiOverlayStyle.dark,
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: _floatingBarPadding,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ChatListAppBar(
+                          searching: _searching,
+                          searchController: _searchController,
+                          searchFocusNode: _searchFocusNode,
+                          onQueryChanged: _onQueryChanged,
+                          onOpenSearch: _openSearch,
+                          onCloseSearch: _closeSearch,
+                          onNewChat: () => showCreateChatModal(context),
+                        ),
+                        const SizedBox(height: _floatingPillSpacing),
+                        const GlobalStatusBar(padding: _statusBarPadding),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              if (chatListState.loading && chats.isEmpty)
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else if (!isFiltering && chats.isEmpty)
-                const ChatListEmptyView()
-              else if (isFiltering)
-                ChatSearchResults(
-                  localChats: _localChats,
-                  remoteChats: _remoteChats,
-                  matchedMessages: _matchedMessages,
-                  messagesLoading: _messagesLoading,
-                  remoteLoading: _remoteLoading,
-                  query: _query.trim(),
-                  selectedChatUUID: selectedChatUUID,
-                  onOpenChat: _onChatSelected,
-                  onOpenMessage: _openMessageResult,
-                )
-              else
-                ChatListView(
-                  chats: chats,
-                  selectedChatUUID: selectedChatUUID,
-                  onOpenChat: _openChat,
-                ),
-            ],
-          ),
-          Positioned(
-            top: topInset + kToolbarHeight,
-            left: 0,
-            right: 0,
-            child: const GlobalStatusBar(padding: _statusBarPadding),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

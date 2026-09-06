@@ -1,10 +1,12 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/chat/chat_list_app_menu.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
-class ChatListAppBar extends StatelessWidget implements PreferredSizeWidget {
+class ChatListAppBar extends StatelessWidget {
   const ChatListAppBar({
     super.key,
     required this.searching,
@@ -24,82 +26,111 @@ class ChatListAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onCloseSearch;
   final VoidCallback onNewChat;
 
-  static const _appBarEdgePadding = 8.0;
+  static const _pillSpacing = 8.0;
 
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Widget _pill({
+    required ColorScheme scheme,
+    required Widget child,
+    EdgeInsetsGeometry padding = EdgeInsets.zero,
+    double radius = 100,
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: scheme.surface.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(radius),
+            border: Border.all(color: scheme.outline.withValues(alpha: 0.25)),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (searching) {
       final l10n = AppLocalizations.of(context)!;
-      final colorScheme = Theme.of(context).colorScheme;
-      final fieldBorder = OutlineInputBorder(
-        borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide.none,
-      );
+      final hasQuery = searchController.text.isNotEmpty;
 
-      return AppBar(
-        automaticallyImplyLeading: false,
-        scrolledUnderElevation: 0,
-        titleSpacing: 8,
-        actionsPadding: const EdgeInsets.only(right: _appBarEdgePadding),
-        title: TextField(
-          controller: searchController,
-          focusNode: searchFocusNode,
-          textInputAction: TextInputAction.search,
-          onChanged: onQueryChanged,
-          decoration: InputDecoration(
-            hintText: l10n.searchHint,
-            isDense: true,
-            filled: true,
-            fillColor: colorScheme.surfaceContainerHighest.withValues(
-              alpha: 0.55,
-            ),
-            prefixIconConstraints: const BoxConstraints(
-              minWidth: 48,
-              minHeight: 48,
-            ),
-            prefixIcon: Padding(
-              padding: const EdgeInsets.all(14),
-              child: AppHugeIcon(
-                icon: HugeIcons.strokeRoundedSearch01,
-                size: 20,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 10,
-            ),
-            border: fieldBorder,
-            enabledBorder: fieldBorder,
-            focusedBorder: fieldBorder.copyWith(
-              borderSide: BorderSide(
-                color: colorScheme.primary.withValues(alpha: 0.45),
-              ),
+      return Row(
+        children: [
+          _pill(
+            scheme: colorScheme,
+            padding: const EdgeInsets.all(2),
+            child: IconButton(
+              icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
+              tooltip: l10n.cancel,
+              onPressed: onCloseSearch,
             ),
           ),
-        ),
-        actions: [
-          IconButton(
-            icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
-            onPressed: onCloseSearch,
+          const SizedBox(width: _pillSpacing),
+          Expanded(
+            child: _pill(
+              scheme: colorScheme,
+              radius: 28,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TextField(
+                controller: searchController,
+                focusNode: searchFocusNode,
+                autofocus: true,
+                textInputAction: TextInputAction.search,
+                onChanged: onQueryChanged,
+                decoration: InputDecoration(
+                  hintText: l10n.searchHint,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  isDense: true,
+                  filled: false,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  suffixIconConstraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
+                  suffixIcon: hasQuery
+                      ? IconButton(
+                          icon: const AppHugeIcon(
+                            icon: HugeIcons.strokeRoundedCancel01,
+                            size: 18,
+                          ),
+                          onPressed: () {
+                            searchController.clear();
+                            onQueryChanged('');
+                          },
+                        )
+                      : null,
+                ),
+              ),
+            ),
           ),
         ],
       );
     }
 
-    return AppBar(
-      automaticallyImplyLeading: false,
-      scrolledUnderElevation: 0,
-      titleSpacing: 8,
-      leading: IconButton(
-        icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedSearch01),
-        onPressed: onOpenSearch,
-      ),
-      actionsPadding: const EdgeInsets.only(right: _appBarEdgePadding),
-      actions: [ChatListAppMenu(onNewChat: onNewChat)],
+    return Row(
+      children: [
+        _pill(
+          scheme: colorScheme,
+          padding: const EdgeInsets.all(2),
+          child: IconButton(
+            icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedSearch01),
+            onPressed: onOpenSearch,
+          ),
+        ),
+        const Spacer(),
+        _pill(
+          scheme: colorScheme,
+          padding: const EdgeInsets.all(2),
+          child: ChatListAppMenu(onNewChat: onNewChat),
+        ),
+      ],
     );
   }
 }

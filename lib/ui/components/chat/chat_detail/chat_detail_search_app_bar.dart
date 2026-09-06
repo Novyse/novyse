@@ -1,10 +1,11 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
-class ChatDetailSearchAppBar extends StatelessWidget
-    implements PreferredSizeWidget {
+class ChatDetailSearchAppBar extends StatelessWidget {
   const ChatDetailSearchAppBar({
     super.key,
     required this.controller,
@@ -26,10 +27,30 @@ class ChatDetailSearchAppBar extends StatelessWidget
   final VoidCallback onNext;
   final VoidCallback onPrevious;
 
-  static const _appBarEdgePadding = 8.0;
+  static const _pillSpacing = 8.0;
 
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Widget _pill({
+    required ColorScheme scheme,
+    required Widget child,
+    EdgeInsetsGeometry padding = EdgeInsets.zero,
+    double radius = 100,
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: scheme.surface.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(radius),
+            border: Border.all(color: scheme.outline.withValues(alpha: 0.25)),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,96 +58,94 @@ class ChatDetailSearchAppBar extends StatelessWidget
     final colorScheme = Theme.of(context).colorScheme;
     final hasResults = totalResults > 0;
     final hasQuery = controller.text.isNotEmpty;
-    final fieldBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(20),
-      borderSide: BorderSide.none,
-    );
 
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      automaticallyImplyLeading: false,
-      leading: IconButton(
-        icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
-        tooltip: l10n.cancel,
-        onPressed: onClose,
-      ),
-      titleSpacing: 0,
-      title: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        autofocus: true,
-        textInputAction: TextInputAction.search,
-        onChanged: onQueryChanged,
-        onSubmitted: (_) {
-          if (hasResults) onNext();
-        },
-        decoration: InputDecoration(
-          hintText: l10n.searchHint,
-          isDense: true,
-          filled: true,
-          fillColor: colorScheme.surfaceContainerHighest.withValues(
-            alpha: 0.55,
-          ),
-          prefixIconConstraints: const BoxConstraints(
-            minWidth: 48,
-            minHeight: 48,
-          ),
-          prefixIcon: Padding(
-            padding: const EdgeInsets.all(14),
-            child: AppHugeIcon(
-              icon: HugeIcons.strokeRoundedSearch01,
-              size: 20,
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          suffixIcon: hasQuery
-              ? IconButton(
-                  icon: const AppHugeIcon(
-                    icon: HugeIcons.strokeRoundedCancel01,
-                    size: 18,
-                  ),
-                  onPressed: () {
-                    controller.clear();
-                    onQueryChanged('');
-                  },
-                )
-              : null,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 10,
-          ),
-          border: fieldBorder,
-          enabledBorder: fieldBorder,
-          focusedBorder: fieldBorder.copyWith(
-            borderSide: BorderSide(
-              color: colorScheme.primary.withValues(alpha: 0.45),
-            ),
+    return Row(
+      children: [
+        _pill(
+          scheme: colorScheme,
+          padding: const EdgeInsets.all(2),
+          child: IconButton(
+            icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
+            tooltip: l10n.cancel,
+            onPressed: onClose,
           ),
         ),
-      ),
-      actionsPadding: const EdgeInsets.only(right: _appBarEdgePadding),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Center(
-            child: Text(
-              hasResults ? '${currentIndex + 1}/$totalResults' : '0/0',
-              style: TextStyle(
-                fontSize: 13,
-                color: colorScheme.onSurfaceVariant,
+        const SizedBox(width: _pillSpacing),
+        Expanded(
+          child: _pill(
+            scheme: colorScheme,
+            radius: 28,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              autofocus: true,
+              textInputAction: TextInputAction.search,
+              onChanged: onQueryChanged,
+              onSubmitted: (_) {
+                if (hasResults) onNext();
+              },
+              decoration: InputDecoration(
+                hintText: l10n.searchHint,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                isDense: true,
+                filled: false,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                suffixIconConstraints: const BoxConstraints(
+                  minWidth: 32,
+                  minHeight: 32,
+                ),
+                suffixIcon: hasQuery
+                    ? IconButton(
+                        icon: const AppHugeIcon(
+                          icon: HugeIcons.strokeRoundedCancel01,
+                          size: 18,
+                        ),
+                        onPressed: () {
+                          controller.clear();
+                          onQueryChanged('');
+                        },
+                      )
+                    : null,
               ),
             ),
           ),
         ),
-        IconButton(
-          icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowUp01),
-          onPressed: hasResults ? onPrevious : null,
-        ),
-        IconButton(
-          icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowDown01),
-          onPressed: hasResults ? onNext : null,
+        const SizedBox(width: _pillSpacing),
+        _pill(
+          scheme: colorScheme,
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text(
+                    hasResults ? '${currentIndex + 1}/$totalResults' : '0/0',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const AppHugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowUp01,
+                ),
+                onPressed: hasResults ? onPrevious : null,
+              ),
+              IconButton(
+                icon: const AppHugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowDown01,
+                ),
+                onPressed: hasResults ? onNext : null,
+              ),
+            ],
+          ),
         ),
       ],
     );
