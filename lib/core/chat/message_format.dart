@@ -1,4 +1,5 @@
 import 'package:novyse/core/storage/file/file_type.dart';
+import 'package:novyse/core/stores/message_store.dart';
 
 final RegExp _gifUrlRegex = RegExp(
   r'''https?://[^\s<>"'`]+?\.gif(?:\?[^\s<>"'`]*)?''',
@@ -161,13 +162,17 @@ String _defaultTranslate(String key, [Map<String, dynamic>? params]) {
 
 /// Formats message text / preview content (e.g. attachments, GIFs, system messages).
 Map<String, dynamic> formatMessage(
-  Map<String, dynamic> messageRef, {
+  dynamic messageRef, {
   String? localUserUUID,
   Map<String, dynamic>? Function(String uuid)? getUser,
   TranslationCallback? t,
 }) {
   final translate = t ?? _defaultTranslate;
-  final message = Map<String, dynamic>.from(messageRef);
+  final Map<String, dynamic> message = messageRef is MessageModel
+      ? messageRef.toMap()
+      : (messageRef is Map
+          ? Map<String, dynamic>.from(messageRef)
+          : <String, dynamic>{});
   final type = message['type'] as String?;
 
   if (type == 'system') {

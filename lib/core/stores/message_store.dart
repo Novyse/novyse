@@ -92,6 +92,28 @@ class MessageModel {
     );
   }
 
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'messageID': id,
+      'chatUUID': chatUUID,
+      'subID': subID,
+      'userUUID': userUUID,
+      'senderUUID': userUUID,
+      'createdAt': createdAt.toIso8601String(),
+      'edited': edited,
+      'pinned': pinned,
+      'content': content,
+      'replyTos': replyTos,
+      'reactions': reactions,
+      'reads': reads,
+      'files': files,
+      'status': status,
+      'type': type,
+      if (systemAction != null) 'system_action': systemAction,
+    };
+  }
+
   MessageModel copyWith({
     dynamic id,
     String? chatUUID,
@@ -319,7 +341,20 @@ class MessageListNotifier
           messages: state.messages.map((m) {
             if (m.id.toString() == messageID) {
               final newContent = (data['content'] ?? data['text']) as String?;
-              return m.copyWith(content: newContent, edited: true);
+              List<Map<String, dynamic>> updatedFiles = List.from(m.files);
+
+              if (data['files'] is List) {
+                updatedFiles = (data['files'] as List)
+                    .whereType<Map>()
+                    .map((f) => Map<String, dynamic>.from(f))
+                    .toList();
+              }
+
+              return m.copyWith(
+                content: newContent,
+                edited: true,
+                files: updatedFiles,
+              );
             }
             return m;
           }).toList(),

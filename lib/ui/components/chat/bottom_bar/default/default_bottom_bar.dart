@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/core/chat/queue/queue_manager.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
-import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/edit_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/files_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/mention_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/reply_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/left_button_bottom_bar.dart';
+import 'package:novyse/ui/components/chat/bottom_bar/default/message_send_handler.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/middle_bar_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/right_button_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/recording/voice_recorder_controller.dart';
@@ -80,83 +78,18 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
     super.dispose();
   }
 
-  Future<void> _handleSendMessage() async {
-    final controller = ref.read(chatTextControllerProvider(widget.chatUUID));
-    final text = controller.text.trim();
-    final draftState = ref.read(chatDraftProvider(widget.chatUUID));
-    final files = List<dynamic>.from(draftState.files);
-
-    // If both text and files are empty, or already sending, do nothing
-    if ((text.isEmpty && files.isEmpty) || _isSending) return;
-
-    // Check if there are invalid files
-    if (draftState.invalidFiles.isNotEmpty) {
-      final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.removeInvalidFilesBeforeSending),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-
-    final replyingTo = List<ChatReplyItem>.from(draftState.replyingTo);
-
-    setState(() => _isSending = true);
-    controller.clear();
-    ref.read(chatDraftProvider(widget.chatUUID).notifier).setText('');
-    ref.read(chatDraftProvider(widget.chatUUID).notifier).setFiles([]);
-    ref.read(chatDraftProvider(widget.chatUUID).notifier).setInvalidFiles([]);
-    ref.read(chatDraftProvider(widget.chatUUID).notifier).setReplyingTo([]);
-
-    try {
-      final localUserUUID = ref.read(userStoreProvider).localUserUUID;
-      final tempId = DateTime.now().millisecondsSinceEpoch;
-      final now = DateTime.now().toUtc().toIso8601String();
-
-      final queueManager = ref.read(queueManagerProvider);
-      final filesPayload = files.isNotEmpty
-          ? files.map((f) => Map<String, dynamic>.from(f as Map)).toList()
-          : null;
-
-      final replyTos = replyingTo.map((item) {
-        return <String, dynamic>{
-          'chatUUID': item.message.chatUUID,
-          'subID': item.message.subID,
-          'messageID': item.message.id,
-          'rangeStart': ?item.rangeStart,
-          'rangeEnd': ?item.rangeEnd,
-        };
-      }).toList();
-
-      await queueManager.addOutgoingMessageJob(
-        id: tempId.toString(),
+  MessageSendHandler get _sendHandler => MessageSendHandler(
+        ref: ref,
+        context: context,
         chatUUID: widget.chatUUID,
         subID: widget.subID,
-        message: {
-          'id': tempId,
-          'chatUUID': widget.chatUUID,
-          'subID': widget.subID,
-          'senderUUID': localUserUUID,
-          'userUUID': localUserUUID,
-          'content': text,
-          'type': 'message',
-          'createdAt': now,
-          'status': 'PENDING_SEND',
-          'files': ?filesPayload,
-          if (replyTos.isNotEmpty) 'replyTos': replyTos,
+        onSendingChanged: (sending) {
+          if (mounted) setState(() => _isSending = sending);
         },
-        files: filesPayload,
       );
-    } catch (e) {
-      debugPrint('[DefaultBottomBar] Error sending message via queue: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _isSending = false);
-      }
-    }
-  }
+
+  Future<void> _handleSendMessage() => _sendHandler.handleSendMessage();
+  Future<void> _handleEditMessage() => _sendHandler.handleEditMessage();
 
   @override
   Widget build(BuildContext context) {
@@ -166,8 +99,19 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
     final recorderState = ref.watch(voiceRecorderProvider(chatUUID));
     final recorderNotifier = ref.read(voiceRecorderProvider(chatUUID).notifier);
 
+    final isEditing = draftState.editingMessage != null;
     final hasText = textController.text.trim().isNotEmpty;
     final hasFiles = draftState.files.isNotEmpty;
+
+    // Automatically focus the input field when entering edit mode
+    ref.listen<ChatDraftState>(chatDraftProvider(chatUUID), (previous, next) {
+      if (previous?.editingMessage?.id != next.editingMessage?.id &&
+          next.editingMessage != null) {
+        _focusNode.requestFocus();
+      }
+    });
+
+    final onSendMessage = isEditing ? _handleEditMessage : _handleSendMessage;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -185,7 +129,7 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
         // Reply Bar
         ReplyBar(chatUUID: chatUUID),
 
-        // Files Bar (Draft attachments)
+        // Files Bar (Draft attachments & edit files)
         FilesBar(chatUUID: chatUUID),
 
         // Input Row
@@ -207,7 +151,7 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
                 focusNode: _focusNode,
                 isRecording: recorderState.isRecording,
                 recorderState: recorderState,
-                onSendMessage: _handleSendMessage,
+                onSendMessage: onSendMessage,
                 onTogglePause: () => recorderNotifier.togglePause(),
                 onStopAndDraft: () => recorderNotifier.stopAndDraft(),
               ),
@@ -218,7 +162,7 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
               hasText: hasText,
               hasFiles: hasFiles,
               isSending: _isSending,
-              onSendMessage: _handleSendMessage,
+              onSendMessage: onSendMessage,
               onStartRecording: () => recorderNotifier.startRecording(),
               onStopAndSend: () =>
                   recorderNotifier.stopAndSend(subID: widget.subID),

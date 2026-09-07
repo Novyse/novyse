@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:novyse/core/l10n/l10n.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/chat/message_format.dart';
+import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
+import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class EditBar extends ConsumerWidget {
@@ -18,13 +20,27 @@ class EditBar extends ConsumerWidget {
         .editingMessage;
     if (editingMessage == null) return const SizedBox.shrink();
 
+    final userState = ref.watch(userStoreProvider);
+    final localUserUUID = userState.localUserUUID;
+    final users = userState.users;
+
+    final formatted = formatMessage(
+      editingMessage,
+      localUserUUID: localUserUUID,
+      getUser: (uuid) => users[uuid]?.toMap(),
+    );
+
+    final rawFormatted = formatted['content']?.toString() ?? '';
+    final content = rawFormatted.isNotEmpty
+        ? rawFormatted
+        : (editingMessage.content ?? '');
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final content = editingMessage.content ?? '';
-
     void handleCancelEdit() {
-      ref.read(chatDraftProvider(chatUUID).notifier).setEditingMessage(null);
+      ref.read(chatDraftProvider(chatUUID).notifier).cancelEdit();
+      ref.read(chatTextControllerProvider(chatUUID)).clear();
     }
 
     return Container(

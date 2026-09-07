@@ -151,6 +151,16 @@ class ChatDraftNotifier extends FamilyNotifier<ChatDraftState, String> {
     state = state.copyWith(editingMessage: () => message);
   }
 
+  /// Cancels the edit, restoring the text controller state and clearing files.
+  void cancelEdit() {
+    state = state.copyWith(
+      editingMessage: () => null,
+      files: const [],
+      invalidFiles: const [],
+      newMessageText: '',
+    );
+  }
+
   void setSelectedMessages(List<MessageModel> messages) {
     state = state.copyWith(selectedMessages: messages);
   }

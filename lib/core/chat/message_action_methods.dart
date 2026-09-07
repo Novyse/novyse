@@ -67,10 +67,25 @@ class MessageActionMethods {
 
   /// Initiates editing of a message.
   void edit(MessageModel message) {
-    ref.read(chatDraftProvider(chatUUID).notifier).setEditingMessage(message);
-    if (message.content != null) {
-      ref.read(chatDraftProvider(chatUUID).notifier).setText(message.content!);
+    final draftNotifier = ref.read(chatDraftProvider(chatUUID).notifier);
+    draftNotifier.setEditingMessage(message);
+    final content = message.content ?? '';
+    draftNotifier.setText(content);
+
+    final controller = ref.read(chatTextControllerProvider(chatUUID));
+    if (controller.text != content) {
+      controller.value = TextEditingValue(
+        text: content,
+        selection: TextSelection.collapsed(offset: content.length),
+      );
     }
+
+    // Populate draft files from the message's current file list
+    final currentFiles = message.files
+        .map((f) => Map<String, dynamic>.from(f))
+        .toList();
+    draftNotifier.setFiles(currentFiles);
+    draftNotifier.setInvalidFiles([]);
   }
 
   /// Pins/unpins a message (placeholder).
