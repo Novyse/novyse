@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class ChatDetailSearchAppBar extends StatelessWidget {
@@ -16,6 +17,7 @@ class ChatDetailSearchAppBar extends StatelessWidget {
     required this.currentIndex,
     required this.onNext,
     required this.onPrevious,
+    this.bottom,
   });
 
   final TextEditingController controller;
@@ -26,6 +28,7 @@ class ChatDetailSearchAppBar extends StatelessWidget {
   final int currentIndex;
   final VoidCallback onNext;
   final VoidCallback onPrevious;
+  final Widget? bottom;
 
   static const _pillSpacing = 8.0;
 
@@ -59,7 +62,7 @@ class ChatDetailSearchAppBar extends StatelessWidget {
     final hasResults = totalResults > 0;
     final hasQuery = controller.text.isNotEmpty;
 
-    return Row(
+    final content = Row(
       children: [
         _pill(
           scheme: colorScheme,
@@ -148,6 +151,23 @@ class ChatDetailSearchAppBar extends StatelessWidget {
           ),
         ),
       ],
+    );
+
+    return ProgressiveOpacityBackground(
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              content,
+              if (bottom != null) ...[const SizedBox(height: 8), bottom!],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

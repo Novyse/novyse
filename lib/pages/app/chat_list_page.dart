@@ -19,7 +19,6 @@ import 'package:novyse/ui/components/chat/join_or_create_chat_modal.dart';
 import 'package:novyse/ui/components/status/global_status_bar.dart';
 
 const _statusBarPadding = EdgeInsets.symmetric(horizontal: 4, vertical: 4);
-const _floatingBarPadding = EdgeInsets.fromLTRB(12, 8, 12, 0);
 const _floatingPillSpacing = 8.0;
 
 class ChatListPage extends ConsumerStatefulWidget {
@@ -256,27 +255,22 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
                 value: colorScheme.brightness == Brightness.dark
                     ? SystemUiOverlayStyle.light
                     : SystemUiOverlayStyle.dark,
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: _floatingBarPadding,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ChatListAppBar(
-                          searching: _searching,
-                          searchController: _searchController,
-                          searchFocusNode: _searchFocusNode,
-                          onQueryChanged: _onQueryChanged,
-                          onOpenSearch: _openSearch,
-                          onCloseSearch: _closeSearch,
-                          onNewChat: () => showCreateChatModal(context),
-                        ),
-                        const SizedBox(height: _floatingPillSpacing),
-                        const GlobalStatusBar(padding: _statusBarPadding),
-                      ],
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ChatListAppBar(
+                      searching: _searching,
+                      searchController: _searchController,
+                      searchFocusNode: _searchFocusNode,
+                      onQueryChanged: _onQueryChanged,
+                      onOpenSearch: _openSearch,
+                      onCloseSearch: _closeSearch,
+                      onNewChat: () => showCreateChatModal(context),
                     ),
-                  ),
+                    const SizedBox(height: _floatingPillSpacing),
+                    const GlobalStatusBar(padding: _statusBarPadding),
+                  ],
                 ),
               ),
             ),
