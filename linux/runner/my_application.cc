@@ -9,46 +9,48 @@
 
 struct _MyApplication {
   GtkApplication parent_instance;
-  char** dart_entrypoint_arguments;
+  char **dart_entrypoint_arguments;
 };
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 
 // Called when first Flutter frame received.
-static void first_frame_cb(MyApplication* self, FlView* view) {
+static void first_frame_cb(MyApplication *self, FlView *view) {
   gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
 }
 
 // Implements GApplication::activate.
-static void my_application_activate(GApplication* application) {
-  MyApplication* self = MY_APPLICATION(application);
-  GtkWindow* window =
+static void my_application_activate(GApplication *application) {
+  MyApplication *self = MY_APPLICATION(application);
+  GtkWindow *window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
 
-  // Custom title bar is drawn in Flutter (see CustomTitleBar):
-  // never use a native header bar to avoid a double toolbar.
-  gtk_window_set_title(window, "Novyse");
+  GtkWidget *header_bar = gtk_header_bar_new();
+  gtk_widget_set_no_show_all(header_bar, TRUE);
+  gtk_widget_hide(header_bar);
+  gtk_window_set_titlebar(window, header_bar);
 
-  g_autofree gchar* exe_path = g_file_read_link("/proc/self/exe", nullptr);
+  g_autofree gchar *exe_path = g_file_read_link("/proc/self/exe", nullptr);
   if (exe_path != nullptr) {
-    g_autofree gchar* exe_dir = g_path_get_dirname(exe_path);
-    g_autofree gchar* icon_path = g_build_filename(
-        exe_dir, "data", "flutter_assets", "assets", "images",
-        "novyse-icon-logo.png", nullptr);
+    g_autofree gchar *exe_dir = g_path_get_dirname(exe_path);
+    g_autofree gchar *icon_path =
+        g_build_filename(exe_dir, "data", "flutter_assets", "assets", "images",
+                         "novyse-icon-logo.png", nullptr);
     if (g_file_test(icon_path, G_FILE_TEST_EXISTS)) {
       gtk_window_set_icon_from_file(window, icon_path, nullptr);
     }
   }
 
+  gtk_window_set_title(window, "Novyse");
   gtk_window_set_default_icon_name("novyse");
-
   gtk_window_set_default_size(window, 1280, 720);
+  gtk_window_set_decorated(window, FALSE);
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
   fl_dart_project_set_dart_entrypoint_arguments(
       project, self->dart_entrypoint_arguments);
 
-  FlView* view = fl_view_new(project);
+  FlView *view = fl_view_new(project);
   GdkRGBA background_color;
   // Background defaults to black, override it here if necessary, e.g. #00000000
   // for transparent.
@@ -69,10 +71,10 @@ static void my_application_activate(GApplication* application) {
 }
 
 // Implements GApplication::local_command_line.
-static gboolean my_application_local_command_line(GApplication* application,
-                                                  gchar*** arguments,
-                                                  int* exit_status) {
-  MyApplication* self = MY_APPLICATION(application);
+static gboolean my_application_local_command_line(GApplication *application,
+                                                  gchar ***arguments,
+                                                  int *exit_status) {
+  MyApplication *self = MY_APPLICATION(application);
   // Strip out the first argument as it is the binary name.
   self->dart_entrypoint_arguments = g_strdupv(*arguments + 1);
 
@@ -90,7 +92,7 @@ static gboolean my_application_local_command_line(GApplication* application,
 }
 
 // Implements GApplication::startup.
-static void my_application_startup(GApplication* application) {
+static void my_application_startup(GApplication *application) {
   // MyApplication* self = MY_APPLICATION(object);
 
   // Perform any actions required at application startup.
@@ -99,7 +101,7 @@ static void my_application_startup(GApplication* application) {
 }
 
 // Implements GApplication::shutdown.
-static void my_application_shutdown(GApplication* application) {
+static void my_application_shutdown(GApplication *application) {
   // MyApplication* self = MY_APPLICATION(object);
 
   // Perform any actions required at application shutdown.
@@ -108,13 +110,13 @@ static void my_application_shutdown(GApplication* application) {
 }
 
 // Implements GObject::dispose.
-static void my_application_dispose(GObject* object) {
-  MyApplication* self = MY_APPLICATION(object);
+static void my_application_dispose(GObject *object) {
+  MyApplication *self = MY_APPLICATION(object);
   g_clear_pointer(&self->dart_entrypoint_arguments, g_strfreev);
   G_OBJECT_CLASS(my_application_parent_class)->dispose(object);
 }
 
-static void my_application_class_init(MyApplicationClass* klass) {
+static void my_application_class_init(MyApplicationClass *klass) {
   G_APPLICATION_CLASS(klass)->activate = my_application_activate;
   G_APPLICATION_CLASS(klass)->local_command_line =
       my_application_local_command_line;
@@ -123,9 +125,11 @@ static void my_application_class_init(MyApplicationClass* klass) {
   G_OBJECT_CLASS(klass)->dispose = my_application_dispose;
 }
 
-static void my_application_init(MyApplication* self) {}
+static void my_application_init(MyApplication *self) {}
 
-MyApplication* my_application_new() {
+MyApplication *my_application_new() {
+  g_setenv("GTK_CSD", "1", TRUE);
+
   // Set the program name to the application ID, which helps various systems
   // like GTK and desktop environments map this running application to its
   // corresponding .desktop file. This ensures better integration by allowing
