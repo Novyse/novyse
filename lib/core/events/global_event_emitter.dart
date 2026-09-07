@@ -104,8 +104,15 @@ class MessageEmitter {
   ) async {
     switch (action) {
       case 'edit':
-        final content = data['content'] as String? ?? '';
-        await _db.message.edit(chatUUID, subID, messageID, content);
+        final content = data['content'] as String?;
+        final files = data['files'] is List ? (data['files'] as List) : null;
+        await _db.message.edit(
+          chatUUID,
+          subID,
+          messageID,
+          content,
+          files: files,
+        );
         break;
       case 'delete':
         await _db.message.delete(chatUUID, subID, messageID);

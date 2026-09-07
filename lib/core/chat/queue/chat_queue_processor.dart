@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:novyse/core/chat/queue/queue_job.dart';
+import 'package:novyse/core/chat/queue/queue_manager.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/storage/database/database.dart';
@@ -203,7 +204,27 @@ class ChatQueueProcessor {
       job.attempts += 1;
       job.errorMessage = e.toString();
 
-      if (job.attempts >= job.maxRetries) {
+      final String formattedErrorMessage;
+      if (e is DioException &&
+          e.response?.data is Map &&
+          (e.response!.data as Map)['error'] != null) {
+        formattedErrorMessage = (e.response!.data as Map)['error'].toString();
+      } else if (e is DioException &&
+          e.message != null &&
+          e.message!.isNotEmpty) {
+        formattedErrorMessage = e.message!;
+      } else {
+        formattedErrorMessage = e.toString();
+      }
+
+      final isFatalClientError = e is DioException &&
+          e.response?.statusCode != null &&
+          e.response!.statusCode! >= 400 &&
+          e.response!.statusCode! < 500 &&
+          e.response!.statusCode != 408 &&
+          e.response!.statusCode != 429;
+
+      if (job.attempts >= job.maxRetries || isFatalClientError) {
         job.status = JobStatus.failed;
         if (AppDatabase.instance.isOpen) {
           await AppDatabase.instance.job.updateStatus(
@@ -216,6 +237,32 @@ class ChatQueueProcessor {
         await GlobalEventEmitter.instance.message.failed(
           job.id,
           job.errorMessage,
+        );
+
+        if (job.type == JobType.editMessage) {
+          final original = job.payload['originalMessage'];
+          if (original is Map) {
+            await GlobalEventEmitter.instance.message.update(
+              job.chatUUID,
+              job.subID,
+              job.payload['messageID'].toString(),
+              'edit',
+              null,
+              {
+                'content': original['content'],
+                'files': original['files'] ?? [],
+              },
+            );
+          }
+        }
+
+        QueueManager.instance.showStatusError(
+          formattedErrorMessage,
+          onRetry: () {
+            job.status = JobStatus.pending;
+            job.attempts = 0;
+            triggerProcess();
+          },
         );
       } else {
         job.status = JobStatus.pending;
@@ -256,6 +303,9 @@ class ChatQueueProcessor {
     switch (job.type) {
       case JobType.outgoingMessage:
         await _executeOutgoingMessage(job);
+        break;
+      case JobType.editMessage:
+        await _executeEditMessage(job);
         break;
       case JobType.fileUpload:
         await _executeFileUpload(job);
@@ -498,6 +548,220 @@ class ChatQueueProcessor {
         );
       }
       await GlobalEventEmitter.instance.message.add(serverMessage);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Edit message execution (Local optimistic metadata -> S3 File Upload -> API Gateway Dispatch).
+  Future<void> _executeEditMessage(QueueJob job) async {
+    final messageID = job.payload['messageID'].toString();
+    final newContent = (job.payload['content'] ?? '') as String;
+    final filesChanged = job.payload['filesChanged'] == true;
+    final rawFiles = job.payload['files'] as List?;
+    final files = rawFiles != null
+        ? rawFiles
+            .map(
+              (f) => f is Map
+                  ? Map<String, dynamic>.from(f)
+                  : <String, dynamic>{},
+            )
+            .toList()
+        : <Map<String, dynamic>>[];
+
+    for (final file in files) {
+      if (file['uuid'] == null) {
+        final uri = file['uri'] as String?;
+        final bytes = file['bytes'] as Uint8List?;
+        if (file['duration'] == null && (uri != null || bytes != null)) {
+          try {
+            final fileBytes =
+                bytes ??
+                (uri != null
+                    ? await FileStorage.instance.getBytes(uri)
+                    : null);
+            if (fileBytes != null) {
+              final mime = (file['mimeType'] ?? '') as String;
+              if (mime.contains('wav')) {
+                file['duration'] = extractAudioDurationFromWav(fileBytes);
+              } else if (mime.contains('mp4')) {
+                file['duration'] = extractVideoDurationFromMp4(fileBytes);
+              }
+              if (file['waveform'] == null &&
+                  (mime.contains('audio') || mime.contains('wav'))) {
+                file['waveform'] = processWaveform(fileBytes);
+              }
+            }
+          } catch (_) {}
+        }
+      }
+    }
+
+    // (Requires Internet)
+    if (_disposed) return;
+    if (!isConnected) {
+      debugPrint(
+        '[ChatQueue] Device offline. Edit Job ${job.id} paused until network resumes.',
+      );
+      job.status = JobStatus.pending;
+      if (AppDatabase.instance.isOpen) {
+        await AppDatabase.instance.job.updateStatus(
+          job.id,
+          JobStatus.pending.value,
+        );
+      }
+      return;
+    }
+
+    // Clean files for server payload
+    final cleanFiles = files.map((file) {
+      final clean = <String, dynamic>{
+        'name': (file['name'] ?? 'file').toString(),
+        'mimeType': (file['mimeType'] ?? defaultMimeType).toString(),
+        'size': file['size'] is num ? (file['size'] as num).toInt() : 0,
+      };
+      if (file['uuid'] != null) {
+        clean['uuid'] = file['uuid'].toString();
+      }
+      return clean;
+    }).toList();
+
+    try {
+      final res = await apiGateway.message.edit(
+        chatUUID,
+        job.subID,
+        messageID,
+        newContent,
+        files: filesChanged ? cleanFiles : null,
+      );
+
+      if (_disposed) return;
+
+      if (!res.success) {
+        throw Exception('Failed to edit message: API request unsuccessful');
+      }
+
+      var finalFiles = files;
+
+      // Check if new files require S3 upload
+      final serverFiles = res.data?['files'] as List?;
+      final messageUUID = res.data?['messageUUID'] as String?;
+
+      if (serverFiles != null && serverFiles.isNotEmpty) {
+        final filesToUpload = serverFiles
+            .where((sf) => sf is Map && sf['uploadURL'] != null)
+            .toList();
+        if (filesToUpload.isNotEmpty) {
+          for (var i = 0; i < filesToUpload.length; i++) {
+            if (_disposed) return;
+            final sFile = filesToUpload[i] as Map;
+            final uploadURL = sFile['uploadURL'] as String?;
+            final fileUUID = sFile['uuid'] as String?;
+            final localFile = files.firstWhere(
+              (f) => f['uuid'] == fileUUID || f['name'] == sFile['name'],
+              orElse: () => Map<String, dynamic>.from(sFile),
+            );
+            final uri = (localFile['uri'] ?? localFile['path']) as String?;
+            final bytes = localFile['bytes'] as Uint8List?;
+
+            if (uploadURL != null &&
+                fileUUID != null &&
+                (uri != null || bytes != null)) {
+              final fileBytes =
+                  bytes ??
+                  (uri != null
+                      ? await FileStorage.instance.getBytes(uri)
+                      : null);
+              await S3Adapter.instance.upload(
+                fileUUID: fileUUID,
+                uploadURL: uploadURL,
+                bytes: fileBytes,
+                mimeType:
+                    localFile['mimeType'] as String? ?? defaultMimeType,
+                cancelToken: job.cancelToken,
+                onProgress: (sent, total) {
+                  final fileProg = total > 0 ? sent / total : 0.0;
+                  final overall = (i + fileProg) / filesToUpload.length;
+                  job.progress = overall;
+                  GlobalEventEmitter.instance.emit('file:progress', {
+                    'uuid': fileUUID,
+                    'loaded': sent,
+                    'total': total,
+                  });
+                  GlobalEventEmitter.instance.emit('message:progress', {
+                    'uuid': fileUUID,
+                    'loaded': sent,
+                    'total': total,
+                    'jobProgress': overall,
+                  });
+                },
+              );
+            }
+          }
+
+          if (_disposed) return;
+
+          // Confirm edit with server if messageUUID was provided
+          if (messageUUID != null) {
+            final confirmRes = await apiGateway.message.confirm(messageUUID);
+            if (!confirmRes.success) {
+              throw Exception(
+                'Confirmation of edited message failed on server',
+              );
+            }
+            if (confirmRes.message?['files'] is List) {
+              final confirmedFiles = confirmRes.message!['files'] as List;
+              finalFiles = confirmedFiles
+                  .map(
+                    (cf) => cf is Map
+                        ? Map<String, dynamic>.from(cf)
+                        : <String, dynamic>{},
+                  )
+                  .toList();
+            }
+          }
+        }
+      }
+
+      if (_disposed) return;
+
+      // Merge local metadata (uri, waveform, duration, etc.)
+      final mergedFiles = finalFiles.map((f) {
+        final m = Map<String, dynamic>.from(f);
+        final u = m['uuid'];
+        final local = files.firstWhere(
+          (lf) => (u != null && lf['uuid'] == u) || lf['name'] == m['name'],
+          orElse: () => <String, dynamic>{},
+        );
+        if (local.isNotEmpty) {
+          m['uri'] ??= local['uri'] ?? local['path'];
+          m['waveform'] ??= local['waveform'];
+          m['duration'] ??= local['duration'];
+        }
+        return m;
+      }).toList();
+
+      // Persist confirmed edit state in DB and notify UI
+      await GlobalEventEmitter.instance.message.update(
+        chatUUID,
+        job.subID,
+        messageID,
+        'edit',
+        res.chatEventID,
+        {
+          'content': newContent,
+          'files': mergedFiles,
+        },
+      );
+
+      job.status = JobStatus.completed;
+      if (AppDatabase.instance.isOpen) {
+        await AppDatabase.instance.job.updateStatus(
+          job.id,
+          JobStatus.completed.value,
+          progress: 1.0,
+        );
+      }
     } catch (e) {
       rethrow;
     }

@@ -34,8 +34,9 @@ class FilesBar extends ConsumerWidget {
     final invalidFiles = draftState.invalidFiles;
 
     void handleClearAll() {
-      ref.read(chatDraftProvider(chatUUID).notifier).setFiles([]);
-      ref.read(chatDraftProvider(chatUUID).notifier).setInvalidFiles([]);
+      final draftNotifier = ref.read(chatDraftProvider(chatUUID).notifier);
+      draftNotifier.setFiles([]);
+      draftNotifier.setInvalidFiles([]);
     }
 
     void handleRemoveFile(int index) {
@@ -99,161 +100,167 @@ class FilesBar extends ConsumerWidget {
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${formatFileSize(totalSize)} / ${formatFileSize(maxTotalSize)}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isNearLimit
-                            ? AppColors.danger
-                            : colorScheme.onSurfaceVariant,
-                        fontWeight: isNearLimit
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Tooltip(
-                message: l10n.clearAllFilesTooltip,
-                child: GestureDetector(
-                  key: const Key('clear_all_files'),
-                  behavior: HitTestBehavior.opaque,
-                  onTap: handleClearAll,
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: AppHugeIcon(
-                      icon: HugeIcons.strokeRoundedCancel01,
-                      size: 16,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Divider(
-            height: 1,
-            thickness: 1,
-            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-          ),
-          const SizedBox(height: 8),
-
-          // Horizontal Files List
-          SizedBox(
-            height: 50,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              primary: false,
-              physics: const ClampingScrollPhysics(),
-              itemCount: files.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final file = files[index];
-                dynamic invalidInfo;
-                for (final item in invalidFiles) {
-                  if (item is Map && item['index'] == index) {
-                    invalidInfo = item;
-                    break;
-                  }
-                }
-                final isInvalid = invalidInfo != null;
-
-                var fileName = 'File';
-                var fileSize = 0;
-                var mimeType = defaultMimeType;
-
-                if (file is Map) {
-                  fileName = (file['name'] ?? file['fileName'] ?? 'File')
-                      .toString();
-                  final sizeVal = file['size'] ?? file['fileSize'] ?? 0;
-                  fileSize = sizeVal is num ? sizeVal.toInt() : 0;
-                  mimeType = getMimeType(file);
-                }
-
-                final category = getFileType(mimeType, fileName);
-                final icon = _getCategoryIcon(category);
-
-                return Container(
-                  key: ValueKey('file_chip_$fileName'),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isInvalid
-                          ? AppColors.danger
-                          : colorScheme.outlineVariant.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      AppHugeIcon(
-                        icon: icon,
-                        size: 18,
-                        color: isInvalid
-                            ? AppColors.danger
-                            : colorScheme.primary,
-                      ),
+                    if (files.isNotEmpty) ...[
                       const SizedBox(width: 8),
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 130),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              fileName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: isInvalid
-                                    ? AppColors.danger
-                                    : colorScheme.onSurface,
-                              ),
-                            ),
-                            Text(
-                              formatFileSize(fileSize),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Tooltip(
-                        message: l10n.removeFileTooltip,
-                        child: GestureDetector(
-                          key: Key('remove_file_$index'),
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => handleRemoveFile(index),
-                          child: Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: AppHugeIcon(
-                              icon: HugeIcons.strokeRoundedCancel01,
-                              size: 14,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
+                      Text(
+                        '${formatFileSize(totalSize)} / ${formatFileSize(maxTotalSize)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isNearLimit
+                              ? AppColors.danger
+                              : colorScheme.onSurfaceVariant,
+                          fontWeight: isNearLimit
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                       ),
                     ],
+                  ],
+                ),
+              ),
+              if (files.isNotEmpty) ...[
+                Tooltip(
+                  message: l10n.clearAllFilesTooltip,
+                  child: GestureDetector(
+                    key: const Key('clear_all_files'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: handleClearAll,
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: AppHugeIcon(
+                        icon: HugeIcons.strokeRoundedCancel01,
+                        size: 16,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ),
-                );
-              },
-            ),
+                ),
+              ],
+            ],
           ),
+          if (files.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+            ),
+            const SizedBox(height: 8),
+
+            // Horizontal Files List
+            SizedBox(
+              height: 50,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                primary: false,
+                physics: const ClampingScrollPhysics(),
+                itemCount: files.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final file = files[index];
+                  dynamic invalidInfo;
+                  for (final item in invalidFiles) {
+                    if (item is Map && item['index'] == index) {
+                      invalidInfo = item;
+                      break;
+                    }
+                  }
+                  final isInvalid = invalidInfo != null;
+
+                  var fileName = 'File';
+                  var fileSize = 0;
+                  var mimeType = defaultMimeType;
+
+                  if (file is Map) {
+                    fileName = (file['name'] ?? file['fileName'] ?? 'File')
+                        .toString();
+                    final sizeVal = file['size'] ?? file['fileSize'] ?? 0;
+                    fileSize = sizeVal is num ? sizeVal.toInt() : 0;
+                    mimeType = getMimeType(file);
+                  }
+
+                  final category = getFileType(mimeType, fileName);
+                  final icon = _getCategoryIcon(category);
+
+                  return Container(
+                    key: ValueKey('file_chip_$fileName'),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isInvalid
+                            ? AppColors.danger
+                            : colorScheme.outlineVariant.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AppHugeIcon(
+                          icon: icon,
+                          size: 18,
+                          color: isInvalid
+                              ? AppColors.danger
+                              : colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 130),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                fileName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: isInvalid
+                                      ? AppColors.danger
+                                      : colorScheme.onSurface,
+                                ),
+                              ),
+                              Text(
+                                formatFileSize(fileSize),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Tooltip(
+                          message: l10n.removeFileTooltip,
+                          child: GestureDetector(
+                            key: Key('remove_file_$index'),
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => handleRemoveFile(index),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: AppHugeIcon(
+                                icon: HugeIcons.strokeRoundedCancel01,
+                                size: 14,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ],
       ),
     );

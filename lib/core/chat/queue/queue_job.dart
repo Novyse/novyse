@@ -27,7 +27,8 @@ enum JobType {
   outgoingMessage('OUTGOING_MESSAGE'),
   inboundMessage('INBOUND_MESSAGE'),
   fileUpload('FILE_UPLOAD'),
-  fileDownload('FILE_DOWNLOAD');
+  fileDownload('FILE_DOWNLOAD'),
+  editMessage('EDIT_MESSAGE');
 
   final String value;
   const JobType(this.value);

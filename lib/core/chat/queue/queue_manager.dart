@@ -8,6 +8,7 @@ import 'package:novyse/core/chat/queue/queue_job.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/storage/database/database.dart';
 import 'package:novyse/core/stores/network_store.dart';
+import 'package:novyse/core/stores/status_store.dart';
 
 /// Central manager orchestrating per-chat queues, app startup recovery, and network state.
 class QueueManager {
@@ -18,8 +19,36 @@ class QueueManager {
   bool _initialized = false;
   bool _isConnected = true;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  Ref? _ref;
 
   bool get isConnected => _isConnected;
+  Ref? get ref => _ref;
+
+  /// Attaches Riverpod [Ref] for accessing global providers such as [statusProvider].
+  void attachRef(Ref ref) {
+    _ref = ref;
+  }
+
+  /// Displays a global status error notification via [statusProvider].
+  void showStatusError(
+    String message, {
+    String? title,
+    VoidCallback? onRetry,
+    Duration timeout = const Duration(seconds: 6),
+  }) {
+    if (_ref != null) {
+      try {
+        _ref!.read(statusProvider.notifier).setApiError(
+          message,
+          title: title,
+          onRetry: onRetry,
+          timeout: timeout,
+        );
+      } catch (e) {
+        debugPrint('[QueueManager] Could not show status error: $e');
+      }
+    }
+  }
 
   /// Initializes the QueueManager, recovering unfinished jobs from SQLite.
   Future<void> initialize({Ref? ref, bool listenToConnectivity = true}) async {
@@ -115,6 +144,63 @@ class QueueManager {
     message['subID'] = subID;
     message['status'] = 'PENDING_SEND';
     await GlobalEventEmitter.instance.message.add(message);
+
+    // Dispatch to per-chat queue
+    final processor = _getOrCreateProcessor(chatUUID);
+    processor.addJob(job);
+    processor.triggerProcess();
+
+    return job;
+  }
+
+  /// Adds an edit message job to the chat's queue and persists it.
+  Future<QueueJob> addEditMessageJob({
+    required String id,
+    required String chatUUID,
+    int subID = 0,
+    required String messageID,
+    required String newContent,
+    List<Map<String, dynamic>>? files,
+    required bool filesChanged,
+    Map<String, dynamic>? originalMessage,
+    int priority = JobPriority.textMessage,
+  }) async {
+    final hasNewFiles = files?.any((f) => f['uuid'] == null) ?? false;
+    final effectivePriority = hasNewFiles && priority == JobPriority.textMessage
+        ? JobPriority.fileUpload
+        : priority;
+
+    final job = QueueJob(
+      id: id,
+      chatUUID: chatUUID,
+      subID: subID,
+      type: JobType.editMessage,
+      priority: effectivePriority,
+      status: JobStatus.pending,
+      payload: {
+        'messageID': messageID,
+        'content': newContent,
+        'files': ?files,
+        'filesChanged': filesChanged,
+        'originalMessage': ?originalMessage,
+      },
+    );
+
+    // Persist in DB
+    await AppDatabase.instance.job.save(job.toMap());
+
+    // Optimistically update message in DB and UI immediately
+    await GlobalEventEmitter.instance.message.update(
+      chatUUID,
+      subID,
+      messageID,
+      'edit',
+      null,
+      {
+        'content': newContent,
+        'files': files ?? [],
+      },
+    );
 
     // Dispatch to per-chat queue
     final processor = _getOrCreateProcessor(chatUUID);
@@ -280,6 +366,7 @@ class QueueManager {
 /// Riverpod provider for accessing [QueueManager], automatically kept in sync with [networkProvider].
 final queueManagerProvider = Provider<QueueManager>((ref) {
   final manager = QueueManager.instance;
+  manager.attachRef(ref);
 
   // Keep QueueManager connectivity state in sync with networkProvider
   ref.listen<NetworkState>(networkProvider, (previous, next) {

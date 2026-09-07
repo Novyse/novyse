@@ -701,13 +701,14 @@ class MessageModule {
     return (success: false, chatEventID: null);
   }
 
-  /// Edit a message.
-  Future<({bool success, int? chatEventID})> edit(
+  /// Edit a message. Returns upload URLs when new files are being added.
+  Future<({bool success, int? chatEventID, Map<String, dynamic>? data})> edit(
     String chatUUID,
     int subID,
     String messageID,
-    String content,
-  ) async {
+    String? content, {
+    List<Map<String, dynamic>>? files,
+  }) async {
     final res = await _dio.patch(
       '/message',
       data: {
@@ -715,12 +716,36 @@ class MessageModule {
         'subID': subID,
         'messageID': messageID,
         'content': content,
+        'files': ?files,
       },
     );
     if (_ok(res)) {
-      return (success: true, chatEventID: _data(res)?['chatEventID'] as int?);
+      final d = _data(res);
+      return (
+        success: true,
+        chatEventID: d?['chatEventID'] as int?,
+        data: d is Map ? Map<String, dynamic>.from(d) : null,
+      );
     }
-    return (success: false, chatEventID: null);
+    return (success: false, chatEventID: null, data: null);
+  }
+
+  /// Confirm a message edit after files have been uploaded.
+  Future<({bool success, int? chatEventID, Map<String, dynamic>? data})>
+      editConfirm(String messageUUID) async {
+    final res = await _dio.post(
+      '/message/edit/confirm',
+      data: {'messageUUID': messageUUID},
+    );
+    if (_ok(res)) {
+      final d = _data(res);
+      return (
+        success: true,
+        chatEventID: d?['chatEventID'] as int?,
+        data: d is Map ? Map<String, dynamic>.from(d) : null,
+      );
+    }
+    return (success: false, chatEventID: null, data: null);
   }
 
   /// Mark a message as read.

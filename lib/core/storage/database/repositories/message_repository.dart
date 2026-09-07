@@ -97,6 +97,26 @@ class MessageRepository {
         ],
       );
 
+      if (message['edited'] == true) {
+        await db.execute(
+          '''
+          INSERT OR IGNORE INTO edited_message (chatUUID, subID, messageID)
+          VALUES (?, ?, ?);
+          ''',
+          [chatUUID, subID, id],
+        );
+      }
+
+      if (message['pinned'] == true) {
+        await db.execute(
+          '''
+          INSERT OR IGNORE INTO pinned_message (chatUUID, subID, messageID, pinned_at, pinned_by)
+          VALUES (?, ?, ?, ?, ?);
+          ''',
+          [chatUUID, subID, id, DateTime.now().toIso8601String(), ''],
+        );
+      }
+
       // ReplyTos
       if (message['replyTos'] is List) {
         for (final reply in message['replyTos'] as List) {
@@ -285,6 +305,16 @@ class MessageRepository {
           );
         }
 
+        if (message['pinned'] == true) {
+          await db.execute(
+            '''
+            INSERT OR IGNORE INTO pinned_message (chatUUID, subID, messageID, pinned_at, pinned_by)
+            VALUES (?, ?, ?, ?, ?);
+            ''',
+            [chatUUID, subID, id, DateTime.now().toIso8601String(), ''],
+          );
+        }
+
         if (message['replyTos'] is List) {
           for (final reply in message['replyTos'] as List) {
             if (reply is! Map) continue;
@@ -464,23 +494,110 @@ class MessageRepository {
     }
   }
 
-  /// Edits a message content and records it in edited_message table.
+  /// Edits a message content and/or file associations, recording it in edited_message.
   Future<bool> edit(
     String chatUUID,
     int subID,
     dynamic messageID,
-    String content,
-  ) async {
+    String? content, {
+    List<dynamic>? files,
+  }) async {
     try {
       final id = _parseId(messageID);
-      await db.execute(
-        'UPDATE message SET content = ? WHERE chatUUID = ? AND subID = ? AND id = ?;',
-        [content, chatUUID, subID, id],
-      );
+      if (content != null) {
+        await db.execute(
+          'UPDATE message SET content = ? WHERE chatUUID = ? AND subID = ? AND id = ?;',
+          [content, chatUUID, subID, id],
+        );
+      }
       await db.execute(
         'INSERT OR IGNORE INTO edited_message (chatUUID, subID, messageID) VALUES (?, ?, ?);',
         [chatUUID, subID, id],
       );
+
+      if (files != null) {
+        final currentRows = await db.rawQuery(
+          'SELECT fileUUID FROM message_files WHERE chatUUID = ? AND subID = ? AND messageID = ?;',
+          [chatUUID, subID, id],
+        );
+        final currentUUIDs = currentRows
+            .map((r) => r['fileUUID'] as String?)
+            .whereType<String>()
+            .toSet();
+
+        final incomingUUIDs = <String>{};
+
+        for (final fileRaw in files) {
+          if (fileRaw is! Map) continue;
+          final file = Map<String, dynamic>.from(fileRaw);
+          final fileUUID = file['uuid'] as String?;
+          if (fileUUID == null) continue;
+          incomingUUIDs.add(fileUUID);
+
+          // Add or update file association with the message
+          final name = file['name'] as String?;
+          final mimeType = (file['mimeType'] ?? file['mime_type']) as String?;
+          final size = file['size'] is num ? (file['size'] as num).toInt() : 0;
+          final fileRef =
+              (file['ref'] ?? file['uri'] ?? file['path']) as String?;
+          final waveformStr = file['waveform'] != null
+              ? (file['waveform'] is String
+                  ? file['waveform']
+                  : jsonEncode(file['waveform']))
+              : null;
+
+          await db.execute(
+            '''
+            INSERT INTO file (uuid, name, ref, mimeType, size, waveform, duration)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(uuid) DO UPDATE SET
+              ref = COALESCE(excluded.ref, file.ref),
+              name = COALESCE(excluded.name, file.name),
+              mimeType = COALESCE(excluded.mimeType, file.mimeType),
+              size = CASE WHEN excluded.size > 0 THEN excluded.size ELSE file.size END,
+              waveform = COALESCE(excluded.waveform, file.waveform),
+              duration = CASE WHEN excluded.duration > 0 THEN excluded.duration ELSE file.duration END;
+            ''',
+            [
+              fileUUID,
+              name ?? 'file',
+              fileRef,
+              mimeType ?? 'application/octet-stream',
+              size,
+              waveformStr,
+              file['duration'] ?? 0,
+            ],
+          );
+
+          if (fileRef != null && fileRef.isNotEmpty) {
+            await db.execute(
+              'UPDATE file SET ref = ? WHERE uuid = ?;',
+              [fileRef, fileUUID],
+            );
+          }
+
+          if (!currentUUIDs.contains(fileUUID)) {
+            await db.execute(
+              '''
+              INSERT OR IGNORE INTO message_files (chatUUID, subID, messageID, fileUUID)
+              VALUES (?, ?, ?, ?);
+              ''',
+              [chatUUID, subID, id, fileUUID],
+            );
+          }
+        }
+
+        // Remove files that are in message_files but not in incoming files
+        for (final oldUUID in currentUUIDs) {
+          if (!incomingUUIDs.contains(oldUUID)) {
+            await db.execute(
+              'DELETE FROM message_files WHERE chatUUID = ? AND subID = ? AND messageID = ? AND fileUUID = ?;',
+              [chatUUID, subID, id, oldUUID],
+            );
+          }
+        }
+      }
+
       return true;
     } catch (e) {
       debugPrint('Error editing message: $e');
@@ -511,6 +628,7 @@ class MessageRepository {
     await _addReactions(message);
     await _addReads(message);
     await _addFiles(message);
+    await _addEditedAndPinned(message);
   }
 
   Future<void> _addReads(Map<String, dynamic> message) async {
@@ -625,6 +743,32 @@ class MessageRepository {
       }
       return file;
     }).toList();
+  }
+
+    Future<void> _addEditedAndPinned(Map<String, dynamic> message) async {
+    final chatUUID = message['chatUUID'] as String?;
+    final subID = _parseId(message['subID']);
+    final id = _parseId(message['id']);
+
+    if (message['edited'] == null) {
+      final editedRows = await db.rawQuery(
+        'SELECT 1 FROM edited_message WHERE chatUUID = ? AND subID = ? AND messageID = ? LIMIT 1;',
+        [chatUUID, subID, id],
+      );
+      message['edited'] = editedRows.isNotEmpty;
+    } else if (message['edited'] is int) {
+      message['edited'] = message['edited'] == 1;
+    }
+
+    if (message['pinned'] == null) {
+      final pinnedRows = await db.rawQuery(
+        'SELECT 1 FROM pinned_message WHERE chatUUID = ? AND subID = ? AND messageID = ? LIMIT 1;',
+        [chatUUID, subID, id],
+      );
+      message['pinned'] = pinnedRows.isNotEmpty;
+    } else if (message['pinned'] is int) {
+      message['pinned'] = message['pinned'] == 1;
+    }
   }
 }
 
