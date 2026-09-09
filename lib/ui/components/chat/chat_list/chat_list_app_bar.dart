@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/chat/chat_list_app_menu.dart';
+import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class ChatListAppBar extends StatelessWidget {
@@ -55,11 +56,12 @@ class ChatListAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
+    final Widget content;
     if (searching) {
       final l10n = AppLocalizations.of(context)!;
       final hasQuery = searchController.text.isNotEmpty;
 
-      return Row(
+      content = Row(
         children: [
           _pill(
             scheme: colorScheme,
@@ -112,25 +114,35 @@ class ChatListAppBar extends StatelessWidget {
           ),
         ],
       );
+    } else {
+      content = Row(
+        children: [
+          _pill(
+            scheme: colorScheme,
+            padding: const EdgeInsets.all(2),
+            child: IconButton(
+              icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedSearch01),
+              onPressed: onOpenSearch,
+            ),
+          ),
+          const Spacer(),
+          _pill(
+            scheme: colorScheme,
+            padding: const EdgeInsets.all(2),
+            child: ChatListAppMenu(onNewChat: onNewChat),
+          ),
+        ],
+      );
     }
 
-    return Row(
-      children: [
-        _pill(
-          scheme: colorScheme,
-          padding: const EdgeInsets.all(2),
-          child: IconButton(
-            icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedSearch01),
-            onPressed: onOpenSearch,
-          ),
+    return ProgressiveOpacityBackground(
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+          child: content,
         ),
-        const Spacer(),
-        _pill(
-          scheme: colorScheme,
-          padding: const EdgeInsets.all(2),
-          child: ChatListAppMenu(onNewChat: onNewChat),
-        ),
-      ],
+      ),
     );
   }
 }
