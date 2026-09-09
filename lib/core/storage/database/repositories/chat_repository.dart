@@ -755,7 +755,7 @@ class ChatGetRepository {
         }).toList();
 
         final pinnedRows = await _repo.db.rawQuery(
-          'SELECT * FROM pinned_message WHERE chatUUID = ?;',
+          'SELECT * FROM pinned_message WHERE chatUUID = ? ORDER BY pinned_at ASC;',
           [chatUUID],
         );
         chat['pinnedMessages'] = pinnedRows

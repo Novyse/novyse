@@ -18,8 +18,8 @@ import 'package:novyse/pages/app/chat_routes.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/chat_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_detail_search_app_bar.dart';
-import 'package:novyse/ui/components/chat/chat_detail/chat_detail_full_width_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_selected_header.dart';
+import 'package:novyse/ui/components/chat/chat_detail/chat_sub_header.dart';
 import 'package:novyse/ui/components/chat/chat_drop_zone.dart';
 import 'package:novyse/ui/components/chat/chat_list_item.dart';
 import 'package:novyse/ui/components/chat/message_list.dart';
@@ -465,7 +465,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
                             children: [
                               floatingBar,
                               const SizedBox(height: _floatingPillSpacing),
-                              const ChatDetailFullWidthBar(),
+                              ChatSubHeader(chatUUID: chatUUID),
                             ],
                           ),
                         ),

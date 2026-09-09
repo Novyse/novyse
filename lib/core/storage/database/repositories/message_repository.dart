@@ -932,7 +932,7 @@ class MessagePinRepository {
   Future<List<Map<String, dynamic>>> get(String chatUUID) async {
     try {
       final rows = await _repo.db.rawQuery(
-        'SELECT subID, messageID, pinned_at, pinned_by FROM pinned_message WHERE chatUUID = ?;',
+        'SELECT subID, messageID, pinned_at, pinned_by FROM pinned_message WHERE chatUUID = ? ORDER BY pinned_at ASC;',
         [chatUUID],
       );
       return rows.map((r) => Map<String, dynamic>.from(r)).toList();

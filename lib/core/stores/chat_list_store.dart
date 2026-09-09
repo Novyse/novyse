@@ -18,6 +18,7 @@ class ChatModel {
   final int unreadCount;
   final List<Map<String, dynamic>> members;
   final List<Map<String, dynamic>> subs;
+  final List<Map<String, dynamic>> roles;
   final List<Map<String, dynamic>> pinnedMessages;
   final Map<String, dynamic>? lastMessage;
   final int? pinPosition;
@@ -32,6 +33,7 @@ class ChatModel {
     this.unreadCount = 0,
     this.members = const [],
     this.subs = const [],
+    this.roles = const [],
     this.pinnedMessages = const [],
     this.lastMessage,
     this.pinPosition,
@@ -43,37 +45,28 @@ class ChatModel {
   factory ChatModel.fromMap(Map<String, dynamic> map) {
     List<Map<String, dynamic>> parseList(dynamic val) {
       if (val is List) {
-        return val
-            .whereType<Map>()
-            .map((m) => Map<String, dynamic>.from(m))
-            .toList();
+        return val.map((e) => Map<String, dynamic>.from(e as Map)).toList();
       }
-      return const [];
+      return [];
     }
 
     Map<String, dynamic>? resolveLastMessage() {
-      if (map['lastMessage'] is Map) {
+      if (map['lastMessage'] != null && map['lastMessage'] is Map) {
         return Map<String, dynamic>.from(map['lastMessage'] as Map);
-      }
-      if (map['messages'] is List && (map['messages'] as List).isNotEmpty) {
-        final last = (map['messages'] as List).last;
-        if (last is Map) {
-          return Map<String, dynamic>.from(last);
-        }
       }
       if (map['subs'] is List) {
         Map<String, dynamic>? latestSubMsg;
-        DateTime? latestTime;
-        for (final s in map['subs'] as List) {
-          if (s is Map && s['lastMessage'] is Map) {
-            final subMsg = Map<String, dynamic>.from(s['lastMessage'] as Map);
-            final timeVal = subMsg['createdAt'] ?? subMsg['created_at'];
-            final dt = timeVal != null
-                ? DateTime.tryParse(timeVal.toString())
-                : null;
-            if (latestTime == null || (dt != null && dt.isAfter(latestTime))) {
-              latestTime = dt;
-              latestSubMsg = subMsg;
+        DateTime? latestDate;
+        for (final sub in map['subs'] as List) {
+          if (sub is Map && sub['lastMessage'] != null && sub['lastMessage'] is Map) {
+            final lm = Map<String, dynamic>.from(sub['lastMessage'] as Map);
+            final dateStr = lm['createdAt']?.toString();
+            final date = dateStr != null ? DateTime.tryParse(dateStr) : null;
+            if (date != null && (latestDate == null || date.isAfter(latestDate))) {
+              latestDate = date;
+              latestSubMsg = lm;
+            } else {
+              latestSubMsg ??= lm;
             }
           }
         }
@@ -91,6 +84,7 @@ class ChatModel {
       unreadCount: (map['unreadCount'] ?? 0) as int,
       members: parseList(map['members']),
       subs: parseList(map['subs']),
+      roles: parseList(map['roles']),
       pinnedMessages: parseList(map['pinnedMessages']),
       lastMessage: resolveLastMessage(),
       pinPosition: map['pinPosition'] as int?,
@@ -109,6 +103,7 @@ class ChatModel {
     int? unreadCount,
     List<Map<String, dynamic>>? members,
     List<Map<String, dynamic>>? subs,
+    List<Map<String, dynamic>>? roles,
     List<Map<String, dynamic>>? pinnedMessages,
     Map<String, dynamic>? lastMessage,
     int? pinPosition,
@@ -123,6 +118,7 @@ class ChatModel {
       unreadCount: unreadCount ?? this.unreadCount,
       members: members ?? this.members,
       subs: subs ?? this.subs,
+      roles: roles ?? this.roles,
       pinnedMessages: pinnedMessages ?? this.pinnedMessages,
       lastMessage: lastMessage ?? this.lastMessage,
       pinPosition: pinPosition ?? this.pinPosition,
@@ -216,6 +212,18 @@ class ChatListNotifier extends Notifier<ChatListState> {
     _subscriptions.add(
       bus.on<UserSettingChatUpdateEvent>().listen((event) {
         onUserChatSettingUpdate(event.chatUUID, event.action, event.data);
+      }),
+    );
+
+    _subscriptions.add(
+      bus.on<MessageUpdateEvent>().listen((event) {
+        onMessageUpdate(
+          event.chatUUID,
+          event.subID,
+          event.messageID,
+          event.action,
+          event.data,
+        );
       }),
     );
   }
@@ -412,6 +420,7 @@ class ChatListNotifier extends Notifier<ChatListState> {
             unreadCount: chat.unreadCount,
             members: chat.members,
             subs: chat.subs,
+            roles: chat.roles,
             pinnedMessages: chat.pinnedMessages,
             lastMessage: chat.lastMessage,
             pinPosition: null,
@@ -423,6 +432,52 @@ class ChatListNotifier extends Notifier<ChatListState> {
 
       _sortChats(updated);
       state = state.copyWith(chats: updated);
+    }
+  }
+
+  void onMessageUpdate(
+    String chatUUID,
+    int subID,
+    String messageID,
+    String action,
+    Map<String, dynamic> data,
+  ) {
+    final msgId = int.tryParse(messageID);
+    if (msgId == null) return;
+
+    switch (action) {
+      case 'pin_add':
+      final updated = state.chats.map((chat) {
+        if (chat.uuid != chatUUID) return chat;
+        final list = List<Map<String, dynamic>>.from(chat.pinnedMessages);
+        final exists = list.any(
+          (p) => p['subID'] == subID && p['messageID'] == msgId,
+        );
+        if (!exists) {
+          list.add({
+            'chatUUID': chatUUID,
+            'subID': subID,
+            'messageID': msgId,
+            'pinnedAt': data['pinnedAt'],
+            'pinnedByUUID': data['userUUID'],
+          });
+        }
+        return chat.copyWith(pinnedMessages: list);
+      }).toList();
+
+      state = state.copyWith(chats: updated);
+      break;
+    case 'pin_remove':
+      final updated = state.chats.map((chat) {
+        if (chat.uuid != chatUUID) return chat;
+        final list = chat.pinnedMessages.where((p) {
+          return !(p['subID'] == subID && p['messageID'] == msgId);
+        }).toList();
+        return chat.copyWith(pinnedMessages: list);
+      }).toList();
+
+      state = state.copyWith(chats: updated);
+      break;
     }
   }
 

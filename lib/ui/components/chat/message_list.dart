@@ -1,6 +1,8 @@
 import 'dart:async' show Timer;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/chat/permissions.dart';
+import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
@@ -191,15 +193,12 @@ class _MessageListState extends ConsumerState<MessageList> {
     MessageModel msg,
     Offset position,
     String? selectedText,
-    String localUserUUID,
   ) {
     MessageActionMenu.show(
       context: context,
       position: position,
       message: msg,
       selectedText: selectedText,
-      isMine: msg.userUUID == localUserUUID,
-      isPinned: msg.pinned,
     );
   }
 
@@ -208,6 +207,25 @@ class _MessageListState extends ConsumerState<MessageList> {
     final chatUUID = widget.chatUUID;
     final subID = widget.subID;
     final chat = ref.watch(chatProvider(chatUUID));
+
+    ref.listen<String?>(
+      activeChatProvider.select((s) => s.scrollToMessageID),
+      (previous, next) async {
+        if (next != null && next.isNotEmpty) {
+          final notifier = ref.read(
+            chatMessagesProvider((
+              chatUUID: widget.chatUUID,
+              subID: widget.subID,
+            )).notifier,
+          );
+          await notifier.fetchMessageById(next);
+          if (mounted) {
+            _jumpToMessage(next);
+            ref.read(activeChatProvider.notifier).setScrollToMessageID(null);
+          }
+        }
+      },
+    );
 
     final messagesState = ref.watch(
       chatMessagesProvider((chatUUID: chatUUID, subID: subID)),
@@ -227,7 +245,20 @@ class _MessageListState extends ConsumerState<MessageList> {
     final selectedMessages = draftState.selectedMessages;
     final isSelectionMode = selectedMessages.isNotEmpty;
 
-    final isGroup = chat != null && chat.type != 'DM';
+    final isDM = chat?.type == 'DM';
+    final isGroup = chat != null && !isDM;
+    final sub = chat?.subs.where((s) => s['id'] == subID).firstOrNull;
+    final subType = sub?['type'] as String?;
+    final myMember = chat?.members
+        .where((m) => m['uuid'] == localUserUUID)
+        .firstOrNull;
+    final myRoleIDs = (myMember?['roleIDs'] as List?) ?? const [];
+    final myRoles = (chat?.roles ?? [])
+        .where((r) => myRoleIDs.contains(r['id']))
+        .toList();
+    final canReplyChat = isDM ||
+        chat == null ||
+        hasPermission(myRoles, ChatPermissions.sendMessage, subType);
 
     return ListView.builder(
       controller: _effectiveController,
@@ -264,7 +295,9 @@ class _MessageListState extends ConsumerState<MessageList> {
         return KeyedSubtree(
           key: itemKey,
           child: SwipeToReply(
-            enabled: !isSelectionMode && message.type != 'system',
+            enabled: !isSelectionMode &&
+                message.type != 'system' &&
+                canReplyChat,
             isSender: isSender,
             onReply: () {
               ref.read(chatDraftProvider(chatUUID).notifier).addReply(message);
@@ -301,7 +334,11 @@ class _MessageListState extends ConsumerState<MessageList> {
                     .toggleSelectMessage(message);
               },
               onOpenContextMenu: (position, selectedText) {
-                _openContextMenu(message, position, selectedText, localUserUUID);
+                _openContextMenu(
+                  message,
+                  position,
+                  selectedText,
+                );
               },
               getMessage: (lookupChatUUID, lookupSubID, lookupMessageID) {
                 try {

@@ -329,5 +329,6 @@
         "type": "int"
       }
     }
-  }
+  },
+  "pinnedMessage": "Messaggio fissato"
 }

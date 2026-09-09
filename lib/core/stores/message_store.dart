@@ -292,6 +292,31 @@ class MessageListNotifier
     }
   }
 
+  /// Fetches a message by its ID: checks in-memory cache first, then SQLite.
+  /// If retrieved from SQLite, it is added to the in-memory list to enable scrolling/rendering.
+  Future<MessageModel?> fetchMessageById(dynamic messageId) async {
+    final idStr = messageId.toString();
+    final inMemory = state.messages.where((m) => m.id.toString() == idStr);
+    if (inMemory.isNotEmpty) {
+      return inMemory.first;
+    }
+
+    try {
+      final db = AppDatabase.instance;
+      final raw = await db.message.get.by.id(arg.chatUUID, arg.subID, messageId);
+      if (raw != null) {
+        final model = MessageModel.fromMap(raw);
+        if (!state.messages.any((m) => m.id.toString() == idStr)) {
+          state = state.copyWith(messages: [...state.messages, model]);
+        }
+        return model;
+      }
+    } catch (e) {
+      debugPrint('Error fetching message $messageId: $e');
+    }
+    return null;
+  }
+
   void onNewMessage(Map<String, dynamic> raw) {
     final newMsg = MessageModel.fromMap(raw);
     final tempId = raw['tempId']?.toString();

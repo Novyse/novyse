@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/chat/message_action_methods.dart';
+import 'package:novyse/core/chat/permissions.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
+import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class MessageActionMenuItem {
@@ -27,15 +30,11 @@ class MessageActionMenu extends ConsumerWidget {
     required this.position,
     required this.message,
     this.selectedText,
-    this.isMine = false,
-    this.isPinned = false,
   });
 
   final Offset position;
   final MessageModel message;
   final String? selectedText;
-  final bool isMine;
-  final bool isPinned;
 
   static const double menuWidth = 190.0;
   static const double edgePadding = 10.0;
@@ -46,8 +45,6 @@ class MessageActionMenu extends ConsumerWidget {
     required Offset position,
     required MessageModel message,
     String? selectedText,
-    bool isMine = false,
-    bool isPinned = false,
   }) {
     return showGeneralDialog(
       context: context,
@@ -62,8 +59,6 @@ class MessageActionMenu extends ConsumerWidget {
             position: position,
             message: message,
             selectedText: selectedText,
-            isMine: isMine,
-            isPinned: isPinned,
           ),
         );
       },
@@ -87,19 +82,63 @@ class MessageActionMenu extends ConsumerWidget {
         selectedText != null && selectedText!.trim().isNotEmpty;
     final hasFiles = message.files.isNotEmpty;
 
+    final localUserUUID =
+        ref.watch(userStoreProvider.select((s) => s.localUserUUID));
+    final chat = ref.watch(chatProvider(message.chatUUID));
+
+    final isMine = message.userUUID == localUserUUID;
+    final isPinned = message.pinned;
+    final isDM = chat?.type == 'DM';
+
+    final sub = chat?.subs.where((s) => s['id'] == message.subID).firstOrNull;
+    final subType = sub?['type'] as String?;
+
+    final myMember = chat?.members
+        .where((m) => m['uuid'] == localUserUUID)
+        .firstOrNull;
+    final myRoleIDs = (myMember?['roleIDs'] as List?) ?? const [];
+    final myRoles = (chat?.roles ?? [])
+        .where((r) => myRoleIDs.contains(r['id']))
+        .toList();
+    final myLevel = getEffectiveLevel(myRoles);
+
+    final canReply = isDM ||
+        chat == null ||
+        hasPermission(myRoles, ChatPermissions.sendMessage, subType);
+    final canQuoteAndReply = canReply && hasSelectedText;
+    final canPin = isDM ||
+        chat == null ||
+        hasPermission(myRoles, ChatPermissions.pinMessage);
+    final canEdit = isMine && canReply;
+
+    bool canDelete = isMine;
+    if (!canDelete && !isDM && chat != null) {
+      final targetMember = chat.members
+          .where((m) => m['uuid'] == message.userUUID)
+          .firstOrNull;
+      final targetRoleIDs = (targetMember?['roleIDs'] as List?) ?? const [];
+      final targetRoles = chat.roles
+          .where((r) => targetRoleIDs.contains(r['id']))
+          .toList();
+      final targetLevel = getEffectiveLevel(targetRoles);
+      canDelete = hasPermission(myRoles, ChatPermissions.deleteMessage) &&
+          myLevel >= targetLevel;
+    }
+
     final items = <MessageActionMenuItem>[
       // Reply
-      MessageActionMenuItem(
-        label: l10n.reply,
-        icon: HugeIcons.strokeRoundedArrowMoveUpLeft,
-        onTap: () {
-          Navigator.of(context).pop();
-          methods.reply(message);
-        },
-      ),
+      if (canReply)
+        MessageActionMenuItem(
+          label: l10n.reply,
+          icon: HugeIcons.strokeRoundedArrowMoveUpLeft,
+          onTap: () {
+            Navigator.of(context).pop();
+            methods.reply(message);
+          },
+        ),
 
-      // Quote and Reply (if text selected)
-      if (hasSelectedText)
+      // Quote and Reply (if text selected and reply allowed)
+      if (canQuoteAndReply)
         MessageActionMenuItem(
           label: l10n.quoteAndReply,
           icon: HugeIcons.strokeRoundedArrowMoveUpLeft,
@@ -111,16 +150,17 @@ class MessageActionMenu extends ConsumerWidget {
         ),
 
       // Pin / Unpin
-      MessageActionMenuItem(
-        label: isPinned ? l10n.unpin : l10n.pin,
-        icon: isPinned
-            ? HugeIcons.strokeRoundedPinOff
-            : HugeIcons.strokeRoundedPin,
-        onTap: () {
-          Navigator.of(context).pop();
-          methods.pin(message);
-        },
-      ),
+      if (canPin)
+        MessageActionMenuItem(
+          label: isPinned ? l10n.unpin : l10n.pin,
+          icon: isPinned
+              ? HugeIcons.strokeRoundedPinOff
+              : HugeIcons.strokeRoundedPin,
+          onTap: () {
+            Navigator.of(context).pop();
+            methods.pin(message);
+          },
+        ),
 
       // Copy
       MessageActionMenuItem(
@@ -155,8 +195,8 @@ class MessageActionMenu extends ConsumerWidget {
           },
         ),
 
-      // Edit (if sender)
-      if (isMine)
+      // Edit (if sender and can reply)
+      if (canEdit)
         MessageActionMenuItem(
           label: l10n.edit,
           icon: HugeIcons.strokeRoundedEdit02,
@@ -186,16 +226,17 @@ class MessageActionMenu extends ConsumerWidget {
         },
       ),
 
-      // Delete
-      MessageActionMenuItem(
-        label: l10n.delete,
-        icon: HugeIcons.strokeRoundedDelete02,
-        isDanger: true,
-        onTap: () {
-          Navigator.of(context).pop();
-          methods.delete(message);
-        },
-      ),
+      // Delete (author or admin with deleteMessage & higher/equal role level)
+      if (canDelete)
+        MessageActionMenuItem(
+          label: l10n.delete,
+          icon: HugeIcons.strokeRoundedDelete02,
+          isDanger: true,
+          onTap: () {
+            Navigator.of(context).pop();
+            methods.delete(message);
+          },
+        ),
     ];
 
     final estimatedHeight = items.length * itemHeight + 16.0;

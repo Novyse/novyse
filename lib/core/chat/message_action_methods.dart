@@ -7,6 +7,7 @@ import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/forward_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
+import 'package:novyse/core/stores/user_store.dart';
 
 /// Encapsulates action handlers for messages (reply, quote, copy, select, forward, delete, pin, edit, download).
 class MessageActionMethods {
@@ -88,9 +89,56 @@ class MessageActionMethods {
     draftNotifier.setInvalidFiles([]);
   }
 
-  /// Pins/unpins a message (placeholder).
+  /// Pins or unpins a message.
   Future<void> pin(MessageModel message) async {
-    // Placeholder for pin API
+    final messageIdStr = message.id.toString();
+    final localUserUUID = ref.read(userStoreProvider).localUserUUID;
+    final isPinned = message.pinned;
+
+    if (isPinned) {
+      try {
+        final res = await apiGateway.message.pin.remove(
+          chatUUID,
+          subID,
+          messageIdStr,
+        );
+        if (res.success) {
+          await GlobalEventEmitter.instance.message.update(
+            chatUUID,
+            subID,
+            messageIdStr,
+            'pin_remove',
+            res.chatEventID,
+            {},
+          );
+        }
+      } catch (e) {
+        debugPrint('Error unpinning message: $e');
+      }
+    } else {
+      try {
+        final res = await apiGateway.message.pin.add(
+          chatUUID,
+          subID,
+          messageIdStr,
+        );
+        if (res.success) {
+          await GlobalEventEmitter.instance.message.update(
+            chatUUID,
+            subID,
+            messageIdStr,
+            'pin_add',
+            res.chatEventID,
+            {
+              'pinnedAt': res.pinnedAt ?? DateTime.now().toIso8601String(),
+              'userUUID': localUserUUID,
+            },
+          );
+        }
+      } catch (e) {
+        debugPrint('Error pinning message: $e');
+      }
+    }
   }
 
   /// Downloads message attachments (placeholder).
