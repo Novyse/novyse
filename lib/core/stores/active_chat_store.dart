@@ -13,6 +13,8 @@ class ActiveChatState {
   final int selectedSub;
   final String contentView; // 'chat' | 'vocal' | 'both'
   final String? scrollToMessageID;
+  final int? scrollToRangeStart;
+  final int? scrollToRangeEnd;
   final String? messageHighlight;
   final double headerHeight;
   final Map<String, dynamic>? activeRemoteChatData;
@@ -23,6 +25,8 @@ class ActiveChatState {
     this.selectedSub = 0,
     this.contentView = 'chat',
     this.scrollToMessageID,
+    this.scrollToRangeStart,
+    this.scrollToRangeEnd,
     this.messageHighlight,
     this.headerHeight = 0,
     this.activeRemoteChatData,
@@ -39,6 +43,8 @@ class ActiveChatState {
     int? selectedSub,
     String? contentView,
     String? Function()? scrollToMessageID,
+    int? Function()? scrollToRangeStart,
+    int? Function()? scrollToRangeEnd,
     String? Function()? messageHighlight,
     double? headerHeight,
     Map<String, dynamic>? Function()? activeRemoteChatData,
@@ -55,6 +61,12 @@ class ActiveChatState {
       scrollToMessageID: scrollToMessageID != null
           ? scrollToMessageID()
           : this.scrollToMessageID,
+      scrollToRangeStart: scrollToRangeStart != null
+          ? scrollToRangeStart()
+          : this.scrollToRangeStart,
+      scrollToRangeEnd: scrollToRangeEnd != null
+          ? scrollToRangeEnd()
+          : this.scrollToRangeEnd,
       messageHighlight: messageHighlight != null
           ? messageHighlight()
           : this.messageHighlight,
@@ -197,8 +209,63 @@ class ActiveChatNotifier extends Notifier<ActiveChatState> {
     state = state.copyWith(headerHeight: height);
   }
 
-  void setScrollToMessageID(String? id) {
-    state = state.copyWith(scrollToMessageID: () => id);
+  void setScrollToMessageID(
+    String? id, {
+    int? rangeStart,
+    int? rangeEnd,
+  }) {
+    state = state.copyWith(
+      scrollToMessageID: () => id,
+      scrollToRangeStart: () => id == null ? null : rangeStart,
+      scrollToRangeEnd: () => id == null ? null : rangeEnd,
+    );
+  }
+
+  void clearScrollTarget() {
+    state = state.copyWith(
+      scrollToMessageID: () => null,
+      scrollToRangeStart: () => null,
+      scrollToRangeEnd: () => null,
+    );
+  }
+
+  /// Centralized helper to jump to a message within the active chat.
+  ///
+  /// Handles sub-channel switch, vocal→chat view switch and sets the
+  /// one-shot [scrollToMessageID] target (with optional quote [rangeStart]/[rangeEnd]).
+  /// [MessageList] listens to the scroll target, fetches the message if needed
+  /// and performs the actual scroll + temporary highlight.
+  void jumpToMessage(
+    dynamic messageID, {
+    int? subID,
+    int? rangeStart,
+    int? rangeEnd,
+  }) {
+    final idStr = messageID?.toString() ?? '';
+    if (idStr.isEmpty) return;
+
+    final targetSub = subID ?? state.selectedSub;
+    final needsSubSwitch = subID != null && subID != state.selectedSub;
+    final needsViewSwitch = state.contentView == 'vocal';
+
+    state = state.copyWith(
+      selectedSub: targetSub,
+      contentView: needsViewSwitch ? 'chat' : state.contentView,
+      scrollToMessageID: () => idStr,
+      scrollToRangeStart: () => rangeStart,
+      scrollToRangeEnd: () => rangeEnd,
+    );
+
+    // Keep draft UI state in sync (mirrors setSelectedSub/setContentView).
+    final activeUUID = state.selectedChatUUID;
+    if (activeUUID != null) {
+      if (needsSubSwitch) {
+        ref.read(chatDraftProvider(activeUUID).notifier).setSelectedSub(targetSub);
+      }
+      if (needsViewSwitch) {
+        ref.read(chatDraftProvider(activeUUID).notifier).setContentView('chat');
+      }
+    }
   }
 
   void setMessageHighlight(String? target) {

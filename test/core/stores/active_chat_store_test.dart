@@ -98,5 +98,72 @@ void main() {
         expect(container.read(activeChatDataProvider), isNull);
       },
     );
+
+    test('setScrollToMessageID stores quote range and clears it on null', () {
+      final activeNotifier = container.read(activeChatProvider.notifier);
+
+      activeNotifier.setScrollToMessageID('42', rangeStart: 7, rangeEnd: 16);
+
+      var state = container.read(activeChatProvider);
+      expect(state.scrollToMessageID, equals('42'));
+      expect(state.scrollToRangeStart, equals(7));
+      expect(state.scrollToRangeEnd, equals(16));
+
+      activeNotifier.setScrollToMessageID(null);
+
+      state = container.read(activeChatProvider);
+      expect(state.scrollToMessageID, isNull);
+      expect(state.scrollToRangeStart, isNull);
+      expect(state.scrollToRangeEnd, isNull);
+    });
+
+    test('clearScrollTarget clears id and ranges together', () {
+      final activeNotifier = container.read(activeChatProvider.notifier);
+
+      activeNotifier.setScrollToMessageID('99', rangeStart: 1, rangeEnd: 2);
+      activeNotifier.clearScrollTarget();
+
+      final state = container.read(activeChatProvider);
+      expect(state.scrollToMessageID, isNull);
+      expect(state.scrollToRangeStart, isNull);
+      expect(state.scrollToRangeEnd, isNull);
+    });
+
+    test('jumpToMessage sets scroll target with range (reply path)', () {
+      final activeNotifier = container.read(activeChatProvider.notifier);
+
+      activeNotifier.jumpToMessage(100, subID: 0, rangeStart: 7, rangeEnd: 16);
+
+      final state = container.read(activeChatProvider);
+      expect(state.scrollToMessageID, equals('100'));
+      expect(state.scrollToRangeStart, equals(7));
+      expect(state.scrollToRangeEnd, equals(16));
+    });
+
+    test('jumpToMessage switches sub and vocal view (pinned/search path)', () {
+      final activeNotifier = container.read(activeChatProvider.notifier);
+
+      activeNotifier.setSelectedSub(0);
+      activeNotifier.setContentView('vocal');
+
+      activeNotifier.jumpToMessage('101', subID: 1);
+
+      final state = container.read(activeChatProvider);
+      expect(state.selectedSub, equals(1));
+      expect(state.contentView, equals('chat'));
+      expect(state.scrollToMessageID, equals('101'));
+      expect(state.scrollToRangeStart, isNull);
+      expect(state.scrollToRangeEnd, isNull);
+    });
+
+    test('jumpToMessage ignores empty ids', () {
+      final activeNotifier = container.read(activeChatProvider.notifier);
+
+      activeNotifier.jumpToMessage('');
+      expect(container.read(activeChatProvider).scrollToMessageID, isNull);
+
+      activeNotifier.jumpToMessage(null);
+      expect(container.read(activeChatProvider).scrollToMessageID, isNull);
+    });
   });
 }

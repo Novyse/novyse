@@ -183,10 +183,9 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     final messageID = result['id']?.toString() ?? '';
 
     final notifier = ref.read(activeChatProvider.notifier);
-    notifier.setSelectedChatUUID(chatUUID);
-    if (subID != 0) notifier.setSelectedSub(subID);
+    notifier.setSelectedChatUUID(chatUUID, subOverride: subID);
     if (messageID.isNotEmpty) {
-      notifier.setScrollToMessageID(messageID);
+      notifier.jumpToMessage(messageID, subID: subID);
       notifier.setMessageHighlight(messageID);
     }
     final currentUUID = chatUUIDFromPath(GoRouterState.of(context).uri.path);

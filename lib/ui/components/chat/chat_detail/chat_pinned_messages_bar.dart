@@ -127,16 +127,9 @@ class _ChatPinnedMessagesBarState extends ConsumerState<ChatPinnedMessagesBar> {
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () {
-          final activeSub = ref.read(activeChatProvider).selectedSub;
-          if (subID != activeSub) {
-            ref.read(activeChatProvider.notifier).setSelectedSub(subID);
-          }
-          if (ref.read(activeChatProvider).contentView == 'vocal') {
-            ref.read(activeChatProvider.notifier).setContentView('chat');
-          }
           ref
               .read(activeChatProvider.notifier)
-              .setScrollToMessageID(messageIdStr);
+              .jumpToMessage(messageIdStr, subID: subID);
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),

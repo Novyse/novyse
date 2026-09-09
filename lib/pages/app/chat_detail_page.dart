@@ -109,16 +109,42 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
       _searchQuery = value;
       _searchIndex = 0;
     });
+    _jumpToSearchMatch();
+  }
+
+  List<MessageModel> _currentSearchMatches() {
+    final messages = ref.read(
+      chatMessagesProvider(
+        (chatUUID: widget.chatUUID, subID: 0),
+      ).select((s) => s.messages),
+    );
+    final trimmedQuery = _searchQuery.trim().toLowerCase();
+    if (trimmedQuery.isEmpty) return const [];
+    return messages
+        .where((m) => (m.content ?? '').toLowerCase().contains(trimmedQuery))
+        .toList();
+  }
+
+  void _jumpToSearchMatch() {
+    if (!_searching) return;
+    final matches = _currentSearchMatches();
+    if (matches.isEmpty) return;
+    final index = _searchIndex.clamp(0, matches.length - 1);
+    ref
+        .read(activeChatProvider.notifier)
+        .jumpToMessage(matches[index].id, subID: 0);
   }
 
   void _goToNextResult(int total) {
     if (total == 0) return;
     setState(() => _searchIndex = (_searchIndex - 1 + total) % total);
+    _jumpToSearchMatch();
   }
 
   void _goToPreviousResult(int total) {
     if (total == 0) return;
     setState(() => _searchIndex = (_searchIndex + 1) % total);
+    _jumpToSearchMatch();
   }
 
   void _handleBack() {
@@ -201,9 +227,6 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         ? 0
         : _searchIndex.clamp(0, searchTotal - 1);
     final displayIndex = searchTotal == 0 ? 0 : searchTotal - 1 - searchIndex;
-    final highlightedMessageId = searchTotal == 0
-        ? null
-        : searchMatches[searchIndex].id;
 
     final draftState = ref.watch(chatDraftProvider(chatUUID));
     final selectedMessages = draftState.selectedMessages;
@@ -325,9 +348,6 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
                           chatUUID: chatUUID,
                           subID: 0,
                           searchQuery: _searching ? trimmedQuery : '',
-                          highlightedMessageId: _searching
-                              ? highlightedMessageId
-                              : null,
                         ),
                       ),
                     ),

@@ -208,20 +208,31 @@ class _MessageListState extends ConsumerState<MessageList> {
     final subID = widget.subID;
     final chat = ref.watch(chatProvider(chatUUID));
 
-    ref.listen<String?>(
-      activeChatProvider.select((s) => s.scrollToMessageID),
+    ref.listen<(String?, int?, int?)>(
+      activeChatProvider.select(
+        (s) => (
+          s.scrollToMessageID,
+          s.scrollToRangeStart,
+          s.scrollToRangeEnd,
+        ),
+      ),
       (previous, next) async {
-        if (next != null && next.isNotEmpty) {
+        final id = next.$1;
+        if (id != null && id.isNotEmpty) {
           final notifier = ref.read(
             chatMessagesProvider((
               chatUUID: widget.chatUUID,
               subID: widget.subID,
             )).notifier,
           );
-          await notifier.fetchMessageById(next);
+          await notifier.fetchMessageById(id);
           if (mounted) {
-            _jumpToMessage(next);
-            ref.read(activeChatProvider.notifier).setScrollToMessageID(null);
+            _jumpToMessage(
+              id,
+              rangeStart: next.$2,
+              rangeEnd: next.$3,
+            );
+            ref.read(activeChatProvider.notifier).clearScrollTarget();
           }
         }
       },
@@ -321,11 +332,14 @@ class _MessageListState extends ConsumerState<MessageList> {
                 int? rangeEnd,
               }) {
                 if (chatUUID.isEmpty || chatUUID == widget.chatUUID) {
-                  _jumpToMessage(
-                    messageID,
-                    rangeStart: rangeStart,
-                    rangeEnd: rangeEnd,
-                  );
+                  ref
+                      .read(activeChatProvider.notifier)
+                      .jumpToMessage(
+                        messageID,
+                        subID: subID,
+                        rangeStart: rangeStart,
+                        rangeEnd: rangeEnd,
+                      );
                 }
               },
               onSelectionToggle: () {
