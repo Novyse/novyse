@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/chat/queue/queue_manager.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/storage/file/draft_file_preview.dart';
 import 'package:novyse/core/storage/file/file_type.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
@@ -47,6 +48,9 @@ class MessageSendHandler {
     }
 
     final replyingTo = List<ChatReplyItem>.from(draftState.replyingTo);
+
+    stopDraftAudioForChat(chatUUID);
+    revokeDraftBlobsForChat(chatUUID);
 
     onSendingChanged?.call(true);
     controller.clear();

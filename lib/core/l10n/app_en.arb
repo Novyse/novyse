@@ -207,6 +207,7 @@
   "recordVoiceTooltip": "Record voice message",
   "clearAllFilesTooltip": "Clear all",
   "removeFileTooltip": "Remove file",
+  "previewFileUnavailable": "Unable to preview this file",
   "newChat": "New chat",
   "searchHint": "Search chats and messages...",
   "searchChats": "Chats",
