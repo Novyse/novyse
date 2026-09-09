@@ -25,10 +25,7 @@ class AttachMenuPopover extends ConsumerWidget {
     AttachMenuAction.poll,
   ];
 
-  Future<void> _handleAction(
-    WidgetRef ref,
-    AttachMenuAction action,
-  ) async {
+  Future<void> _handleAction(WidgetRef ref, AttachMenuAction action) async {
     switch (action) {
       case AttachMenuAction.media:
         onClose();

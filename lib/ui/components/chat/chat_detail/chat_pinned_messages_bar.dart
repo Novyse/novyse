@@ -12,10 +12,7 @@ import 'package:novyse/ui/components/huge_icon.dart';
 /// Interactive component displaying pinned messages within the chat sub-header bar.
 /// Supports cycling between multiple pinned messages and jumping to target message.
 class ChatPinnedMessagesBar extends ConsumerStatefulWidget {
-  const ChatPinnedMessagesBar({
-    super.key,
-    required this.chatUUID,
-  });
+  const ChatPinnedMessagesBar({super.key, required this.chatUUID});
 
   final String chatUUID;
 
@@ -94,8 +91,10 @@ class _ChatPinnedMessagesBarState extends ConsumerState<ChatPinnedMessagesBar> {
           if (mounted) {
             ref
                 .read(
-                  chatMessagesProvider((chatUUID: widget.chatUUID, subID: subID))
-                      .notifier,
+                  chatMessagesProvider((
+                    chatUUID: widget.chatUUID,
+                    subID: subID,
+                  )).notifier,
                 )
                 .fetchMessageById(messageID);
           }
@@ -115,7 +114,9 @@ class _ChatPinnedMessagesBarState extends ConsumerState<ChatPinnedMessagesBar> {
         getUser: (uuid) => userState.users[uuid]?.toMap(),
       );
       final text = formatted['content']?.toString().trim();
-      contentText = (text != null && text.isNotEmpty) ? text : l10n.pinnedMessage;
+      contentText = (text != null && text.isNotEmpty)
+          ? text
+          : l10n.pinnedMessage;
     } else {
       contentText = '...';
     }

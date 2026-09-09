@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum ProgressiveOpacityDirection {
-  topToBottom,
-  bottomToTop,
-}
+enum ProgressiveOpacityDirection { topToBottom, bottomToTop }
 
 class ProgressiveOpacityBackground extends StatelessWidget {
   const ProgressiveOpacityBackground({
@@ -20,8 +17,7 @@ class ProgressiveOpacityBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final surface = Theme.of(context).scaffoldBackgroundColor;
-    final topToBottom =
-        direction == ProgressiveOpacityDirection.topToBottom;
+    final topToBottom = direction == ProgressiveOpacityDirection.topToBottom;
 
     return DecoratedBox(
       decoration: BoxDecoration(

@@ -119,40 +119,42 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     });
 
     if (searchMessages) {
-      searchMessagesByQuery(q).then((results) {
-        if (!mounted || token != _searchToken || _query.trim() != q) return;
-        setState(() {
-          _matchedMessages = results;
-          _messagesLoading = false;
-        });
-      }).catchError((_) {
-        if (!mounted || token != _searchToken || _query.trim() != q) return;
-        setState(() {
-          _messagesLoading = false;
-        });
-      });
+      searchMessagesByQuery(q)
+          .then((results) {
+            if (!mounted || token != _searchToken || _query.trim() != q) return;
+            setState(() {
+              _matchedMessages = results;
+              _messagesLoading = false;
+            });
+          })
+          .catchError((_) {
+            if (!mounted || token != _searchToken || _query.trim() != q) return;
+            setState(() {
+              _messagesLoading = false;
+            });
+          });
     }
 
     if (canSearchRemote) {
-      searchRemoteChats(q).then((remoteResults) {
-        if (!mounted || token != _searchToken || _query.trim() != q) return;
-        setState(() {
-          _remoteChats = filterRemoteChats(
-            local: localMatches,
-            remote: remoteResults,
-          );
-          _remoteLoading = false;
-        });
-      }).catchError((_) {
-        if (!mounted || token != _searchToken || _query.trim() != q) return;
-        setState(() {
-          _remoteLoading = false;
-        });
-      });
+      searchRemoteChats(q)
+          .then((remoteResults) {
+            if (!mounted || token != _searchToken || _query.trim() != q) return;
+            setState(() {
+              _remoteChats = filterRemoteChats(
+                local: localMatches,
+                remote: remoteResults,
+              );
+              _remoteLoading = false;
+            });
+          })
+          .catchError((_) {
+            if (!mounted || token != _searchToken || _query.trim() != q) return;
+            setState(() {
+              _remoteLoading = false;
+            });
+          });
     }
-
   }
-
 
   void _openChat(String chatUUID) {
     final currentUUID = chatUUIDFromPath(GoRouterState.of(context).uri.path);
@@ -162,8 +164,10 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
   }
 
   void _onChatSelected(ChatModel chat) {
-    final isLocal =
-        ref.read(chatListProvider).chats.any((c) => c.uuid == chat.uuid);
+    final isLocal = ref
+        .read(chatListProvider)
+        .chats
+        .any((c) => c.uuid == chat.uuid);
     if (isLocal) {
       _openChat(chat.uuid);
     } else {
@@ -174,7 +178,6 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
       );
     }
   }
-
 
   void _openMessageResult(Map<String, dynamic> result) {
     final chatUUID = result['chatUUID']?.toString() ?? '';
@@ -216,9 +219,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
           children: [
             CustomScrollView(
               slivers: [
-                SliverToBoxAdapter(
-                  child: SizedBox(height: topInset + 68),
-                ),
+                SliverToBoxAdapter(child: SizedBox(height: topInset + 68)),
                 if (chatListState.loading && chats.isEmpty)
                   const SliverFillRemaining(
                     hasScrollBody: false,
@@ -279,4 +280,3 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     );
   }
 }
-

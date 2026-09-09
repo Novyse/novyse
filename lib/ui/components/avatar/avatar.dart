@@ -139,7 +139,8 @@ class _AvatarState extends ConsumerState<Avatar> {
       ),
     );
 
-    final isUserType = widget.type == null ||
+    final isUserType =
+        widget.type == null ||
         widget.type!.toUpperCase() == 'USER' ||
         widget.type!.toUpperCase() == 'DM';
     final showOnlineBadge = widget.isOnline && isUserType;

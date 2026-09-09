@@ -104,7 +104,9 @@ class MessageText extends StatelessWidget {
         backgroundColor: isSender
             ? colorScheme.onPrimary.withValues(alpha: 0.35)
             : colorScheme.primaryContainer.withValues(alpha: 0.85),
-        color: isSender ? colorScheme.onPrimary : colorScheme.onPrimaryContainer,
+        color: isSender
+            ? colorScheme.onPrimary
+            : colorScheme.onPrimaryContainer,
         fontWeight: FontWeight.w700,
       );
       final start = quoteHighlightRange!.start;
@@ -124,7 +126,9 @@ class MessageText extends StatelessWidget {
         ),
       );
     } else {
-      final textColor = isSender ? colorScheme.onPrimary : colorScheme.onSurface;
+      final textColor = isSender
+          ? colorScheme.onPrimary
+          : colorScheme.onSurface;
 
       final codeBgColor = isSender
           ? colorScheme.onPrimary.withValues(alpha: 0.15)

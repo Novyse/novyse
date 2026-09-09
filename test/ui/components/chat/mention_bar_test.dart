@@ -31,7 +31,9 @@ void main() {
       handle: 'luigi',
     );
 
-    testWidgets('renders list of members with display names and handles', (tester) async {
+    testWidgets('renders list of members with display names and handles', (
+      tester,
+    ) async {
       UserModel? selected;
 
       await tester.pumpWidget(
@@ -57,7 +59,9 @@ void main() {
       expect(selected, equals(user1));
     });
 
-    testWidgets('returns SizedBox.shrink when members list is empty', (tester) async {
+    testWidgets('returns SizedBox.shrink when members list is empty', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -73,80 +77,108 @@ void main() {
       expect(find.byType(ListView), findsNothing);
     });
 
-    testWidgets('typing @ in group chat triggers MentionBar and selection replaces query', (tester) async {
-      final container = ProviderContainer(
-        overrides: [
-          chatProvider('group-1').overrideWithValue(
-            ChatModel(
-              uuid: 'group-1',
-              type: 'GROUP',
-              name: 'Test Group',
-              members: [
-                {'uuid': 'me', 'name': 'Self', 'handle': 'self'},
-                {'uuid': 'user-1', 'name': 'Mario', 'surname': 'Rossi', 'handle': 'mario'},
-                {'uuid': 'user-2', 'name': 'Luigi', 'surname': 'Verdi', 'handle': 'luigi'},
-              ],
-            ),
-          ),
-          userStoreProvider.overrideWith(
-            () => _TestUserNotifier(
-              UserStoreState(
-                localUserUUID: 'me',
-                users: {
-                  'user-1': user1,
-                  'user-2': user2,
-                },
+    testWidgets(
+      'typing @ in group chat triggers MentionBar and selection replaces query',
+      (tester) async {
+        final container = ProviderContainer(
+          overrides: [
+            chatProvider('group-1').overrideWithValue(
+              ChatModel(
+                uuid: 'group-1',
+                type: 'GROUP',
+                name: 'Test Group',
+                members: [
+                  {'uuid': 'me', 'name': 'Self', 'handle': 'self'},
+                  {
+                    'uuid': 'user-1',
+                    'name': 'Mario',
+                    'surname': 'Rossi',
+                    'handle': 'mario',
+                  },
+                  {
+                    'uuid': 'user-2',
+                    'name': 'Luigi',
+                    'surname': 'Verdi',
+                    'handle': 'luigi',
+                  },
+                ],
               ),
             ),
-          ),
-        ],
-      );
-      addTearDown(container.dispose);
+            userStoreProvider.overrideWith(
+              () => _TestUserNotifier(
+                UserStoreState(
+                  localUserUUID: 'me',
+                  users: {'user-1': user1, 'user-2': user2},
+                ),
+              ),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: DefaultBottomBar(chatUUID: 'group-1'),
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: const MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(body: DefaultBottomBar(chatUUID: 'group-1')),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      // MentionBar widget is always mounted in DefaultBottomBar, but shows nothing initially
-      expect(find.byType(MentionBar), findsOneWidget);
-      expect(find.descendant(of: find.byType(MentionBar), matching: find.byType(ListView)), findsNothing);
+        // MentionBar widget is always mounted in DefaultBottomBar, but shows nothing initially
+        expect(find.byType(MentionBar), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(MentionBar),
+            matching: find.byType(ListView),
+          ),
+          findsNothing,
+        );
 
-      // Type "@" in the input field
-      await tester.enterText(find.byType(TextField), '@');
-      await tester.pump();
+        // Type "@" in the input field
+        await tester.enterText(find.byType(TextField), '@');
+        await tester.pump();
 
-      // MentionBar should now show suggestions for Mario and Luigi
-      expect(find.descendant(of: find.byType(MentionBar), matching: find.byType(ListView)), findsOneWidget);
-      expect(find.text('Mario Rossi'), findsOneWidget);
-      expect(find.text('Luigi Verdi'), findsOneWidget);
+        // MentionBar should now show suggestions for Mario and Luigi
+        expect(
+          find.descendant(
+            of: find.byType(MentionBar),
+            matching: find.byType(ListView),
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('Mario Rossi'), findsOneWidget);
+        expect(find.text('Luigi Verdi'), findsOneWidget);
 
-      // Filter with "@lu"
-      await tester.enterText(find.byType(TextField), '@lu');
-      await tester.pump();
+        // Filter with "@lu"
+        await tester.enterText(find.byType(TextField), '@lu');
+        await tester.pump();
 
-      expect(find.text('Luigi Verdi'), findsOneWidget);
-      expect(find.text('Mario Rossi'), findsNothing);
+        expect(find.text('Luigi Verdi'), findsOneWidget);
+        expect(find.text('Mario Rossi'), findsNothing);
 
-      // Tap on Luigi
-      await tester.tap(find.text('Luigi Verdi'));
-      await tester.pump();
+        // Tap on Luigi
+        await tester.tap(find.text('Luigi Verdi'));
+        await tester.pump();
 
-      // Text should be replaced with "@luigi "
-      final controller = container.read(chatTextControllerProvider('group-1'));
-      expect(controller.text, equals('@luigi '));
-      // MentionBar suggestions should now be closed
-      expect(find.descendant(of: find.byType(MentionBar), matching: find.byType(ListView)), findsNothing);
-    });
+        // Text should be replaced with "@luigi "
+        final controller = container.read(
+          chatTextControllerProvider('group-1'),
+        );
+        expect(controller.text, equals('@luigi '));
+        // MentionBar suggestions should now be closed
+        expect(
+          find.descendant(
+            of: find.byType(MentionBar),
+            matching: find.byType(ListView),
+          ),
+          findsNothing,
+        );
+      },
+    );
 
     testWidgets('MentionBar does not open in DM chats', (tester) async {
       final container = ProviderContainer(
@@ -164,10 +196,7 @@ void main() {
           ),
           userStoreProvider.overrideWith(
             () => _TestUserNotifier(
-              UserStoreState(
-                localUserUUID: 'me',
-                users: {'user-1': user1},
-              ),
+              UserStoreState(localUserUUID: 'me', users: {'user-1': user1}),
             ),
           ),
         ],
@@ -180,9 +209,7 @@ void main() {
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: DefaultBottomBar(chatUUID: 'dm-1'),
-            ),
+            home: Scaffold(body: DefaultBottomBar(chatUUID: 'dm-1')),
           ),
         ),
       );
@@ -191,7 +218,13 @@ void main() {
       await tester.enterText(find.byType(TextField), '@');
       await tester.pump();
 
-      expect(find.descendant(of: find.byType(MentionBar), matching: find.byType(ListView)), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(MentionBar),
+          matching: find.byType(ListView),
+        ),
+        findsNothing,
+      );
     });
   });
 }

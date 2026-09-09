@@ -51,7 +51,10 @@ void main() {
       // Add 1st
       notifier.addReply(msg1);
       expect(container.read(chatDraftProvider(chatUUID)).replyingTo.length, 1);
-      expect(container.read(chatDraftProvider(chatUUID)).replyingTo.first.message.id, 1);
+      expect(
+        container.read(chatDraftProvider(chatUUID)).replyingTo.first.message.id,
+        1,
+      );
 
       // Add 2nd
       notifier.addReply(msg2);
@@ -60,7 +63,14 @@ void main() {
       // Add 3rd
       notifier.addReply(msg3);
       expect(container.read(chatDraftProvider(chatUUID)).replyingTo.length, 3);
-      expect(container.read(chatDraftProvider(chatUUID)).replyingTo.map((r) => r.message.id).toList(), [1, 2, 3]);
+      expect(
+        container
+            .read(chatDraftProvider(chatUUID))
+            .replyingTo
+            .map((r) => r.message.id)
+            .toList(),
+        [1, 2, 3],
+      );
 
       // Add 4th -> FIFO eviction drops msg1, keeps [2, 3, 4]
       notifier.addReply(msg4);
@@ -139,19 +149,34 @@ void main() {
       );
 
       notifier.toggleSelectMessage(msgA);
-      expect(container.read(chatDraftProvider(chatUUID)).selectedMessages.length, 1);
+      expect(
+        container.read(chatDraftProvider(chatUUID)).selectedMessages.length,
+        1,
+      );
 
       notifier.toggleSelectMessage(msgB);
-      expect(container.read(chatDraftProvider(chatUUID)).selectedMessages.length, 2);
+      expect(
+        container.read(chatDraftProvider(chatUUID)).selectedMessages.length,
+        2,
+      );
 
       // Toggle msgA off
       notifier.toggleSelectMessage(msgA);
-      expect(container.read(chatDraftProvider(chatUUID)).selectedMessages.length, 1);
-      expect(container.read(chatDraftProvider(chatUUID)).selectedMessages.first, msgB);
+      expect(
+        container.read(chatDraftProvider(chatUUID)).selectedMessages.length,
+        1,
+      );
+      expect(
+        container.read(chatDraftProvider(chatUUID)).selectedMessages.first,
+        msgB,
+      );
 
       // Clear all
       notifier.clearSelectedMessages();
-      expect(container.read(chatDraftProvider(chatUUID)).selectedMessages, isEmpty);
+      expect(
+        container.read(chatDraftProvider(chatUUID)).selectedMessages,
+        isEmpty,
+      );
     });
   });
 }

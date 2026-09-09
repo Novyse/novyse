@@ -303,7 +303,11 @@ class MessageListNotifier
 
     try {
       final db = AppDatabase.instance;
-      final raw = await db.message.get.by.id(arg.chatUUID, arg.subID, messageId);
+      final raw = await db.message.get.by.id(
+        arg.chatUUID,
+        arg.subID,
+        messageId,
+      );
       if (raw != null) {
         final model = MessageModel.fromMap(raw);
         if (!state.messages.any((m) => m.id.toString() == idStr)) {

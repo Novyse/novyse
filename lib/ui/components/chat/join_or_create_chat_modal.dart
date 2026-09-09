@@ -72,7 +72,10 @@ class _JoinOrCreateChatModalState extends ConsumerState<JoinOrCreateChatModal> {
         final targetUUID = widget.chat.uuid;
         if (targetUUID.isEmpty) throw Exception('User UUID missing');
 
-        final res = await apiGateway.chat.create('DM', memberUUIDs: [targetUUID]);
+        final res = await apiGateway.chat.create(
+          'DM',
+          memberUUIDs: [targetUUID],
+        );
         if (!mounted) return;
 
         final success = res['success'] == true;

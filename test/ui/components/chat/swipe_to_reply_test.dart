@@ -4,7 +4,9 @@ import 'package:novyse/ui/components/chat/message/swipe_to_reply.dart';
 
 void main() {
   group('SwipeToReply Widget Tests', () {
-    testWidgets('swiping right past threshold triggers onReply', (tester) async {
+    testWidgets('swiping right past threshold triggers onReply', (
+      tester,
+    ) async {
       bool replied = false;
 
       await tester.pumpWidget(
@@ -63,7 +65,9 @@ void main() {
       expect(replied, isTrue);
     });
 
-    testWidgets('dragging below threshold does NOT trigger onReply', (tester) async {
+    testWidgets('dragging below threshold does NOT trigger onReply', (
+      tester,
+    ) async {
       bool replied = false;
 
       await tester.pumpWidget(
@@ -90,7 +94,9 @@ void main() {
       expect(replied, isFalse);
     });
 
-    testWidgets('when enabled is false, dragging does not trigger onReply', (tester) async {
+    testWidgets('when enabled is false, dragging does not trigger onReply', (
+      tester,
+    ) async {
       bool replied = false;
 
       await tester.pumpWidget(

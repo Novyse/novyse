@@ -55,9 +55,8 @@ class ChatSelectedHeader extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final canReply = selectedCount > 0 && selectedCount <= 3;
 
-    final hasActions = (canReply && onReply != null) ||
-        onForward != null ||
-        onDelete != null;
+    final hasActions =
+        (canReply && onReply != null) || onForward != null || onDelete != null;
 
     final content = Row(
       children: [

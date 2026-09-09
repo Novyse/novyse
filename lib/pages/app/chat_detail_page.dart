@@ -116,9 +116,8 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
 
   List<MessageModel> _currentSearchMatches() {
     final messages = ref.read(
-      chatMessagesProvider(
-        (chatUUID: widget.chatUUID, subID: 0),
-      ).select((s) => s.messages),
+      chatMessagesProvider((chatUUID: widget.chatUUID, subID: 0))
+          .select((s) => s.messages),
     );
     final trimmedQuery = _searchQuery.trim().toLowerCase();
     if (trimmedQuery.isEmpty) return const [];

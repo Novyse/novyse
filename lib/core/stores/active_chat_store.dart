@@ -209,11 +209,7 @@ class ActiveChatNotifier extends Notifier<ActiveChatState> {
     state = state.copyWith(headerHeight: height);
   }
 
-  void setScrollToMessageID(
-    String? id, {
-    int? rangeStart,
-    int? rangeEnd,
-  }) {
+  void setScrollToMessageID(String? id, {int? rangeStart, int? rangeEnd}) {
     state = state.copyWith(
       scrollToMessageID: () => id,
       scrollToRangeStart: () => id == null ? null : rangeStart,
@@ -260,7 +256,9 @@ class ActiveChatNotifier extends Notifier<ActiveChatState> {
     final activeUUID = state.selectedChatUUID;
     if (activeUUID != null) {
       if (needsSubSwitch) {
-        ref.read(chatDraftProvider(activeUUID).notifier).setSelectedSub(targetSub);
+        ref
+            .read(chatDraftProvider(activeUUID).notifier)
+            .setSelectedSub(targetSub);
       }
       if (needsViewSwitch) {
         ref.read(chatDraftProvider(activeUUID).notifier).setContentView('chat');

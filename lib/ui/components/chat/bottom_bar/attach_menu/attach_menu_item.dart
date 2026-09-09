@@ -28,6 +28,7 @@ extension AttachMenuActionConfig on AttachMenuAction {
         return HugeIcons.strokeRoundedTaskEdit01;
     }
   }
+
   String label(AppLocalizations l10n) {
     switch (this) {
       case AttachMenuAction.media:

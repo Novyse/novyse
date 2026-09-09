@@ -542,8 +542,8 @@ class MessageRepository {
               (file['ref'] ?? file['uri'] ?? file['path']) as String?;
           final waveformStr = file['waveform'] != null
               ? (file['waveform'] is String
-                  ? file['waveform']
-                  : jsonEncode(file['waveform']))
+                    ? file['waveform']
+                    : jsonEncode(file['waveform']))
               : null;
 
           await db.execute(
@@ -570,10 +570,10 @@ class MessageRepository {
           );
 
           if (fileRef != null && fileRef.isNotEmpty) {
-            await db.execute(
-              'UPDATE file SET ref = ? WHERE uuid = ?;',
-              [fileRef, fileUUID],
-            );
+            await db.execute('UPDATE file SET ref = ? WHERE uuid = ?;', [
+              fileRef,
+              fileUUID,
+            ]);
           }
 
           if (!currentUUIDs.contains(fileUUID)) {
@@ -745,7 +745,7 @@ class MessageRepository {
     }).toList();
   }
 
-    Future<void> _addEditedAndPinned(Map<String, dynamic> message) async {
+  Future<void> _addEditedAndPinned(Map<String, dynamic> message) async {
     final chatUUID = message['chatUUID'] as String?;
     final subID = _parseId(message['subID']);
     final id = _parseId(message['id']);

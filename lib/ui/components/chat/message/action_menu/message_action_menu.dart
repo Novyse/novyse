@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -82,8 +83,9 @@ class MessageActionMenu extends ConsumerWidget {
         selectedText != null && selectedText!.trim().isNotEmpty;
     final hasFiles = message.files.isNotEmpty;
 
-    final localUserUUID =
-        ref.watch(userStoreProvider.select((s) => s.localUserUUID));
+    final localUserUUID = ref.watch(
+      userStoreProvider.select((s) => s.localUserUUID),
+    );
     final chat = ref.watch(chatProvider(message.chatUUID));
 
     final isMine = message.userUUID == localUserUUID;
@@ -102,11 +104,13 @@ class MessageActionMenu extends ConsumerWidget {
         .toList();
     final myLevel = getEffectiveLevel(myRoles);
 
-    final canReply = isDM ||
+    final canReply =
+        isDM ||
         chat == null ||
         hasPermission(myRoles, ChatPermissions.sendMessage, subType);
     final canQuoteAndReply = canReply && hasSelectedText;
-    final canPin = isDM ||
+    final canPin =
+        isDM ||
         chat == null ||
         hasPermission(myRoles, ChatPermissions.pinMessage);
     final canEdit = isMine && canReply;
@@ -121,7 +125,8 @@ class MessageActionMenu extends ConsumerWidget {
           .where((r) => targetRoleIDs.contains(r['id']))
           .toList();
       final targetLevel = getEffectiveLevel(targetRoles);
-      canDelete = hasPermission(myRoles, ChatPermissions.deleteMessage) &&
+      canDelete =
+          hasPermission(myRoles, ChatPermissions.deleteMessage) &&
           myLevel >= targetLevel;
     }
 

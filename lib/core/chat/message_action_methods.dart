@@ -39,11 +39,9 @@ class MessageActionMethods {
         rangeEnd = start + selectedText.trim().length;
       }
     }
-    ref.read(chatDraftProvider(chatUUID).notifier).addReply(
-      message,
-      rangeStart: rangeStart,
-      rangeEnd: rangeEnd,
-    );
+    ref
+        .read(chatDraftProvider(chatUUID).notifier)
+        .addReply(message, rangeStart: rangeStart, rangeEnd: rangeEnd);
   }
 
   /// Copies message content to clipboard.
@@ -175,11 +173,7 @@ class MessageActionMethods {
 
     if (confirmed == true) {
       try {
-        await apiGateway.message.delete(
-          chatUUID,
-          subID,
-          message.id.toString(),
-        );
+        await apiGateway.message.delete(chatUUID, subID, message.id.toString());
       } catch (e) {
         debugPrint('Error deleting message on server: $e');
       }

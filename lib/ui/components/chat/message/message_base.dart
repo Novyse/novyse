@@ -64,7 +64,8 @@ class MessageBase extends ConsumerStatefulWidget {
     required int messageID,
     int? rangeStart,
     int? rangeEnd,
-  })? onReplyTap;
+  })?
+  onReplyTap;
   final TextRange? quoteHighlightRange;
   final MessageModel? Function(String chatUUID, int subID, int messageID)?
   getMessage;
@@ -624,8 +625,8 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
                                 onSelectionChanged: (text) {
                                   _selectedText =
                                       (text != null && text.trim().isNotEmpty)
-                                          ? text
-                                          : null;
+                                      ? text
+                                      : null;
                                 },
                                 onOpenContextMenu: isSelectionMode
                                     ? null

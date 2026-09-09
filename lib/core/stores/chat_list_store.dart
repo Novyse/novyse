@@ -58,11 +58,14 @@ class ChatModel {
         Map<String, dynamic>? latestSubMsg;
         DateTime? latestDate;
         for (final sub in map['subs'] as List) {
-          if (sub is Map && sub['lastMessage'] != null && sub['lastMessage'] is Map) {
+          if (sub is Map &&
+              sub['lastMessage'] != null &&
+              sub['lastMessage'] is Map) {
             final lm = Map<String, dynamic>.from(sub['lastMessage'] as Map);
             final dateStr = lm['createdAt']?.toString();
             final date = dateStr != null ? DateTime.tryParse(dateStr) : null;
-            if (date != null && (latestDate == null || date.isAfter(latestDate))) {
+            if (date != null &&
+                (latestDate == null || date.isAfter(latestDate))) {
               latestDate = date;
               latestSubMsg = lm;
             } else {
@@ -447,37 +450,37 @@ class ChatListNotifier extends Notifier<ChatListState> {
 
     switch (action) {
       case 'pin_add':
-      final updated = state.chats.map((chat) {
-        if (chat.uuid != chatUUID) return chat;
-        final list = List<Map<String, dynamic>>.from(chat.pinnedMessages);
-        final exists = list.any(
-          (p) => p['subID'] == subID && p['messageID'] == msgId,
-        );
-        if (!exists) {
-          list.add({
-            'chatUUID': chatUUID,
-            'subID': subID,
-            'messageID': msgId,
-            'pinnedAt': data['pinnedAt'],
-            'pinnedByUUID': data['userUUID'],
-          });
-        }
-        return chat.copyWith(pinnedMessages: list);
-      }).toList();
-
-      state = state.copyWith(chats: updated);
-      break;
-    case 'pin_remove':
-      final updated = state.chats.map((chat) {
-        if (chat.uuid != chatUUID) return chat;
-        final list = chat.pinnedMessages.where((p) {
-          return !(p['subID'] == subID && p['messageID'] == msgId);
+        final updated = state.chats.map((chat) {
+          if (chat.uuid != chatUUID) return chat;
+          final list = List<Map<String, dynamic>>.from(chat.pinnedMessages);
+          final exists = list.any(
+            (p) => p['subID'] == subID && p['messageID'] == msgId,
+          );
+          if (!exists) {
+            list.add({
+              'chatUUID': chatUUID,
+              'subID': subID,
+              'messageID': msgId,
+              'pinnedAt': data['pinnedAt'],
+              'pinnedByUUID': data['userUUID'],
+            });
+          }
+          return chat.copyWith(pinnedMessages: list);
         }).toList();
-        return chat.copyWith(pinnedMessages: list);
-      }).toList();
 
-      state = state.copyWith(chats: updated);
-      break;
+        state = state.copyWith(chats: updated);
+        break;
+      case 'pin_remove':
+        final updated = state.chats.map((chat) {
+          if (chat.uuid != chatUUID) return chat;
+          final list = chat.pinnedMessages.where((p) {
+            return !(p['subID'] == subID && p['messageID'] == msgId);
+          }).toList();
+          return chat.copyWith(pinnedMessages: list);
+        }).toList();
+
+        state = state.copyWith(chats: updated);
+        break;
     }
   }
 

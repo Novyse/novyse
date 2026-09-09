@@ -56,8 +56,9 @@ void main() {
   });
 
   group('FilesBar draft previews', () {
-    testWidgets('audio draft chip shows play icon and toggles playback',
-        (tester) async {
+    testWidgets('audio draft chip shows play icon and toggles playback', (
+      tester,
+    ) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -97,8 +98,9 @@ void main() {
       expect(findPauseIcon(), findsOneWidget);
     });
 
-    testWidgets('voice draft chip renders and reflects playing state',
-        (tester) async {
+    testWidgets('voice draft chip renders and reflects playing state', (
+      tester,
+    ) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -129,8 +131,9 @@ void main() {
       expect(findPauseIcon(), findsOneWidget);
     });
 
-    testWidgets('tapping an image chip opens the media viewer gallery',
-        (tester) async {
+    testWidgets('tapping an image chip opens the media viewer gallery', (
+      tester,
+    ) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -158,8 +161,9 @@ void main() {
       expect(find.text('1 / 1'), findsOneWidget);
     });
 
-    testWidgets('tapping an unresolvable file shows an error snackbar',
-        (tester) async {
+    testWidgets('tapping an unresolvable file shows an error snackbar', (
+      tester,
+    ) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -176,8 +180,9 @@ void main() {
       expect(find.text('Unable to preview this file'), findsOneWidget);
     });
 
-    testWidgets('FilesBar still renders plain chips for generic files',
-        (tester) async {
+    testWidgets('FilesBar still renders plain chips for generic files', (
+      tester,
+    ) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -208,7 +213,9 @@ void main() {
       expect(findPlayIcon(), findsOneWidget);
     });
 
-    testWidgets('files list scrolls horizontally to reveal all files',        (tester) async {
+    testWidgets('files list scrolls horizontally to reveal all files', (
+      tester,
+    ) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -237,8 +244,9 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('audio chip shows a seek bar that seeks without throwing',
-        (tester) async {
+    testWidgets('audio chip shows a seek bar that seeks without throwing', (
+      tester,
+    ) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -282,8 +290,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
       expect(tester.takeException(), isNull);
     });
-    testWidgets('files scrollbar is slim and reserves its own lane',
-        (tester) async {
+    testWidgets('files scrollbar is slim and reserves its own lane', (
+      tester,
+    ) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -306,8 +315,7 @@ void main() {
       expect(widget.trackVisibility, isFalse);
       expect(tester.takeException(), isNull);
     });
-    testWidgets('audio and plain chips share the same height',
-        (tester) async {
+    testWidgets('audio and plain chips share the same height', (tester) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -325,8 +333,12 @@ void main() {
       await pumpBottomBar(tester, container, 'chat-height');
       await tester.pumpAndSettle();
 
-      final plainSize = tester.getSize(find.byKey(const Key('file_chip_doc.pdf')));
-      final audioSize = tester.getSize(find.byKey(const Key('file_chip_song.mp3')));
+      final plainSize = tester.getSize(
+        find.byKey(const Key('file_chip_doc.pdf')),
+      );
+      final audioSize = tester.getSize(
+        find.byKey(const Key('file_chip_song.mp3')),
+      );
 
       // Same height: rows stay vertically aligned, the seek bar lives in the
       // shared bottom lane without raising the audio content.

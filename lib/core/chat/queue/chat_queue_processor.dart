@@ -217,7 +217,8 @@ class ChatQueueProcessor {
         formattedErrorMessage = e.toString();
       }
 
-      final isFatalClientError = e is DioException &&
+      final isFatalClientError =
+          e is DioException &&
           e.response?.statusCode != null &&
           e.response!.statusCode! >= 400 &&
           e.response!.statusCode! < 500 &&
@@ -561,12 +562,12 @@ class ChatQueueProcessor {
     final rawFiles = job.payload['files'] as List?;
     final files = rawFiles != null
         ? rawFiles
-            .map(
-              (f) => f is Map
-                  ? Map<String, dynamic>.from(f)
-                  : <String, dynamic>{},
-            )
-            .toList()
+              .map(
+                (f) => f is Map
+                    ? Map<String, dynamic>.from(f)
+                    : <String, dynamic>{},
+              )
+              .toList()
         : <Map<String, dynamic>>[];
 
     for (final file in files) {
@@ -577,9 +578,7 @@ class ChatQueueProcessor {
           try {
             final fileBytes =
                 bytes ??
-                (uri != null
-                    ? await FileStorage.instance.getBytes(uri)
-                    : null);
+                (uri != null ? await FileStorage.instance.getBytes(uri) : null);
             if (fileBytes != null) {
               final mime = (file['mimeType'] ?? '') as String;
               if (mime.contains('wav')) {
@@ -676,8 +675,7 @@ class ChatQueueProcessor {
                 fileUUID: fileUUID,
                 uploadURL: uploadURL,
                 bytes: fileBytes,
-                mimeType:
-                    localFile['mimeType'] as String? ?? defaultMimeType,
+                mimeType: localFile['mimeType'] as String? ?? defaultMimeType,
                 cancelToken: job.cancelToken,
                 onProgress: (sent, total) {
                   final fileProg = total > 0 ? sent / total : 0.0;
@@ -748,10 +746,7 @@ class ChatQueueProcessor {
         messageID,
         'edit',
         res.chatEventID,
-        {
-          'content': newContent,
-          'files': mergedFiles,
-        },
+        {'content': newContent, 'files': mergedFiles},
       );
 
       job.status = JobStatus.completed;

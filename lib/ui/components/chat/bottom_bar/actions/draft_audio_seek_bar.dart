@@ -50,8 +50,10 @@ class DraftAudioSeekBar extends StatelessWidget {
             ? service.duration.inMilliseconds
             : ((durationSeconds ?? 0) * 1000);
         final progress = totalMs > 0
-            ? (service.getItemPosition(draftId).inMilliseconds / totalMs)
-                  .clamp(0.0, 1.0)
+            ? (service.getItemPosition(draftId).inMilliseconds / totalMs).clamp(
+                0.0,
+                1.0,
+              )
             : 0.0;
 
         return Builder(
@@ -82,9 +84,7 @@ class DraftAudioSeekBar extends StatelessWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        Container(
-                          color: colorScheme.surfaceContainerHighest,
-                        ),
+                        Container(color: colorScheme.surfaceContainerHighest),
                         FractionallySizedBox(
                           alignment: Alignment.centerLeft,
                           widthFactor: progress,

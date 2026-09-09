@@ -131,11 +131,7 @@ class _FilesBarState extends ConsumerState<FilesBar> {
           tappedIndex: index,
         );
       } else {
-        await openDraftFileWithSystem(
-          context,
-          file: file,
-          chatUUID: chatUUID,
-        );
+        await openDraftFileWithSystem(context, file: file, chatUUID: chatUUID);
       }
     }
 
@@ -306,8 +302,7 @@ class _FilesBarState extends ConsumerState<FilesBar> {
                         isInvalid: isInvalid,
                         removeTooltip: l10n.removeFileTooltip,
                         removeKey: Key('remove_file_$index'),
-                        onTap: () =>
-                            handlePreviewTap(file, index, messageFile),
+                        onTap: () => handlePreviewTap(file, index, messageFile),
                         onRemove: () => handleRemoveFile(index),
                       );
                     },

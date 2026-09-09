@@ -136,9 +136,7 @@ class ChatDetailSearchAppBar extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const AppHugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowUp01,
-                ),
+                icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowUp01),
                 onPressed: hasResults ? onPrevious : null,
               ),
               IconButton(

@@ -98,9 +98,7 @@ class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
     final background = scheme.surface;
     return Container(
       height: 40,
-      decoration: BoxDecoration(
-        color: background,
-      ),
+      decoration: BoxDecoration(color: background),
       child: Row(
         children: [
           Expanded(

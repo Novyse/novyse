@@ -57,9 +57,7 @@ void main() {
         userUUID: 'user-1',
         createdAt: DateTime.now(),
       );
-      draft1Notifier.setReplyingTo([
-        ChatReplyItem(message: testMsg),
-      ]);
+      draft1Notifier.setReplyingTo([ChatReplyItem(message: testMsg)]);
       expect(
         container.read(chatDraftProvider('chat-1')).replyingTo.first.message.id,
         equals('msg-10'),

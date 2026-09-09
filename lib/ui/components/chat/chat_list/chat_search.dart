@@ -30,8 +30,9 @@ List<ChatModel> filterChatsByQuery({
         l10n: l10n,
       );
       candidates.add(metadata.name);
-      final other =
-          metadata.otherUserUUID != null ? users[metadata.otherUserUUID] : null;
+      final other = metadata.otherUserUUID != null
+          ? users[metadata.otherUserUUID]
+          : null;
       if (other != null) {
         candidates.add(other.displayName);
         if (other.handle != null && other.handle!.isNotEmpty) {
@@ -61,8 +62,9 @@ Future<List<ChatModel>> searchRemoteChats(String query) async {
     for (final u in usersList) {
       final name = '${u['name'] ?? ''} ${u['surname'] ?? ''}'.trim();
       final handle = u['handle']?.toString();
-      final displayName =
-          name.isNotEmpty ? name : (handle != null ? '@$handle' : 'User');
+      final displayName = name.isNotEmpty
+          ? name
+          : (handle != null ? '@$handle' : 'User');
       remoteChats.add(
         ChatModel(
           uuid: u['uuid']?.toString() ?? '',
@@ -102,9 +104,9 @@ Future<List<ChatModel>> searchRemoteChats(String query) async {
               c['profile_picture_uuid']?.toString(),
           members: c['members'] is List
               ? (c['members'] as List)
-                  .whereType<Map>()
-                  .map((m) => Map<String, dynamic>.from(m))
-                  .toList()
+                    .whereType<Map>()
+                    .map((m) => Map<String, dynamic>.from(m))
+                    .toList()
               : const [],
           lastMessage: subtitle.isNotEmpty ? {'content': subtitle} : null,
         ),
@@ -126,7 +128,7 @@ List<ChatModel> filterRemoteChats({
   final localKeys = <String>{
     for (final c in local) ...[
       if (c.uuid.isNotEmpty) c.uuid,
-        if (c.handle != null && c.handle!.isNotEmpty) c.handle!.toLowerCase(),
+      if (c.handle != null && c.handle!.isNotEmpty) c.handle!.toLowerCase(),
       if (c.type == 'DM')
         for (final m in c.members) ...[
           if (m['uuid'] != null) m['uuid'].toString(),
@@ -136,8 +138,12 @@ List<ChatModel> filterRemoteChats({
   };
 
   return remote.where((r) {
-    if (r.uuid.isNotEmpty && localKeys.contains(r.uuid)) return false;
-    if (r.handle != null && localKeys.contains(r.handle!.toLowerCase())) return false;
+    if (r.uuid.isNotEmpty && localKeys.contains(r.uuid)) {
+      return false;
+    }
+    if (r.handle != null && localKeys.contains(r.handle!.toLowerCase())) {
+      return false;
+    }
     return true;
   }).toList();
 }

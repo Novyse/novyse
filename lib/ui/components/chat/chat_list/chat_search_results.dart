@@ -34,7 +34,8 @@ class ChatSearchResults extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     const emptyPadding = EdgeInsets.fromLTRB(16, 12, 16, 4);
 
-    final hasNoResultsOverall = localChats.isEmpty &&
+    final hasNoResultsOverall =
+        localChats.isEmpty &&
         remoteChats.isEmpty &&
         !remoteLoading &&
         matchedMessages.isEmpty &&

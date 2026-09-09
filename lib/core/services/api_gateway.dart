@@ -732,7 +732,7 @@ class MessageModule {
 
   /// Confirm a message edit after files have been uploaded.
   Future<({bool success, int? chatEventID, Map<String, dynamic>? data})>
-      editConfirm(String messageUUID) async {
+  editConfirm(String messageUUID) async {
     final res = await _dio.post(
       '/message/edit/confirm',
       data: {'messageUUID': messageUUID},

@@ -28,11 +28,7 @@ class ChatReplyItem {
   final int? rangeStart;
   final int? rangeEnd;
 
-  const ChatReplyItem({
-    required this.message,
-    this.rangeStart,
-    this.rangeEnd,
-  });
+  const ChatReplyItem({required this.message, this.rangeStart, this.rangeEnd});
 
   bool get isQuote => rangeStart != null && rangeEnd != null;
 }
@@ -132,10 +128,7 @@ class ChatDraftNotifier extends FamilyNotifier<ChatDraftState, String> {
       updated.add(item);
     }
 
-    state = state.copyWith(
-      replyingTo: updated,
-      editingMessage: () => null,
-    );
+    state = state.copyWith(replyingTo: updated, editingMessage: () => null);
   }
 
   /// Removes a reply item by its message ID.

@@ -1,4 +1,5 @@
 import 'dart:async' show Timer;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/chat/permissions.dart';
@@ -210,11 +211,7 @@ class _MessageListState extends ConsumerState<MessageList> {
 
     ref.listen<(String?, int?, int?)>(
       activeChatProvider.select(
-        (s) => (
-          s.scrollToMessageID,
-          s.scrollToRangeStart,
-          s.scrollToRangeEnd,
-        ),
+        (s) => (s.scrollToMessageID, s.scrollToRangeStart, s.scrollToRangeEnd),
       ),
       (previous, next) async {
         final id = next.$1;
@@ -227,11 +224,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           );
           await notifier.fetchMessageById(id);
           if (mounted) {
-            _jumpToMessage(
-              id,
-              rangeStart: next.$2,
-              rangeEnd: next.$3,
-            );
+            _jumpToMessage(id, rangeStart: next.$2, rangeEnd: next.$3);
             ref.read(activeChatProvider.notifier).clearScrollTarget();
           }
         }
@@ -267,7 +260,8 @@ class _MessageListState extends ConsumerState<MessageList> {
     final myRoles = (chat?.roles ?? [])
         .where((r) => myRoleIDs.contains(r['id']))
         .toList();
-    final canReplyChat = isDM ||
+    final canReplyChat =
+        isDM ||
         chat == null ||
         hasPermission(myRoles, ChatPermissions.sendMessage, subType);
 
@@ -290,25 +284,25 @@ class _MessageListState extends ConsumerState<MessageList> {
 
         final isMsgSelected =
             isCurrentMatch ||
-            selectedMessages.any((m) => m.id.toString() == message.id.toString());
+            selectedMessages.any(
+              (m) => m.id.toString() == message.id.toString(),
+            );
 
         final itemKey = _itemKeys.putIfAbsent(
           message.id.toString(),
           () => GlobalKey(),
         );
 
-        final quoteHighlightRange = isJumpMatch &&
-                _jumpRangeStart != null &&
-                _jumpRangeEnd != null
+        final quoteHighlightRange =
+            isJumpMatch && _jumpRangeStart != null && _jumpRangeEnd != null
             ? TextRange(start: _jumpRangeStart!, end: _jumpRangeEnd!)
             : null;
 
         return KeyedSubtree(
           key: itemKey,
           child: SwipeToReply(
-            enabled: !isSelectionMode &&
-                message.type != 'system' &&
-                canReplyChat,
+            enabled:
+                !isSelectionMode && message.type != 'system' && canReplyChat,
             isSender: isSender,
             onReply: () {
               ref.read(chatDraftProvider(chatUUID).notifier).addReply(message);
@@ -324,35 +318,32 @@ class _MessageListState extends ConsumerState<MessageList> {
               searchHighlight: widget.searchQuery,
               isCurrentSearchMatch: isCurrentMatch,
               quoteHighlightRange: quoteHighlightRange,
-              onReplyTap: ({
-                required String chatUUID,
-                required int subID,
-                required int messageID,
-                int? rangeStart,
-                int? rangeEnd,
-              }) {
-                if (chatUUID.isEmpty || chatUUID == widget.chatUUID) {
-                  ref
-                      .read(activeChatProvider.notifier)
-                      .jumpToMessage(
-                        messageID,
-                        subID: subID,
-                        rangeStart: rangeStart,
-                        rangeEnd: rangeEnd,
-                      );
-                }
-              },
+              onReplyTap:
+                  ({
+                    required String chatUUID,
+                    required int subID,
+                    required int messageID,
+                    int? rangeStart,
+                    int? rangeEnd,
+                  }) {
+                    if (chatUUID.isEmpty || chatUUID == widget.chatUUID) {
+                      ref
+                          .read(activeChatProvider.notifier)
+                          .jumpToMessage(
+                            messageID,
+                            subID: subID,
+                            rangeStart: rangeStart,
+                            rangeEnd: rangeEnd,
+                          );
+                    }
+                  },
               onSelectionToggle: () {
                 ref
                     .read(chatDraftProvider(chatUUID).notifier)
                     .toggleSelectMessage(message);
               },
               onOpenContextMenu: (position, selectedText) {
-                _openContextMenu(
-                  message,
-                  position,
-                  selectedText,
-                );
+                _openContextMenu(message, position, selectedText);
               },
               getMessage: (lookupChatUUID, lookupSubID, lookupMessageID) {
                 try {

@@ -42,33 +42,38 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('MessageText renders quoted text highlight when quoteHighlightRange is active', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MessageText(
-              content: 'Hello beautiful world',
-              isCurrentMatch: true,
-              quoteHighlightRange: const TextRange(start: 6, end: 15),
+    testWidgets(
+      'MessageText renders quoted text highlight when quoteHighlightRange is active',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: MessageText(
+                content: 'Hello beautiful world',
+                isCurrentMatch: true,
+                quoteHighlightRange: const TextRange(start: 6, end: 15),
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Verify Text.rich was built with spans
-      final textFinder = find.byType(Text);
-      expect(textFinder, findsOneWidget);
+        // Verify Text.rich was built with spans
+        final textFinder = find.byType(Text);
+        expect(textFinder, findsOneWidget);
 
-      final textWidget = tester.widget<Text>(textFinder);
-      final textSpan = textWidget.textSpan! as TextSpan;
-      expect(textSpan.children, isNotNull);
-      expect(textSpan.children!.length, equals(3));
-      expect((textSpan.children![0] as TextSpan).text, equals('Hello '));
-      expect((textSpan.children![1] as TextSpan).text, equals('beautiful'));
-      expect((textSpan.children![2] as TextSpan).text, equals(' world'));
-    });
+        final textWidget = tester.widget<Text>(textFinder);
+        final textSpan = textWidget.textSpan! as TextSpan;
+        expect(textSpan.children, isNotNull);
+        expect(textSpan.children!.length, equals(3));
+        expect((textSpan.children![0] as TextSpan).text, equals('Hello '));
+        expect((textSpan.children![1] as TextSpan).text, equals('beautiful'));
+        expect((textSpan.children![2] as TextSpan).text, equals(' world'));
+      },
+    );
 
-    testWidgets('MessageBase forwards onReplyTap when tapping MessageReply', (tester) async {
+    testWidgets('MessageBase forwards onReplyTap when tapping MessageReply', (
+      tester,
+    ) async {
       int? tappedMessageId;
       int? tappedStart;
       int? tappedEnd;
@@ -109,17 +114,18 @@ void main() {
               body: MessageBase(
                 message: msgWithReply,
                 getMessage: (c, s, id) => id == 100 ? originalMsg : null,
-                onReplyTap: ({
-                  required chatUUID,
-                  required subID,
-                  required messageID,
-                  rangeStart,
-                  rangeEnd,
-                }) {
-                  tappedMessageId = messageID;
-                  tappedStart = rangeStart;
-                  tappedEnd = rangeEnd;
-                },
+                onReplyTap:
+                    ({
+                      required chatUUID,
+                      required subID,
+                      required messageID,
+                      rangeStart,
+                      rangeEnd,
+                    }) {
+                      tappedMessageId = messageID;
+                      tappedStart = rangeStart;
+                      tappedEnd = rangeEnd;
+                    },
               ),
             ),
           ),

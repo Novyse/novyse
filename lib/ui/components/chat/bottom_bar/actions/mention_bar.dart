@@ -128,16 +128,17 @@ class _MentionBarState extends ConsumerState<MentionBar> {
           : text;
 
       // 3. Match @handle query
-      final mentionMatch =
-          RegExp(r'(?:^|\s)@([a-zA-Z0-9_.-]*)$').firstMatch(textBeforeCursor);
+      final mentionMatch = RegExp(r'(?:^|\s)@([a-zA-Z0-9_.-]*)$')
+          .firstMatch(textBeforeCursor);
       if (mentionMatch == null) {
         return const SizedBox.shrink();
       }
 
       final query = mentionMatch.group(1)!.toLowerCase();
       final users = ref.watch(userStoreProvider.select((s) => s.users));
-      final localUserUUID =
-          ref.watch(userStoreProvider.select((s) => s.localUserUUID));
+      final localUserUUID = ref.watch(
+        userStoreProvider.select((s) => s.localUserUUID),
+      );
 
       // 4. Filter members of chat (excluding local user)
       displayMembers = chat.members
@@ -153,13 +154,15 @@ class _MentionBarState extends ConsumerState<MentionBar> {
               profilePictureUUID: m['profilePictureUUID']?.toString(),
             );
           })
-          .where((u) =>
-              u.uuid.isNotEmpty &&
-              u.uuid != localUserUUID &&
-              u.handle != null &&
-              u.handle!.isNotEmpty &&
-              (u.handle!.toLowerCase().contains(query) ||
-                  u.displayName.toLowerCase().contains(query)))
+          .where(
+            (u) =>
+                u.uuid.isNotEmpty &&
+                u.uuid != localUserUUID &&
+                u.handle != null &&
+                u.handle!.isNotEmpty &&
+                (u.handle!.toLowerCase().contains(query) ||
+                    u.displayName.toLowerCase().contains(query)),
+          )
           .toList();
 
       if (displayMembers.isEmpty) {
@@ -169,8 +172,7 @@ class _MentionBarState extends ConsumerState<MentionBar> {
 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final listHeight =
-        math.min(220.0, displayMembers.length * 52.0 + 8.0);
+    final listHeight = math.min(220.0, displayMembers.length * 52.0 + 8.0);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -215,8 +217,10 @@ class _MentionBarState extends ConsumerState<MentionBar> {
                   }
                 },
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   child: Row(
                     children: [
                       Avatar(

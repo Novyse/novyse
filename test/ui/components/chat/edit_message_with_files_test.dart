@@ -28,7 +28,9 @@ void main() {
   group('Message Edit with Files Tests', () {
     const chatUUID = 'edit-test-chat';
 
-    testWidgets('MessageActionMethods.edit populates files in draft', (tester) async {
+    testWidgets('MessageActionMethods.edit populates files in draft', (
+      tester,
+    ) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -39,8 +41,18 @@ void main() {
         createdAt: DateTime.now(),
         content: 'Original message content',
         files: [
-          {'uuid': 'file-1', 'name': 'photo.png', 'size': 1024, 'mimeType': 'image/png'},
-          {'uuid': 'file-2', 'name': 'doc.pdf', 'size': 2048, 'mimeType': 'application/pdf'},
+          {
+            'uuid': 'file-1',
+            'name': 'photo.png',
+            'size': 1024,
+            'mimeType': 'image/png',
+          },
+          {
+            'uuid': 'file-2',
+            'name': 'doc.pdf',
+            'size': 2048,
+            'mimeType': 'application/pdf',
+          },
         ],
       );
 
@@ -72,7 +84,10 @@ void main() {
       expect(draftState.editingMessage, isNotNull);
       expect(draftState.editingMessage!.id, 123);
       expect(draftState.newMessageText, 'Original message content');
-      expect(container.read(chatTextControllerProvider(chatUUID)).text, 'Original message content');
+      expect(
+        container.read(chatTextControllerProvider(chatUUID)).text,
+        'Original message content',
+      );
       expect(draftState.files.length, 2);
       expect(draftState.files[0]['name'], 'photo.png');
       expect(draftState.files[1]['name'], 'doc.pdf');
@@ -89,7 +104,10 @@ void main() {
       ]);
 
       expect(container.read(chatDraftProvider(chatUUID)).files.length, 2);
-      expect(container.read(chatDraftProvider(chatUUID)).files[0]['name'], 'one.jpg');
+      expect(
+        container.read(chatDraftProvider(chatUUID)).files[0]['name'],
+        'one.jpg',
+      );
 
       // Cancel edit resets files and newMessageText
       notifier.cancelEdit();
@@ -118,17 +136,13 @@ void main() {
       });
 
       // Simulate edit event with authoritative files snapshot
-      store.onMessageUpdate(
-        '10',
-        'edit',
-        {
-          'content': 'New edited text',
-          'files': [
-            {'uuid': 'uuid-old-2', 'name': 'old2.jpg'},
-            {'uuid': 'uuid-new-1', 'name': 'new.png'},
-          ],
-        },
-      );
+      store.onMessageUpdate('10', 'edit', {
+        'content': 'New edited text',
+        'files': [
+          {'uuid': 'uuid-old-2', 'name': 'old2.jpg'},
+          {'uuid': 'uuid-new-1', 'name': 'new.png'},
+        ],
+      });
 
       final updatedList = container
           .read(chatMessagesProvider((chatUUID: chatUUID, subID: 0)))
@@ -154,8 +168,18 @@ void main() {
         'content': 'Original DB content',
         'createdAt': DateTime.now().toIso8601String(),
         'files': [
-          {'uuid': 'db-f1', 'name': 'file1.txt', 'mimeType': 'text/plain', 'size': 100},
-          {'uuid': 'db-f2', 'name': 'file2.txt', 'mimeType': 'text/plain', 'size': 200},
+          {
+            'uuid': 'db-f1',
+            'name': 'file1.txt',
+            'mimeType': 'text/plain',
+            'size': 100,
+          },
+          {
+            'uuid': 'db-f2',
+            'name': 'file2.txt',
+            'mimeType': 'text/plain',
+            'size': 200,
+          },
         ],
       });
 
@@ -171,8 +195,18 @@ void main() {
         50,
         'Updated DB content',
         files: [
-          {'uuid': 'db-f2', 'name': 'file2.txt', 'mimeType': 'text/plain', 'size': 200},
-          {'uuid': 'db-f3', 'name': 'file3.txt', 'mimeType': 'text/plain', 'size': 300},
+          {
+            'uuid': 'db-f2',
+            'name': 'file2.txt',
+            'mimeType': 'text/plain',
+            'size': 200,
+          },
+          {
+            'uuid': 'db-f3',
+            'name': 'file3.txt',
+            'mimeType': 'text/plain',
+            'size': 300,
+          },
         ],
       );
       expect(ok, isTrue);
@@ -187,52 +221,65 @@ void main() {
       expect(editedFiles.any((f) => f['uuid'] == 'db-f3'), isTrue);
     });
 
-    testWidgets('ChatBottomBar renders both EditBar and FilesBar when in edit mode with files', (tester) async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    testWidgets(
+      'ChatBottomBar renders both EditBar and FilesBar when in edit mode with files',
+      (tester) async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      final notifier = container.read(chatDraftProvider(chatUUID).notifier);
-      final message = MessageModel(
-        id: 42,
-        chatUUID: chatUUID,
-        userUUID: 'user-1',
-        createdAt: DateTime.now(),
-        content: 'Testing edit mode UI',
-        files: [
-          {'uuid': 'f-test', 'name': 'test_image.png', 'size': 1024, 'mimeType': 'image/png'},
-        ],
-      );
-      notifier.setEditingMessage(message);
-      notifier.setText('Testing edit mode UI');
-      notifier.setFiles([
-        {'uuid': 'f-test', 'name': 'test_image.png', 'size': 1024, 'mimeType': 'image/png'},
-      ]);
+        final notifier = container.read(chatDraftProvider(chatUUID).notifier);
+        final message = MessageModel(
+          id: 42,
+          chatUUID: chatUUID,
+          userUUID: 'user-1',
+          createdAt: DateTime.now(),
+          content: 'Testing edit mode UI',
+          files: [
+            {
+              'uuid': 'f-test',
+              'name': 'test_image.png',
+              'size': 1024,
+              'mimeType': 'image/png',
+            },
+          ],
+        );
+        notifier.setEditingMessage(message);
+        notifier.setText('Testing edit mode UI');
+        notifier.setFiles([
+          {
+            'uuid': 'f-test',
+            'name': 'test_image.png',
+            'size': 1024,
+            'mimeType': 'image/png',
+          },
+        ]);
 
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: const MaterialApp(
-            localizationsDelegates: localizationsDelegates,
-            supportedLocales: supportedLocales,
-            locale: Locale('en'),
-            home: Scaffold(
-              body: Column(
-                children: [
-                  Spacer(),
-                  ChatBottomBar(chatUUID: chatUUID),
-                ],
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: const MaterialApp(
+              localizationsDelegates: localizationsDelegates,
+              supportedLocales: supportedLocales,
+              locale: Locale('en'),
+              home: Scaffold(
+                body: Column(
+                  children: [
+                    Spacer(),
+                    ChatBottomBar(chatUUID: chatUUID),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      // Verify both EditBar and FilesBar are present in the tree
-      expect(find.byType(EditBar), findsOneWidget);
-      expect(find.byType(FilesBar), findsOneWidget);
-      expect(find.text('test_image.png'), findsOneWidget);
-    });
+        // Verify both EditBar and FilesBar are present in the tree
+        expect(find.byType(EditBar), findsOneWidget);
+        expect(find.byType(FilesBar), findsOneWidget);
+        expect(find.text('test_image.png'), findsOneWidget);
+      },
+    );
 
     test('ChatDraftNotifier validates files exceeding limit in edit mode', () {
       final container = ProviderContainer();
@@ -260,45 +307,53 @@ void main() {
       expect(validation.hasErrors, isTrue);
     });
 
-    testWidgets('EditBar uses formatMessage to display media indicator for file-only messages', (tester) async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    testWidgets(
+      'EditBar uses formatMessage to display media indicator for file-only messages',
+      (tester) async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      final notifier = container.read(chatDraftProvider(chatUUID).notifier);
-      final message = MessageModel(
-        id: 999,
-        chatUUID: chatUUID,
-        userUUID: 'user-1',
-        createdAt: DateTime.now(),
-        content: '',
-        files: [
-          {'uuid': 'photo-1', 'name': 'vacation.jpg', 'size': 1024, 'mimeType': 'image/jpeg'},
-        ],
-      );
-      notifier.setEditingMessage(message);
+        final notifier = container.read(chatDraftProvider(chatUUID).notifier);
+        final message = MessageModel(
+          id: 999,
+          chatUUID: chatUUID,
+          userUUID: 'user-1',
+          createdAt: DateTime.now(),
+          content: '',
+          files: [
+            {
+              'uuid': 'photo-1',
+              'name': 'vacation.jpg',
+              'size': 1024,
+              'mimeType': 'image/jpeg',
+            },
+          ],
+        );
+        notifier.setEditingMessage(message);
 
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: const MaterialApp(
-            localizationsDelegates: localizationsDelegates,
-            supportedLocales: supportedLocales,
-            locale: Locale('en'),
-            home: Scaffold(
-              body: EditBar(chatUUID: chatUUID),
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: const MaterialApp(
+              localizationsDelegates: localizationsDelegates,
+              supportedLocales: supportedLocales,
+              locale: Locale('en'),
+              home: Scaffold(body: EditBar(chatUUID: chatUUID)),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      // Check that formatMessage translated file-only content into '📷 Photo'
-      expect(find.text('📷 Photo'), findsOneWidget);
-    });
+        // Check that formatMessage translated file-only content into '📷 Photo'
+        expect(find.text('📷 Photo'), findsOneWidget);
+      },
+    );
 
     test('QueueManager.addEditMessageJob saves job to SQLite and updates message optimistically', () async {
       final queueManager = QueueManager.instance;
-      queueManager.setConnected(false); // keep offline in unit test so network isn't invoked
+      queueManager.setConnected(
+        false,
+      ); // keep offline in unit test so network isn't invoked
 
       final job = await queueManager.addEditMessageJob(
         id: 'edit_job_1',
@@ -316,64 +371,69 @@ void main() {
       expect(jobRows.any((r) => r['id'] == 'edit_job_1'), isTrue);
     });
 
-    test('MessageRepository retrieves edited: true and pinned: true after edit', () async {
-      final db = AppDatabase.instance;
-      // 1. Insert chat and user
-      await db.chat.add({'uuid': chatUUID, 'type': 'direct'});
-      await db.user.add({
-        'uuid': 'user-1',
-        'name': 'Test User',
-        'handle': 'tester',
-      });
+    test(
+      'MessageRepository retrieves edited: true and pinned: true after edit',
+      () async {
+        final db = AppDatabase.instance;
+        // 1. Insert chat and user
+        await db.chat.add({'uuid': chatUUID, 'type': 'direct'});
+        await db.user.add({
+          'uuid': 'user-1',
+          'name': 'Test User',
+          'handle': 'tester',
+        });
 
-      // 2. Insert original message
-      await db.message.add({
-        'id': 500,
-        'chatUUID': chatUUID,
-        'subID': 0,
-        'senderUUID': 'user-1',
-        'content': 'Original message',
-        'createdAt': DateTime.now().subtract(const Duration(minutes: 5)).toIso8601String(),
-      });
+        // 2. Insert original message
+        await db.message.add({
+          'id': 500,
+          'chatUUID': chatUUID,
+          'subID': 0,
+          'senderUUID': 'user-1',
+          'content': 'Original message',
+          'createdAt': DateTime.now()
+              .subtract(const Duration(minutes: 5))
+              .toIso8601String(),
+        });
 
-      // Verify initially edited is false
-      var loaded = await db.message.get.by.id(chatUUID, 0, 500);
-      expect(loaded, isNotNull);
-      expect(loaded!['edited'], isFalse);
+        // Verify initially edited is false
+        var loaded = await db.message.get.by.id(chatUUID, 0, 500);
+        expect(loaded, isNotNull);
+        expect(loaded!['edited'], isFalse);
 
-      // 3. Edit message
-      await db.message.edit(
-        chatUUID,
-        0,
-        500,
-        'Updated content',
-        files: [
-          {
-            'uuid': 'file-10',
-            'name': 'image.png',
-            'mimeType': 'image/png',
-            'uri': '/local/path/image.png',
-            'size': 12345,
-          }
-        ],
-      );
+        // 3. Edit message
+        await db.message.edit(
+          chatUUID,
+          0,
+          500,
+          'Updated content',
+          files: [
+            {
+              'uuid': 'file-10',
+              'name': 'image.png',
+              'mimeType': 'image/png',
+              'uri': '/local/path/image.png',
+              'size': 12345,
+            },
+          ],
+        );
 
-      // Verify edited is now true and local ref was saved
-      loaded = await db.message.get.by.id(chatUUID, 0, 500);
-      expect(loaded, isNotNull);
-      expect(loaded!['content'], 'Updated content');
-      expect(loaded['edited'], isTrue);
+        // Verify edited is now true and local ref was saved
+        loaded = await db.message.get.by.id(chatUUID, 0, 500);
+        expect(loaded, isNotNull);
+        expect(loaded!['content'], 'Updated content');
+        expect(loaded['edited'], isTrue);
 
-      final files = loaded['files'] as List;
-      expect(files.length, 1);
-      expect(files.first['uuid'], 'file-10');
-      expect(files.first['ref'], '/local/path/image.png');
+        final files = loaded['files'] as List;
+        expect(files.length, 1);
+        expect(files.first['uuid'], 'file-10');
+        expect(files.first['ref'], '/local/path/image.png');
 
-      // Verify sub() query also has edited: true
-      final subMessages = await db.message.get.by.sub(chatUUID, 0);
-      expect(subMessages.length, 1);
-      expect(subMessages.first['edited'], isTrue);
-    });
+        // Verify sub() query also has edited: true
+        final subMessages = await db.message.get.by.sub(chatUUID, 0);
+        expect(subMessages.length, 1);
+        expect(subMessages.first['edited'], isTrue);
+      },
+    );
 
     test('MessageStore preserves createdAt timestamp and list position when message is edited', () {
       final container = ProviderContainer();
@@ -407,7 +467,12 @@ void main() {
         'messageID': 99, // Integer messageID from backend!
         'content': 'Edited content',
         'files': [
-          {'uuid': 'f-99', 'name': 'photo.png', 'mimeType': 'image/png', 'size': 500}
+          {
+            'uuid': 'f-99',
+            'name': 'photo.png',
+            'mimeType': 'image/png',
+            'size': 500,
+          },
         ],
       });
 
@@ -424,5 +489,3 @@ void main() {
     });
   });
 }
-
-

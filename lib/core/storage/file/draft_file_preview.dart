@@ -111,9 +111,7 @@ void revokeDraftBlobForFile(String chatUUID, dynamic file) {
 /// Revokes all cached web blob URLs of a chat draft.
 void revokeDraftBlobsForChat(String chatUUID) {
   final prefix = '$chatUUID::';
-  final keys = _draftBlobUrls.keys
-      .where((k) => k.startsWith(prefix))
-      .toList();
+  final keys = _draftBlobUrls.keys.where((k) => k.startsWith(prefix)).toList();
   for (final key in keys) {
     web_blob.revokeWebBlobUrl(_draftBlobUrls.remove(key));
   }
@@ -169,9 +167,7 @@ Future<String?> resolveDraftFileUri(
 
 void _showDraftSnack(BuildContext context, String message) {
   if (!context.mounted) return;
-  ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: Text(message)));
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 }
 
 /// Opens a generic draft file (document, code, archive, other) with the
@@ -201,8 +197,7 @@ Future<void> openDraftFileWithSystem(
   }
 
   try {
-    final isRemote =
-        uri.startsWith('http://') || uri.startsWith('https://');
+    final isRemote = uri.startsWith('http://') || uri.startsWith('https://');
     if (kIsWeb) {
       if (isRemote) {
         await launchUrl(Uri.parse(uri));

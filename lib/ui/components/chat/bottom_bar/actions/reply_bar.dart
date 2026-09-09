@@ -21,7 +21,9 @@ class ReplyBar extends ConsumerWidget {
     final users = ref.watch(userStoreProvider.select((s) => s.users));
 
     void handleCancelReply(ChatReplyItem item) {
-      ref.read(chatDraftProvider(chatUUID).notifier).removeReply(item.message.id);
+      ref
+          .read(chatDraftProvider(chatUUID).notifier)
+          .removeReply(item.message.id);
     }
 
     return Container(
@@ -52,53 +54,53 @@ class ReplyBar extends ConsumerWidget {
               Expanded(
                 child: Row(
                   children: [
-                      AppHugeIcon(
-                        icon: item.isQuote
-                            ? HugeIcons.strokeRoundedArrowMoveUpLeft
-                            : HugeIcons.strokeRoundedArrowMoveUpLeft,
-                        size: 18,
+                    AppHugeIcon(
+                      icon: item.isQuote
+                          ? HugeIcons.strokeRoundedArrowMoveUpLeft
+                          : HugeIcons.strokeRoundedArrowMoveUpLeft,
+                      size: 18,
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 3,
+                      height: 24,
+                      decoration: BoxDecoration(
                         color: colorScheme.primary,
+                        borderRadius: BorderRadius.circular(2),
                       ),
-                      const SizedBox(width: 8),
-                      Container(
-                        width: 3,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              senderName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: colorScheme.onSurface,
-                              ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            senderName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurface,
                             ),
-                            Text(
-                              content,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
+                          ),
+                          Text(
+                            content,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurfaceVariant,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+              ),
               const SizedBox(width: 4),
               InkWell(
                 onTap: () => handleCancelReply(item),

@@ -67,9 +67,7 @@ class DraftFileChip extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: isInvalid
-                        ? AppColors.danger
-                        : colorScheme.onSurface,
+                    color: isInvalid ? AppColors.danger : colorScheme.onSurface,
                   ),
                 ),
                 Text(

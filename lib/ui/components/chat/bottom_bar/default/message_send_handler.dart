@@ -156,7 +156,8 @@ class MessageSendHandler {
 
     final originalContent = (editingMessage.content ?? '').trim();
     final contentChanged = newContent != originalContent;
-    final filesChanged = newFiles.isNotEmpty ||
+    final filesChanged =
+        newFiles.isNotEmpty ||
         currentFileUUIDs.length != originalFileUUIDs.length ||
         !currentFileUUIDs.containsAll(originalFileUUIDs);
 

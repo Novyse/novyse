@@ -171,8 +171,8 @@ Map<String, dynamic> formatMessage(
   final Map<String, dynamic> message = messageRef is MessageModel
       ? messageRef.toMap()
       : (messageRef is Map
-          ? Map<String, dynamic>.from(messageRef)
-          : <String, dynamic>{});
+            ? Map<String, dynamic>.from(messageRef)
+            : <String, dynamic>{});
   final type = message['type'] as String?;
 
   if (type == 'system') {

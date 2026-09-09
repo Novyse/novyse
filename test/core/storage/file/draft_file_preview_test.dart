@@ -92,7 +92,11 @@ void main() {
 
     test('unknown mime maps to other', () {
       final msg = draftMessageFile(
-        {'name': 'blob.unknownext', 'size': 10, 'mimeType': 'application/x-foo'},
+        {
+          'name': 'blob.unknownext',
+          'size': 10,
+          'mimeType': 'application/x-foo',
+        },
         chatUUID: 'chat-1',
         index: 0,
       );
@@ -111,30 +115,29 @@ void main() {
 
   group('resolveDraftFileUri', () {
     test('passes remote URLs through', () async {
-      final uri = await resolveDraftFileUri(
-        {
-          'name': 'a.pdf',
-          'uri': 'https://example.com/a.pdf',
-          'mimeType': 'application/pdf',
-        },
-        chatUUID: 'chat-1',
-      );
+      final uri = await resolveDraftFileUri({
+        'name': 'a.pdf',
+        'uri': 'https://example.com/a.pdf',
+        'mimeType': 'application/pdf',
+      }, chatUUID: 'chat-1');
       expect(uri, 'https://example.com/a.pdf');
     });
 
     test('passes native absolute paths through', () async {
-      final uri = await resolveDraftFileUri(
-        {'name': 'pic.png', 'uri': '/tmp/pic.png', 'mimeType': 'image/png'},
-        chatUUID: 'chat-1',
-      );
+      final uri = await resolveDraftFileUri({
+        'name': 'pic.png',
+        'uri': '/tmp/pic.png',
+        'mimeType': 'image/png',
+      }, chatUUID: 'chat-1');
       expect(uri, '/tmp/pic.png');
     });
 
     test('returns null when nothing resolvable is present', () async {
-      final uri = await resolveDraftFileUri(
-        {'name': 'doc.pdf', 'size': 10, 'mimeType': 'application/pdf'},
-        chatUUID: 'chat-1',
-      );
+      final uri = await resolveDraftFileUri({
+        'name': 'doc.pdf',
+        'size': 10,
+        'mimeType': 'application/pdf',
+      }, chatUUID: 'chat-1');
       expect(uri, isNull);
     });
   });

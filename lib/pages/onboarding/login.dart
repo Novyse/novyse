@@ -24,7 +24,10 @@ class LoginPage extends ConsumerWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [theme.colorScheme.primary, theme.colorScheme.primaryContainer],
+            colors: [
+              theme.colorScheme.primary,
+              theme.colorScheme.primaryContainer,
+            ],
           ),
         ),
         child: SafeArea(

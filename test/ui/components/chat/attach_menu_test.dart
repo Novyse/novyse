@@ -37,18 +37,15 @@ void main() {
       final items = tester
           .widgetList<AttachMenuItem>(find.byType(AttachMenuItem))
           .toList();
-      expect(
-        items.map((i) => i.action).toList(),
-        [
-          AttachMenuAction.media,
-          AttachMenuAction.camera,
-          AttachMenuAction.file,
-          AttachMenuAction.recording,
-          AttachMenuAction.location,
-          AttachMenuAction.todo,
-          AttachMenuAction.poll,
-        ],
-      );
+      expect(items.map((i) => i.action).toList(), [
+        AttachMenuAction.media,
+        AttachMenuAction.camera,
+        AttachMenuAction.file,
+        AttachMenuAction.recording,
+        AttachMenuAction.location,
+        AttachMenuAction.todo,
+        AttachMenuAction.poll,
+      ]);
       expect(items.every((i) => i.iconOnly), isTrue);
 
       // Icon-only: no text labels, labels exposed via tooltips.

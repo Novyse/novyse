@@ -40,19 +40,20 @@ class _SwipeToReplyState extends State<SwipeToReply>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    )..addListener(() {
-      if (_animation != null) {
-        setState(() {
-          _dragOffset = _animation!.value;
-          if (_dragOffset == 0.0) {
-            _hasTriggered = false;
+    _controller =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 200),
+        )..addListener(() {
+          if (_animation != null) {
+            setState(() {
+              _dragOffset = _animation!.value;
+              if (_dragOffset == 0.0) {
+                _hasTriggered = false;
+              }
+            });
           }
         });
-      }
-    });
   }
 
   @override
@@ -110,12 +111,7 @@ class _SwipeToReplyState extends State<SwipeToReply>
     _animation = Tween<double>(
       begin: _dragOffset,
       end: 0.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutCubic,
-      ),
-    );
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _controller.forward(from: 0.0);
   }
 
@@ -134,22 +130,24 @@ class _SwipeToReplyState extends State<SwipeToReply>
     return RawGestureDetector(
       gestures: {
         HorizontalDragGestureRecognizer:
-            GestureRecognizerFactoryWithHandlers<HorizontalDragGestureRecognizer>(
-          () => HorizontalDragGestureRecognizer(
-            supportedDevices: {
-              PointerDeviceKind.touch,
-              PointerDeviceKind.stylus,
-              PointerDeviceKind.trackpad,
-            },
-          ),
-          (instance) {
-            instance
-              ..onStart = _handleDragStart
-              ..onUpdate = _handleDragUpdate
-              ..onEnd = _handleDragEnd
-              ..onCancel = _handleDragCancel;
-          },
-        ),
+            GestureRecognizerFactoryWithHandlers<
+              HorizontalDragGestureRecognizer
+            >(
+              () => HorizontalDragGestureRecognizer(
+                supportedDevices: {
+                  PointerDeviceKind.touch,
+                  PointerDeviceKind.stylus,
+                  PointerDeviceKind.trackpad,
+                },
+              ),
+              (instance) {
+                instance
+                  ..onStart = _handleDragStart
+                  ..onUpdate = _handleDragUpdate
+                  ..onEnd = _handleDragEnd
+                  ..onCancel = _handleDragCancel;
+              },
+            ),
       },
       child: Stack(
         clipBehavior: Clip.none,

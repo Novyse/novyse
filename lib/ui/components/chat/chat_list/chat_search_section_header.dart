@@ -31,4 +31,3 @@ class ChatSearchSectionHeader extends StatelessWidget {
     );
   }
 }
-

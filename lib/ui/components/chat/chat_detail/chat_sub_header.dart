@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
@@ -6,10 +7,7 @@ import 'package:novyse/ui/components/chat/chat_detail/chat_pinned_messages_bar.d
 
 /// General unified sub-header bar displayed directly under the main floating header.
 class ChatSubHeader extends ConsumerWidget {
-  const ChatSubHeader({
-    super.key,
-    required this.chatUUID,
-  });
+  const ChatSubHeader({super.key, required this.chatUUID});
 
   final String chatUUID;
 
@@ -39,8 +37,7 @@ class ChatSubHeader extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (hasPinnedMessages)
-                ChatPinnedMessagesBar(chatUUID: chatUUID),
+              if (hasPinnedMessages) ChatPinnedMessagesBar(chatUUID: chatUUID),
               // CommsBar here
               // AudioActiveBar here
             ],

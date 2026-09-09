@@ -38,12 +38,14 @@ class QueueManager {
   }) {
     if (_ref != null) {
       try {
-        _ref!.read(statusProvider.notifier).setApiError(
-          message,
-          title: title,
-          onRetry: onRetry,
-          timeout: timeout,
-        );
+        _ref!
+            .read(statusProvider.notifier)
+            .setApiError(
+              message,
+              title: title,
+              onRetry: onRetry,
+              timeout: timeout,
+            );
       } catch (e) {
         debugPrint('[QueueManager] Could not show status error: $e');
       }
@@ -196,10 +198,7 @@ class QueueManager {
       messageID,
       'edit',
       null,
-      {
-        'content': newContent,
-        'files': files ?? [],
-      },
+      {'content': newContent, 'files': files ?? []},
     );
 
     // Dispatch to per-chat queue

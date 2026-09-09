@@ -70,10 +70,7 @@ void main() {
       bool closed = false;
 
       await tester.pumpWidget(
-        buildTestHeader(
-          selectedCount: 1,
-          onClose: () => closed = true,
-        ),
+        buildTestHeader(selectedCount: 1, onClose: () => closed = true),
       );
       await tester.pumpAndSettle();
 

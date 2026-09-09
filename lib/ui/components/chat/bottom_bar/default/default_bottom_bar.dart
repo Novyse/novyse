@@ -128,14 +128,14 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
   }
 
   MessageSendHandler get _sendHandler => MessageSendHandler(
-        ref: ref,
-        context: context,
-        chatUUID: widget.chatUUID,
-        subID: widget.subID,
-        onSendingChanged: (sending) {
-          if (mounted) setState(() => _isSending = sending);
-        },
-      );
+    ref: ref,
+    context: context,
+    chatUUID: widget.chatUUID,
+    subID: widget.subID,
+    onSendingChanged: (sending) {
+      if (mounted) setState(() => _isSending = sending);
+    },
+  );
 
   Future<void> _handleSendMessage() => _sendHandler.handleSendMessage();
   Future<void> _handleEditMessage() => _sendHandler.handleEditMessage();
@@ -167,10 +167,7 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Mention Bar
-        MentionBar(
-          chatUUID: chatUUID,
-          focusNode: _focusNode,
-        ),
+        MentionBar(chatUUID: chatUUID, focusNode: _focusNode),
 
         // Edit Bar (Priority over Reply)
         EditBar(chatUUID: chatUUID),

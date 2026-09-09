@@ -54,7 +54,7 @@ dependencies:
   sqflite_common_ffi_web: ^1.1.2
   file_picker: ^12.1.2
   audioplayers: ^6.8.1
-  cached_network_image: ^3.4.1
+  cached_network_image: ^4.0.0
   media_kit: ^1.2.6
   media_kit_video: ^2.0.1
   media_kit_libs_video: ^1.0.7
