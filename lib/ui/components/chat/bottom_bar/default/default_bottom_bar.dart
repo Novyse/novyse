@@ -5,6 +5,7 @@ import 'package:novyse/ui/components/chat/bottom_bar/actions/edit_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/files_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/mention_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/reply_bar.dart';
+import 'package:novyse/ui/components/chat/bottom_bar/attach_menu/attach_menu_overlay.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/left_button_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/message_send_handler.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/middle_bar_bottom_bar.dart';
@@ -18,12 +19,14 @@ class DefaultBottomBar extends ConsumerStatefulWidget {
     this.subID = 0,
     this.onToggleAttachMenu,
     this.isAttachMenuOpen = false,
+    this.onCloseAttachMenu,
   });
 
   final String chatUUID;
   final int subID;
   final VoidCallback? onToggleAttachMenu;
   final bool isAttachMenuOpen;
+  final VoidCallback? onCloseAttachMenu;
 
   @override
   ConsumerState<DefaultBottomBar> createState() => _DefaultBottomBarState();
@@ -31,6 +34,8 @@ class DefaultBottomBar extends ConsumerStatefulWidget {
 
 class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
   final FocusNode _focusNode = FocusNode();
+  final LayerLink _attachMenuLink = LayerLink();
+  OverlayEntry? _attachMenuEntry;
   bool _isSending = false;
   TextEditingController? _textController;
 
@@ -46,10 +51,18 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
       _textController!.text = draftText;
     }
     _textController!.addListener(_onControllerChanged);
+    _focusNode.addListener(_onFocusChanged);
   }
 
   void _onControllerChanged() {
     if (mounted) setState(() {});
+  }
+
+  /// Closes the attach menu when the text input gains focus,
+  void _onFocusChanged() {
+    if (_focusNode.hasFocus && widget.isAttachMenuOpen) {
+      widget.onCloseAttachMenu?.call();
+    }
   }
 
   @override
@@ -68,11 +81,47 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
         _textController!.text = draftText;
       }
     }
+    if (widget.isAttachMenuOpen != oldWidget.isAttachMenuOpen ||
+        widget.chatUUID != oldWidget.chatUUID) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _syncAttachMenuOverlay(),
+      );
+    }
+  }
+
+  void _syncAttachMenuOverlay() {
+    if (!mounted) return;
+    if (widget.isAttachMenuOpen) {
+      _showAttachMenuOverlay();
+    } else {
+      _hideAttachMenuOverlay();
+    }
+  }
+
+  void _showAttachMenuOverlay() {
+    if (_attachMenuEntry != null) return;
+    final overlay = Overlay.maybeOf(context);
+    if (overlay == null) return;
+    _attachMenuEntry = OverlayEntry(
+      builder: (context) => AttachMenuOverlay(
+        link: _attachMenuLink,
+        chatUUID: widget.chatUUID,
+        onClose: () => widget.onCloseAttachMenu?.call(),
+      ),
+    );
+    overlay.insert(_attachMenuEntry!);
+  }
+
+  void _hideAttachMenuOverlay() {
+    _attachMenuEntry?.remove();
+    _attachMenuEntry = null;
   }
 
   @override
   void dispose() {
+    _hideAttachMenuOverlay();
     _textController?.removeListener(_onControllerChanged);
+    _focusNode.removeListener(_onFocusChanged);
     _textController = null;
     _focusNode.dispose();
     super.dispose();
@@ -136,11 +185,14 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            LeftButtonBottomBar(
-              isRecording: recorderState.isRecording,
-              isAttachMenuOpen: widget.isAttachMenuOpen,
-              onToggleAttachMenu: widget.onToggleAttachMenu,
-              onCancelRecording: () => recorderNotifier.cancelRecording(),
+            CompositedTransformTarget(
+              link: _attachMenuLink,
+              child: LeftButtonBottomBar(
+                isRecording: recorderState.isRecording,
+                isAttachMenuOpen: widget.isAttachMenuOpen,
+                onToggleAttachMenu: widget.onToggleAttachMenu,
+                onCancelRecording: () => recorderNotifier.cancelRecording(),
+              ),
             ),
             const SizedBox(width: 8),
             Expanded(

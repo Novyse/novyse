@@ -330,5 +330,12 @@
       }
     }
   },
-  "pinnedMessage": "Pinned message"
+  "pinnedMessage": "Pinned message",
+  "attachMenuMedia": "Media",
+  "attachMenuCamera": "Camera",
+  "attachMenuFile": "File",
+  "attachMenuRecording": "Recording",
+  "attachMenuLocation": "Location",
+  "attachMenuTodo": "Todo",
+  "attachMenuPoll": "Poll"
 }

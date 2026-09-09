@@ -11,6 +11,7 @@ class ChatBottomBar extends ConsumerWidget {
     this.readOnly = false,
     this.onToggleAttachMenu,
     this.isAttachMenuOpen = false,
+    this.onCloseAttachMenu,
   });
 
   final String chatUUID;
@@ -18,6 +19,7 @@ class ChatBottomBar extends ConsumerWidget {
   final bool readOnly;
   final VoidCallback? onToggleAttachMenu;
   final bool isAttachMenuOpen;
+  final VoidCallback? onCloseAttachMenu;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,6 +48,7 @@ class ChatBottomBar extends ConsumerWidget {
                 subID: subID,
                 isAttachMenuOpen: isAttachMenuOpen,
                 onToggleAttachMenu: onToggleAttachMenu,
+                onCloseAttachMenu: onCloseAttachMenu,
               ),
       ),
     );

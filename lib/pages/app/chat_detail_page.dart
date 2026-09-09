@@ -35,6 +35,7 @@ class ChatDetailPage extends ConsumerStatefulWidget {
 class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   bool _callOpen = false;
   bool _searching = false;
+  bool _isAttachMenuOpen = false;
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
   String _searchQuery = '';
@@ -63,6 +64,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   void didUpdateWidget(covariant ChatDetailPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.chatUUID != widget.chatUUID) {
+      _isAttachMenuOpen = false;
       _callOpen = false;
       _closeSearch(resetText: true);
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -147,7 +149,20 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     _jumpToSearchMatch();
   }
 
+  void _closeAttachMenu() {
+    if (!_isAttachMenuOpen) return;
+    setState(() => _isAttachMenuOpen = false);
+  }
+
+  void _toggleAttachMenu() {
+    setState(() => _isAttachMenuOpen = !_isAttachMenuOpen);
+  }
+
   void _handleBack() {
+    if (_isAttachMenuOpen) {
+      _closeAttachMenu();
+      return;
+    }
     final hasSelection = ref
         .read(chatDraftProvider(widget.chatUUID))
         .selectedMessages
@@ -315,9 +330,13 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     }
 
     return PopScope(
-      canPop: !_callOpen && !_searching && !hasSelection,
+      canPop: !_callOpen && !_searching && !hasSelection && !_isAttachMenuOpen,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
+        if (_isAttachMenuOpen) {
+          _closeAttachMenu();
+          return;
+        }
         if (hasSelection) {
           ref
               .read(chatDraftProvider(chatUUID).notifier)
@@ -351,7 +370,13 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
                         ),
                       ),
                     ),
-                    ChatBottomBar(chatUUID: chatUUID, subID: 0),
+                    ChatBottomBar(
+                      chatUUID: chatUUID,
+                      subID: 0,
+                      isAttachMenuOpen: _isAttachMenuOpen,
+                      onToggleAttachMenu: _toggleAttachMenu,
+                      onCloseAttachMenu: _closeAttachMenu,
+                    ),
                   ],
                 ),
                 if (_callOpen)
