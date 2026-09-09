@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -211,12 +209,10 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     final selectedMessages = draftState.selectedMessages;
     final hasSelection = selectedMessages.isNotEmpty;
 
-    final Widget? appBar;
-    final Widget? floatingBar;
+    final Widget floatingBar;
 
     if (hasSelection) {
-      floatingBar = null;
-      appBar = ChatSelectedHeader(
+      floatingBar = ChatSelectedHeader(
         selectedCount: selectedMessages.length,
         onClose: () {
           ref
@@ -263,9 +259,9 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
               .read(chatDraftProvider(chatUUID).notifier)
               .clearSelectedMessages();
         },
+        bottom: ChatSubHeader(chatUUID: chatUUID),
       );
     } else if (_searching) {
-      appBar = null;
       floatingBar = ChatDetailSearchAppBar(
         controller: _searchController,
         focusNode: _searchFocusNode,
@@ -278,7 +274,6 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         bottom: ChatSubHeader(chatUUID: chatUUID),
       );
     } else {
-      appBar = null;
       floatingBar = ChatDetailAppBar(
         title: metadata.name,
         subtitle: subtitleText,
@@ -349,22 +344,12 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
               top: 0,
               left: 0,
               right: 0,
-              child: floatingBar != null
-                  ? AnnotatedRegion<SystemUiOverlayStyle>(
-                      value: colorScheme.brightness == Brightness.dark
-                          ? SystemUiOverlayStyle.light
-                          : SystemUiOverlayStyle.dark,
-                      child: floatingBar,
-                    )
-                  : ClipRect(
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-                        child: ColoredBox(
-                          color: colorScheme.surface.withValues(alpha: 0.55),
-                          child: appBar,
-                        ),
-                      ),
-                    ),
+              child: AnnotatedRegion<SystemUiOverlayStyle>(
+                value: colorScheme.brightness == Brightness.dark
+                    ? SystemUiOverlayStyle.light
+                    : SystemUiOverlayStyle.dark,
+                child: floatingBar,
+              ),
             ),
           ],
         ),

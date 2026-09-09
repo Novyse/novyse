@@ -10,18 +10,20 @@ void main() {
     VoidCallback? onReply,
     VoidCallback? onForward,
     VoidCallback? onDelete,
+    Widget? bottom,
   }) {
     return MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
       home: Scaffold(
-        appBar: ChatSelectedHeader(
+        body: ChatSelectedHeader(
           selectedCount: selectedCount,
           onClose: onClose ?? () {},
           onReply: onReply,
           onForward: onForward,
           onDelete: onDelete,
+          bottom: bottom,
         ),
       ),
     );
@@ -79,6 +81,18 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(closed, isTrue);
+    });
+
+    testWidgets('renders bottom widget when provided', (tester) async {
+      await tester.pumpWidget(
+        buildTestHeader(
+          selectedCount: 1,
+          bottom: const Text('SubHeader Content'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('SubHeader Content'), findsOneWidget);
     });
   });
 }
