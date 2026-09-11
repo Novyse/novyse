@@ -36,6 +36,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   bool _callOpen = false;
   bool _searching = false;
   bool _isAttachMenuOpen = false;
+  bool _isEmojiMenuOpen = false;
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
   String _searchQuery = '';
@@ -65,6 +66,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.chatUUID != widget.chatUUID) {
       _isAttachMenuOpen = false;
+      _isEmojiMenuOpen = false;
       _callOpen = false;
       _closeSearch(resetText: true);
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -154,10 +156,34 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   }
 
   void _toggleAttachMenu() {
-    setState(() => _isAttachMenuOpen = !_isAttachMenuOpen);
+    setState(() {
+      _isAttachMenuOpen = !_isAttachMenuOpen;
+      if (_isAttachMenuOpen) _isEmojiMenuOpen = false;
+    });
+  }
+
+  void _closeEmojiMenu() {
+    if (!_isEmojiMenuOpen) return;
+    setState(() => _isEmojiMenuOpen = false);
+  }
+
+  void _toggleEmojiMenu() {
+    final opening = !_isEmojiMenuOpen;
+    if (opening) {
+      // Mirror legacy: hide keyboard on mobile so the inline panel is visible.
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
+    setState(() {
+      _isEmojiMenuOpen = opening;
+      if (opening) _isAttachMenuOpen = false;
+    });
   }
 
   void _handleBack() {
+    if (_isEmojiMenuOpen) {
+      _closeEmojiMenu();
+      return;
+    }
     if (_isAttachMenuOpen) {
       _closeAttachMenu();
       return;
@@ -329,9 +355,18 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     }
 
     return PopScope(
-      canPop: !_callOpen && !_searching && !hasSelection && !_isAttachMenuOpen,
+      canPop:
+          !_callOpen &&
+          !_searching &&
+          !hasSelection &&
+          !_isAttachMenuOpen &&
+          !_isEmojiMenuOpen,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
+        if (_isEmojiMenuOpen) {
+          _closeEmojiMenu();
+          return;
+        }
         if (_isAttachMenuOpen) {
           _closeAttachMenu();
           return;
@@ -375,6 +410,9 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
                       isAttachMenuOpen: _isAttachMenuOpen,
                       onToggleAttachMenu: _toggleAttachMenu,
                       onCloseAttachMenu: _closeAttachMenu,
+                      isEmojiMenuOpen: _isEmojiMenuOpen,
+                      onToggleEmojiMenu: _toggleEmojiMenu,
+                      onCloseEmojiMenu: _closeEmojiMenu,
                     ),
                   ],
                 ),

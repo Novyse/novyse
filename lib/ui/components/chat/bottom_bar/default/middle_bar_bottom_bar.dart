@@ -25,6 +25,7 @@ class MiddleBarBottomBar extends ConsumerStatefulWidget {
     required this.onTogglePause,
     required this.onStopAndDraft,
     this.onToggleEmoji,
+    this.isEmojiMenuOpen = false,
     this.focusNode,
   });
 
@@ -37,6 +38,7 @@ class MiddleBarBottomBar extends ConsumerStatefulWidget {
   final VoidCallback onTogglePause;
   final VoidCallback onStopAndDraft;
   final VoidCallback? onToggleEmoji;
+  final bool isEmojiMenuOpen;
   final FocusNode? focusNode;
 
   @override
@@ -172,7 +174,9 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
                 contentPadding: const EdgeInsets.fromLTRB(16, 11, 4, 11),
                 suffixIcon: IconButton(
                   icon: AppHugeIcon(
-                    icon: HugeIcons.strokeRoundedSmile,
+                    icon: widget.isEmojiMenuOpen
+                        ? HugeIcons.strokeRoundedKeyboard
+                        : HugeIcons.strokeRoundedSmile,
                     size: 20,
                     color: colorScheme.onSurfaceVariant,
                   ),

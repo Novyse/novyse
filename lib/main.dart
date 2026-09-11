@@ -8,7 +8,9 @@ import 'package:media_kit/media_kit.dart';
 import 'package:novyse/core/config/global.dart';
 import 'package:novyse/core/events/global_event_receiver.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_recents_store.dart';
 import 'package:novyse/ui/components/window/desktop_window_frame.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'core/auth/onboarding_manager.dart';
@@ -41,7 +43,13 @@ void main() async {
     BrowserContextMenu.disableContextMenu();
   }
   await onboardingManager.checkInitialSession();
-  runApp(const ProviderScope(child: MyApp()));
+  final prefs = await SharedPreferences.getInstance();
+  runApp(
+    ProviderScope(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends ConsumerWidget {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
+import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/edit_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/files_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/mention_bar.dart';
@@ -11,6 +12,9 @@ import 'package:novyse/ui/components/chat/bottom_bar/default/message_send_handle
 import 'package:novyse/ui/components/chat/bottom_bar/default/middle_bar_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/right_button_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/recording/voice_recorder_controller.dart';
+import 'package:novyse/ui/components/chat/emoji_menu/emoji_menu_overlay.dart';
+import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_models.dart';
+import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_send_handler.dart';
 
 class DefaultBottomBar extends ConsumerStatefulWidget {
   const DefaultBottomBar({
@@ -20,6 +24,9 @@ class DefaultBottomBar extends ConsumerStatefulWidget {
     this.onToggleAttachMenu,
     this.isAttachMenuOpen = false,
     this.onCloseAttachMenu,
+    this.onToggleEmojiMenu,
+    this.isEmojiMenuOpen = false,
+    this.onCloseEmojiMenu,
   });
 
   final String chatUUID;
@@ -27,6 +34,9 @@ class DefaultBottomBar extends ConsumerStatefulWidget {
   final VoidCallback? onToggleAttachMenu;
   final bool isAttachMenuOpen;
   final VoidCallback? onCloseAttachMenu;
+  final VoidCallback? onToggleEmojiMenu;
+  final bool isEmojiMenuOpen;
+  final VoidCallback? onCloseEmojiMenu;
 
   @override
   ConsumerState<DefaultBottomBar> createState() => _DefaultBottomBarState();
@@ -35,7 +45,9 @@ class DefaultBottomBar extends ConsumerStatefulWidget {
 class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
   final FocusNode _focusNode = FocusNode();
   final LayerLink _attachMenuLink = LayerLink();
+  final LayerLink _emojiMenuLink = LayerLink();
   OverlayEntry? _attachMenuEntry;
+  OverlayEntry? _emojiMenuEntry;
   bool _isSending = false;
   TextEditingController? _textController;
 
@@ -58,10 +70,13 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
     if (mounted) setState(() {});
   }
 
-  /// Closes the attach menu when the text input gains focus,
+  /// Closes the attach/emoji menus when the text input gains focus,
   void _onFocusChanged() {
     if (_focusNode.hasFocus && widget.isAttachMenuOpen) {
       widget.onCloseAttachMenu?.call();
+    }
+    if (_focusNode.hasFocus && widget.isEmojiMenuOpen) {
+      widget.onCloseEmojiMenu?.call();
     }
   }
 
@@ -85,6 +100,19 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
         widget.chatUUID != oldWidget.chatUUID) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => _syncAttachMenuOverlay(),
+      );
+    }
+    if (widget.isEmojiMenuOpen != oldWidget.isEmojiMenuOpen ||
+        widget.chatUUID != oldWidget.chatUUID) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _syncEmojiMenuOverlay(),
+      );
+    }
+    if (oldWidget.chatUUID != widget.chatUUID && widget.isEmojiMenuOpen) {
+      // Chat switched while menu open: parent closes it via state reset,
+      // but ensure a stale overlay never lingers.
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _syncEmojiMenuOverlay(),
       );
     }
   }
@@ -117,9 +145,61 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
     _attachMenuEntry = null;
   }
 
+  void _syncEmojiMenuOverlay() {
+    if (!mounted) return;
+    // Mobile uses the inline panel in build(); only desktop/web use Overlay.
+    if (currentPlatform == AppPlatform.mobile) {
+      _hideEmojiMenuOverlay();
+      return;
+    }
+    if (widget.isEmojiMenuOpen) {
+      _showEmojiMenuOverlay();
+    } else {
+      _hideEmojiMenuOverlay();
+    }
+  }
+
+  void _showEmojiMenuOverlay() {
+    if (_emojiMenuEntry != null) return;
+    final overlay = Overlay.maybeOf(context);
+    if (overlay == null) return;
+    final textController = ref.read(chatTextControllerProvider(widget.chatUUID));
+    _emojiMenuEntry = OverlayEntry(
+      builder: (context) => EmojiMenuOverlay(
+        link: _emojiMenuLink,
+        textController: textController,
+        onSelectGif: _handleSelectGif,
+        onClose: () => widget.onCloseEmojiMenu?.call(),
+      ),
+    );
+    overlay.insert(_emojiMenuEntry!);
+  }
+
+  void _hideEmojiMenuOverlay() {
+    _emojiMenuEntry?.remove();
+    _emojiMenuEntry = null;
+  }
+
+  Future<void> _handleSelectGif(GifItem gif) async {
+    try {
+      await GifSendHandler.sendGif(
+        ref: ref,
+        chatUUID: widget.chatUUID,
+        subID: widget.subID,
+        gif: gif,
+      );
+    } catch (_) {
+      // Queue errors are already logged; keep the menu open on failure
+      // so the user can retry.
+      return;
+    }
+    widget.onCloseEmojiMenu?.call();
+  }
+
   @override
   void dispose() {
     _hideAttachMenuOverlay();
+    _hideEmojiMenuOverlay();
     _textController?.removeListener(_onControllerChanged);
     _focusNode.removeListener(_onFocusChanged);
     _textController = null;
@@ -193,16 +273,21 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: MiddleBarBottomBar(
-                chatUUID: chatUUID,
-                subID: widget.subID,
-                textController: textController,
-                focusNode: _focusNode,
-                isRecording: recorderState.isRecording,
-                recorderState: recorderState,
-                onSendMessage: onSendMessage,
-                onTogglePause: () => recorderNotifier.togglePause(),
-                onStopAndDraft: () => recorderNotifier.stopAndDraft(),
+              child: CompositedTransformTarget(
+                link: _emojiMenuLink,
+                child: MiddleBarBottomBar(
+                  chatUUID: chatUUID,
+                  subID: widget.subID,
+                  textController: textController,
+                  focusNode: _focusNode,
+                  isRecording: recorderState.isRecording,
+                  recorderState: recorderState,
+                  onSendMessage: onSendMessage,
+                  onTogglePause: () => recorderNotifier.togglePause(),
+                  onStopAndDraft: () => recorderNotifier.stopAndDraft(),
+                  onToggleEmoji: widget.onToggleEmojiMenu,
+                  isEmojiMenuOpen: widget.isEmojiMenuOpen,
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -218,6 +303,17 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
             ),
           ],
         ),
+
+        // Mobile: inline emoji menu panel above the keyboard area.
+        // Desktop/web use the floating overlay instead (see _syncEmojiMenuOverlay).
+        if (widget.isEmojiMenuOpen &&
+            currentPlatform == AppPlatform.mobile) ...[
+          const SizedBox(height: 8),
+          EmojiMenuPanel(
+            textController: textController,
+            onSelectGif: _handleSelectGif,
+          ),
+        ],
       ],
     );
   }
