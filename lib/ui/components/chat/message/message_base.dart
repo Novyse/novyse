@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/chat/message_action_methods.dart';
 import 'package:novyse/core/chat/message_file.dart';
 import 'package:novyse/core/chat/message_format.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/chat/message/message_audio.dart';
 import 'package:novyse/ui/components/chat/message/message_file.dart';
@@ -15,8 +17,7 @@ import 'package:novyse/ui/components/chat/message/message_text.dart';
 import 'package:novyse/ui/components/chat/message/message_timestamp.dart';
 import 'package:novyse/ui/components/chat/message/message_video.dart';
 import 'package:novyse/ui/components/chat/message/message_voice.dart';
-
-import 'package:novyse/core/utils/platform.dart';
+import 'package:novyse/ui/components/chat/message/reactions/reaction_pill.dart';
 
 class MessageBase extends ConsumerStatefulWidget {
   const MessageBase({
@@ -104,57 +105,42 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
     );
   }
 
-  Widget _buildReactionsRow(BuildContext context) {
+  Widget _buildReactionsRow(
+    BuildContext context, {
+    WrapAlignment alignment = WrapAlignment.start,
+  }) {
     if (message.reactions.isEmpty) return const SizedBox.shrink();
 
-    final theme = Theme.of(context);
+    final methods = MessageActionMethods(
+      ref: ref,
+      context: context,
+      chatUUID: message.chatUUID,
+      subID: message.subID,
+    );
 
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: Wrap(
+        alignment: alignment,
         spacing: 4,
         runSpacing: 4,
         children: message.reactions
             .whereType<Map>()
             .map((r) {
               final emoji = (r['emoji'] as String?) ?? '';
-              final userUUIDs = (r['userUUIDs'] as List?) ?? [];
-              final count = userUUIDs.length;
+              final userUUIDs = ((r['userUUIDs'] as List?) ?? [])
+                  .map((u) => u.toString())
+                  .toList();
 
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest.withValues(
-                    alpha: 0.9,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: theme.colorScheme.outlineVariant.withValues(
-                      alpha: 0.5,
-                    ),
-                    width: 0.8,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(emoji, style: const TextStyle(fontSize: 12)),
-                    if (count > 1) ...[
-                      const SizedBox(width: 3),
-                      Text(
-                        '$count',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onSurface,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+              return ReactionPill(
+                emoji: emoji,
+                userUUIDs: userUUIDs,
+                getUser: getUser,
+                onTap: () {
+                  methods.toggleReaction(message, emoji);
+                },
               );
             })
-            .whereType<Widget>()
             .toList(),
       ),
     );
@@ -464,7 +450,23 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
           return {'name': user.name};
         },
       );
-      return MessageSystem(type: 'system', data: text);
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            MessageSystem(
+              type: 'system',
+              data: text,
+              onOpenContextMenu: (pos) {
+                widget.onOpenContextMenu?.call(pos, null);
+              },
+            ),
+            if (message.reactions.isNotEmpty)
+              _buildReactionsRow(context, alignment: WrapAlignment.center),
+          ],
+        ),
+      );
     }
 
     final theme = Theme.of(context);

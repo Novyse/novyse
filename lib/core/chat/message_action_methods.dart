@@ -187,4 +187,70 @@ class MessageActionMethods {
       );
     }
   }
+
+  /// Adds or removes a reaction from a message.
+  Future<void> toggleReaction(MessageModel message, String emoji) async {
+    final messageIdStr = message.id.toString();
+    final localUserUUID = ref.read(userStoreProvider).localUserUUID;
+
+    final existingReaction = message.reactions
+        .where((r) => r['emoji'] == emoji)
+        .firstOrNull;
+    final userUUIDs = (existingReaction?['userUUIDs'] as List?)
+            ?.map((u) => u.toString())
+            .toList() ??
+        const [];
+    final hasReacted = userUUIDs.contains(localUserUUID);
+
+    if (hasReacted) {
+      try {
+        final res = await apiGateway.message.reaction.remove(
+          chatUUID,
+          subID,
+          messageIdStr,
+          emoji,
+        );
+        if (res.success) {
+          await GlobalEventEmitter.instance.message.update(
+            chatUUID,
+            subID,
+            messageIdStr,
+            'reaction_remove',
+            res.chatEventID,
+            {
+              'userUUID': localUserUUID,
+              'reaction': emoji,
+            },
+          );
+        }
+      } catch (e) {
+        debugPrint('Error removing reaction: $e');
+      }
+    } else {
+      try {
+        final res = await apiGateway.message.reaction.add(
+          chatUUID,
+          subID,
+          messageIdStr,
+          emoji,
+        );
+        if (res.success) {
+          await GlobalEventEmitter.instance.message.update(
+            chatUUID,
+            subID,
+            messageIdStr,
+            'reaction_add',
+            res.chatEventID,
+            {
+              'userUUID': localUserUUID,
+              'reaction': emoji,
+              'reactedAt': res.reactedAt ?? DateTime.now().toIso8601String(),
+            },
+          );
+        }
+      } catch (e) {
+        debugPrint('Error adding reaction: $e');
+      }
+    }
+  }
 }
