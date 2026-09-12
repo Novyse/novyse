@@ -181,6 +181,13 @@ class MessageEmitter {
       await _db.event.chat.update(chatUUID, eventID);
     }
 
+    final payload = {
+      'chatUUID': chatUUID,
+      'subID': subID,
+      'messageID': messageID,
+      'action': action,
+      ...data,
+    };
     _bus.emit(
       MessageUpdateEvent(
         chatUUID: chatUUID,
@@ -190,6 +197,7 @@ class MessageEmitter {
         data: data,
       ),
     );
+    _emitter.emit('message:update', payload);
   }
 }
 

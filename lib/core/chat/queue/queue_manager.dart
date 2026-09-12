@@ -85,8 +85,12 @@ class QueueManager {
       }
     }
 
-    // 4. Listen for inbound messages with files to trigger downloads if configured
+    // 4. Listen for inbound messages/edits with files to trigger downloads
     GlobalEventEmitter.instance.on('message:new', _handleNewInboundMessage);
+    GlobalEventEmitter.instance.on(
+      'message:update',
+      _handleInboundMessageUpdate,
+    );
 
     // 5. Trigger all chat processors
     _triggerAllProcessors();
@@ -328,25 +332,48 @@ class QueueManager {
   }
 
   void _handleNewInboundMessage(dynamic data) {
-    if (data is Map) {
-      final files = data['files'];
-      final chatUUID = (data['chatUUID'] ?? data['chat_uuid']) as String?;
-      if (files is List && files.isNotEmpty && chatUUID != null) {
-        for (final file in files) {
-          if (file is Map && file['uuid'] != null) {
-            final uuid = file['uuid'] as String;
-            if (uuid.isNotEmpty) {
-              addInboundDownloadJob(
-                id: 'dl_$uuid',
-                chatUUID: chatUUID,
-                fileUUID: uuid,
-                downloadURL: file['downloadURL'] as String?,
-                name: file['name'] as String?,
-              );
-            }
-          }
-        }
+    if (data is! Map) return;
+    final files = data['files'];
+    final chatUUID = (data['chatUUID'] ?? data['chat_uuid']) as String?;
+    if (files is List && files.isNotEmpty && chatUUID != null) {
+      enqueueInboundFileDownloads(chatUUID, files);
+    }
+  }
+
+  void _handleInboundMessageUpdate(dynamic data) {
+    if (data is! Map) return;
+    if (data['action'] != 'edit') return;
+    final files = data['files'];
+    final chatUUID = (data['chatUUID'] ?? data['chat_uuid']) as String?;
+    if (files is List && files.isNotEmpty && chatUUID != null) {
+      // Skip files already on disk so text-only edits don't re-download.
+      enqueueInboundFileDownloads(chatUUID, files, onlyMissing: true);
+    }
+  }
+
+  /// Enqueues inbound file downloads for [chatUUID].
+  ///
+  /// When [onlyMissing] is true, skips files that already have a local ref.
+  Future<void> enqueueInboundFileDownloads(
+    String chatUUID,
+    List files, {
+    bool onlyMissing = false,
+  }) async {
+    for (final file in files) {
+      if (file is! Map || file['uuid'] == null) continue;
+      final uuid = file['uuid'] as String;
+      if (uuid.isEmpty) continue;
+      if (onlyMissing) {
+        final existingRef = await AppDatabase.instance.file.get.ref(uuid);
+        if (existingRef != null && existingRef.isNotEmpty) continue;
       }
+      await addInboundDownloadJob(
+        id: 'dl_$uuid',
+        chatUUID: chatUUID,
+        fileUUID: uuid,
+        downloadURL: file['downloadURL'] as String?,
+        name: file['name'] as String?,
+      );
     }
   }
 
@@ -354,6 +381,10 @@ class QueueManager {
   void dispose() {
     _connectivitySubscription?.cancel();
     GlobalEventEmitter.instance.off('message:new', _handleNewInboundMessage);
+    GlobalEventEmitter.instance.off(
+      'message:update',
+      _handleInboundMessageUpdate,
+    );
     for (final processor in _processors.values) {
       processor.dispose();
     }

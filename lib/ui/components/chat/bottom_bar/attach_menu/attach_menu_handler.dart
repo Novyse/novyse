@@ -40,7 +40,7 @@ class AttachMenuHandler {
 
   /// Converts a picked asset to the draft file map shape used by
   static Map<String, dynamic> _assetToDraftFile(PickedFileAsset asset) {
-    final mimeType = getMimeTypeByName(asset.name);
+    final mimeType = getMimeTypeByName(asset.name, headerBytes: asset.bytes);
     return {
       'name': asset.name,
       'path': asset.path,

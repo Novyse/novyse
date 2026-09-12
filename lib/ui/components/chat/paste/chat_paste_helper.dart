@@ -3,6 +3,7 @@ import 'dart:io' as io;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mime/mime.dart' show defaultMagicNumbersMaxLength;
 import 'package:super_clipboard/super_clipboard.dart';
 import 'package:novyse/core/chat/queue/queue_manager.dart';
 import 'package:novyse/core/storage/file/file_type.dart';
@@ -12,12 +13,99 @@ import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/files_bar.dart';
 
 class ChatPasteHelper {
+  static const _clipboardImageFormats = <(FileFormat, String, String)>[
+    (Formats.png, 'image/png', 'png'),
+    (Formats.jpeg, 'image/jpeg', 'jpg'),
+    (Formats.gif, 'image/gif', 'gif'),
+    (Formats.webp, 'image/webp', 'webp'),
+  ];
+
+  /// Reads an explicit clipboard image format (png/jpeg/gif/webp) when present.
+  /// Prefer this over [Formats.fileUri] so Ctrl+V screenshots are not treated
+  /// as generic files.
+  static Future<Map<String, dynamic>?> _extractClipboardImage(
+    DataReader item,
+  ) async {
+    for (final (format, fallbackMime, ext) in _clipboardImageFormats) {
+      if (!item.canProvide(format)) continue;
+
+      final completer = Completer<Map<String, dynamic>?>();
+      final progress = item.getFile(
+        format,
+        (file) async {
+          try {
+            final bytes = await file.readAll();
+            if (bytes.isEmpty) {
+              if (!completer.isCompleted) completer.complete(null);
+              return;
+            }
+            var name =
+                file.fileName ??
+                await item.getSuggestedName() ??
+                'image.$ext';
+            final mimeType = getMimeTypeByName(name, headerBytes: bytes);
+            final resolved = mimeType.startsWith('image/')
+                ? mimeType
+                : fallbackMime;
+            if (!name.contains('.')) {
+              final fromMime = extensionFromMime(resolved);
+              name = 'image.${fromMime.isNotEmpty ? fromMime : ext}';
+            }
+            completer.complete({
+              'name': name,
+              'bytes': bytes,
+              'size': bytes.length,
+              'mimeType': resolved,
+              'type': 'IMAGE',
+              'uri': name,
+              'path': null,
+            });
+          } catch (e) {
+            debugPrint('[ChatPasteHelper] Error reading clipboard image: $e');
+            if (!completer.isCompleted) completer.complete(null);
+          }
+        },
+        onError: (_) {
+          if (!completer.isCompleted) completer.complete(null);
+        },
+      );
+
+      if (progress == null) continue;
+      final result = await completer.future;
+      if (result != null) return result;
+    }
+    return null;
+  }
+
+  /// MIME from [name], sniffing local file headers only when the extension
+  /// lookup would otherwise be generic.
+  static Future<String> _mimeForPath(String name, String path) async {
+    var mimeType = getMimeTypeByName(name);
+    if (mimeType != defaultMimeType || kIsWeb) return mimeType;
+    try {
+      final raf = await io.File(path).open();
+      try {
+        final header = await raf.read(defaultMagicNumbersMaxLength);
+        if (header.isNotEmpty) {
+          mimeType = getMimeTypeByName(name, headerBytes: header);
+        }
+      } finally {
+        await raf.close();
+      }
+    } catch (_) {}
+    return mimeType;
+  }
+
   /// Extracts file or image information from a single [DataReader] item
   /// (used for both super_clipboard and super_drag_and_drop).
   static Future<Map<String, dynamic>?> extractMediaFromDataReader(
     DataReader item,
   ) async {
-    // 1. Local filesystem path (Desktop & Mobile)
+    // 1. Explicit clipboard image formats (Ctrl+V screenshot / copy image)
+    final clipboardImage = await _extractClipboardImage(item);
+    if (clipboardImage != null) return clipboardImage;
+
+    // 2. Local filesystem path (Desktop & Mobile)
     if (item.canProvide(Formats.fileUri)) {
       final completer = Completer<Uri?>();
       item.getValue<Uri>(
@@ -41,21 +129,23 @@ class ChatPasteHelper {
           } catch (_) {}
         }
         final name = path.split(RegExp(r'[\\/]')).last;
+        final mimeType = await _mimeForPath(name, path);
         return {
           'name': name,
           'path': path,
           'uri': path,
           'size': size,
-          'mimeType': getMimeTypeByName(name),
+          'mimeType': mimeType,
+          if (mimeType.startsWith('image/')) 'type': 'IMAGE',
         };
       }
     }
 
-    // 2. If it's plain text without an explicit file name, ignore it
+    // 3. If it's plain text without an explicit file name, ignore it
     final isText =
         item.canProvide(Formats.plainText) || item.canProvide(Formats.htmlText);
 
-    // 3. Stream/bytes for in-memory files (Web, Screenshots, VirtualFiles, Images)
+    // 4. Stream/bytes for in-memory files (Web, VirtualFiles, generic files)
     final fileCompleter = Completer<Map<String, dynamic>?>();
     final progress = item.getFile(
       null,
@@ -71,12 +161,16 @@ class ChatPasteHelper {
           }
 
           final bytes = await file.readAll();
-          final name =
+          var name =
               file.fileName ??
               await item.getSuggestedName() ??
               'file_${DateTime.now().millisecondsSinceEpoch}';
-          final mimeType = getMimeTypeByName(name);
+          final mimeType = getMimeTypeByName(name, headerBytes: bytes);
           final isImage = mimeType.startsWith('image/');
+          if (isImage && !name.contains('.')) {
+            final fromMime = extensionFromMime(mimeType);
+            if (fromMime.isNotEmpty) name = 'image.$fromMime';
+          }
           fileCompleter.complete({
             'name': name,
             'bytes': bytes,
@@ -204,7 +298,7 @@ class ChatPasteHelper {
               'path': cleanPath,
               'uri': cleanPath,
               'size': size,
-              'mimeType': getMimeTypeByName(name),
+              'mimeType': await _mimeForPath(name, cleanPath),
             });
           }
         }
@@ -260,13 +354,22 @@ class ChatPasteHelper {
           } catch (_) {}
         }
 
+        final String mimeType;
+        if (bytes != null && bytes.isNotEmpty) {
+          mimeType = getMimeTypeByName(name, headerBytes: bytes);
+        } else if (path != null) {
+          mimeType = await _mimeForPath(name, path);
+        } else {
+          mimeType = getMimeTypeByName(name);
+        }
+
         newFiles.add({
           'name': name,
           'path': path,
           'uri': path ?? name,
           'size': size,
           'bytes': bytes,
-          'mimeType': getMimeTypeByName(name),
+          'mimeType': mimeType,
         });
       } catch (_) {}
     }

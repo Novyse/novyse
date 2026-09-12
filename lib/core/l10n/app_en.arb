@@ -640,11 +640,32 @@
       }
     }
   },
+  
   "overviewSettings": "Settings",
   "overviewFavouriteMessages": "Favourite messages",
   "overviewLeave": "Leave",
   "overviewLeaveConfirmTitle": "Leave chat?",
   "overviewLeaveConfirmMessage": "Are you sure you want to leave this chat?",
   "overviewWip": "Coming soon",
-  "overviewUnknownFile": "Unnamed file"
+  "overviewUnknownFile": "Unnamed file",
+  "notifChannelChatMessages": "Chat Messages",
+  "notifChannelChatMessagesDesc": "Incoming chat messages",
+  "notifNewMessage": "New message",
+  "notifUnknownSender": "Unknown",
+  "notifMe": "Me",
+  "notifOpenAction": "Open",
+  "notifGroupMessageBody": "{sender}: {body}",
+  "@notifGroupMessageBody": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "body": {
+        "type": "String"
+      }
+    }
+  },
+  "notifMarkAsRead": "Mark as read",
+  "notifReplyPlaceholder": "Type a message...",
+  "notifReplySend": "Send"
 }

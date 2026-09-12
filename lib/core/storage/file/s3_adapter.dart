@@ -47,8 +47,14 @@ class S3Adapter {
     _activeTransfers[fileUUID] = token;
 
     final resolvedMime =
-        mimeType ??
-        (fileUriOrRef != null ? getMimeType(fileUriOrRef) : defaultMimeType);
+        (mimeType != null &&
+            mimeType.isNotEmpty &&
+            mimeType != defaultMimeType)
+        ? mimeType
+        : getMimeType(
+            fileUriOrRef,
+            headerBytes: fileBytes,
+          );
 
     try {
       if (onProgress != null) {

@@ -1,5 +1,7 @@
 import 'dart:io' show Platform;
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +11,9 @@ import 'package:media_kit/media_kit.dart';
 import 'package:novyse/core/config/global.dart';
 import 'package:novyse/core/events/global_event_receiver.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/notifications/notification_binder.dart';
+import 'package:novyse/core/notifications/notification_manager.dart';
+import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_recents_store.dart';
 import 'package:novyse/ui/components/window/desktop_window_frame.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,11 +41,26 @@ Future<void> _initDesktopWindow() async {
   } catch (_) {}
 }
 
+Future<void> _initFirebase() async {
+  final mobileOrWeb =
+      kIsWeb || currentOS == AppOS.android || currentOS == AppOS.ios;
+  if (!mobileOrWeb) return;
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
+    }
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  } catch (e) {
+    debugPrint('[main] Firebase init skipped: $e');
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting();
   MediaKit.ensureInitialized();
   await _initDesktopWindow();
+  await _initFirebase();
   if (kIsWeb) {
     BrowserContextMenu.disableContextMenu();
   }
@@ -70,7 +90,9 @@ class MyApp extends ConsumerWidget {
       themeMode: ThemeMode.dark,
       routerConfig: ref.watch(routerProvider),
       builder: (context, child) => GlobalEventReceiver(
-        child: DesktopWindowFrame(child: child ?? const SizedBox.shrink()),
+        child: NotificationBinder(
+          child: DesktopWindowFrame(child: child ?? const SizedBox.shrink()),
+        ),
       ),
     );
   }
