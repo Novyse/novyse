@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/default_bottom_bar.dart';
+import 'package:novyse/ui/components/chat/bottom_bar/no_write_bottom_bar.dart';
 
 class ChatBottomBar extends ConsumerWidget {
   const ChatBottomBar({
@@ -29,26 +29,12 @@ class ChatBottomBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-
     return SafeArea(
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
         child: readOnly
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Text(
-                    l10n.channelReadOnlyHint,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              )
+            ? const NoWriteBottomBar()
             : DefaultBottomBar(
                 chatUUID: chatUUID,
                 subID: subID,

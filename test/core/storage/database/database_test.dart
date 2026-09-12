@@ -227,10 +227,15 @@ void main() {
           },
         ],
         'subs': [
-          {'id': 0, 'name': 'General', 'type': 'DEFAULT'},
+          {'id': 0, 'name': 'General', 'type': 'MIXED'},
         ],
       });
       expect(success, isTrue);
+
+      final chatsAfterAdd = await db.chat.get.all();
+      final addedChat = chatsAfterAdd.firstWhere((c) => c['uuid'] == 'chat-1');
+      final addedSubs = (addedChat['subs'] as List).cast<Map>();
+      expect(addedSubs.first['type'], 'MIXED');
 
       final handle = await db.handle.get.by.uuid('chat', 'chat-1');
       expect(handle, 'mygroup');

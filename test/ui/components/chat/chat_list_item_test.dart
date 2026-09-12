@@ -350,4 +350,42 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('ChatListItem falls back to Forum label for empty FORUM name', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final userNotifier = container.read(userStoreProvider.notifier);
+    userNotifier.state = const UserStoreState(
+      localUserUUID: 'user-local',
+      users: {},
+    );
+
+    const chat = ChatModel(
+      uuid: 'chat-forum-empty',
+      name: '',
+      type: 'FORUM',
+      members: [
+        {'uuid': 'user-local'},
+      ],
+    );
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          localizationsDelegates: localizationsDelegates,
+          supportedLocales: supportedLocales,
+          locale: Locale('en'),
+          home: Scaffold(body: ChatListItem(chat: chat)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Forum'), findsOneWidget);
+    expect(find.text('Group'), findsNothing);
+  });
 }

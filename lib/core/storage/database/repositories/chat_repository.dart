@@ -295,7 +295,7 @@ class ChatRepository {
               subId,
               uuid,
               s['name'],
-              s['type'] ?? 'DEFAULT',
+              s['type'],
               s['created_at'] ??
                   s['createdAt'] ??
                   DateTime.now().toIso8601String(),
@@ -438,7 +438,7 @@ class ChatRepository {
             subId,
             sub['chatUUID'],
             sub['name'],
-            sub['type'] ?? 'DEFAULT',
+            sub['type'],
             sub['created_at'] ??
                 sub['createdAt'] ??
                 DateTime.now().toIso8601String(),
@@ -549,7 +549,7 @@ class ChatSubRepository {
           subId,
           chatUUID,
           sub['name'],
-          sub['type'] ?? 'DEFAULT',
+          sub['type'],
           sub['created_at'] ??
               sub['createdAt'] ??
               DateTime.now().toIso8601String(),
@@ -722,7 +722,9 @@ class ChatGetRepository {
           'SELECT * FROM chat_sub WHERE chatUUID = ? ORDER BY id ASC;',
           [chatUUID],
         );
-        final subs = subRows.map((r) => Map<String, dynamic>.from(r)).toList();
+        final subs = subRows.map((r) {
+          return Map<String, dynamic>.from(r);
+        }).toList();
 
         if (_repo._messageRepository != null) {
           final subLastMessages = await _repo._messageRepository!.last.getBySub(

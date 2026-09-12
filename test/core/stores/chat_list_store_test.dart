@@ -81,12 +81,14 @@ void main() {
           chatUUID: 'chat-1',
           action: 'sub_create',
           data: {
-            'sub': {'id': 1, 'name': 'off-topic'},
+            'sub': {'id': 1, 'name': 'off-topic', 'type': 'TEXT'},
           },
         ),
       );
       await Future<void>.delayed(const Duration(milliseconds: 10));
-      expect(container.read(chatProvider('chat-1'))?.subs.length, equals(1));
+      final afterSubCreate = container.read(chatProvider('chat-1'));
+      expect(afterSubCreate?.subs.length, equals(1));
+      expect(afterSubCreate?.subs.first['type'], equals('TEXT'));
 
       // 3. New message increments unreadCount
       bus.emit(

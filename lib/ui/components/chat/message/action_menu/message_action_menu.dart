@@ -156,7 +156,9 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
     final isPinned = message.pinned;
     final isDM = chat?.type == 'DM';
 
-    final sub = chat?.subs.where((s) => s['id'] == message.subID).firstOrNull;
+    final sub = chat?.subs
+        .where((s) => s['id'] as int == message.subID)
+        .firstOrNull;
     final subType = sub?['type'] as String?;
 
     final myMember = chat?.members

@@ -53,7 +53,15 @@ class _ChatPinnedMessagesBarState extends ConsumerState<ChatPinnedMessagesBar> {
   @override
   Widget build(BuildContext context) {
     final chat = ref.watch(chatProvider(widget.chatUUID));
-    final pinnedMessages = chat?.pinnedMessages ?? const [];
+    final selectedSub = ref.watch(
+      activeChatProvider.select((s) => s.selectedSub),
+    );
+    final allPinned = chat?.pinnedMessages ?? const [];
+    final pinnedMessages = chat?.type == 'FORUM'
+        ? allPinned
+              .where((p) => p['subID'] == selectedSub)
+              .toList()
+        : allPinned;
 
     if (pinnedMessages.isEmpty) {
       return const SizedBox.shrink();

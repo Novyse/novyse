@@ -389,6 +389,7 @@ class SyncService {
                 'sub': {
                   'id': payload['subID'],
                   'name': payload['name'],
+                  'type': payload['type'],
                   'created_at': event['createdAt'],
                 },
               });

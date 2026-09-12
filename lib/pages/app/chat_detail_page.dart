@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/chat/permissions.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/services/api_gateway.dart';
@@ -11,6 +12,7 @@ import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/forward_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/pages/app/adaptive.dart';
 import 'package:novyse/pages/app/chat_call_page.dart';
 import 'package:novyse/pages/app/chat_routes.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/chat_bottom_bar.dart';
@@ -21,6 +23,7 @@ import 'package:novyse/ui/components/chat/chat_detail/chat_sub_header.dart';
 import 'package:novyse/ui/components/chat/chat_drop_zone.dart';
 import 'package:novyse/ui/components/chat/chat_list_item.dart';
 import 'package:novyse/ui/components/chat/message_list.dart';
+import 'package:novyse/ui/components/chat/sub/sub_list.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class ChatDetailPage extends ConsumerStatefulWidget {
@@ -41,6 +44,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   final _searchFocusNode = FocusNode();
   String _searchQuery = '';
   int _searchIndex = 0;
+  double _subListWidth = kSubListDefaultWidth;
 
   @override
   void initState() {
@@ -78,6 +82,9 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
       });
     }
   }
+
+  int get _selectedSub =>
+      ref.read(activeChatProvider.select((s) => s.selectedSub));
 
   void _openCall() {
     if (_callOpen) return;
@@ -117,8 +124,9 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   }
 
   List<MessageModel> _currentSearchMatches() {
+    final selectedSub = _selectedSub;
     final messages = ref.read(
-      chatMessagesProvider((chatUUID: widget.chatUUID, subID: 0))
+      chatMessagesProvider((chatUUID: widget.chatUUID, subID: selectedSub))
           .select((s) => s.messages),
     );
     final trimmedQuery = _searchQuery.trim().toLowerCase();
@@ -135,7 +143,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     final index = _searchIndex.clamp(0, matches.length - 1);
     ref
         .read(activeChatProvider.notifier)
-        .jumpToMessage(matches[index].id, subID: 0);
+        .jumpToMessage(matches[index].id, subID: _selectedSub);
   }
 
   void _goToNextResult(int total) {
@@ -209,11 +217,22 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     popOrChats(context);
   }
 
+  List<Map<String, dynamic>> _myRoles(ChatModel chat, String localUserUUID) {
+    final myMember = chat.members
+        .where((m) => m['uuid'] == localUserUUID)
+        .firstOrNull;
+    final roleIds = (myMember?['roleIDs'] as List?) ?? const [];
+    return chat.roles.where((r) => roleIds.contains(r['id'])).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final chatUUID = widget.chatUUID;
     final chat = ref.watch(chatProvider(chatUUID));
     final l10n = AppLocalizations.of(context)!;
+    final selectedSub = ref.watch(
+      activeChatProvider.select((s) => s.selectedSub),
+    );
 
     if (chat == null) {
       return Scaffold(
@@ -250,7 +269,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     }
 
     final messages = ref.watch(
-      chatMessagesProvider((chatUUID: chatUUID, subID: 0))
+      chatMessagesProvider((chatUUID: chatUUID, subID: selectedSub))
           .select((s) => s.messages),
     );
     final trimmedQuery = _searchQuery.trim();
@@ -271,6 +290,46 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     final draftState = ref.watch(chatDraftProvider(chatUUID));
     final selectedMessages = draftState.selectedMessages;
     final hasSelection = selectedMessages.isNotEmpty;
+
+    final forum = chat.type == 'FORUM';
+    final wideLayout = isMasterDetailLayout(context);
+    final subListCollapsed = !wideLayout || _subListWidth < kSubListExpandThreshold;
+    final subListWidth = forum
+        ? (wideLayout ? _subListWidth : kSubListCollapsedWidth)
+        : 0.0;
+
+    final sub = chat.subs
+        .where((s) => s['id'] as int == selectedSub)
+        .firstOrNull;
+    final subType = sub?['type'] as String?;
+    final showComposer =
+        subType == 'MIXED' || subType == 'TEXT' || subType == 'ANNOUNCE';
+    final canSendMessage = hasPermission(
+      _myRoles(chat, localUserUUID),
+      ChatPermissions.sendMessage,
+      subType,
+    );
+
+    // VOCAL -> only vocal UI. TEXT/ANNOUNCE -> only chat. MIXED -> toggle.
+    final showViewToggle = subType == null || subType == 'MIXED';
+    final showSearch =
+        subType == null ||
+        subType == 'MIXED' ||
+        subType == 'TEXT' ||
+        subType == 'ANNOUNCE';
+    final showVocal =
+        subType == 'VOCAL' || (showViewToggle && _callOpen);
+
+    if (subType == 'VOCAL' && _searching) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _closeSearch();
+      });
+    }
+    if ((subType == 'TEXT' || subType == 'ANNOUNCE') && _callOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _closeCall();
+      });
+    }
 
     final Widget floatingBar;
 
@@ -346,13 +405,73 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         isOnline: metadata.isOnline,
         isSavedMessages: metadata.isSavedMessages,
         chatType: chat.type,
-        callOpen: _callOpen,
+        showVocal: showVocal,
+        showSearch: showSearch,
+        showViewToggle: showViewToggle,
         onBack: _handleBack,
         onOpenSearch: _openSearch,
-        onToggleCall: _callOpen ? _closeCall : _openCall,
+        onToggleView: _callOpen ? _closeCall : _openCall,
         bottom: ChatSubHeader(chatUUID: chatUUID),
       );
     }
+
+    final messagePane = Column(
+      children: [
+        Expanded(
+          child: ChatDropZone(
+            chatUUID: chatUUID,
+            child: MessageList(
+              chatUUID: chatUUID,
+              subID: selectedSub,
+              searchQuery: _searching ? trimmedQuery : '',
+            ),
+          ),
+        ),
+        if (showComposer)
+          ChatBottomBar(
+            chatUUID: chatUUID,
+            subID: selectedSub,
+            readOnly: !canSendMessage,
+            isAttachMenuOpen: _isAttachMenuOpen,
+            onToggleAttachMenu: _toggleAttachMenu,
+            onCloseAttachMenu: _closeAttachMenu,
+            isEmojiMenuOpen: _isEmojiMenuOpen,
+            onToggleEmojiMenu: _toggleEmojiMenu,
+            onCloseEmojiMenu: _closeEmojiMenu,
+          ),
+      ],
+    );
+
+    final contentPane = showVocal
+        ? ChatCallPage(chatUUID: chatUUID, subID: selectedSub)
+        : messagePane;
+
+    final chatBody = forum
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SubList(
+                chat: chat,
+                selectedSub: selectedSub,
+                isCollapsed: subListCollapsed,
+                width: subListWidth,
+                topPadding: 72,
+              ),
+              if (wideLayout)
+                SubListResizeHandle(
+                  onDragUpdate: (dx) {
+                    setState(() {
+                      _subListWidth = (_subListWidth + dx).clamp(
+                        kSubListMinWidth,
+                        kSubListMaxWidth,
+                      );
+                    });
+                  },
+                ),
+              Expanded(child: contentPane),
+            ],
+          )
+        : contentPane;
 
     return PopScope(
       canPop:
@@ -388,40 +507,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
       child: Scaffold(
         body: Stack(
           children: [
-            IndexedStack(
-              index: _callOpen ? 1 : 0,
-              sizing: StackFit.expand,
-              children: [
-                Column(
-                  children: [
-                    Expanded(
-                      child: ChatDropZone(
-                        chatUUID: chatUUID,
-                        child: MessageList(
-                          chatUUID: chatUUID,
-                          subID: 0,
-                          searchQuery: _searching ? trimmedQuery : '',
-                        ),
-                      ),
-                    ),
-                    ChatBottomBar(
-                      chatUUID: chatUUID,
-                      subID: 0,
-                      isAttachMenuOpen: _isAttachMenuOpen,
-                      onToggleAttachMenu: _toggleAttachMenu,
-                      onCloseAttachMenu: _closeAttachMenu,
-                      isEmojiMenuOpen: _isEmojiMenuOpen,
-                      onToggleEmojiMenu: _toggleEmojiMenu,
-                      onCloseEmojiMenu: _closeEmojiMenu,
-                    ),
-                  ],
-                ),
-                if (_callOpen)
-                  ChatCallPage(chatUUID: chatUUID, subID: 0)
-                else
-                  const SizedBox.shrink(),
-              ],
-            ),
+            chatBody,
             Positioned(
               top: 0,
               left: 0,

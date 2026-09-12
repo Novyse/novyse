@@ -12,7 +12,7 @@ import 'package:novyse/core/stores/user_store.dart';
 class ChatModel {
   final String uuid;
   final String name;
-  final String type; // 'DM' | 'GROUP' | 'CHANNEL'
+  final String type; // 'DM' | 'GROUP' | 'CHANNEL' | 'FORUM'
   final String? profilePictureUUID;
   final String? handle;
   final int unreadCount;

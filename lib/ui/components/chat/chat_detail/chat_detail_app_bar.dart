@@ -17,10 +17,12 @@ class ChatDetailAppBar extends StatelessWidget {
     required this.isOnline,
     required this.isSavedMessages,
     required this.chatType,
-    required this.callOpen,
+    required this.showVocal,
+    required this.showSearch,
+    required this.showViewToggle,
     required this.onBack,
     required this.onOpenSearch,
-    required this.onToggleCall,
+    required this.onToggleView,
     this.bottom,
   });
 
@@ -32,10 +34,19 @@ class ChatDetailAppBar extends StatelessWidget {
   final bool isOnline;
   final bool isSavedMessages;
   final String? chatType;
-  final bool callOpen;
+
+  /// Whether the vocal panel is currently visible.
+  final bool showVocal;
+
+  /// Search is for MIXED / TEXT / ANNOUNCE only.
+  final bool showSearch;
+
+  /// Chat ↔ vocal toggle is for MIXED only.
+  final bool showViewToggle;
+
   final VoidCallback onBack;
   final VoidCallback onOpenSearch;
-  final VoidCallback onToggleCall;
+  final VoidCallback onToggleView;
   final Widget? bottom;
 
   static const _pillSpacing = 8.0;
@@ -66,6 +77,7 @@ class ChatDetailAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final hasActions = showSearch || showViewToggle;
 
     final content = Row(
       children: [
@@ -131,33 +143,36 @@ class ChatDetailAppBar extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: _pillSpacing),
-        _pill(
-          scheme: colorScheme,
-          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (!callOpen)
-                IconButton(
-                  icon: AppHugeIcon(
-                    icon: HugeIcons.strokeRoundedSearch01,
-                    color: colorScheme.onSurface,
+        if (hasActions) ...[
+          const SizedBox(width: _pillSpacing),
+          _pill(
+            scheme: colorScheme,
+            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (showSearch)
+                  IconButton(
+                    icon: AppHugeIcon(
+                      icon: HugeIcons.strokeRoundedSearch01,
+                      color: colorScheme.onSurface,
+                    ),
+                    onPressed: onOpenSearch,
                   ),
-                  onPressed: onOpenSearch,
-                ),
-              IconButton(
-                icon: AppHugeIcon(
-                  icon: callOpen
-                      ? HugeIcons.strokeRoundedChat01
-                      : HugeIcons.strokeRoundedAudioWave01,
-                  color: colorScheme.onSurface,
-                ),
-                onPressed: onToggleCall,
-              ),
-            ],
+                if (showViewToggle)
+                  IconButton(
+                    icon: AppHugeIcon(
+                      icon: showVocal
+                          ? HugeIcons.strokeRoundedChat01
+                          : HugeIcons.strokeRoundedAudioWave01,
+                      color: colorScheme.onSurface,
+                    ),
+                    onPressed: onToggleView,
+                  ),
+              ],
+            ),
           ),
-        ),
+        ],
       ],
     );
 

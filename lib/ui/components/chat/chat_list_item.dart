@@ -78,9 +78,11 @@ ResolvedChatMetadata resolveChatMetadata({
       ? chat.name.trim()
       : (chat.handle?.isNotEmpty == true
             ? '@${chat.handle}'
-            : (chat.type == 'CHANNEL'
-                  ? l10n.createChatChannel
-                  : l10n.createChatGroup));
+            : switch (chat.type) {
+                'CHANNEL' => l10n.createChatChannel,
+                'FORUM' => l10n.createChatForum,
+                _ => l10n.createChatGroup,
+              });
 
   return ResolvedChatMetadata(
     name: displayName,
