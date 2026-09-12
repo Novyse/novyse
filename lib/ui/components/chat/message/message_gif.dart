@@ -27,12 +27,18 @@ class _MessageGifState extends State<MessageGif> {
     _resolved = true;
     final stream = provider.resolve(const ImageConfiguration());
     stream.addListener(
-      ImageStreamListener((info, _) {
-        if (!mounted || info.image.height <= 0) return;
-        setState(() {
-          _aspectRatio = info.image.width / info.image.height;
-        });
-      }),
+      ImageStreamListener(
+        (info, _) {
+          if (!mounted || info.image.height <= 0) return;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() {
+              _aspectRatio = info.image.width / info.image.height;
+            });
+          });
+        },
+        onError: (_, _) {},
+      ),
     );
   }
 
@@ -87,7 +93,9 @@ class _MessageGifState extends State<MessageGif> {
               ),
             ),
             imageBuilder: (context, imageProvider) {
-              _resolveAspect(imageProvider);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) _resolveAspect(imageProvider);
+              });
               return Image(
                 image: imageProvider,
                 fit: BoxFit.cover,
