@@ -641,6 +641,9 @@ class ChatQueueProcessor {
       }
 
       var finalFiles = files;
+      // PATCH returns chatEventID when the edit completes immediately.
+      // When new files need upload, the event is created only on edit/confirm.
+      int? chatEventID = res.chatEventID;
 
       // Check if new files require S3 upload
       final serverFiles = res.data?['files'] as List?;
@@ -651,64 +654,92 @@ class ChatQueueProcessor {
             .where((sf) => sf is Map && sf['uploadURL'] != null)
             .toList();
         if (filesToUpload.isNotEmpty) {
+          final localNewFiles =
+              files.where((f) => f['uuid'] == null).toList();
+
+          if (localNewFiles.length < filesToUpload.length) {
+            throw Exception(
+              'Cannot upload edited files: expected '
+              '${filesToUpload.length} new local file(s), '
+              'found ${localNewFiles.length}',
+            );
+          }
+
           for (var i = 0; i < filesToUpload.length; i++) {
             if (_disposed) return;
             final sFile = filesToUpload[i] as Map;
             final uploadURL = sFile['uploadURL'] as String?;
             final fileUUID = sFile['uuid'] as String?;
-            final localFile = files.firstWhere(
-              (f) => f['uuid'] == fileUUID || f['name'] == sFile['name'],
-              orElse: () => Map<String, dynamic>.from(sFile),
-            );
+            final localFile = localNewFiles[i];
             final uri = (localFile['uri'] ?? localFile['path']) as String?;
             final bytes = localFile['bytes'] as Uint8List?;
 
-            if (uploadURL != null &&
-                fileUUID != null &&
-                (uri != null || bytes != null)) {
-              final fileBytes =
-                  bytes ??
-                  (uri != null
-                      ? await FileStorage.instance.getBytes(uri)
-                      : null);
-              await S3Adapter.instance.upload(
-                fileUUID: fileUUID,
-                uploadURL: uploadURL,
-                bytes: fileBytes,
-                mimeType: localFile['mimeType'] as String? ?? defaultMimeType,
-                cancelToken: job.cancelToken,
-                onProgress: (sent, total) {
-                  final fileProg = total > 0 ? sent / total : 0.0;
-                  final overall = (i + fileProg) / filesToUpload.length;
-                  job.progress = overall;
-                  GlobalEventEmitter.instance.emit('file:progress', {
-                    'uuid': fileUUID,
-                    'loaded': sent,
-                    'total': total,
-                  });
-                  GlobalEventEmitter.instance.emit('message:progress', {
-                    'uuid': fileUUID,
-                    'loaded': sent,
-                    'total': total,
-                    'jobProgress': overall,
-                  });
-                },
+            if (uploadURL == null || fileUUID == null) {
+              throw Exception(
+                'Edit upload missing uploadURL or fileUUID from server',
               );
             }
+            if (uri == null && bytes == null) {
+              throw Exception(
+                'Cannot upload edited file: local bytes not found '
+                '(index $i)',
+              );
+            }
+
+            final fileBytes =
+                bytes ??
+                (uri != null
+                    ? await FileStorage.instance.getBytes(uri)
+                    : null);
+            if (fileBytes == null) {
+              throw Exception(
+                'Cannot upload edited file: failed to read bytes '
+                '(index $i)',
+              );
+            }
+
+            await S3Adapter.instance.upload(
+              fileUUID: fileUUID,
+              uploadURL: uploadURL,
+              bytes: fileBytes,
+              mimeType: localFile['mimeType'] as String? ?? defaultMimeType,
+              cancelToken: job.cancelToken,
+              onProgress: (sent, total) {
+                final fileProg = total > 0 ? sent / total : 0.0;
+                final overall = (i + fileProg) / filesToUpload.length;
+                job.progress = overall;
+                GlobalEventEmitter.instance.emit('file:progress', {
+                  'uuid': fileUUID,
+                  'loaded': sent,
+                  'total': total,
+                });
+                GlobalEventEmitter.instance.emit('message:progress', {
+                  'uuid': fileUUID,
+                  'loaded': sent,
+                  'total': total,
+                  'jobProgress': overall,
+                });
+              },
+            );
+
+            localFile['uuid'] = fileUUID;
           }
 
           if (_disposed) return;
 
           // Confirm edit with server if messageUUID was provided
           if (messageUUID != null) {
-            final confirmRes = await apiGateway.message.confirm(messageUUID);
+            final confirmRes = await apiGateway.message.editConfirm(
+              messageUUID,
+            );
             if (!confirmRes.success) {
               throw Exception(
                 'Confirmation of edited message failed on server',
               );
             }
-            if (confirmRes.message?['files'] is List) {
-              final confirmedFiles = confirmRes.message!['files'] as List;
+            chatEventID = confirmRes.chatEventID ?? chatEventID;
+            if (confirmRes.data?['files'] is List) {
+              final confirmedFiles = confirmRes.data!['files'] as List;
               finalFiles = confirmedFiles
                   .map(
                     (cf) => cf is Map
@@ -745,7 +776,7 @@ class ChatQueueProcessor {
         job.subID,
         messageID,
         'edit',
-        res.chatEventID,
+        chatEventID,
         {'content': newContent, 'files': mergedFiles},
       );
 

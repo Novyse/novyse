@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:novyse/core/auth/onboarding_manager.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
+import 'package:novyse/core/notifications/notification_manager.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/services/socket_service.dart';
 import 'package:novyse/core/storage/database/database.dart';
@@ -217,6 +218,11 @@ class SyncService {
 
       // Open realtime socket
       await _socket.open();
+
+      // Sync FCM token once session + network are ready
+      try {
+        await NotificationManager.instance.syncPushToken();
+      } catch (_) {}
 
       _isSyncing = false;
       return true;

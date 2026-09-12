@@ -58,7 +58,7 @@ void main() {
       expect(file1['name'], 'doc.pdf');
       expect(file1['mimeType'], 'application/pdf');
       expect(file2['name'], 'photo.jpg');
-      expect(file2['mimeType'], 'image/jpg');
+      expect(file2['mimeType'], 'image/jpeg');
     });
 
     test('handleKeyboardInserted sends GIF or sticker directly via queue and matches format', () async {
