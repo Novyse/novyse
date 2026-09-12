@@ -611,5 +611,25 @@
         "type": "int"
       }
     }
-  }
+  },
+  "notifChannelChatMessages": "Messaggi chat",
+  "notifChannelChatMessagesDesc": "Nuovi messaggi in arrivo",
+  "notifNewMessage": "Nuovo messaggio",
+  "notifUnknownSender": "Sconosciuto",
+  "notifMe": "Io",
+  "notifOpenAction": "Apri",
+  "notifGroupMessageBody": "{sender}: {body}",
+  "@notifGroupMessageBody": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "body": {
+        "type": "String"
+      }
+    }
+  },
+  "notifMarkAsRead": "Segna come letto",
+  "notifReplyPlaceholder": "Scrivi un messaggio...",
+  "notifReplySend": "Invia"
 }

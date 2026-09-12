@@ -78,6 +78,9 @@ dependencies:
   flutter_webrtc: 1.6.0
   window_manager: ^0.5.0
   unicode_emojis: ^0.5.1
+  firebase_core: ^4.14.0
+  firebase_messaging: ^16.6.0
+  flutter_local_notifications: ^22.3.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

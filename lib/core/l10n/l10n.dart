@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -25,6 +26,17 @@ Locale? resolveLocale(Locale? locale, Iterable<Locale> supported) {
     }
   }
   return const Locale('en');
+}
+
+/// [AppLocalizations] for the current device locale (no [BuildContext] needed).
+AppLocalizations lookupAppL10n([Locale? locale]) {
+  final resolved =
+      resolveLocale(
+        locale ?? PlatformDispatcher.instance.locale,
+        supportedLocales,
+      ) ??
+      const Locale('en');
+  return lookupAppLocalizations(resolved);
 }
 
 /// Shortcut to access the current [AppLocalizations] without nullable boilerplate.
