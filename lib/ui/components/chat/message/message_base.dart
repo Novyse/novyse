@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/chat/message_action_methods.dart';
 import 'package:novyse/core/chat/message_file.dart';
 import 'package:novyse/core/chat/message_format.dart';
+import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/utils/platform.dart';
@@ -189,7 +190,7 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
       if (replyMessage == null) continue;
 
       final replySender = getUser?.call(replyMessage.userUUID);
-      final senderName = replySender?.name ?? 'Unknown User';
+      final senderName = replySender?.name ?? context.l10n.chatUnknown;
 
       widgets.add(
         MessageReply(
@@ -443,6 +444,7 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
           'system_action': message.systemAction,
           'content': message.content ?? '',
         },
+        l10n: context.l10n,
         localUserUUID: localUserUUID,
         getUser: (uuid) {
           final user = getUser?.call(uuid);

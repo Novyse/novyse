@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:novyse/core/config/global.dart';
 import 'package:novyse/core/events/global_event_receiver.dart';
@@ -37,6 +38,7 @@ Future<void> _initDesktopWindow() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting();
   MediaKit.ensureInitialized();
   await _initDesktopWindow();
   if (kIsWeb) {

@@ -1,7 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/chat/chat.dart';
+import 'package:novyse/core/l10n/app_localizations_en.dart';
+import 'package:novyse/core/l10n/app_localizations_it.dart';
 
 void main() {
+  final en = AppLocalizationsEn();
+  final it = AppLocalizationsIt();
   group('Chat Permissions Tests', () {
     test('evaluates basic role permissions correctly', () {
       final userRoles = [
@@ -117,7 +121,7 @@ void main() {
         'files': [
           {'mimeType': 'image/png', 'name': 'photo.png'},
         ],
-      });
+      }, l10n: en);
 
       expect(formatted['content'], equals('📷 Photo'));
     });
@@ -133,7 +137,7 @@ void main() {
             'duration': 75,
           },
         ],
-      });
+      }, l10n: en);
 
       expect(formatted['content'], equals('🎤 Voice message 1:15'));
     });
@@ -146,7 +150,7 @@ void main() {
           {'mimeType': 'image/jpeg', 'name': 'img.jpg'},
           {'mimeType': 'video/mp4', 'name': 'clip.mp4'},
         ],
-      });
+      }, l10n: en);
 
       expect(formatted['content'], equals('2 📎 Media'));
     });
@@ -155,7 +159,7 @@ void main() {
       final formatted = formatMessage({
         'type': 'message',
         'content': 'https://media.giphy.com/media/test.gif',
-      });
+      }, l10n: en);
 
       expect(formatted['content'], equals('🎞️ GIF'));
     });
@@ -164,22 +168,34 @@ void main() {
       final created = formatMessage({
         'type': 'system',
         'system_action': 'CHAT_CREATED',
-      });
+      }, l10n: en);
       expect(created['content'], equals('Chat created'));
 
       final joined = formatMessage({
         'type': 'system',
         'system_action': 'USER_JOINED',
         'content': 'user-123',
-      }, getUser: (uuid) => {'name': 'Alice'});
+      }, l10n: en, getUser: (uuid) => {'name': 'Alice'});
       expect(joined['content'], equals('Alice joined the chat'));
 
       final youJoined = formatMessage({
         'type': 'system',
         'system_action': 'USER_JOINED',
         'content': 'me-uuid',
-      }, localUserUUID: 'me-uuid');
+      }, l10n: en, localUserUUID: 'me-uuid');
       expect(youJoined['content'], equals('You joined the chat'));
+    });
+
+    test('formats attachment preview in Italian', () {
+      final formatted = formatMessage({
+        'type': 'message',
+        'content': '',
+        'files': [
+          {'mimeType': 'image/png', 'name': 'photo.png'},
+        ],
+      }, l10n: it);
+
+      expect(formatted['content'], equals('📷 Foto'));
     });
 
     test('formats activity indicators for 1, 2 and 3+ members', () {
@@ -191,40 +207,55 @@ void main() {
 
       final oneTyping = formatActivity([
         {'action': 'TYPING', 'userUUID': 'u1'},
-      ], getUser: (uuid) => users[uuid]);
+      ], l10n: en, getUser: (uuid) => users[uuid]);
       expect(oneTyping, equals('Alice is typing...'));
 
       final twoTyping = formatActivity([
         {'action': 'TYPING', 'userUUID': 'u1'},
         {'action': 'TYPING', 'userUUID': 'u2'},
-      ], getUser: (uuid) => users[uuid]);
+      ], l10n: en, getUser: (uuid) => users[uuid]);
       expect(twoTyping, equals('Alice and Bob are typing...'));
 
       final threeTyping = formatActivity([
         {'action': 'TYPING', 'userUUID': 'u1'},
         {'action': 'TYPING', 'userUUID': 'u2'},
         {'action': 'TYPING', 'userUUID': 'u3'},
-      ], getUser: (uuid) => users[uuid]);
+      ], l10n: en, getUser: (uuid) => users[uuid]);
       expect(threeTyping, equals('Alice, Bob and 1 others are typing...'));
+    });
+
+    test('formats activity indicators in Italian', () {
+      final users = {
+        'u1': {'name': 'Alice'},
+      };
+
+      final oneTyping = formatActivity([
+        {'action': 'TYPING', 'userUUID': 'u1'},
+      ], l10n: it, getUser: (uuid) => users[uuid]);
+      expect(oneTyping, equals('Alice sta scrivendo...'));
     });
 
     test('formats last seen relative dates', () {
       final now = DateTime.now();
       expect(
-        formatLastSeen(now.subtract(const Duration(seconds: 5))),
+        formatLastSeen(now.subtract(const Duration(seconds: 5)), l10n: en),
         equals('Just now'),
       );
       expect(
-        formatLastSeen(now.subtract(const Duration(seconds: 30))),
+        formatLastSeen(now.subtract(const Duration(seconds: 30)), l10n: en),
         equals('30s ago'),
       );
       expect(
-        formatLastSeen(now.subtract(const Duration(minutes: 5))),
+        formatLastSeen(now.subtract(const Duration(minutes: 5)), l10n: en),
         equals('5m ago'),
       );
       expect(
-        formatLastSeen(now.subtract(const Duration(hours: 3))),
+        formatLastSeen(now.subtract(const Duration(hours: 3)), l10n: en),
         equals('3h ago'),
+      );
+      expect(
+        formatLastSeen(now.subtract(const Duration(seconds: 5)), l10n: it),
+        equals('Adesso'),
       );
     });
   });

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
@@ -22,7 +23,7 @@ class MessageSearchTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chatUUID = result['chatUUID']?.toString() ?? '';
     final chat = ref.watch(chatProvider(chatUUID));
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final userState = ref.watch(userStoreProvider);
     final users = userState.users;
 
@@ -42,7 +43,10 @@ class MessageSearchTile extends ConsumerWidget {
               ? result['sender_name'].toString()
               : l10n.chatUnknown);
     final content = (result['content']?.toString() ?? '').replaceAll('\n', ' ');
-    final timeStr = _formatTime(result['created_at'] ?? result['createdAt']);
+    final timeStr = _formatTime(
+      result['created_at'] ?? result['createdAt'],
+      l10n.localeName,
+    );
 
     return Material(
       color: Colors.transparent,
@@ -126,7 +130,7 @@ class MessageSearchTile extends ConsumerWidget {
     );
   }
 
-  String _formatTime(dynamic raw) {
+  String _formatTime(dynamic raw, String localeName) {
     if (raw == null) return '';
     final dt = DateTime.tryParse(raw.toString())?.toLocal();
     if (dt == null) return '';
@@ -136,7 +140,7 @@ class MessageSearchTile extends ConsumerWidget {
     if (date == today) {
       return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
     }
-    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+    return DateFormat.yMd(localeName).format(dt);
   }
 
   TextSpan _highlightSnippet(String text, String query, BuildContext context) {

@@ -14,7 +14,7 @@ class EditBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final editingMessage = ref
         .watch(chatDraftProvider(chatUUID))
         .editingMessage;
@@ -28,6 +28,7 @@ class EditBar extends ConsumerWidget {
       editingMessage,
       localUserUUID: localUserUUID,
       getUser: (uuid) => users[uuid]?.toMap(),
+      l10n: l10n,
     );
 
     final rawFormatted = formatted['content']?.toString() ?? '';

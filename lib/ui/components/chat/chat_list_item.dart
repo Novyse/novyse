@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:intl/intl.dart';
 import 'package:novyse/core/chat/message_format.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
@@ -61,7 +62,7 @@ ResolvedChatMetadata resolveChatMetadata({
         ? otherUser!.displayName.trim()
         : (otherUser?.handle?.isNotEmpty == true
               ? '@${otherUser!.handle}'
-              : (chat.name.trim().isNotEmpty ? chat.name.trim() : 'User'));
+              : (chat.name.trim().isNotEmpty ? chat.name.trim() : l10n.user));
 
     return ResolvedChatMetadata(
       name: displayName,
@@ -77,7 +78,9 @@ ResolvedChatMetadata resolveChatMetadata({
       ? chat.name.trim()
       : (chat.handle?.isNotEmpty == true
             ? '@${chat.handle}'
-            : (chat.type == 'CHANNEL' ? 'Channel' : 'Group'));
+            : (chat.type == 'CHANNEL'
+                  ? l10n.createChatChannel
+                  : l10n.createChatGroup));
 
   return ResolvedChatMetadata(
     name: displayName,
@@ -115,7 +118,7 @@ class ChatListItem extends ConsumerWidget {
     }
   }
 
-  String _formatChatTime(ChatModel chat) {
+  String _formatChatTime(ChatModel chat, AppLocalizations l10n) {
     final msg = chat.lastMessage;
     final rawTime =
         msg?['createdAt'] ??
@@ -134,20 +137,17 @@ class ChatListItem extends ConsumerWidget {
       final minute = dt.minute.toString().padLeft(2, '0');
       return '$hour:$minute';
     } else if (messageDate == today.subtract(const Duration(days: 1))) {
-      return 'Ieri';
+      return l10n.msgFormatYesterday;
     } else if (now.difference(dt).inDays < 7) {
-      const days = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
-      return days[dt.weekday - 1];
+      return DateFormat.E(l10n.localeName).format(dt);
     } else {
-      final day = dt.day.toString().padLeft(2, '0');
-      final month = dt.month.toString().padLeft(2, '0');
-      return '$day/$month';
+      return DateFormat.Md(l10n.localeName).format(dt);
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final userState = ref.watch(userStoreProvider);
     final localUserUUID = userState.localUserUUID;
     final users = userState.users;
@@ -176,7 +176,7 @@ class ChatListItem extends ConsumerWidget {
     final lastMsgStatus = lastMsg?['status']?.toString();
     final isPendingLastMessage = lastMsgStatus == 'PENDING_SEND';
 
-    final timeStr = _formatChatTime(chat);
+    final timeStr = _formatChatTime(chat, l10n);
 
     return Material(
       color: Colors.transparent,
@@ -376,6 +376,7 @@ class ChatListItem extends ConsumerWidget {
         },
         localUserUUID: localUserUUID,
         getUser: (uuid) => users[uuid]?.toMap(),
+        l10n: l10n,
       );
       return (
         prefix: '${l10n.chatDraft}: ',
@@ -394,6 +395,7 @@ class ChatListItem extends ConsumerWidget {
       lastMsg,
       localUserUUID: localUserUUID,
       getUser: (uuid) => users[uuid]?.toMap(),
+      l10n: l10n,
     );
 
     final rawContent = formatted['content']?.toString() ?? '';

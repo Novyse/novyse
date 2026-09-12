@@ -102,7 +102,7 @@ class _ChatPinnedMessagesBarState extends ConsumerState<ChatPinnedMessagesBar> {
       }
     }
 
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
 
     String contentText;
@@ -112,6 +112,7 @@ class _ChatPinnedMessagesBarState extends ConsumerState<ChatPinnedMessagesBar> {
         inMemMsg,
         localUserUUID: userState.localUserUUID,
         getUser: (uuid) => userState.users[uuid]?.toMap(),
+        l10n: l10n,
       );
       final text = formatted['content']?.toString().trim();
       contentText = (text != null && text.isNotEmpty)

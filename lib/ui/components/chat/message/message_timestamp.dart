@@ -30,7 +30,7 @@ class MessageTimestamp extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final l10n = AppLocalizations.of(context);
+    final l10n = context.l10n;
 
     final textColor = isSender
         ? colorScheme.onPrimary.withValues(alpha: 0.75)
@@ -72,7 +72,7 @@ class MessageTimestamp extends StatelessWidget {
           ],
           if (isEdited) ...[
             Text(
-              l10n?.edited ?? 'edited',
+              l10n.edited,
               style: TextStyle(fontSize: 10, color: textColor),
             ),
             const SizedBox(width: 4),

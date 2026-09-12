@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:novyse/core/l10n/app_localizations.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/ui/components/chat/message/message_base.dart';
 import 'package:novyse/ui/components/chat/message/message_reply.dart';
@@ -110,6 +111,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('en'),
             home: Scaffold(
               body: MessageBase(
                 message: msgWithReply,

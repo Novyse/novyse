@@ -26,3 +26,8 @@ Locale? resolveLocale(Locale? locale, Iterable<Locale> supported) {
   }
   return const Locale('en');
 }
+
+/// Shortcut to access the current [AppLocalizations] without nullable boilerplate.
+extension L10nX on BuildContext {
+  AppLocalizations get l10n => AppLocalizations.of(this)!;
+}

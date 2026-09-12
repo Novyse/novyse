@@ -362,5 +362,242 @@
   "gifSearchResults": "Risultati",
   "gifNoResults": "Nessuna GIF trovata",
   "gifLoadError": "Impossibile caricare le GIF",
-  "gifProviderAll": "Tutti"
+  "gifProviderAll": "Tutti",
+  "msgFormatPhotoSingular": "Foto",
+  "msgFormatPhotoPlural": "Foto",
+  "msgFormatVideoSingular": "Video",
+  "msgFormatVideoPlural": "Video",
+  "msgFormatAudioSingular": "Audio",
+  "msgFormatAudioPlural": "Audio",
+  "msgFormatVoiceSingular": "Messaggio vocale",
+  "msgFormatVoicePlural": "Messaggi vocali",
+  "msgFormatDocumentSingular": "Documento",
+  "msgFormatDocumentPlural": "Documenti",
+  "msgFormatCodeSingular": "Snippet di codice",
+  "msgFormatCodePlural": "Snippet di codice",
+  "msgFormatArchiveSingular": "Archivio",
+  "msgFormatArchivePlural": "Archivi",
+  "msgFormatGifSingular": "GIF",
+  "msgFormatGifPlural": "GIF",
+  "msgFormatFileSingular": "File",
+  "msgFormatFilePlural": "File",
+  "msgFormatMedia": "Media",
+  "msgFormatFiles": "File",
+  "msgFormatChatCreated": "Chat creata",
+  "msgFormatUserJoined": "{name} è entrato in chat",
+  "@msgFormatUserJoined": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatUserLeft": "{name} è uscito dalla chat",
+  "@msgFormatUserLeft": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatSystemMessage": "Messaggio di sistema",
+  "msgFormatJustNow": "Adesso",
+  "msgFormatYesterday": "Ieri",
+  "msgFormatSecondsAgo": "{count}s fa",
+  "@msgFormatSecondsAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatMinutesAgo": "{count}min fa",
+  "@msgFormatMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatHoursAgo": "{count}h fa",
+  "@msgFormatHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatDaysAgo": "{count}g fa",
+  "@msgFormatDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatTypingOne": "{name} sta scrivendo...",
+  "@msgFormatTypingOne": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatTypingTwo": "{name} e {name2} stanno scrivendo...",
+  "@msgFormatTypingTwo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatTypingOther": "{name}, {name2} e altri {count} stanno scrivendo...",
+  "@msgFormatTypingOther": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatRecordingVoiceOne": "{name} sta registrando un vocale...",
+  "@msgFormatRecordingVoiceOne": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatRecordingVoiceTwo": "{name} e {name2} stanno registrando un vocale...",
+  "@msgFormatRecordingVoiceTwo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatRecordingVoiceOther": "{name}, {name2} e altri {count} stanno registrando un vocale...",
+  "@msgFormatRecordingVoiceOther": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatRecordingVideoOne": "{name} sta registrando un video...",
+  "@msgFormatRecordingVideoOne": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatRecordingVideoTwo": "{name} e {name2} stanno registrando un video...",
+  "@msgFormatRecordingVideoTwo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatRecordingVideoOther": "{name}, {name2} e altri {count} stanno registrando un video...",
+  "@msgFormatRecordingVideoOther": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatUploadingFileOne": "{name} sta inviando un file...",
+  "@msgFormatUploadingFileOne": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatUploadingFileTwo": "{name} e {name2} stanno inviando un file...",
+  "@msgFormatUploadingFileTwo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatUploadingFileOther": "{name}, {name2} e altri {count} stanno inviando un file...",
+  "@msgFormatUploadingFileOther": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatActiveOne": "{name} è attivo...",
+  "@msgFormatActiveOne": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatActiveTwo": "{name} e {name2} sono attivi...",
+  "@msgFormatActiveTwo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatActiveOther": "{name}, {name2} e altri {count} sono attivi...",
+  "@msgFormatActiveOther": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

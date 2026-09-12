@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/storage/file/file_type.dart';
 import 'package:novyse/core/stores/message_store.dart';
 
@@ -53,121 +55,13 @@ String? getGifMediaUrl(String? url) {
   return null;
 }
 
-typedef TranslationCallback = String Function(
-  String key, [
-  Map<String, dynamic>? params,
-]);
-
-/// Default fallback translator for message formatting strings.
-String _defaultTranslate(String key, [Map<String, dynamic>? params]) {
-  switch (key) {
-    case 'messageFormat.fileType.image.singular':
-      return 'Photo';
-    case 'messageFormat.fileType.image.plural':
-      return 'Photos';
-    case 'messageFormat.fileType.video.singular':
-      return 'Video';
-    case 'messageFormat.fileType.video.plural':
-      return 'Videos';
-    case 'messageFormat.fileType.audio.singular':
-      return 'Audio';
-    case 'messageFormat.fileType.audio.plural':
-      return 'Audios';
-    case 'messageFormat.fileType.voice.singular':
-      return 'Voice message';
-    case 'messageFormat.fileType.voice.plural':
-      return 'Voice messages';
-    case 'messageFormat.fileType.document.singular':
-      return 'Document';
-    case 'messageFormat.fileType.document.plural':
-      return 'Documents';
-    case 'messageFormat.fileType.code.singular':
-      return 'Code snippet';
-    case 'messageFormat.fileType.code.plural':
-      return 'Code snippets';
-    case 'messageFormat.fileType.archive.singular':
-      return 'Archive';
-    case 'messageFormat.fileType.archive.plural':
-      return 'Archives';
-    case 'messageFormat.fileType.gif.singular':
-      return 'GIF';
-    case 'messageFormat.fileType.gif.plural':
-      return 'GIFs';
-    case 'messageFormat.fileType.default.singular':
-      return 'File';
-    case 'messageFormat.fileType.default.plural':
-      return 'Files';
-    case 'messageFormat.media':
-      return 'Media';
-    case 'messageFormat.files':
-      return 'Files';
-    case 'messageFormat.system.chatCreated':
-      return 'Chat created';
-    case 'messageFormat.system.you':
-      return 'You';
-    case 'messageFormat.system.user':
-      return 'User';
-    case 'messageFormat.system.userJoined':
-      final name = params?['name'] ?? 'User';
-      return '$name joined the chat';
-    case 'messageFormat.system.userLeft':
-      final name = params?['name'] ?? 'User';
-      return '$name left the chat';
-    case 'messageFormat.system.systemMessage':
-      return 'System message';
-    case 'messageFormat.time.justNow':
-      return 'Just now';
-    case 'messageFormat.time.yesterday':
-      return 'Yesterday';
-    case 'messageFormat.time.secondsAgo':
-      final c = params?['count'] ?? 0;
-      return '${c}s ago';
-    case 'messageFormat.time.minutesAgo':
-      final c = params?['count'] ?? 0;
-      return '${c}m ago';
-    case 'messageFormat.time.hoursAgo':
-      final c = params?['count'] ?? 0;
-      return '${c}h ago';
-    case 'messageFormat.time.daysAgo':
-      final c = params?['count'] ?? 0;
-      return '${c}d ago';
-    case 'messageFormat.activity.typing_one':
-      final name = params?['name'] ?? 'User';
-      return '$name is typing...';
-    case 'messageFormat.activity.typing_two':
-      final name = params?['name'] ?? 'User';
-      final name2 = params?['name2'] ?? 'User';
-      return '$name and $name2 are typing...';
-    case 'messageFormat.activity.typing_other':
-      final name = params?['name'] ?? 'User';
-      final name2 = params?['name2'] ?? 'User';
-      final count = params?['count'] ?? 0;
-      return '$name, $name2 and $count others are typing...';
-    case 'messageFormat.activity.recording_voice_one':
-      final name = params?['name'] ?? 'User';
-      return '$name is recording voice...';
-    case 'messageFormat.activity.recording_voice_two':
-      final name = params?['name'] ?? 'User';
-      final name2 = params?['name2'] ?? 'User';
-      return '$name and $name2 are recording voice...';
-    case 'messageFormat.activity.recording_voice_other':
-      final name = params?['name'] ?? 'User';
-      final name2 = params?['name2'] ?? 'User';
-      final count = params?['count'] ?? 0;
-      return '$name, $name2 and $count others are recording voice...';
-    default:
-      return key;
-  }
-}
-
 /// Formats message text / preview content (e.g. attachments, GIFs, system messages).
 Map<String, dynamic> formatMessage(
   dynamic messageRef, {
+  required AppLocalizations l10n,
   String? localUserUUID,
   Map<String, dynamic>? Function(String uuid)? getUser,
-  TranslationCallback? t,
 }) {
-  final translate = t ?? _defaultTranslate;
   final Map<String, dynamic> message = messageRef is MessageModel
       ? messageRef.toMap()
       : (messageRef is Map
@@ -178,9 +72,9 @@ Map<String, dynamic> formatMessage(
   if (type == 'system') {
     message['content'] = getSystemMessageText(
       message,
+      l10n: l10n,
       localUserUUID: localUserUUID,
       getUser: getUser,
-      t: translate,
     );
   } else if (type == 'message' || type == 'DRAFT') {
     final content = message['content'] as String?;
@@ -201,46 +95,46 @@ Map<String, dynamic> formatMessage(
           final cat = uniqueCategories.first;
           final count = fileCategories.length;
 
-          final (emoji, singularKey, pluralKey) = switch (cat) {
+          final (emoji, singular, plural) = switch (cat) {
             FileTypeCategory.image => (
               '📷',
-              'messageFormat.fileType.image.singular',
-              'messageFormat.fileType.image.plural',
+              l10n.msgFormatPhotoSingular,
+              l10n.msgFormatPhotoPlural,
             ),
             FileTypeCategory.video => (
               '📹',
-              'messageFormat.fileType.video.singular',
-              'messageFormat.fileType.video.plural',
+              l10n.msgFormatVideoSingular,
+              l10n.msgFormatVideoPlural,
             ),
             FileTypeCategory.audio => (
               '🎵',
-              'messageFormat.fileType.audio.singular',
-              'messageFormat.fileType.audio.plural',
+              l10n.msgFormatAudioSingular,
+              l10n.msgFormatAudioPlural,
             ),
             FileTypeCategory.voice => (
               '🎤',
-              'messageFormat.fileType.voice.singular',
-              'messageFormat.fileType.voice.plural',
+              l10n.msgFormatVoiceSingular,
+              l10n.msgFormatVoicePlural,
             ),
             FileTypeCategory.document => (
               '📄',
-              'messageFormat.fileType.document.singular',
-              'messageFormat.fileType.document.plural',
+              l10n.msgFormatDocumentSingular,
+              l10n.msgFormatDocumentPlural,
             ),
             FileTypeCategory.code => (
               '💻',
-              'messageFormat.fileType.code.singular',
-              'messageFormat.fileType.code.plural',
+              l10n.msgFormatCodeSingular,
+              l10n.msgFormatCodePlural,
             ),
             FileTypeCategory.archive => (
               '🗄️',
-              'messageFormat.fileType.archive.singular',
-              'messageFormat.fileType.archive.plural',
+              l10n.msgFormatArchiveSingular,
+              l10n.msgFormatArchivePlural,
             ),
             FileTypeCategory.other => (
               '📎',
-              'messageFormat.fileType.default.singular',
-              'messageFormat.fileType.default.plural',
+              l10n.msgFormatFileSingular,
+              l10n.msgFormatFilePlural,
             ),
           };
 
@@ -259,15 +153,15 @@ Map<String, dynamic> formatMessage(
           }
 
           message['content'] = count == 1
-              ? '$emoji ${translate(singularKey)}$durationStr'
-              : '$count $emoji ${translate(pluralKey)}';
+              ? '$emoji $singular$durationStr'
+              : '$count $emoji $plural';
         } else {
           final hasOnlyMedia = uniqueCategories.every(
             (c) => c == FileTypeCategory.image || c == FileTypeCategory.video,
           );
           message['content'] = hasOnlyMedia
-              ? '${files.length} 📎 ${translate("messageFormat.media")}'
-              : '${files.length} 📎 ${translate("messageFormat.files")}';
+              ? '${files.length} 📎 ${l10n.msgFormatMedia}'
+              : '${files.length} 📎 ${l10n.msgFormatFiles}';
         }
       }
     } else {
@@ -275,8 +169,8 @@ Map<String, dynamic> formatMessage(
       final textWithoutGifs = stripGifUrls(content);
       if (gifUrls.isNotEmpty && textWithoutGifs.isEmpty) {
         message['content'] = gifUrls.length == 1
-            ? '🎞️ ${translate("messageFormat.fileType.gif.singular")}'
-            : '${gifUrls.length} 🎞️ ${translate("messageFormat.fileType.gif.plural")}';
+            ? '🎞️ ${l10n.msgFormatGifSingular}'
+            : '${gifUrls.length} 🎞️ ${l10n.msgFormatGifPlural}';
       }
     }
   }
@@ -287,53 +181,39 @@ Map<String, dynamic> formatMessage(
 /// Formats readable system action text for system messages.
 String getSystemMessageText(
   Map<String, dynamic> message, {
+  required AppLocalizations l10n,
   String? localUserUUID,
   Map<String, dynamic>? Function(String uuid)? getUser,
-  TranslationCallback? t,
 }) {
-  final translate = t ?? _defaultTranslate;
   final action = message['system_action'] as String?;
   final content = (message['content'] ?? '') as String;
 
+  String resolveName() {
+    if (content == localUserUUID) return l10n.chatYou;
+    final user = getUser?.call(content);
+    return (user?['name'] as String?) ?? l10n.user;
+  }
+
   switch (action) {
     case 'CHAT_CREATED':
-      return translate('messageFormat.system.chatCreated');
+      return l10n.msgFormatChatCreated;
     case 'USER_JOINED':
-      String name;
-      if (content == localUserUUID) {
-        name = translate('messageFormat.system.you');
-      } else {
-        final user = getUser?.call(content);
-        name =
-            (user?['name'] as String?) ??
-            translate('messageFormat.system.user');
-      }
-      return translate('messageFormat.system.userJoined', {'name': name});
+      return l10n.msgFormatUserJoined(resolveName());
     case 'USER_LEFT':
-      String name;
-      if (content == localUserUUID) {
-        name = translate('messageFormat.system.you');
-      } else {
-        final user = getUser?.call(content);
-        name =
-            (user?['name'] as String?) ??
-            translate('messageFormat.system.user');
-      }
-      return translate('messageFormat.system.userLeft', {'name': name});
+      return l10n.msgFormatUserLeft(resolveName());
     default:
-      return translate('messageFormat.system.systemMessage');
+      return l10n.msgFormatSystemMessage;
   }
 }
 
 /// Formats typing and member activity data.
 String formatActivity(
   List<dynamic> memberActivityData, {
+  required AppLocalizations l10n,
   String? localUserUUID,
   Map<String, dynamic>? Function(String uuid)? getUser,
-  TranslationCallback? t,
 }) {
   if (memberActivityData.isEmpty) return '';
-  final translate = t ?? _defaultTranslate;
 
   final activeActivities = memberActivityData.where((a) {
     if (a is! Map) return false;
@@ -373,39 +253,43 @@ String formatActivity(
   final names = participants.map((p) {
     final uuid = (p['userUUID'] ?? '') as String;
     final user = getUser?.call(uuid);
-    return (user?['name'] as String?) ?? translate('messageFormat.system.user');
+    return (user?['name'] as String?) ?? l10n.user;
   }).toList();
 
-  final actionKey = switch (majorityAction) {
-    'TYPING' => 'typing',
-    'RECORDING_VOICE' => 'recording_voice',
-    'RECORDING_VIDEO' => 'recording_video',
-    'UPLOADING_FILE' => 'uploading_file',
-    _ => 'active',
-  };
+  final name = names[0];
+  final name2 = count > 1 ? names[1] : '';
+  final others = count - 2;
 
-  if (count == 1) {
-    return translate('messageFormat.activity.${actionKey}_one', {
-      'name': names[0],
-    });
-  } else if (count == 2) {
-    return translate('messageFormat.activity.${actionKey}_two', {
-      'name': names[0],
-      'name2': names[1],
-    });
-  } else {
-    return translate('messageFormat.activity.${actionKey}_other', {
-      'name': names[0],
-      'name2': names[1],
-      'count': count - 2,
-    });
+  switch (majorityAction) {
+    case 'TYPING':
+      if (count == 1) return l10n.msgFormatTypingOne(name);
+      if (count == 2) return l10n.msgFormatTypingTwo(name, name2);
+      return l10n.msgFormatTypingOther(name, name2, others);
+    case 'RECORDING_VOICE':
+      if (count == 1) return l10n.msgFormatRecordingVoiceOne(name);
+      if (count == 2) return l10n.msgFormatRecordingVoiceTwo(name, name2);
+      return l10n.msgFormatRecordingVoiceOther(name, name2, others);
+    case 'RECORDING_VIDEO':
+      if (count == 1) return l10n.msgFormatRecordingVideoOne(name);
+      if (count == 2) return l10n.msgFormatRecordingVideoTwo(name, name2);
+      return l10n.msgFormatRecordingVideoOther(name, name2, others);
+    case 'UPLOADING_FILE':
+      if (count == 1) return l10n.msgFormatUploadingFileOne(name);
+      if (count == 2) return l10n.msgFormatUploadingFileTwo(name, name2);
+      return l10n.msgFormatUploadingFileOther(name, name2, others);
+    default:
+      if (count == 1) return l10n.msgFormatActiveOne(name);
+      if (count == 2) return l10n.msgFormatActiveTwo(name, name2);
+      return l10n.msgFormatActiveOther(name, name2, others);
   }
 }
 
 /// Formats relative time for user "last seen" status.
-String formatLastSeen(dynamic lastAccessAt, {TranslationCallback? t}) {
+String formatLastSeen(
+  dynamic lastAccessAt, {
+  required AppLocalizations l10n,
+}) {
   if (lastAccessAt == null) return '';
-  final translate = t ?? _defaultTranslate;
 
   try {
     DateTime date;
@@ -423,31 +307,25 @@ String formatLastSeen(dynamic lastAccessAt, {TranslationCallback? t}) {
     final diff = now.difference(date);
 
     if (diff.inSeconds < 10) {
-      return translate('messageFormat.time.justNow');
+      return l10n.msgFormatJustNow;
     }
     if (diff.inSeconds < 60) {
-      return translate('messageFormat.time.secondsAgo', {
-        'count': diff.inSeconds,
-      });
+      return l10n.msgFormatSecondsAgo(diff.inSeconds);
     }
     if (diff.inMinutes < 60) {
-      return translate('messageFormat.time.minutesAgo', {
-        'count': diff.inMinutes,
-      });
+      return l10n.msgFormatMinutesAgo(diff.inMinutes);
     }
     if (diff.inHours < 24) {
-      return translate('messageFormat.time.hoursAgo', {'count': diff.inHours});
+      return l10n.msgFormatHoursAgo(diff.inHours);
     }
     if (diff.inDays == 1) {
-      return translate('messageFormat.time.yesterday');
+      return l10n.msgFormatYesterday;
     }
     if (diff.inDays < 7) {
-      return translate('messageFormat.time.daysAgo', {'count': diff.inDays});
+      return l10n.msgFormatDaysAgo(diff.inDays);
     }
 
-    final month = date.month.toString().padLeft(2, '0');
-    final day = date.day.toString().padLeft(2, '0');
-    return '${date.year}-$month-$day';
+    return DateFormat.yMd(l10n.localeName).format(date);
   } catch (_) {
     return '';
   }

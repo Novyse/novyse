@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
@@ -10,6 +11,9 @@ import 'package:novyse/ui/components/chat/chat_list_item.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 void main() {
+  setUpAll(() async {
+    await initializeDateFormatting();
+  });
   testWidgets(
     'ChatListItem renders Saved Messages for DM with only local user',
     (tester) async {
@@ -156,7 +160,7 @@ void main() {
 
       expect(find.text('Flutter Developers'), findsOneWidget);
       expect(find.textContaining('Bob:'), findsOneWidget);
-      expect(find.textContaining('📷 Photo'), findsOneWidget);
+      expect(find.textContaining('📷 Foto'), findsOneWidget);
     },
   );
 
