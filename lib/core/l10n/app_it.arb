@@ -611,5 +611,40 @@
         "type": "int"
       }
     }
-  }
+  },
+  "overviewTitle": "Panoramica",
+  "overviewMembers": "Membri",
+  "overviewMedia": "Media",
+  "overviewFiles": "File",
+  "overviewLinks": "Link",
+  "overviewMusic": "Musica",
+  "overviewVoice": "Vocali",
+  "overviewGifs": "GIF",
+  "overviewNoMembers": "Nessun membro trovato",
+  "overviewNoFiles": "Nessun file condiviso",
+  "overviewNoMedia": "Nessun media condiviso",
+  "overviewNoLinks": "Nessun link condiviso",
+  "overviewNoMusic": "Nessuna musica condivisa",
+  "overviewNoVoice": "Ancora nessun vocale",
+  "overviewNoGifs": "Nessuna GIF condivisa",
+  "overviewNotSpecified": "Non specificato",
+  "overviewNoDescription": "Nessuna descrizione ancora",
+  "overviewUsername": "Username",
+  "overviewBiography": "Biografia",
+  "overviewSubChannels": "Sotto-canali",
+  "overviewSharedInSub": "Condiviso in #{subName}",
+  "@overviewSharedInSub": {
+    "placeholders": {
+      "subName": {
+        "type": "String"
+      }
+    }
+  },
+  "overviewSettings": "Impostazioni",
+  "overviewFavouriteMessages": "Messaggi preferiti",
+  "overviewLeave": "Abbandona",
+  "overviewLeaveConfirmTitle": "Abbandonare la chat?",
+  "overviewLeaveConfirmMessage": "Sei sicuro di voler abbandonare questa chat?",
+  "overviewWip": "In arrivo",
+  "overviewUnknownFile": "File senza nome"
 }

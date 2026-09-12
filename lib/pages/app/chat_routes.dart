@@ -11,6 +11,12 @@ String? chatUUIDFromPath(String path) {
   return null;
 }
 
+String chatSubPath(String chatUUID, int subID) => '/chats/$chatUUID/$subID';
+
+String chatOverviewPath(String chatUUID, int subID) =>
+    '/chats/$chatUUID/$subID/overview';
+
+
 String pathForTab(int index) {
   switch (index) {
     case 1:

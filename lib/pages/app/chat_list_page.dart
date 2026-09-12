@@ -97,8 +97,10 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     if (l10n == null) return;
     final userState = ref.read(userStoreProvider);
 
+    final allChats = ref.read(chatListProvider).chats;
+
     final localMatches = filterChatsByQuery(
-      chats: ref.read(chatListProvider).chats,
+      chats: allChats,
       query: q,
       localUserUUID: userState.localUserUUID,
       users: userState.users,
@@ -157,10 +159,13 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
   }
 
   void _openChat(String chatUUID) {
-    final currentUUID = chatUUIDFromPath(GoRouterState.of(context).uri.path);
-    if (currentUUID == chatUUID) return;
-    ref.read(activeChatProvider.notifier).setSelectedChatUUID(chatUUID);
-    context.push('/chats/$chatUUID');
+    const sub = 0;
+    final target = chatSubPath(chatUUID, sub);
+    if (GoRouterState.of(context).uri.path == target) return;
+    ref
+        .read(activeChatProvider.notifier)
+        .setSelectedChatUUID(chatUUID, subOverride: sub);
+    context.push(target);
   }
 
   void _onChatSelected(ChatModel chat) {
@@ -191,9 +196,10 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
       notifier.jumpToMessage(messageID, subID: subID);
       notifier.setMessageHighlight(messageID);
     }
-    final currentUUID = chatUUIDFromPath(GoRouterState.of(context).uri.path);
-    if (currentUUID == chatUUID) return;
-    context.push('/chats/$chatUUID');
+    final currentPath = GoRouterState.of(context).uri.path;
+    final target = chatSubPath(chatUUID, subID);
+    if (currentPath == target) return;
+    context.push(target);
   }
 
   @override

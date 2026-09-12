@@ -23,6 +23,7 @@ class ChatDetailAppBar extends StatelessWidget {
     required this.onBack,
     required this.onOpenSearch,
     required this.onToggleView,
+    this.onOpenOverview,
     this.bottom,
   });
 
@@ -47,6 +48,7 @@ class ChatDetailAppBar extends StatelessWidget {
   final VoidCallback onBack;
   final VoidCallback onOpenSearch;
   final VoidCallback onToggleView;
+  final VoidCallback? onOpenOverview;
   final Widget? bottom;
 
   static const _pillSpacing = 8.0;
@@ -97,48 +99,53 @@ class ChatDetailAppBar extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(2, 2, 2, 2),
             child: Semantics(
               header: true,
-              child: Row(
-                children: [
-                  Avatar(
-                    uuid: avatarUuid,
-                    name: title,
-                    seedKey: seedKey,
-                    size: 40,
-                    isOnline: isOnline,
-                    isSavedMessages: isSavedMessages,
-                    type: chatType,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (subtitle.isNotEmpty)
+              child: InkWell(
+                borderRadius: BorderRadius.circular(28),
+                onTap: onOpenOverview,
+                child: Row(
+                  children: [
+                    Avatar(
+                      uuid: avatarUuid,
+                      name: title,
+                      seedKey: seedKey,
+                      size: 40,
+                      isOnline: isOnline,
+                      isSavedMessages: isSavedMessages,
+                      type: chatType,
+                      onTap: onOpenOverview,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                           Text(
-                            subtitle,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: subtitleHighlighted
-                                  ? colorScheme.primary
-                                  : colorScheme.onSurfaceVariant,
+                            title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                      ],
+                          if (subtitle.isNotEmpty)
+                            Text(
+                              subtitle,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: subtitleHighlighted
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurfaceVariant,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

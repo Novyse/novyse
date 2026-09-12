@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/chat/message_format.dart';
 import 'package:novyse/core/chat/permissions.dart';
@@ -10,6 +11,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/pages/app/chat_routes.dart';
 import 'package:novyse/ui/components/chat/sub/create_sub_modal.dart';
 import 'package:novyse/ui/components/chat/sub/vocal_sub_subtitle.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
@@ -62,11 +64,13 @@ class SubList extends ConsumerWidget {
   }
 
   Future<void> _onSubTap(
+    BuildContext context,
     WidgetRef ref,
     Map<String, dynamic> sub,
   ) async {
     final subId = sub['id'] as int;
     final type = sub['type'] as String;
+    final goRouter = GoRouter.of(context);
 
     if (type == 'VOCAL') {
       final isJoined = ref
@@ -78,6 +82,10 @@ class SubList extends ConsumerWidget {
     }
 
     ref.read(activeChatProvider.notifier).setSelectedSub(subId);
+    final target = chatSubPath(chat.uuid, subId);
+    if (goRouter.state.uri.path != target) {
+      goRouter.go(target);
+    }
   }
 
   @override
@@ -135,9 +143,7 @@ class SubList extends ConsumerWidget {
                       height: 45,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isActive
-                            ? colorScheme.primary
-                            : colorScheme.surfaceContainerHighest,
+                        color: colorScheme.surfaceContainerHighest,
                       ),
                       alignment: Alignment.center,
                       child: Text(
@@ -145,27 +151,40 @@ class SubList extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: isActive
-                              ? colorScheme.onPrimary
-                              : colorScheme.onSurfaceVariant,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     );
 
+                    final selectedBackground = isActive
+                        ? colorScheme.primaryContainer.withValues(alpha: 0.28)
+                        : Colors.transparent;
+
                     if (isCollapsed) {
                       return InkWell(
-                        onTap: () => _onSubTap(ref, sub),
+                        onTap: () => _onSubTap(context, ref, sub),
                         borderRadius: BorderRadius.circular(25),
-                        child: Center(child: avatar),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: selectedBackground,
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Center(child: avatar),
+                        ),
                       );
                     }
 
                     return Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () => _onSubTap(ref, sub),
+                        onTap: () => _onSubTap(context, ref, sub),
                         borderRadius: BorderRadius.circular(16),
-                        child: Padding(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: selectedBackground,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 4,
                             vertical: 4,
@@ -182,11 +201,9 @@ class SubList extends ConsumerWidget {
                                       name,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 14,
-                                        fontWeight: isActive
-                                            ? FontWeight.w700
-                                            : FontWeight.w500,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                     const SizedBox(height: 2),

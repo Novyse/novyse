@@ -10,6 +10,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
+import 'package:novyse/pages/app/chat_routes.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/onboarding/onboarding_primary_button.dart';
 import 'package:novyse/ui/components/onboarding/onboarding_text_field.dart';
@@ -206,8 +207,10 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
         final uuid = chat['uuid'] as String?;
         Navigator.of(context, rootNavigator: true).pop();
         if (uuid != null && uuid.isNotEmpty) {
-          ref.read(activeChatProvider.notifier).setSelectedChatUUID(uuid);
-          context.push('/chats/$uuid');
+          ref
+              .read(activeChatProvider.notifier)
+              .setSelectedChatUUID(uuid, subOverride: 0);
+          context.push(chatSubPath(uuid, 0));
         }
       } else {
         setState(() {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/chat/permissions.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
@@ -27,9 +28,10 @@ import 'package:novyse/ui/components/chat/sub/sub_list.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class ChatDetailPage extends ConsumerStatefulWidget {
-  const ChatDetailPage({super.key, required this.chatUUID});
+  const ChatDetailPage({super.key, required this.chatUUID, required this.subID});
 
   final String chatUUID;
+  final int subID;
 
   @override
   ConsumerState<ChatDetailPage> createState() => _ChatDetailPageState();
@@ -40,6 +42,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   bool _searching = false;
   bool _isAttachMenuOpen = false;
   bool _isEmojiMenuOpen = false;
+  bool _routeSyncPending = false;
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
   String _searchQuery = '';
@@ -49,11 +52,12 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   @override
   void initState() {
     super.initState();
+    _routeSyncPending = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         ref
             .read(activeChatProvider.notifier)
-            .setSelectedChatUUID(widget.chatUUID);
+            .setSelectedChatUUID(widget.chatUUID, subOverride: widget.subID);
       }
     });
   }
@@ -73,11 +77,15 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
       _isEmojiMenuOpen = false;
       _callOpen = false;
       _closeSearch(resetText: true);
+    }
+    if (oldWidget.chatUUID != widget.chatUUID ||
+        oldWidget.subID != widget.subID) {
+      _routeSyncPending = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           ref
               .read(activeChatProvider.notifier)
-              .setSelectedChatUUID(widget.chatUUID);
+              .setSelectedChatUUID(widget.chatUUID, subOverride: widget.subID);
         }
       });
     }
@@ -230,9 +238,11 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     final chatUUID = widget.chatUUID;
     final chat = ref.watch(chatProvider(chatUUID));
     final l10n = AppLocalizations.of(context)!;
-    final selectedSub = ref.watch(
+    final goRouter = GoRouter.of(context);
+    final providerSub = ref.watch(
       activeChatProvider.select((s) => s.selectedSub),
     );
+    var selectedSub = _routeSyncPending ? widget.subID : providerSub;
 
     if (chat == null) {
       return Scaffold(
@@ -245,6 +255,26 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         ),
         body: Center(child: Text(l10n.chatNotFoundWithId(chatUUID))),
       );
+    }
+
+    final subExists = chat.subs.isEmpty
+        ? selectedSub == 0
+        : chat.subs.any((s) => (s['id'] as num?)?.toInt() == selectedSub);
+    if (!subExists) {
+      selectedSub = 0;
+    }
+    if (_routeSyncPending && providerSub == widget.subID) {
+      _routeSyncPending = false;
+    }
+    if (selectedSub != widget.subID) {
+      final targetSub = selectedSub;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final target = chatSubPath(chatUUID, targetSub);
+        if (goRouter.state.uri.path != target) {
+          goRouter.replace(target);
+        }
+      });
     }
 
     final colorScheme = Theme.of(context).colorScheme;
@@ -411,6 +441,8 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         onBack: _handleBack,
         onOpenSearch: _openSearch,
         onToggleView: _callOpen ? _closeCall : _openCall,
+        onOpenOverview: () =>
+            context.push(chatOverviewPath(chatUUID, selectedSub)),
         bottom: ChatSubHeader(chatUUID: chatUUID),
       );
     }
