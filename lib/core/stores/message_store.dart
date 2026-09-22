@@ -50,45 +50,22 @@ class MessageModel {
   bool get isSystem => type == 'system';
 
   factory MessageModel.fromMap(Map<String, dynamic> map) {
-    DateTime parseCreatedAt(dynamic val) {
-      if (val is DateTime) return val;
-      if (val is String && val.isNotEmpty) {
-        final parsed = DateTime.tryParse(val);
-        if (parsed != null) return parsed;
-      }
-      return DateTime.now();
-    }
-
-    List<Map<String, dynamic>> parseMapList(dynamic val) {
-      if (val is List) {
-        return val
-            .whereType<Map>()
-            .map((m) => Map<String, dynamic>.from(m))
-            .toList();
-      }
-      return const [];
-    }
-
     final rawCreatedAt = map['createdAt'] ?? map['created_at'];
 
     return MessageModel(
       id: map['id'] ?? map['messageID'] ?? 0,
-      chatUUID: (map['chatUUID'] ?? '').toString(),
-      subID: map['subID'] is num
-          ? (map['subID'] as num).toInt()
-          : (int.tryParse(map['subID']?.toString() ?? '0') ?? 0),
-      userUUID:
-          (map['userUUID'] ?? map['senderUUID'] ?? map['sender_uuid'] ?? '')
-              .toString(),
-      createdAt: parseCreatedAt(rawCreatedAt),
-      edited: map['edited'] == true || map['edited'] == 1,
-      pinned: map['pinned'] == true || map['pinned'] == 1,
-      favorited: map['favorited'] == true,
+      chatUUID: MessageFieldParser.parseChatUUID(map) ?? '',
+      subID: MessageFieldParser.parseSubID(map['subID']),
+      userUUID: MessageFieldParser.parseSenderUUID(map) ?? '',
+      createdAt: MessageFieldParser.parseCreatedAtDateTime(rawCreatedAt),
+      edited: MessageFieldParser.isEdited(map),
+      pinned: MessageFieldParser.isPinned(map),
+      favorited: MessageFieldParser.isFavorited(map),
       content: (map['content'])?.toString(),
       replyTos: map['replyTos'] is List ? (map['replyTos'] as List) : const [],
-      reactions: parseMapList(map['reactions']),
+      reactions: MessageFieldParser.parseMapList(map['reactions']),
       reads: map['reads'] is List ? (map['reads'] as List) : const [],
-      files: parseMapList(map['files']),
+      files: MessageFieldParser.parseMapList(map['files']),
       status: (map['status'] ?? 'sent').toString(),
       type: (map['type'] ?? 'message').toString(),
       systemAction: (map['system_action'] ?? map['systemAction'])?.toString(),
