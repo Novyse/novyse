@@ -620,10 +620,12 @@ class MessageModule {
   final Dio _dio;
   final MessagePinModule pin;
   final MessageReactionModule reaction;
+  final MessageFavoriteModule favorite;
 
   MessageModule(this._dio)
     : pin = MessagePinModule(_dio),
-      reaction = MessageReactionModule(_dio);
+      reaction = MessageReactionModule(_dio),
+      favorite = MessageFavoriteModule(_dio);
 
   /// Retrieve a specific message.
   Future<({bool success, Map<String, dynamic>? message})> retrieve(
@@ -861,6 +863,48 @@ class MessageReactionModule {
       return (success: true, chatEventID: _data(res)?['chatEventID'] as int?);
     }
     return (success: false, chatEventID: null);
+  }
+}
+
+class MessageFavoriteModule {
+  final Dio _dio;
+  MessageFavoriteModule(this._dio);
+
+  /// Add a message to favorites.
+  Future<({bool success, String? createdAt, int? userEventID})> add(
+    String chatUUID,
+    int subID,
+    dynamic messageID,
+  ) async {
+    final res = await _dio.put(
+      '/message/favorite',
+      data: {'chatUUID': chatUUID, 'subID': subID, 'messageID': messageID},
+    );
+    if (_ok(res)) {
+      final d = _data(res);
+      return (
+        success: true,
+        createdAt: d['createdAt'] as String?,
+        userEventID: d['userEventID'] as int?,
+      );
+    }
+    return (success: false, createdAt: null, userEventID: null);
+  }
+
+  /// Remove a message from favorites.
+  Future<({bool success, int? userEventID})> remove(
+    String chatUUID,
+    int subID,
+    dynamic messageID,
+  ) async {
+    final res = await _dio.delete(
+      '/message/favorite',
+      data: {'chatUUID': chatUUID, 'subID': subID, 'messageID': messageID},
+    );
+    if (_ok(res)) {
+      return (success: true, userEventID: _data(res)?['userEventID'] as int?);
+    }
+    return (success: false, userEventID: null);
   }
 }
 

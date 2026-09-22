@@ -82,6 +82,22 @@ class UserSettingChatUpdateEvent {
   });
 }
 
+class FavoriteMessageUpdateEvent {
+  final String chatUUID;
+  final int subID;
+  final String messageID;
+  final String action; // 'favorite_add' | 'favorite_remove'
+  final Map<String, dynamic> data;
+
+  const FavoriteMessageUpdateEvent({
+    required this.chatUUID,
+    required this.subID,
+    required this.messageID,
+    required this.action,
+    required this.data,
+  });
+}
+
 // Chat events
 
 class ChatNewEvent {

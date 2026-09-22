@@ -87,6 +87,56 @@ class MessageActionMethods {
     draftNotifier.setInvalidFiles([]);
   }
 
+  /// Adds or removes a message from favorites (user-scoped).
+  Future<void> favorite(MessageModel message) async {
+    final messageIdStr = message.id.toString();
+    final isFavorited = message.favorited;
+
+    if (isFavorited) {
+      try {
+        final res = await apiGateway.message.favorite.remove(
+          chatUUID,
+          subID,
+          message.id,
+        );
+        if (res.success) {
+          await GlobalEventEmitter.instance.user.favorite.update(
+            chatUUID,
+            subID,
+            messageIdStr,
+            'favorite_remove',
+            res.userEventID,
+            {},
+          );
+        }
+      } catch (e) {
+        debugPrint('Error removing favorite: $e');
+      }
+    } else {
+      try {
+        final res = await apiGateway.message.favorite.add(
+          chatUUID,
+          subID,
+          message.id,
+        );
+        if (res.success) {
+          await GlobalEventEmitter.instance.user.favorite.update(
+            chatUUID,
+            subID,
+            messageIdStr,
+            'favorite_add',
+            res.userEventID,
+            {
+              'createdAt': res.createdAt,
+            },
+          );
+        }
+      } catch (e) {
+        debugPrint('Error adding favorite: $e');
+      }
+    }
+  }
+
   /// Pins or unpins a message.
   Future<void> pin(MessageModel message) async {
     final messageIdStr = message.id.toString();

@@ -650,6 +650,7 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
                               createdAt: message.createdAt,
                               isSender: isSender,
                               hasBeenRead: hasBeenRead,
+                              isFavorited: message.favorited,
                               isEdited: message.edited,
                               isPinned: message.pinned,
                               isPending: message.isPending,

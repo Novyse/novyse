@@ -42,6 +42,29 @@ class EventReceiver {
       }
     });
 
+    socket.on('user:message:favorite:update', (raw) async {
+      if (raw is Map) {
+        final data = Map<String, dynamic>.from(raw);
+        final chatUUID = data['chatUUID'] as String?;
+        final subID = data['subID'] as int?;
+        final messageID = data['messageID']?.toString();
+        final action = data['action'] as String?;
+        if (chatUUID != null &&
+            subID != null &&
+            messageID != null &&
+            action != null) {
+          await emitter.user.favorite.update(
+            chatUUID,
+            subID,
+            messageID,
+            action,
+            data['userEventID'] as int?,
+            data,
+          );
+        }
+      }
+    });
+
     socket.on('user:presence:online', (raw) async {
       if (raw is Map) {
         final data = Map<String, dynamic>.from(raw);

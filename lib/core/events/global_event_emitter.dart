@@ -129,6 +129,17 @@ class MessageEmitter {
       case 'pin_remove':
         await _db.message.pin.remove(chatUUID, subID, messageID);
         break;
+      case 'favorite_add':
+        await _db.message.favorite.add(
+          chatUUID,
+          subID,
+          messageID,
+          data['createdAt'],
+        );
+        break;
+      case 'favorite_remove':
+        await _db.message.favorite.remove(chatUUID, subID, messageID);
+        break;
       case 'reaction_add':
         final emoji = (data['reaction'] ?? data['emoji']) as String? ?? '';
         final at =
@@ -209,11 +220,13 @@ class UserEmitter {
   late final UserProfileEmitter profile;
   late final UserPresenceEmitter presence;
   late final UserSettingEmitter setting;
+  late final UserFavoriteEmitter favorite;
 
   UserEmitter(this._bus, this._db) {
     profile = UserProfileEmitter(_bus, _db);
     presence = UserPresenceEmitter(_bus);
     setting = UserSettingEmitter(_bus, _db);
+    favorite = UserFavoriteEmitter(_bus, _db);
   }
 }
 
@@ -331,6 +344,64 @@ class UserSettingChatEmitter {
         chatUUID: chatUUID,
         action: action,
         data: data,
+      ),
+    );
+  }
+}
+
+class UserFavoriteEmitter {
+  final EventBus _bus;
+  final AppDatabase _db;
+  UserFavoriteEmitter(this._bus, this._db);
+
+  Future<void> update(
+    String chatUUID,
+    int subID,
+    String messageID,
+    String action,
+    int? userEventID,
+    Map<String, dynamic> data,
+  ) async {
+    switch (action) {
+      case 'favorite_add':
+        await _db.message.favorite.add(
+          chatUUID,
+          subID,
+          messageID,
+          data['createdAt'] as String?,
+        );
+        break;
+      case 'favorite_remove':
+        await _db.message.favorite.remove(chatUUID, subID, messageID);
+        break;
+      default:
+        return;
+    }
+
+    final payload = Map<String, dynamic>.from(data)
+      ..['chatUUID'] = chatUUID
+      ..['subID'] = subID
+      ..['messageID'] = messageID
+      ..['action'] = action;
+    if (userEventID != null) payload['userEventID'] = userEventID;
+
+    _bus.emit(
+      FavoriteMessageUpdateEvent(
+        chatUUID: chatUUID,
+        subID: subID,
+        messageID: messageID,
+        action: action,
+        data: payload,
+      ),
+    );
+    // Generic message update to update chatlist favorites status
+    _bus.emit(
+      MessageUpdateEvent(
+        chatUUID: chatUUID,
+        subID: subID,
+        messageID: messageID,
+        action: action,
+        data: payload,
       ),
     );
   }

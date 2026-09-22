@@ -10,6 +10,7 @@ class MessageTimestamp extends StatelessWidget {
     required this.createdAt,
     this.isSender = false,
     this.hasBeenRead = false,
+    this.isFavorited = false,
     this.isEdited = false,
     this.isPinned = false,
     this.isPending = false,
@@ -20,6 +21,7 @@ class MessageTimestamp extends StatelessWidget {
   final DateTime createdAt;
   final bool isSender;
   final bool hasBeenRead;
+  final bool isFavorited;
   final bool isEdited;
   final bool isPinned;
   final bool isPending;
@@ -70,7 +72,21 @@ class MessageTimestamp extends StatelessWidget {
             ),
             const SizedBox(width: 4),
           ],
+          if (isFavorited) ...[
+            AppHugeIcon(
+              icon: HugeIcons.strokeRoundedFavourite,
+              size: 12,
+              color: textColor,
+            ),
+            const SizedBox(width: 4),
+          ],
           if (isEdited) ...[
+            AppHugeIcon(
+              icon: HugeIcons.strokeRoundedEdit02,
+              size: 11,
+              color: textColor,
+            ),
+            const SizedBox(width: 2),
             Text(
               l10n.edited,
               style: TextStyle(fontSize: 10, color: textColor),

@@ -16,6 +16,7 @@ class MessageModel {
   final DateTime createdAt;
   final bool edited;
   final bool pinned;
+  final bool favorited;
   final String? content;
   final List<dynamic> replyTos;
   final List<Map<String, dynamic>> reactions;
@@ -33,6 +34,7 @@ class MessageModel {
     required this.createdAt,
     this.edited = false,
     this.pinned = false,
+    this.favorited = false,
     this.content,
     this.replyTos = const [],
     this.reactions = const [],
@@ -81,6 +83,7 @@ class MessageModel {
       createdAt: parseCreatedAt(rawCreatedAt),
       edited: map['edited'] == true || map['edited'] == 1,
       pinned: map['pinned'] == true || map['pinned'] == 1,
+      favorited: map['favorited'] == true,
       content: (map['content'])?.toString(),
       replyTos: map['replyTos'] is List ? (map['replyTos'] as List) : const [],
       reactions: parseMapList(map['reactions']),
@@ -103,6 +106,7 @@ class MessageModel {
       'createdAt': createdAt.toIso8601String(),
       'edited': edited,
       'pinned': pinned,
+      'favorited': favorited,
       'content': content,
       'replyTos': replyTos,
       'reactions': reactions,
@@ -122,6 +126,7 @@ class MessageModel {
     DateTime? createdAt,
     bool? edited,
     bool? pinned,
+    bool? favorited,
     String? content,
     List<dynamic>? replyTos,
     List<Map<String, dynamic>>? reactions,
@@ -139,6 +144,7 @@ class MessageModel {
       createdAt: createdAt ?? this.createdAt,
       edited: edited ?? this.edited,
       pinned: pinned ?? this.pinned,
+      favorited: favorited ?? this.favorited,
       content: content ?? this.content,
       replyTos: replyTos ?? this.replyTos,
       reactions: reactions ?? this.reactions,
@@ -221,6 +227,14 @@ class MessageListNotifier
 
     _subscriptions.add(
       bus.on<MessageUpdateEvent>().listen((event) {
+        if (event.chatUUID == arg.chatUUID && event.subID == arg.subID) {
+          onMessageUpdate(event.messageID, event.action, event.data);
+        }
+      }),
+    );
+
+    _subscriptions.add(
+      bus.on<FavoriteMessageUpdateEvent>().listen((event) {
         if (event.chatUUID == arg.chatUUID && event.subID == arg.subID) {
           onMessageUpdate(event.messageID, event.action, event.data);
         }
@@ -473,6 +487,28 @@ class MessageListNotifier
             }
 
             return m.copyWith(reactions: reactions);
+          }).toList(),
+        );
+        break;
+
+      case 'favorite_add':
+        state = state.copyWith(
+          messages: state.messages.map((m) {
+            if (m.id.toString() == messageID) {
+              return m.copyWith(favorited: true);
+            }
+            return m;
+          }).toList(),
+        );
+        break;
+
+      case 'favorite_remove':
+        state = state.copyWith(
+          messages: state.messages.map((m) {
+            if (m.id.toString() == messageID) {
+              return m.copyWith(favorited: false);
+            }
+            return m;
           }).toList(),
         );
         break;

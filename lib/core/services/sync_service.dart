@@ -45,6 +45,8 @@ abstract class SyncUserProfileEventType {
 abstract class SyncUserEventType {
   static const chatPinned = 'CHAT_PINNED';
   static const chatUnpinned = 'CHAT_UNPINNED';
+  static const messageFavorited = 'MESSAGE_FAVORITED';
+  static const messageUnfavorited = 'MESSAGE_UNFAVORITED';
 }
 
 /// Orchestrates full account initialization and delta synchronization.
@@ -179,7 +181,13 @@ class SyncService {
         }
       }
 
-      // 3. Batch users & chats
+      // 3. Favorite messages (user-scoped, from /user/initialize)
+      final favoriteMessages = local['favoriteMessages'];
+      if (favoriteMessages is List && favoriteMessages.isNotEmpty) {
+        await _db.message.favorite.addMultiple(favoriteMessages);
+      }
+
+      // 4. Batch users & chats
       if (users.isNotEmpty) {
         await _db.user.addMultiple(users);
       }
@@ -193,7 +201,7 @@ class SyncService {
         progress: 0.75,
       );
 
-      // 4. Batch messages
+      // 5. Batch messages
       if (messages.isNotEmpty) {
         await _db.message.addMultiple(messages);
       }
@@ -204,11 +212,11 @@ class SyncService {
         progress: 0.90,
       );
 
-      // 5. Mark initialized and synced
+      // 6. Mark initialized and synced
       await _storage.write(key: 'init', value: 'true');
       _network.setSynced(true);
 
-      // 6. Hydrate in-memory stores (loads local cache & fetches presence)
+      // 7. Hydrate in-memory stores (loads local cache & fetches presence)
       await Future.wait([
         _ref.read(userStoreProvider.notifier).init(),
         _ref.read(chatListProvider.notifier).init(),
@@ -449,11 +457,13 @@ class SyncService {
         }
       }
 
-      // 6. Local user events
+      // 6. Local user events (chat pins + favorite messages)
+      var maxLocalEventID = userEventId;
       for (final event in local) {
         if (event is! Map) continue;
         final type = event['type']?.toString();
         final eventId = (event['id'] as num?)?.toInt() ?? 0;
+        if (eventId > maxLocalEventID) maxLocalEventID = eventId;
         final payload = event['payload'] is Map
             ? Map<String, dynamic>.from(event['payload'] as Map)
             : <String, dynamic>{};
@@ -477,7 +487,33 @@ class SyncService {
               payload,
             );
             break;
+          case SyncUserEventType.messageFavorited:
+            await _emitter.user.favorite.update(
+              payload['chatUUID'] as String? ?? chatUUID,
+              payload['subID'] as int,
+              payload['messageID'].toString(),
+              'favorite_add',
+              eventId,
+              payload,
+            );
+            break;
+          case SyncUserEventType.messageUnfavorited:
+            await _emitter.user.favorite.update(
+              payload['chatUUID'] as String? ?? chatUUID,
+              payload['subID'] as int,
+              payload['messageID'].toString(),
+              'favorite_remove',
+              eventId,
+              payload,
+            );
+            break;
         }
+      }
+      if (maxLocalEventID > userEventId) {
+        await _storage.write(
+          key: 'localUserEventID',
+          value: maxLocalEventID.toString(),
+        );
       }
 
       // 7. Mark synced before loading in-memory stores

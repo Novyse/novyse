@@ -16,6 +16,9 @@ String chatSubPath(String chatUUID, int subID) => '/chats/$chatUUID/$subID';
 String chatOverviewPath(String chatUUID, int subID) =>
     '/chats/$chatUUID/$subID/overview';
 
+String chatFavoritesPath(String chatUUID, int subID) =>
+    '/chats/$chatUUID/$subID/overview/favorites';
+
 
 String pathForTab(int index) {
   switch (index) {

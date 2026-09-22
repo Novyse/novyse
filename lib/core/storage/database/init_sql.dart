@@ -258,6 +258,18 @@ CREATE TABLE IF NOT EXISTS pinned_chat (
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid)
 );
 
+CREATE TABLE IF NOT EXISTS favorite_message (
+    chatUUID TEXT NOT NULL,
+    subID INTEGER NOT NULL,
+    messageID INTEGER NOT NULL,
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (chatUUID, subID, messageID),
+    FOREIGN KEY (chatUUID) REFERENCES chat(uuid) ON DELETE CASCADE,
+    FOREIGN KEY (chatUUID, subID, messageID) REFERENCES message(chatUUID, subID, id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_favorite_message_chat ON favorite_message(chatUUID, subID);
+
 CREATE TABLE IF NOT EXISTS queue_job (
     id TEXT PRIMARY KEY,
     chat_uuid TEXT NOT NULL,

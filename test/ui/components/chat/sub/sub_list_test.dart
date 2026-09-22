@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/comms/comms_state.dart';
 import 'package:novyse/core/l10n/l10n.dart';
@@ -26,6 +27,29 @@ class _TestUserNotifier extends UserNotifier {
   UserStoreState build() {
     return const UserStoreState(localUserUUID: 'user-local', users: {});
   }
+}
+
+Widget _wrapWithRouter(Widget child) {
+  final router = GoRouter(
+    initialLocation: '/',
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => child,
+      ),
+      GoRoute(
+        path: '/chats/:uuid/:sub',
+        builder: (context, state) => const SizedBox(),
+      ),
+    ],
+  );
+
+  return MaterialApp.router(
+    routerConfig: router,
+    localizationsDelegates: localizationsDelegates,
+    supportedLocales: supportedLocales,
+    locale: const Locale('en'),
+  );
 }
 
 void main() {
@@ -61,11 +85,8 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp(
-          localizationsDelegates: localizationsDelegates,
-          supportedLocales: supportedLocales,
-          locale: const Locale('en'),
-          home: Scaffold(
+        child: _wrapWithRouter(
+          Scaffold(
             body: SubList(
               chat: chat,
               selectedSub: 0,
@@ -118,11 +139,8 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp(
-          localizationsDelegates: localizationsDelegates,
-          supportedLocales: supportedLocales,
-          locale: const Locale('en'),
-          home: Scaffold(
+        child: _wrapWithRouter(
+          Scaffold(
             body: SubList(
               chat: chat,
               selectedSub: 0,

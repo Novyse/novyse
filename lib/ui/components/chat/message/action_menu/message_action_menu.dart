@@ -154,6 +154,7 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
 
     final isMine = message.userUUID == localUserUUID;
     final isPinned = message.pinned;
+    final isFavorited = message.favorited;
     final isDM = chat?.type == 'DM';
 
     final sub = chat?.subs
@@ -236,6 +237,18 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
                   methods.pin(message);
                 },
               ),
+
+            // Favorite / Unfavorite
+            MessageActionMenuItem(
+              label: isFavorited ? l10n.unfavorite : l10n.favorite,
+              icon: isFavorited
+                  ? HugeIcons.strokeRoundedStarOff
+                  : HugeIcons.strokeRoundedFavourite,
+              onTap: () {
+                Navigator.of(context).pop();
+                methods.favorite(message);
+              },
+            ),
 
             // Copy
             MessageActionMenuItem(

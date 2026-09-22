@@ -374,6 +374,32 @@ void main() {
       await db.message.pin.remove('msg-chat', 0, 1);
       expect(await db.message.pin.get('msg-chat'), isEmpty);
 
+      // Favorite
+      await db.message.favorite.add('msg-chat', 0, 1);
+      expect(await db.message.favorite.isFavorite('msg-chat', 0, 1), isTrue);
+      expect(await db.message.favorite.count(chatUUID: 'msg-chat'), 1);
+
+      final favs = await db.message.favorite.list(chatUUID: 'msg-chat');
+      expect(favs.length, 1);
+      expect(favs.first['id'], 1);
+      expect(favs.first['favorited'], isTrue);
+
+      await db.message.favorite.remove('msg-chat', 0, 1);
+      expect(await db.message.favorite.isFavorite('msg-chat', 0, 1), isFalse);
+      expect(await db.message.favorite.count(chatUUID: 'msg-chat'), 0);
+
+      // Batch add
+      await db.message.favorite.addMultiple([
+        {
+          'chatUUID': 'msg-chat',
+          'subID': 0,
+          'messageID': 1,
+          'createdAt': '2026-09-22T10:00:00Z',
+        },
+      ]);
+      expect(await db.message.favorite.isFavorite('msg-chat', 0, 1), isTrue);
+      await db.message.favorite.remove('msg-chat', 0, 1);
+
       // Delete
       await db.message.delete('msg-chat', 0, 1);
       final deletedMsg = await db.message.get.by.id('msg-chat', 0, 1);

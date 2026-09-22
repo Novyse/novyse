@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:novyse/core/chat/message_format.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/stores/favorite_messages_store.dart';
 import 'package:novyse/pages/app/chat_routes.dart';
 import 'package:novyse/core/storage/file/file_type.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
@@ -1058,21 +1059,24 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-class _ActionsCard extends StatelessWidget {
+class _ActionsCard extends ConsumerWidget {
   const _ActionsCard({required this.chatUUID});
 
   final String chatUUID;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
+    final favoritesState = ref.watch(favoriteMessagesProvider(chatUUID));
+    final favoritesCount = favoritesState.favorites.length;
 
     Widget row({
       required IconData icon,
       required String label,
       required VoidCallback onTap,
       bool danger = false,
+      String? trailing,
     }) {
       final fg = danger ? colorScheme.error : colorScheme.onSurface;
       return InkWell(
@@ -1093,6 +1097,18 @@ class _ActionsCard extends StatelessWidget {
                   ),
                 ),
               ),
+              if (trailing != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Text(
+                    trailing,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
               Icon(
                 Icons.chevron_right,
                 size: 18,
@@ -1108,6 +1124,10 @@ class _ActionsCard extends StatelessWidget {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.overviewWip)));
+    }
+
+    void openFavorites() {
+      context.push(chatFavoritesPath(chatUUID, 0));
     }
 
     Future<void> confirmLeave() async {
@@ -1154,9 +1174,10 @@ class _ActionsCard extends StatelessWidget {
             color: colorScheme.outline.withValues(alpha: 0.15),
           ),
           row(
-            icon: Icons.star_border,
-            label: l10n.overviewFavouriteMessages,
-            onTap: wip,
+            icon: favoritesCount > 0 ? Icons.star : Icons.star_border,
+            label: l10n.favoriteMessages,
+            trailing: favoritesCount > 0 ? '$favoritesCount' : null,
+            onTap: openFavorites,
           ),
           Divider(
             height: 1,

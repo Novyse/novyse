@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../auth/onboarding_manager.dart';
 import '../../pages/app/chat_detail_page.dart';
+import '../../pages/app/chat_favorites_page.dart';
 import '../../pages/app/chat_overview_page.dart';
 import '../../pages/app/main_shell.dart';
 import '../../pages/onboarding/login.dart';
@@ -151,6 +152,21 @@ final routerProvider = Provider<GoRouter>((ref) {
                     ChatOverviewPage(chatUUID: chatUUID, subID: subID),
                   );
                 },
+                routes: [
+                  GoRoute(
+                    path: 'favorites',
+                    pageBuilder: (context, state) {
+                      final chatUUID = state.pathParameters['chatUUID'] ?? '';
+                      final subID =
+                          int.tryParse(state.pathParameters['subID'] ?? '') ??
+                          0;
+                      return _chatStackPage(
+                        state,
+                        ChatFavoritesPage(chatUUID: chatUUID, subID: subID),
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),

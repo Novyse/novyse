@@ -120,9 +120,8 @@ class LocalNotificationService {
       if (kIsWeb) {
         await _ensureWebPermission();
       }
-    } catch (e, st) {
-      // Plugin platform channel may be unavailable (e.g. widget tests).
-      debugPrint('[LocalNotificationService] init skipped: $e\n$st');
+    } catch (e) {
+      debugPrint('[LocalNotificationService] init skipped: $e');
     }
 
     _initialized = true;
@@ -160,8 +159,8 @@ class LocalNotificationService {
             false;
       }
       return true;
-    } catch (e, st) {
-      debugPrint('[LocalNotificationService] permissions skipped: $e\n$st');
+    } catch (e) {
+      debugPrint('[LocalNotificationService] permissions skipped: $e');
       return false;
     }
   }
