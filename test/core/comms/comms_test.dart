@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
+import 'package:novyse/core/comms/comms_data_provider.dart';
 import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/comms/comms_state.dart';
 
@@ -105,6 +106,31 @@ void main() {
           ),
         ),
       );
+    });
+
+    test('CommsRoomViewData equality collapses identical emissions', () {
+      const tileA = CommsTileItem(id: 'a', userUUID: 'uuid-a');
+      const tileB = CommsTileItem(id: 'b', userUUID: 'uuid-b');
+
+      const first = CommsRoomViewData(
+        isConnectedToThisRoom: true,
+        tiles: [tileA, tileB],
+      );
+      const second = CommsRoomViewData(
+        isConnectedToThisRoom: true,
+        tiles: [tileA, tileB],
+      );
+      expect(first, second);
+      expect(first.hashCode, second.hashCode);
+
+      const differentTiles = CommsRoomViewData(
+        isConnectedToThisRoom: true,
+        tiles: [tileA],
+      );
+      expect(first == differentTiles, false);
+
+      const loading = CommsRoomViewData(isLoading: true);
+      expect(first == loading, false);
     });
   });
 

@@ -13,6 +13,8 @@ class CommsNotifier extends Notifier<CommsState> {
   EventsListener<RoomEvent>? _roomListener;
   bool _isLeaving = false;
   bool _isDisposed = false;
+  Timer? _speakingDebounce;
+  Set<String>? _pendingSpeakers;
 
   @override
   CommsState build() {
@@ -162,8 +164,17 @@ class CommsNotifier extends Notifier<CommsState> {
         _notifyStateChange();
       })
       ..on<ActiveSpeakersChangedEvent>((event) {
-        final speakers = event.speakers.map((p) => p.identity).toSet();
-        state = state.copyWith(speakingParticipants: speakers);
+        _pendingSpeakers = event.speakers.map((p) => p.identity).toSet();
+        _speakingDebounce ??= Timer(const Duration(milliseconds: 300), () {
+          _speakingDebounce = null;
+          final pending = _pendingSpeakers;
+          _pendingSpeakers = null;
+          if (pending != null &&
+              !_isDisposed &&
+              !setEquals(state.speakingParticipants, pending)) {
+            state = state.copyWith(speakingParticipants: pending);
+          }
+        });
       })
       ..on<TrackSubscribedEvent>((event) {
         if (event.track.source == TrackSource.screenShareVideo) {
@@ -232,6 +243,10 @@ class CommsNotifier extends Notifier<CommsState> {
   Future<void> leave() async {
     if (_isLeaving) return;
     _isLeaving = true;
+
+    _speakingDebounce?.cancel();
+    _speakingDebounce = null;
+    _pendingSpeakers = null;
 
     final room = state.room;
     final listener = _roomListener;

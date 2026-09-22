@@ -33,6 +33,19 @@ class CommsRoomViewData {
       isLoading: isLoading ?? this.isLoading,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CommsRoomViewData &&
+          runtimeType == other.runtimeType &&
+          isConnectedToThisRoom == other.isConnectedToThisRoom &&
+          isLoading == other.isLoading &&
+          listEquals(tiles, other.tiles);
+
+  @override
+  int get hashCode =>
+      Object.hash(isConnectedToThisRoom, isLoading, Object.hashAll(tiles));
 }
 
 typedef CommsRoomKey = ({String chatUUID, int sub});
@@ -44,22 +57,30 @@ typedef CommsRoomKey = ({String chatUUID, int sub});
 class CommsDataNotifier
     extends AutoDisposeFamilyNotifier<CommsRoomViewData, CommsRoomKey> {
   Timer? _pollingTimer;
+  List<CommsTileItem> _lastTiles = const [];
 
   @override
   CommsRoomViewData build(CommsRoomKey arg) {
     ref.onDispose(() {
       _stopPolling();
     });
-
+    
     final commsState = ref.watch(commsProvider);
     final isMatch = commsState.isRoomMatch(arg.chatUUID, arg.sub);
 
     if (isMatch && commsState.room != null) {
       _stopPolling();
-      return _buildTilesFromLiveRoom(commsState.room!);
+      return _buildTilesFromLiveRoom(
+        commsState.room!,
+        commsState.speakingParticipants,
+      );
     } else {
       _startPolling();
-      return const CommsRoomViewData(isLoading: true);
+      return CommsRoomViewData(
+        isConnectedToThisRoom: false,
+        tiles: _lastTiles,
+        isLoading: _lastTiles.isEmpty,
+      );
     }
   }
 
@@ -120,6 +141,7 @@ class CommsDataNotifier
           ),
       ];
 
+      _lastTiles = tiles;
       state = CommsRoomViewData(
         isConnectedToThisRoom: false,
         tiles: tiles,
@@ -130,8 +152,10 @@ class CommsDataNotifier
     }
   }
 
-  CommsRoomViewData _buildTilesFromLiveRoom(Room room) {
-    final commsState = ref.read(commsProvider);
+  CommsRoomViewData _buildTilesFromLiveRoom(
+    Room room,
+    Set<String> speakingParticipants,
+  ) {
     final tiles = <CommsTileItem>[];
 
     final participants = <Participant>[
@@ -150,8 +174,8 @@ class CommsDataNotifier
           .firstOrNull;
 
       final isSpeaking =
-          commsState.speakingParticipants.contains(identity) ||
-          commsState.speakingParticipants.contains(userUUID) ||
+          speakingParticipants.contains(identity) ||
+          speakingParticipants.contains(userUUID) ||
           participant.isSpeaking;
 
       tiles.add(

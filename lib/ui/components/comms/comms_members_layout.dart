@@ -79,8 +79,11 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
         _showOverlay(fullscreenTile);
       } else if (tileChanged || _fullscreenOverlay == null) {
         _overlayTile = fullscreenTile;
-        // Refresh overlay content (speaking / video / mute state).
-        _showOverlay(fullscreenTile);
+        if (_fullscreenOverlay == null) {
+          _showOverlay(fullscreenTile);
+        } else {
+          _fullscreenOverlay?.markNeedsBuild();
+        }
       }
       return;
     }
@@ -156,9 +159,12 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
 
   @override
   Widget build(BuildContext context) {
-    final commsState = ref.watch(commsProvider);
-    final fullscreenId = commsState.fullscreenStreamId;
-    final pinnedId = commsState.pinnedStreamId;
+    final fullscreenId = ref.watch(
+      commsProvider.select((s) => s.fullscreenStreamId),
+    );
+    final pinnedId = ref.watch(
+      commsProvider.select((s) => s.pinnedStreamId),
+    );
 
     final controller = ref.read(commsProvider.notifier);
 

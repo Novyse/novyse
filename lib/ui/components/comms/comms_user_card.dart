@@ -81,7 +81,9 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
 
   void _showOverlayUi() {
     if (!mounted) return;
-    setState(() => _overlayUiVisible = true);
+    if (!_overlayUiVisible) {
+      setState(() => _overlayUiVisible = true);
+    }
     _scheduleAutoHide();
   }
 

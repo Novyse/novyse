@@ -32,9 +32,7 @@ class ChatCallPage extends ConsumerWidget {
               left: 12,
               right: 12,
             ),
-            child: roomViewData.isLoading && roomViewData.tiles.isEmpty
-                ? const Center(child: CircularProgressIndicator())
-                : CommsMembersLayout(tiles: roomViewData.tiles),
+            child: CommsMembersLayout(tiles: roomViewData.tiles),
           ),
 
           // Floating bottom controls
