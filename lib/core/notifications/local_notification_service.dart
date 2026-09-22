@@ -14,7 +14,7 @@ import 'package:novyse/core/notifications/notification_paths_stub.dart'
 import 'package:novyse/core/router/navigator_keys.dart';
 import 'package:novyse/core/router/router.dart';
 
-typedef NotificationTapCallback = void Function(String? chatUUID);
+typedef NotificationTapCallback = void Function(String? chatUUID, int subID);
 
 /// Colored app logo (desktop / web). White silhouette is Android status-bar only.
 const _coloredLogoAsset = 'assets/images/logo-novyse.png';
@@ -217,9 +217,10 @@ class LocalNotificationService {
       return;
     }
 
-    // Default tap -> open chat
-    instance.onTap?.call(chatUUID.isEmpty ? null : chatUUID);
-    _navigateToChat(chatUUID.isEmpty ? null : chatUUID);
+    // Default tap -> open chat (with subID so we land on the right sub).
+    final tappedUUID = chatUUID.isEmpty ? null : chatUUID;
+    instance.onTap?.call(tappedUUID, subID);
+    _navigateToChat(tappedUUID, subID);
   }
 
   static Map<String, String> _parsePayload(String? payload) {
@@ -232,13 +233,13 @@ class LocalNotificationService {
     }
   }
 
-  static void _navigateToChat(String? chatUUID) {
+  static void _navigateToChat(String? chatUUID, int subID) {
     if (chatUUID == null || chatUUID.isEmpty) return;
     final context = rootNavigatorKey.currentContext;
     if (context == null) return;
     try {
       final container = ProviderScope.containerOf(context, listen: false);
-      container.read(routerProvider).go('/chats/$chatUUID');
+      container.read(routerProvider).go('/chats/$chatUUID/$subID');
     } catch (_) {}
   }
 
