@@ -5,9 +5,50 @@ project(runner LANGUAGES CXX)
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "novyse")
-# The unique GTK application identifier for this application. See:
-# https://wiki.gnome.org/HowDoI/ChooseApplicationID
-set(APPLICATION_ID "com.novyse.novyse")
+
+# Determine current branch and metadata from lib/core/config/global.dart
+set(GLOBAL_DART "${CMAKE_CURRENT_SOURCE_DIR}/../lib/core/config/global.dart")
+if(EXISTS "${GLOBAL_DART}")
+  file(READ "${GLOBAL_DART}" GLOBAL_DART_CONTENT)
+  string(REPLACE "\n" " " GLOBAL_DART_FLAT "${GLOBAL_DART_CONTENT}")
+  string(REPLACE "\r" " " GLOBAL_DART_FLAT "${GLOBAL_DART_FLAT}")
+  if(GLOBAL_DART_FLAT MATCHES "const[ \t]+String[ \t]+branch[ \t]*=[ \t]*['\"]([^'\"]+)['\"]")
+    set(CURRENT_BRANCH "${CMAKE_MATCH_1}")
+  endif()
+endif()
+if(NOT CURRENT_BRANCH)
+  set(CURRENT_BRANCH "development")
+endif()
+
+function(extract_dart_meta VAR_NAME TARGET_BRANCH OUT_VAR)
+  if(TARGET_BRANCH STREQUAL "production")
+    if(GLOBAL_DART_FLAT MATCHES "const[ \t]+String[ \t]+${VAR_NAME}[ \t]*=[ \t]*branch[ \t]*==[ \t]*['\"]production['\"][ \t]*\\?[ \t]*['\"]([^'\"]+)['\"]")
+      set(${OUT_VAR} "${CMAKE_MATCH_1}" PARENT_SCOPE)
+      return()
+    endif()
+  elseif(TARGET_BRANCH STREQUAL "preview")
+    if(GLOBAL_DART_FLAT MATCHES "const[ \t]+String[ \t]+${VAR_NAME}[ \t]*=[ \t]*[^;]*branch[ \t]*==[ \t]*['\"]preview['\"][ \t]*\\?[ \t]*['\"]([^'\"]+)['\"]")
+      set(${OUT_VAR} "${CMAKE_MATCH_1}" PARENT_SCOPE)
+      return()
+    endif()
+  else()
+    if(GLOBAL_DART_FLAT MATCHES "const[ \t]+String[ \t]+${VAR_NAME}[ \t]*=[ \t]*[^;]*:[ \t]*['\"]([^'\"]+)['\"][ \t]*\\)[ \t]*;")
+      set(${OUT_VAR} "${CMAKE_MATCH_1}" PARENT_SCOPE)
+      return()
+    endif()
+  endif()
+  if(GLOBAL_DART_FLAT MATCHES "const[ \t]+String[ \t]+${VAR_NAME}[ \t]*=[ \t]*['\"]([^'\"]+)['\"]")
+    set(${OUT_VAR} "${CMAKE_MATCH_1}" PARENT_SCOPE)
+  endif()
+endfunction()
+
+extract_dart_meta("appName" "${CURRENT_BRANCH}" APP_NAME)
+extract_dart_meta("desktopDescription" "${CURRENT_BRANCH}" APP_DESCRIPTION)
+
+string(TOLOWER "${APP_NAME}" APP_NAME_LOWER)
+set(APPLICATION_ID "com.${APP_NAME_LOWER}")
+
+message(STATUS "Configuring ${APP_NAME} (${CURRENT_BRANCH}): ${APP_DESCRIPTION}")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

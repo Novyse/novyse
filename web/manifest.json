@@ -1,11 +1,11 @@
 {
-    "name": "Novyse",
-    "short_name": "Novyse",
+    "name": "Novyse.dev",
+    "short_name": "Novyse.dev",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#071827",
     "theme_color": "#0F6FFF",
-    "description": "Novyse - Connect, communicate, and collaborate.",
+    "description": "A web client for Novyse (Development)",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

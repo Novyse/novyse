@@ -41,7 +41,15 @@ static void my_application_activate(GApplication *application) {
     }
   }
 
-  gtk_window_set_title(window, "Novyse");
+#ifndef APP_NAME
+#define APP_NAME "Novyse"
+#endif
+
+#ifndef APP_DESCRIPTION
+#define APP_DESCRIPTION "A desktop client for Novyse"
+#endif
+
+  gtk_window_set_title(window, APP_NAME);
   gtk_window_set_default_icon_name("novyse");
   gtk_window_set_default_size(window, 1280, 720);
   gtk_window_set_decorated(window, FALSE);
@@ -96,6 +104,7 @@ static void my_application_startup(GApplication *application) {
   // MyApplication* self = MY_APPLICATION(object);
 
   // Perform any actions required at application startup.
+  g_set_application_name(APP_NAME);
 
   G_APPLICATION_CLASS(my_application_parent_class)->startup(application);
 }

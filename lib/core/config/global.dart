@@ -7,6 +7,23 @@ const String branch = 'development'; // 'development' | 'preview' | 'production'
 const String appName = branch == 'production'
     ? 'Novyse'
     : (branch == 'preview' ? 'Novyse.preview' : 'Novyse.dev');
+
+const String desktopDescription = branch == 'production'
+    ? 'A desktop client for Novyse'
+    : (branch == 'preview'
+        ? 'A desktop client for Novyse (Preview)'
+        : 'A desktop client for Novyse (Development)');
+const String mobileDescription = branch == 'production'
+    ? 'A mobile client for Novyse'
+    : (branch == 'preview'
+        ? 'A mobile client for Novyse (Preview)'
+        : 'A mobile client for Novyse (Development)');
+const String webDescription = branch == 'production'
+    ? 'A web client for Novyse'
+    : (branch == 'preview'
+        ? 'A web client for Novyse (Preview)'
+        : 'A web client for Novyse (Development)');
+
 const String appVersion = '1.2.0-20260831.0';
 
 // Domain helpers

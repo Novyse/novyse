@@ -8,6 +8,9 @@ GLOBAL_DART="$ROOT_DIR/lib/core/config/global.dart"
 IOS_XCCONFIG="$ROOT_DIR/ios/Flutter/AppEnvironment.xcconfig"
 MACOS_XCCONFIG="$ROOT_DIR/macos/Runner/Configs/AppEnvironment.xcconfig"
 IOS_ENTITLEMENTS="$ROOT_DIR/ios/Runner/Runner.entitlements"
+PUBSPEC="$ROOT_DIR/pubspec.yaml"
+WEB_INDEX="$ROOT_DIR/web/index.html"
+WEB_MANIFEST="$ROOT_DIR/web/manifest.json"
 
 if [ ! -f "$GLOBAL_DART" ]; then
   echo "❌ [SYNC-BRANCH ERROR] Configuration file not found: $GLOBAL_DART" >&2
@@ -22,29 +25,48 @@ if [ -z "$BRANCH" ]; then
   exit 1
 fi
 
+get_dart_meta() {
+  local var="$1"
+  local branch="$2"
+  local content
+  content=$(tr '\r\n' '  ' < "$GLOBAL_DART")
+  case "$branch" in
+    "production")
+      echo "$content" | sed -n "s/.*const[[:space:]]\+String[[:space:]]\+$var[[:space:]]*=[[:space:]]*branch[[:space:]]*==[[:space:]]*['\"]production['\"][[:space:]]*?[[:space:]]*['\"]\([^'\"]\+\)['\"].*/\1/p"
+      ;;
+    "preview")
+      echo "$content" | sed -n "s/.*const[[:space:]]\+String[[:space:]]\+$var[[:space:]]*=[^;]*branch[[:space:]]*==[[:space:]]*['\"]preview['\"][[:space:]]*?[[:space:]]*['\"]\([^'\"]\+\)['\"].*/\1/p"
+      ;;
+    *)
+      echo "$content" | sed -n "s/.*const[[:space:]]\+String[[:space:]]\+$var[[:space:]]*=[^;]*:[[:space:]]*['\"]\([^'\"]\+\)['\"][[:space:]]*)[[:space:]]*;.*/\1/p"
+      ;;
+  esac
+}
+
+APP_NAME=$(get_dart_meta "appName" "$BRANCH")
+DESKTOP_DESCRIPTION=$(get_dart_meta "desktopDescription" "$BRANCH")
+MOBILE_DESCRIPTION=$(get_dart_meta "mobileDescription" "$BRANCH")
+WEB_DESCRIPTION=$(get_dart_meta "webDescription" "$BRANCH")
+
+if [ -z "$APP_NAME" ]; then
+  APP_NAME=$(sed -n "s/.*const[[:space:]]\+String[[:space:]]\+appName[[:space:]]*=[[:space:]]*['\"]\([^'\"]\+\)['\"].*/\1/p" "$GLOBAL_DART" | head -n 1)
+fi
+if [ -z "$DESKTOP_DESCRIPTION" ]; then
+  DESKTOP_DESCRIPTION="A desktop client for Novyse"
+fi
+if [ -z "$MOBILE_DESCRIPTION" ]; then
+  MOBILE_DESCRIPTION="A mobile client for Novyse"
+fi
+if [ -z "$WEB_DESCRIPTION" ]; then
+  WEB_DESCRIPTION="A web client for Novyse"
+fi
+
+BUNDLE_ID="com.${APP_NAME,,}"
+SCHEME="${APP_NAME,,}"
 case "$BRANCH" in
-  "production")
-    APP_NAME="Novyse"
-    BUNDLE_ID="com.novyse"
-    SCHEME="novyse"
-    HOST_SUFFIX=""
-    ;;
-  "preview")
-    APP_NAME="Novyse.preview"
-    BUNDLE_ID="com.novyse.preview"
-    SCHEME="novyse.preview"
-    HOST_SUFFIX=".preview"
-    ;;
-  "development")
-    APP_NAME="Novyse.dev"
-    BUNDLE_ID="com.novyse.dev"
-    SCHEME="novyse.dev"
-    HOST_SUFFIX=".dev"
-    ;;
-  *)
-    echo "❌ [SYNC-BRANCH ERROR] Unknown branch '$BRANCH'. Expected 'development', 'preview', or 'production'." >&2
-    exit 1
-    ;;
+  "production") HOST_SUFFIX="" ;;
+  "preview")    HOST_SUFFIX=".preview" ;;
+  *)            HOST_SUFFIX=".dev" ;;
 esac
 
 # 1. Sync iOS & macOS AppEnvironment.xcconfig
@@ -52,6 +74,7 @@ cat << EOF > "$IOS_XCCONFIG"
 // Generated automatically from lib/core/config/global.dart - DO NOT EDIT MANUALLY
 APP_BRANCH = $BRANCH
 APP_NAME = $APP_NAME
+APP_DESCRIPTION = $MOBILE_DESCRIPTION
 APP_BUNDLE_IDENTIFIER = $BUNDLE_ID
 APP_SCHEME = $SCHEME
 APP_HOST = app${HOST_SUFFIX}.novyse.com
@@ -61,6 +84,7 @@ cat << EOF > "$MACOS_XCCONFIG"
 // Generated automatically from lib/core/config/global.dart - DO NOT EDIT MANUALLY
 APP_BRANCH = $BRANCH
 APP_NAME = $APP_NAME
+APP_DESCRIPTION = $DESKTOP_DESCRIPTION
 APP_BUNDLE_IDENTIFIER = $BUNDLE_ID
 APP_SCHEME = $SCHEME
 APP_HOST = app${HOST_SUFFIX}.novyse.com
@@ -104,8 +128,26 @@ else
 EOF
 fi
 
-# 3. Stage configuration files if modified
-for f in "$IOS_XCCONFIG" "$MACOS_XCCONFIG" "$IOS_ENTITLEMENTS"; do
+# 3. Sync pubspec.yaml description
+if [ -f "$PUBSPEC" ]; then
+  sed -i "s/^description:.*/description: \"$APP_DESCRIPTION\"/" "$PUBSPEC"
+fi
+
+# 4. Sync Web assets
+if [ -f "$WEB_INDEX" ]; then
+  sed -i "s/<meta name=\"description\" content=\"[^\"]*\"/<meta name=\"description\" content=\"$WEB_DESCRIPTION\"/" "$WEB_INDEX"
+  sed -i "s/<meta name=\"apple-mobile-web-app-title\" content=\"[^\"]*\"/<meta name=\"apple-mobile-web-app-title\" content=\"$APP_NAME\"/" "$WEB_INDEX"
+  sed -i "s/<title>[^<]*<\/title>/<title>$APP_NAME<\/title>/" "$WEB_INDEX"
+fi
+
+if [ -f "$WEB_MANIFEST" ]; then
+  sed -i "s/\"name\": \"[^\"]*\"/\"name\": \"$APP_NAME\"/" "$WEB_MANIFEST"
+  sed -i "s/\"short_name\": \"[^\"]*\"/\"short_name\": \"$APP_NAME\"/" "$WEB_MANIFEST"
+  sed -i "s/\"description\": \"[^\"]*\"/\"description\": \"$WEB_DESCRIPTION\"/" "$WEB_MANIFEST"
+fi
+
+# 5. Stage configuration files if modified
+for f in "$IOS_XCCONFIG" "$MACOS_XCCONFIG" "$IOS_ENTITLEMENTS" "$PUBSPEC" "$WEB_INDEX" "$WEB_MANIFEST"; do
   rel_path="${f#$ROOT_DIR/}"
   if git diff --name-only "$f" 2>/dev/null | grep -q . || git status --porcelain "$f" 2>/dev/null | grep -q "^??"; then
     git add "$f"
@@ -113,4 +155,4 @@ for f in "$IOS_XCCONFIG" "$MACOS_XCCONFIG" "$IOS_ENTITLEMENTS"; do
   fi
 done
 
-echo "✅ [SYNC-BRANCH] Configured iOS/macOS environment: Branch=$BRANCH, BundleID=$BUNDLE_ID, Scheme=$SCHEME, Host=app${HOST_SUFFIX}.novyse.com"
+echo "✅ [SYNC-BRANCH] Configured environment: Branch=$BRANCH, AppName=$APP_NAME, DesktopDesc=\"$DESKTOP_DESCRIPTION\", MobileDesc=\"$MOBILE_DESCRIPTION\", WebDesc=\"$WEB_DESCRIPTION\""

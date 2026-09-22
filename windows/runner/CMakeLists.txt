@@ -30,6 +30,11 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "FLUTTER_VERSION_BUILD=${FLUTT
 # Disable Windows macros that collide with C++ standard library functions.
 target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 
+# Add preprocessor definitions for application metadata.
+target_compile_definitions(${BINARY_NAME} PRIVATE "APP_NAME=\"${APP_NAME}\"")
+target_compile_definitions(${BINARY_NAME} PRIVATE "APP_NAME_W=L\"${APP_NAME}\"")
+target_compile_definitions(${BINARY_NAME} PRIVATE "APP_DESCRIPTION=\"${APP_DESCRIPTION}\"")
+
 # Add dependency libraries and include directories. Add any application-specific
 # dependencies here.
 target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)

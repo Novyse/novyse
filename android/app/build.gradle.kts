@@ -8,46 +8,39 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+val globalConfigFile = rootProject.file("../lib/core/config/global.dart")
+val globalConfigText = if (globalConfigFile.exists()) globalConfigFile.readText().replace("\r", " ").replace("\n", " ") else ""
+
 fun getBranchFromGlobalConfig(): String {
-    val candidateFiles = listOf(
-        rootProject.file("../lib/core/config/global.dart"),
-        rootProject.file("../lib/config/global.dart")
-    )
-    for (file in candidateFiles) {
-        if (file.exists()) {
-            val match = Regex("""const\s+String\s+branch\s*=\s*['"]([^'"]+)['"]""").find(file.readText())
-            if (match != null) {
-                return match.groupValues[1]
-            }
-        }
-    }
-    return "development"
+    val match = Regex("""const\s+String\s+branch\s*=\s*['"]([^'"]+)['"]""").find(globalConfigText)
+    return match?.groupValues?.get(1) ?: "development"
 }
 
 fun getAppVersionFromGlobalConfig(): String {
-    val candidateFiles = listOf(
-        rootProject.file("../lib/core/config/global.dart"),
-        rootProject.file("../lib/config/global.dart")
-    )
-    for (file in candidateFiles) {
-        if (file.exists()) {
-            val match = Regex("""const\s+String\s+appVersion\s*=\s*['"]([^'"]+)['"]""").find(file.readText())
-            if (match != null) {
-                return match.groupValues[1]
-            }
-        }
+    val match = Regex("""const\s+String\s+appVersion\s*=\s*['"]([^'"]+)['"]""").find(globalConfigText)
+    return match?.groupValues?.get(1) ?: throw IllegalStateException("appVersion must be defined in lib/core/config/global.dart")
+}
+
+fun getMetadataFromGlobalConfig(varName: String, branch: String): String {
+    val pattern = when (branch) {
+        "production" -> Regex("""const\s+String\s+${varName}\s*=\s*branch\s*==\s*['"]production['"]\s*\?\s*['"]([^'"]+)['"]""")
+        "preview" -> Regex("""const\s+String\s+${varName}\s*=\s*[^;]*branch\s*==\s*['"]preview['"]\s*\?\s*['"]([^'"]+)['"]""")
+        else -> Regex("""const\s+String\s+${varName}\s*=\s*[^;]*:\s*['"]([^'"]+)['"]\s*\)""")
     }
-    throw IllegalStateException("appVersion must be defined in lib/core/config/global.dart")
+    val match = pattern.find(globalConfigText)
+    if (match != null) {
+        return match.groupValues[1]
+    }
+    val simple = Regex("""const\s+String\s+${varName}\s*=\s*['"]([^'"]+)['"]""").find(globalConfigText)
+    return simple?.groupValues?.get(1) ?: ""
 }
 
 val currentBranch = getBranchFromGlobalConfig()
 val currentAppVersion = getAppVersionFromGlobalConfig()
-
-val currentScheme = when (currentBranch) {
-    "production" -> "novyse"
-    "preview" -> "novyse.preview"
-    else -> "novyse.dev"
-}
+val currentAppName = getMetadataFromGlobalConfig("appName", currentBranch)
+val currentAppDescription = getMetadataFromGlobalConfig("mobileDescription", currentBranch)
+val currentApplicationId = "com.${currentAppName.lowercase()}"
+val currentScheme = currentAppName.lowercase()
 
 val currentHostSuffix = when (currentBranch) {
     "production" -> ""
@@ -58,18 +51,6 @@ val currentHostSuffix = when (currentBranch) {
 val currentAppHost = "app${currentHostSuffix}.novyse.com"
 val currentWebHost = "web${currentHostSuffix}.novyse.com"
 val currentAuthHost = "auth${currentHostSuffix}.novyse.com"
-
-val currentAppName = when (currentBranch) {
-    "production" -> "Novyse"
-    "preview" -> "Novyse.preview"
-    else -> "Novyse.dev"
-}
-
-val currentApplicationId = when (currentBranch) {
-    "production" -> "com.novyse"
-    "preview" -> "com.novyse.preview"
-    else -> "com.novyse.dev"
-}
 
 android {
     namespace = "com.novyse.novyse"
@@ -82,13 +63,20 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    buildFeatures {
+        resValues = true
+    }
+
     defaultConfig {
         applicationId = currentApplicationId
         manifestPlaceholders["appName"] = currentAppName
+        manifestPlaceholders["appDescription"] = currentAppDescription
         manifestPlaceholders["appScheme"] = currentScheme
         manifestPlaceholders["appHost"] = currentAppHost
         manifestPlaceholders["webHost"] = currentWebHost
         manifestPlaceholders["authHost"] = currentAuthHost
+        resValue("string", "app_name", currentAppName)
+        resValue("string", "app_description", currentAppDescription)
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -154,5 +142,7 @@ tasks.register("printApplicationId") {
         println("CONFIG_BRANCH: $currentBranch")
         println("CONFIG_VERSION: $currentAppVersion")
         println("RESOLVED_APPLICATION_ID: $currentApplicationId")
+        println("CONFIG_APP_NAME: $currentAppName")
+        println("CONFIG_APP_DESCRIPTION: $currentAppDescription")
     }
 }
