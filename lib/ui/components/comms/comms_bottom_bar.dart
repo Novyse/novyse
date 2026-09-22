@@ -26,37 +26,60 @@ class CommsBottomBar extends ConsumerWidget {
     final isConnected = commsState.isRoomMatch(chatUUID, sub);
     final controller = ref.read(commsProvider.notifier);
 
+    final hasError =
+        commsState.errorMessage != null ||
+        commsState.errorMessageBuilder != null;
+
+    Widget errorBanner = Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: StatusMessage(
+        type: StatusMessageType.danger,
+        closable: true,
+        onClose: controller.clearError,
+        content: commsState.errorMessage != null
+            ? [commsState.errorMessage!]
+            : const [],
+        contentBuilders: commsState.errorMessageBuilder != null
+            ? [commsState.errorMessageBuilder!]
+            : null,
+      ),
+    );
+
+    if (isConnected) {
+      return Align(
+        alignment: Alignment.bottomCenter,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 24, left: 12, right: 12),
+          child: IntrinsicWidth(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (hasError) errorBanner,
+                _buildControlBar(context, l10n, ref, commsState, controller),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Align(
       alignment: Alignment.bottomCenter,
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Error banner using StatusMessage
-            if (commsState.errorMessage != null ||
-                commsState.errorMessageBuilder != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: StatusMessage(
-                  type: StatusMessageType.danger,
-                  closable: true,
-                  onClose: controller.clearError,
-                  content: commsState.errorMessage != null
-                      ? [commsState.errorMessage!]
-                      : const [],
-                  contentBuilders: commsState.errorMessageBuilder != null
-                      ? [commsState.errorMessageBuilder!]
-                      : null,
-                ),
+        padding: const EdgeInsets.only(bottom: 24, left: 12, right: 12),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 320),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (hasError) errorBanner,
+              Center(
+                child: _buildJoinButton(context, l10n, commsState, controller),
               ),
-
-            // Connection or Control bar
-            if (!isConnected)
-              _buildJoinButton(context, l10n, commsState, controller)
-            else
-              _buildControlBar(context, l10n, ref, commsState, controller),
-          ],
+            ],
+          ),
         ),
       ),
     );

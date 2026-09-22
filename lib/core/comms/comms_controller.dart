@@ -433,6 +433,12 @@ class CommsNotifier extends Notifier<CommsState> {
     );
   }
 
+  /// Explicitly exit fullscreen (e.g. ESC pressed, tile gone, dispose).
+  void exitFullscreen() {
+    if (state.fullscreenStreamId == null) return;
+    state = state.copyWith(fullscreenStreamId: () => null);
+  }
+
   /// Set volume for a remote participant or track.
   void setRemoteVolume(String id, double volume) {
     final updated = Map<String, double>.from(state.remoteVolumes)

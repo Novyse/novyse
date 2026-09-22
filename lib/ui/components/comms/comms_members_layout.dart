@@ -1,56 +1,173 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
+import 'package:novyse/core/comms/comms_fullscreen.dart';
 import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/comms/comms_user_card.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Responsive grid layout displaying members and screenshares in the vocal room.
-class CommsMembersLayout extends ConsumerWidget {
+class CommsMembersLayout extends ConsumerStatefulWidget {
   final List<CommsTileItem> tiles;
 
   const CommsMembersLayout({super.key, required this.tiles});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CommsMembersLayout> createState() =>
+      _CommsMembersLayoutState();
+}
+
+class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
+  OverlayEntry? _fullscreenOverlay;
+  CommsTileItem? _overlayTile;
+  String? _platformFullscreenId;
+  Object? _webFullscreenToken;
+  bool _syncScheduled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _webFullscreenToken = CommsFullscreen.addFullscreenChangeListener(() {
+      if (!mounted) return;
+      if (!CommsFullscreen.isWebFullscreen) {
+        final current = ref.read(commsProvider).fullscreenStreamId;
+        if (current != null && _platformFullscreenId != null) {
+          _platformFullscreenId = null;
+          _overlayTile = null;
+          ref.read(commsProvider.notifier).exitFullscreen();
+          _hideOverlay();
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    CommsFullscreen.removeFullscreenChangeListener(_webFullscreenToken);
+    _webFullscreenToken = null;
+    _hideOverlay();
+    if (_platformFullscreenId != null) {
+      _platformFullscreenId = null;
+      _overlayTile = null;
+      unawaited(CommsFullscreen.exit());
+    }
+    super.dispose();
+  }
+
+  void _scheduleSync(CommsTileItem? fullscreenTile, String? fullscreenId) {
+    if (_syncScheduled) return;
+    _syncScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncScheduled = false;
+      if (!mounted) return;
+      _syncFullscreen(fullscreenTile, fullscreenId);
+    });
+  }
+
+  void _syncFullscreen(CommsTileItem? fullscreenTile, String? fullscreenId) {
+    if (fullscreenTile != null) {
+      final isNewRequest = _platformFullscreenId != fullscreenTile.id;
+      final tileChanged = _overlayTile != fullscreenTile;
+      if (isNewRequest) {
+        _platformFullscreenId = fullscreenTile.id;
+        _overlayTile = fullscreenTile;
+        unawaited(CommsFullscreen.enter());
+        _showOverlay(fullscreenTile);
+      } else if (tileChanged || _fullscreenOverlay == null) {
+        _overlayTile = fullscreenTile;
+        // Refresh overlay content (speaking / video / mute state).
+        _showOverlay(fullscreenTile);
+      }
+      return;
+    }
+
+    // Requested id exists but tile is gone (leave/unpublish): clear state.
+    if (fullscreenId != null) {
+      _platformFullscreenId = null;
+      _overlayTile = null;
+      unawaited(CommsFullscreen.exit());
+      _hideOverlay();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(commsProvider.notifier).exitFullscreen();
+      });
+      return;
+    }
+
+    // Normal state: ensure OS fullscreen + overlay are gone.
+    if (_platformFullscreenId != null || _fullscreenOverlay != null) {
+      _platformFullscreenId = null;
+      _overlayTile = null;
+      unawaited(CommsFullscreen.exit());
+      _hideOverlay();
+    }
+  }
+
+  void _showOverlay(CommsTileItem tile) {
+    _hideOverlay();
+    try {
+      final overlay = Overlay.maybeOf(context);
+      if (overlay == null) return;
+      final entry = OverlayEntry(
+        builder: (overlayContext) => Material(
+          color: Colors.black,
+          child: Container(
+            color: Colors.black,
+            width: double.infinity,
+            height: double.infinity,
+            child: CommsUserCard(
+              tile: tile,
+              isPinned: ref.read(commsProvider).pinnedStreamId == tile.id,
+              isFullScreen: true,
+              onPin: () =>
+                  ref.read(commsProvider.notifier).togglePin(tile.id),
+              onFullScreen: () =>
+                  ref.read(commsProvider.notifier).exitFullscreen(),
+              onStopShare: tile.trackSid != null
+                  ? () => ref
+                      .read(commsProvider.notifier)
+                      .stopScreenShare(tile.trackSid)
+                  : null,
+            ),
+          ),
+        ),
+      );
+      _fullscreenOverlay = entry;
+      overlay.insert(entry);
+    } catch (_) {}
+  }
+
+  void _hideOverlay() {
+    try {
+      _fullscreenOverlay?.remove();
+    } catch (_) {}
+    _fullscreenOverlay = null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final commsState = ref.watch(commsProvider);
     final fullscreenId = commsState.fullscreenStreamId;
     final pinnedId = commsState.pinnedStreamId;
 
     final controller = ref.read(commsProvider.notifier);
 
-    // If an item is in fullscreen mode, render only that item filling the view
-    if (fullscreenId != null) {
-      final fullscreenTile = tiles
-          .where((t) => t.id == fullscreenId)
-          .firstOrNull;
-      if (fullscreenTile != null) {
-        return Container(
-          color: Colors.black,
-          width: double.infinity,
-          height: double.infinity,
-          child: CommsUserCard(
-            tile: fullscreenTile,
-            isPinned: pinnedId == fullscreenTile.id,
-            isFullScreen: true,
-            onPin: () => controller.togglePin(fullscreenTile.id),
-            onFullScreen: () => controller.toggleFullscreen(fullscreenTile.id),
-            onStopShare: fullscreenTile.trackSid != null
-                ? () => controller.stopScreenShare(fullscreenTile.trackSid)
-                : null,
-          ),
-        );
-      }
-    }
+    final fullscreenTile = fullscreenId == null
+        ? null
+        : widget.tiles.where((t) => t.id == fullscreenId).firstOrNull;
+
+    // Sync OS fullscreen + overlay outside of build.
+    _scheduleSync(fullscreenTile, fullscreenId);
 
     // Filter tiles if a specific stream is pinned
     final activeTiles = (pinnedId != null)
-        ? tiles.where((t) => t.id == pinnedId).toList()
-        : tiles;
+        ? widget.tiles.where((t) => t.id == pinnedId).toList()
+        : widget.tiles;
 
     if (activeTiles.isEmpty) {
       return _buildEmptyState(context);

@@ -96,17 +96,29 @@ class CommsDataNotifier
 
       final localUserUUID = ref.read(userStoreProvider).localUserUUID;
 
-      final tiles = remoteData.participantUserUUIDs.map((uuid) {
-        return CommsTileItem(
-          id: uuid,
-          userUUID: uuid,
-          isScreenShare: false,
-          isLocal: uuid == localUserUUID,
-          videoTrack: null,
-          isSpeaking: false,
-          isMuted: false,
-        );
-      }).toList();
+      final tiles = <CommsTileItem>[
+        for (final uuid in remoteData.participantUserUUIDs)
+          CommsTileItem(
+            id: uuid,
+            userUUID: uuid,
+            isScreenShare: false,
+            isLocal: uuid == localUserUUID,
+            videoTrack: null,
+            isSpeaking: false,
+            isMuted: false,
+          ),
+        for (final share in remoteData.screenShares)
+          CommsTileItem(
+            id: share.trackSid,
+            userUUID: share.ownerUUID,
+            isScreenShare: true,
+            isLocal: share.ownerUUID == localUserUUID,
+            videoTrack: null,
+            trackSid: share.trackSid,
+            isSpeaking: false,
+            isMuted: false,
+          ),
+      ];
 
       state = CommsRoomViewData(
         isConnectedToThisRoom: false,

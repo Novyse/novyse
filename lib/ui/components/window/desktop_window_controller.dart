@@ -102,6 +102,23 @@ abstract final class DesktopWindowController {
     } catch (_) {}
   }
 
+  static bool get isFullscreen {
+    try {
+      return current?.isFullScreen ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static void setFullscreen(bool value) {
+    try {
+      final window = current;
+      if (window == null) return;
+      if (window.isFullScreen == value) return;
+      window.isFullScreen = value;
+    } catch (_) {}
+  }
+
   static int? addMaximizedListener(void Function(bool isMaximized) onChanged) {
     try {
       final windowId = current?.id;

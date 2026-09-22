@@ -106,6 +106,31 @@ class CommsTileItem {
   );
 }
 
+@immutable
+class CommsRemoteScreenShare {
+  /// UUID of the user owning the share.
+  final String ownerUUID;
+
+  /// Server-side track SID identifying this specific share.
+  final String trackSid;
+
+  const CommsRemoteScreenShare({
+    required this.ownerUUID,
+    required this.trackSid,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CommsRemoteScreenShare &&
+          runtimeType == other.runtimeType &&
+          ownerUUID == other.ownerUUID &&
+          trackSid == other.trackSid;
+
+  @override
+  int get hashCode => Object.hash(ownerUUID, trackSid);
+}
+
 /// Data model representing the state of a room fetched from server REST API
 /// (used when the client is NOT connected to this specific room).
 @immutable
@@ -113,9 +138,12 @@ class CommsRoomRemoteData {
   final Map<String, dynamic>? roomInfo;
   final List<String> participantUserUUIDs;
 
+  final List<CommsRemoteScreenShare> screenShares;
+
   const CommsRoomRemoteData({
     this.roomInfo,
     this.participantUserUUIDs = const [],
+    this.screenShares = const [],
   });
 
   factory CommsRoomRemoteData.fromApi(
@@ -130,25 +158,123 @@ class CommsRoomRemoteData {
     }
 
     final userUUIDs = <String>[];
+    final shares = <CommsRemoteScreenShare>[];
+
+    void addParticipant(String uuid) {
+      if (uuid.isNotEmpty && !userUUIDs.contains(uuid)) {
+        userUUIDs.add(uuid);
+      }
+    }
+
     if (rawParticipants is List) {
       for (final p in rawParticipants) {
         if (p is Map) {
-          final identity = (p['identity'] ?? p['userUUID'] ?? '').toString();
+          final identity = _extractRemoteIdentity(p);
           if (identity.isNotEmpty) {
             final uuid = extractUserUUID(identity);
-            if (!userUUIDs.contains(uuid)) {
-              userUUIDs.add(uuid);
+            addParticipant(uuid);
+            for (final sid in _extractScreenShareSids(p)) {
+              final share = CommsRemoteScreenShare(
+                ownerUUID: uuid,
+                trackSid: sid,
+              );
+              if (!shares.contains(share)) {
+                shares.add(share);
+              }
             }
           }
         } else if (p is String && p.isNotEmpty) {
-          final uuid = extractUserUUID(p);
-          if (!userUUIDs.contains(uuid)) {
-            userUUIDs.add(uuid);
-          }
+          addParticipant(extractUserUUID(p));
         }
       }
     }
 
-    return CommsRoomRemoteData(roomInfo: info, participantUserUUIDs: userUUIDs);
+    return CommsRoomRemoteData(
+      roomInfo: info,
+      participantUserUUIDs: userUUIDs,
+      screenShares: shares,
+    );
   }
+}
+
+/// Extracts the participant identity from the various shapes returned by
+/// `GET /comms/room`
+String _extractRemoteIdentity(Map p) {
+  final candidates = <dynamic>[
+    p['identity'],
+    p['userUUID'],
+    p['uuid'],
+    p['user_uuid'],
+  ];
+  for (final c in candidates) {
+    if (c is String && c.isNotEmpty) return c;
+  }
+  // LiveKit-style nested info: { participantInfo: { identity: ... } }
+  final info = p['participantInfo'];
+  if (info is Map) {
+    final nested = info['identity'];
+    if (nested is String && nested.isNotEmpty) return nested;
+  }
+  // Some backends nest under `participant: {...}`.
+  final nestedParticipant = p['participant'];
+  if (nestedParticipant is Map) {
+    return _extractRemoteIdentity(nestedParticipant);
+  }
+  return '';
+}
+
+/// Extracts screen-share track SIDs from a remote participant payload.
+List<String> _extractScreenShareSids(Map p) {
+  final rawTracks = p['tracks'];
+  // Some payloads nest tracks under participantInfo.
+  final nestedInfo = p['participantInfo'];
+  final nestedTracks = nestedInfo is Map ? nestedInfo['tracks'] : null;
+  final trackLists = <dynamic>[rawTracks, nestedTracks];
+
+  final sids = <String>[];
+  for (final trackList in trackLists) {
+    if (trackList is! List) continue;
+    for (final t in trackList) {
+      if (t is! Map) continue;
+      final sid = _extractTrackSid(t);
+      if (sid.isEmpty || sids.contains(sid)) continue;
+      if (_isScreenShareTrack(t)) {
+        sids.add(sid);
+      }
+    }
+  }
+  return sids;
+}
+
+String _extractTrackSid(Map t) {
+  for (final key in ['sid', 'trackSid', 'track_sid', 'id']) {
+    final v = t[key];
+    if (v is String && v.isNotEmpty) return v;
+  }
+  return '';
+}
+
+/// Heuristic matching LiveKit screen-share sources in both string
+/// (`"SCREEN_SHARE"`) and numeric enum forms.
+bool _isScreenShareTrack(Map t) {
+  final source = t['source'];
+  if (source is String) {
+    final normalized = source.toUpperCase();
+    if (normalized.contains('SCREEN')) return true;
+    // livekit_client stringifies as e.g. "screenShareVideo".
+    if (source.toLowerCase().contains('screenshare')) return true;
+  } else if (source is int) {
+    // LiveKit Track.Source enum: CAMERA=1, SCREEN_SHARE=2 (protobuf).
+    // Only treat 2 as screen share to avoid false positives.
+    if (source == 2) return true;
+  }
+  final name = t['name'];
+  if (name is String) {
+    final lower = name.toLowerCase();
+    if (lower.contains('screen') && lower.contains('share')) return true;
+  }
+  final type = t['type'];
+  // Explicit boolean flag used by some backends.
+  if (t['isScreenShare'] == true && type != null) return true;
+  return false;
 }

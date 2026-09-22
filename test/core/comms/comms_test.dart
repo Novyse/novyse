@@ -61,6 +61,50 @@ void main() {
 
       expect(data.roomInfo?['name'], 'chat123_0');
       expect(data.participantUserUUIDs, ['uuid-aaa', 'uuid-bbb', 'uuid-ccc']);
+      expect(data.screenShares, isEmpty);
+    });
+
+    test('CommsRoomRemoteData.fromApi extracts screen shares from tracks',
+        () {
+      final rawParticipants = [
+        {
+          'identity': 'uuid-aaa_session1',
+          'tracks': [
+            {'sid': 'sid-cam-1', 'source': 'CAMERA'},
+            {'sid': 'sid-share-1', 'source': 'SCREEN_SHARE'},
+          ],
+        },
+        {
+          'identity': 'uuid-bbb_session2',
+          'tracks': [
+            {'sid': 'sid-share-2', 'source': 'screenShareVideo'},
+          ],
+        },
+        {'identity': 'uuid-ccc_session3', 'tracks': []},
+      ];
+
+      final data = CommsRoomRemoteData.fromApi(null, rawParticipants);
+
+      expect(data.participantUserUUIDs, ['uuid-aaa', 'uuid-bbb', 'uuid-ccc']);
+      expect(data.screenShares.length, 2);
+      expect(
+        data.screenShares,
+        contains(
+          const CommsRemoteScreenShare(
+            ownerUUID: 'uuid-aaa',
+            trackSid: 'sid-share-1',
+          ),
+        ),
+      );
+      expect(
+        data.screenShares,
+        contains(
+          const CommsRemoteScreenShare(
+            ownerUUID: 'uuid-bbb',
+            trackSid: 'sid-share-2',
+          ),
+        ),
+      );
     });
   });
 
