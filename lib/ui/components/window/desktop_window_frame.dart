@@ -1,19 +1,10 @@
-import 'dart:io' show Platform;
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
-import 'package:novyse/core/utils/platform.dart';
+import 'package:nativeapi/nativeapi.dart' hide Image;
 import 'package:novyse/ui/components/huge_icon.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:novyse/ui/components/window/desktop_window_controller.dart';
+import 'package:novyse/ui/components/window/window_style.dart';
 
-bool get showCustomTitleBar {
-  if (kIsWeb) return false;
-  try {
-    if (Platform.environment.containsKey('FLUTTER_TEST')) return false;
-  } catch (_) {}
-  return currentPlatform == AppPlatform.desktop;
-}
+bool get showCustomTitleBar => DesktopWindowController.isCustomChromeEnabled;
 
 class DesktopWindowFrame extends StatelessWidget {
   const DesktopWindowFrame({super.key, required this.child});
@@ -23,11 +14,15 @@ class DesktopWindowFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!showCustomTitleBar) return child;
-    return Column(
-      children: [
-        const CustomTitleBar(),
-        Expanded(child: child),
-      ],
+    final style = WindowChromeStyle.resolve();
+    return DragToResizeArea(
+      resizeEdgeSize: style.resizeEdgeSize,
+      child: Column(
+        children: [
+          const CustomTitleBar(),
+          Expanded(child: child),
+        ],
+      ),
     );
   }
 }
@@ -39,87 +34,79 @@ class CustomTitleBar extends StatefulWidget {
   State<CustomTitleBar> createState() => _CustomTitleBarState();
 }
 
-class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
+class _CustomTitleBarState extends State<CustomTitleBar> {
   bool _isMaximized = false;
+  int? _listenerId;
 
   @override
   void initState() {
     super.initState();
-    windowManager.addListener(this);
-    _refreshMaximized();
+    _isMaximized = DesktopWindowController.isMaximized;
+    _listenerId = DesktopWindowController.addMaximizedListener((maximized) {
+      if (mounted && maximized != _isMaximized) {
+        setState(() => _isMaximized = maximized);
+      }
+    });
   }
 
   @override
   void dispose() {
-    windowManager.removeListener(this);
+    DesktopWindowController.removeMaximizedListener(_listenerId);
     super.dispose();
   }
 
-  Future<void> _refreshMaximized() async {
-    try {
-      final maximized = await windowManager.isMaximized();
-      if (mounted && maximized != _isMaximized) {
-        setState(() => _isMaximized = maximized);
-      }
-    } catch (_) {}
+  void _syncMaximized() {
+    final maximized = DesktopWindowController.isMaximized;
+    if (mounted && maximized != _isMaximized) {
+      setState(() => _isMaximized = maximized);
+    }
   }
 
-  @override
-  void onWindowMaximize() => setState(() => _isMaximized = true);
+  void _onMinimize() => DesktopWindowController.minimize();
 
-  @override
-  void onWindowUnmaximize() => setState(() => _isMaximized = false);
-
-  Future<void> _onMinimize() async {
-    try {
-      await windowManager.minimize();
-    } catch (_) {}
+  void _onMaximizeToggle() {
+    DesktopWindowController.toggleMaximize(maximized: _isMaximized);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncMaximized());
   }
 
-  Future<void> _onMaximizeToggle() async {
-    try {
-      if (_isMaximized) {
-        await windowManager.unmaximize();
-      } else {
-        await windowManager.maximize();
-      }
-    } catch (_) {}
-  }
-
-  Future<void> _onClose() async {
-    try {
-      await windowManager.close();
-    } catch (_) {}
-  }
+  void _onClose() => DesktopWindowController.close();
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final background = scheme.surface;
+    final style = WindowChromeStyle.resolve();
+    final colors = WindowChromeColors.fromScheme(
+      Theme.of(context).colorScheme,
+      style,
+    );
     return Container(
-      height: 40,
-      decoration: BoxDecoration(color: background),
+      height: style.titleBarHeight,
+      decoration: BoxDecoration(color: colors.titleBarBackground),
       child: Row(
         children: [
           Expanded(
             child: DragToMoveArea(
               child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
                 onDoubleTap: _onMaximizeToggle,
+                onPanStart: (_) =>
+                    DesktopWindowController.startDragging(),
                 child: Container(
-                  height: 40,
-                  padding: const EdgeInsets.only(left: 8),
+                  height: style.titleBarHeight,
+                  padding: EdgeInsets.only(
+                    left: style.titleBarPaddingLeft,
+                  ),
                   alignment: Alignment.centerLeft,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Image.asset(
-                        'assets/images/novyse-icon-logo.png',
-                        width: 40,
-                        height: 40,
+                        WindowDefaults.logoAsset,
+                        width: style.logoSize,
+                        height: style.logoSize,
                         errorBuilder: (_, _, _) => AppHugeIcon(
-                          icon: HugeIcons.strokeRoundedChat01,
-                          size: 24,
-                          color: scheme.primary,
+                          icon: WindowButtonStyle.logoFallbackIcon,
+                          size: style.logoSize * 0.6,
+                          color: colors.logoFallbackColor,
                         ),
                       ),
                     ],
@@ -129,23 +116,25 @@ class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
             ),
           ),
           _WindowButton(
-            icon: HugeIcons.strokeRoundedMinusSign,
-            tooltip: 'Riduci a icona',
+            icon: WindowButtonStyle.minimizeIcon,
+            tooltip: WindowButtonStyle.minimizeTooltip,
             onPressed: _onMinimize,
           ),
           _WindowButton(
             icon: _isMaximized
-                ? HugeIcons.strokeRoundedCopy01
-                : HugeIcons.strokeRoundedSquare,
-            tooltip: _isMaximized ? 'Ripristina' : 'Ingrandisci',
+                ? WindowButtonStyle.restoreIcon
+                : WindowButtonStyle.maximizeIcon,
+            tooltip: _isMaximized
+                ? WindowButtonStyle.restoreTooltip
+                : WindowButtonStyle.maximizeTooltip,
             onPressed: _onMaximizeToggle,
           ),
           _WindowButton(
-            icon: HugeIcons.strokeRoundedCancel01,
-            tooltip: 'Chiudi',
+            icon: WindowButtonStyle.closeIcon,
+            tooltip: WindowButtonStyle.closeTooltip,
             onPressed: _onClose,
-            hoverColor: const Color(0xFFE81123),
-            hoverIconColor: Colors.white,
+            hoverColor: style.closeHoverColor,
+            hoverIconColor: style.closeHoverIconColor,
           ),
         ],
       ),
@@ -177,13 +166,17 @@ class _WindowButtonState extends State<_WindowButton> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final style = WindowChromeStyle.resolve();
+    final colors = WindowChromeColors.fromScheme(
+      Theme.of(context).colorScheme,
+      style,
+    );
     final bg = _hovered
-        ? (widget.hoverColor ?? scheme.primary.withValues(alpha: 0.12))
+        ? (widget.hoverColor ?? colors.buttonHoverBackground)
         : Colors.transparent;
     final iconColor = _hovered && widget.hoverIconColor != null
         ? widget.hoverIconColor!
-        : scheme.onSurface.withValues(alpha: 0.85);
+        : colors.iconColor;
     return Semantics(
       label: widget.tooltip,
       button: true,
@@ -194,16 +187,16 @@ class _WindowButtonState extends State<_WindowButton> {
           behavior: HitTestBehavior.opaque,
           onTap: widget.onPressed,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            width: 46,
-            height: 40,
+            duration: style.buttonAnimation,
+            width: style.buttonWidth,
+            height: style.buttonHeight,
             color: bg,
             alignment: Alignment.center,
             child: AppHugeIcon(
               icon: widget.icon,
-              size: 18,
+              size: style.iconSize,
               color: iconColor,
-              strokeWidth: 1.8,
+              strokeWidth: style.iconStrokeWidth,
             ),
           ),
         ),

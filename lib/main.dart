@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -15,30 +13,16 @@ import 'package:novyse/core/notifications/notification_binder.dart';
 import 'package:novyse/core/notifications/notification_manager.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_recents_store.dart';
+import 'package:novyse/ui/components/window/desktop_window_controller.dart';
 import 'package:novyse/ui/components/window/desktop_window_frame.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:window_manager/window_manager.dart';
 
 import 'core/auth/onboarding_manager.dart';
 import 'core/router/router.dart';
 import 'core/themes/themes.dart';
 
 Future<void> _initDesktopWindow() async {
-  if (kIsWeb) return;
-  if (!(Platform.isWindows || Platform.isLinux || Platform.isMacOS)) return;
-  try {
-    await windowManager.ensureInitialized();
-    const options = WindowOptions(
-      size: Size(1280, 720),
-      minimumSize: Size(360, 600),
-      center: true,
-      titleBarStyle: TitleBarStyle.hidden,
-    );
-    await windowManager.waitUntilReadyToShow(options, () async {
-      await windowManager.show();
-      await windowManager.focus();
-    });
-  } catch (_) {}
+  await DesktopWindowController.init();
 }
 
 Future<void> _initFirebase() async {
