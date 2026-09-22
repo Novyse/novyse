@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:novyse/core/auth/onboarding_manager.dart';
 import 'package:novyse/core/chat/queue/queue_manager.dart';
+import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/notifications/local_notification_service.dart';
-import 'package:novyse/core/router/navigator_keys.dart';
 import 'package:novyse/core/services/api_gateway.dart';
-import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/core/storage/database/database.dart';
 
 abstract final class NotificationActionIds {
   static const reply = 'reply';
@@ -22,7 +22,29 @@ class NotificationActions {
     required int subID,
     required String messageId,
   }) async {
-    // TODO: call Gateway.instance.message.read + local DB update.
+    if (chatUUID.isEmpty || messageId.isEmpty) return;
+    try {
+      final res = await Gateway.instance.message.read(
+        chatUUID,
+        subID,
+        messageId,
+      );
+      if (res.success) {
+        if (!AppDatabase.instance.isOpen) {
+          await AppDatabase.instance.initialize();
+        }
+        await GlobalEventEmitter.instance.message.update(
+          chatUUID,
+          subID,
+          messageId,
+          'read',
+          res.chatEventID,
+          {'userUUID': res.userUUID, 'readAt': res.readAt},
+        );
+      }
+    } catch (e) {
+      debugPrint('[NotificationActions] markAsRead failed: $e');
+    }
   }
 
   /// Send a quick reply from a notification
@@ -34,36 +56,33 @@ class NotificationActions {
     final content = text.trim();
     if (content.isEmpty || chatUUID.isEmpty) return;
 
+    if (!AppDatabase.instance.isOpen) {
+      await AppDatabase.instance.initialize();
+    }
+    final userUUID = await onboardingManager.getUserUUID() ?? '';
     var sent = false;
 
     try {
-      final context = rootNavigatorKey.currentContext;
-      if (context != null) {
-        final container = ProviderScope.containerOf(context, listen: false);
-        final localUserUUID = container.read(userStoreProvider).localUserUUID;
-        final tempId = DateTime.now().millisecondsSinceEpoch.toString();
-        final now = DateTime.now().toUtc().toIso8601String();
-
-        await container.read(queueManagerProvider).addOutgoingMessageJob(
-          id: tempId,
-          chatUUID: chatUUID,
-          subID: subID,
-          message: {
-            'id': tempId,
-            'chatUUID': chatUUID,
-            'subID': subID,
-            'senderUUID': localUserUUID,
-            'userUUID': localUserUUID,
-            'content': content,
-            'type': 'message',
-            'createdAt': now,
-            'status': 'PENDING_SEND',
-          },
-        );
-        sent = true;
-      }
-    } catch (e, st) {
-      debugPrint('[NotificationActions] queue reply failed: $e\n$st');
+      final tempId = DateTime.now().millisecondsSinceEpoch.toString();
+      await QueueManager.instance.addOutgoingMessageJob(
+        id: tempId,
+        chatUUID: chatUUID,
+        subID: subID,
+        message: {
+          'id': tempId,
+          'chatUUID': chatUUID,
+          'subID': subID,
+          'senderUUID': userUUID,
+          'userUUID': userUUID,
+          'content': content,
+          'type': 'message',
+          'createdAt': DateTime.now().toUtc().toIso8601String(),
+          'status': 'PENDING_SEND',
+        },
+      );
+      sent = true;
+    } catch (e) {
+      debugPrint('[NotificationActions] queue reply failed: $e');
     }
 
     if (!sent) {
@@ -74,8 +93,16 @@ class NotificationActions {
           content: content,
         );
         sent = res.success;
-      } catch (e, st) {
-        debugPrint('[NotificationActions] gateway reply failed: $e\n$st');
+        if (sent && res.message != null) {
+          await GlobalEventEmitter.instance.message.add({
+            ...res.message!,
+            'chatUUID': chatUUID,
+            'subID': subID,
+            'status': 'sent',
+          });
+        }
+      } catch (e) {
+        debugPrint('[NotificationActions] gateway reply failed: $e');
       }
     }
 
