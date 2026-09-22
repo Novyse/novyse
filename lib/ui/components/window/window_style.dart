@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/utils/platform.dart';
 
 abstract final class WindowDefaults {
@@ -7,6 +8,8 @@ abstract final class WindowDefaults {
   static const minimumSize = Size(360, 600);
 
   static const logoAsset = 'assets/images/novyse-icon-logo.png';
+
+  static const trayIconAsset = 'assets/images/tray_icon.png';
 }
 
 @immutable
@@ -111,10 +114,10 @@ abstract final class WindowButtonStyle {
   static const closeIcon = HugeIcons.strokeRoundedCancel01;
   static const logoFallbackIcon = HugeIcons.strokeRoundedChat01;
 
-  static const minimizeTooltip = 'Riduci a icona';
-  static const maximizeTooltip = 'Ingrandisci';
-  static const restoreTooltip = 'Ripristina';
-  static const closeTooltip = 'Chiudi';
+  static String minimizeTooltip(AppLocalizations l10n) => l10n.windowMinimize;
+  static String maximizeTooltip(AppLocalizations l10n) => l10n.windowMaximize;
+  static String restoreTooltip(AppLocalizations l10n) => l10n.windowRestore;
+  static String closeTooltip(AppLocalizations l10n) => l10n.windowClose;
 }
 
 @immutable

@@ -673,5 +673,11 @@
   },
   "notifMarkAsRead": "Mark as read",
   "notifReplyPlaceholder": "Type a message...",
-  "notifReplySend": "Send"
+  "notifReplySend": "Send",
+  "windowMinimize": "Minimize",
+  "windowMaximize": "Maximize",
+  "windowRestore": "Restore",
+  "windowClose": "Close",
+  "trayOpen": "Open",
+  "trayClose": "Close"
 }

@@ -13,6 +13,7 @@ import 'package:novyse/core/notifications/notification_binder.dart';
 import 'package:novyse/core/notifications/notification_manager.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_recents_store.dart';
+import 'package:novyse/ui/components/window/desktop_tray_controller.dart';
 import 'package:novyse/ui/components/window/desktop_window_controller.dart';
 import 'package:novyse/ui/components/window/desktop_window_frame.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,6 +24,7 @@ import 'core/themes/themes.dart';
 
 Future<void> _initDesktopWindow() async {
   await DesktopWindowController.init();
+  await DesktopTrayController.init();
 }
 
 Future<void> _initFirebase() async {

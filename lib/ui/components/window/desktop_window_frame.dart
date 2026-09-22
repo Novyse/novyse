@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nativeapi/nativeapi.dart' hide Image;
+import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/window/desktop_window_controller.dart';
 import 'package:novyse/ui/components/window/window_style.dart';
@@ -69,7 +70,7 @@ class _CustomTitleBarState extends State<CustomTitleBar> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _syncMaximized());
   }
 
-  void _onClose() => DesktopWindowController.close();
+  void _onClose() => DesktopWindowController.close(hideToTray: true);
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +118,7 @@ class _CustomTitleBarState extends State<CustomTitleBar> {
           ),
           _WindowButton(
             icon: WindowButtonStyle.minimizeIcon,
-            tooltip: WindowButtonStyle.minimizeTooltip,
+            tooltip: WindowButtonStyle.minimizeTooltip(context.l10n),
             onPressed: _onMinimize,
           ),
           _WindowButton(
@@ -125,13 +126,13 @@ class _CustomTitleBarState extends State<CustomTitleBar> {
                 ? WindowButtonStyle.restoreIcon
                 : WindowButtonStyle.maximizeIcon,
             tooltip: _isMaximized
-                ? WindowButtonStyle.restoreTooltip
-                : WindowButtonStyle.maximizeTooltip,
+                ? WindowButtonStyle.restoreTooltip(context.l10n)
+                : WindowButtonStyle.maximizeTooltip(context.l10n),
             onPressed: _onMaximizeToggle,
           ),
           _WindowButton(
             icon: WindowButtonStyle.closeIcon,
-            tooltip: WindowButtonStyle.closeTooltip,
+            tooltip: WindowButtonStyle.closeTooltip(context.l10n),
             onPressed: _onClose,
             hoverColor: style.closeHoverColor,
             hoverIconColor: style.closeHoverIconColor,

@@ -80,6 +80,22 @@ abstract final class DesktopWindowController {
     } catch (_) {}
   }
 
+  static void showWindow() {
+    try {
+      final window = current;
+      if (window == null) return;
+      if (!window.isVisible) window.show();
+      if (window.isMinimized) window.restore();
+      window.focus();
+    } catch (_) {}
+  }
+
+  static void quitApp() {
+    try {
+      Application.instance.quit(0);
+    } catch (_) {}
+  }
+
   static void startDragging() {
     try {
       current?.startDragging();
