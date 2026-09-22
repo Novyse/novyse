@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:novyse/core/events/global_event_emitter.dart';
+import 'package:novyse/core/notifications/notification_bridge.dart';
 import 'package:novyse/core/notifications/notification_manager.dart';
 import 'package:novyse/core/router/router.dart';
 import 'package:novyse/core/services/socket_service.dart';
@@ -34,11 +35,13 @@ class _NotificationBinderState extends ConsumerState<NotificationBinder>
     _onMessageNew = (data) {
       if (data is! Map) return;
       final message = Map<String, dynamic>.from(data);
-      unawaited(
-        NotificationManager.instance.handleInboundMessage(message),
-      );
+      unawaited(NotificationManager.instance.handleInboundMessage(message));
     };
     GlobalEventEmitter.instance.on('message:new', _onMessageNew!);
+
+    NotificationBridge.registerReceiver((message) async {
+      await GlobalEventEmitter.instance.message.add(message);
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_bootstrap());
@@ -145,6 +148,7 @@ class _NotificationBinderState extends ConsumerState<NotificationBinder>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    NotificationBridge.unregister();
     if (_onMessageNew != null) {
       GlobalEventEmitter.instance.off('message:new', _onMessageNew!);
     }

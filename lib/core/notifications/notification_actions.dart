@@ -4,6 +4,7 @@ import 'package:novyse/core/auth/onboarding_manager.dart';
 import 'package:novyse/core/chat/queue/queue_manager.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/notifications/local_notification_service.dart';
+import 'package:novyse/core/notifications/notification_bridge.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/storage/database/database.dart';
 
@@ -64,21 +65,23 @@ class NotificationActions {
 
     try {
       final tempId = DateTime.now().millisecondsSinceEpoch.toString();
+      final message = {
+        'id': tempId,
+        'chatUUID': chatUUID,
+        'subID': subID,
+        'senderUUID': userUUID,
+        'userUUID': userUUID,
+        'content': content,
+        'type': 'message',
+        'createdAt': DateTime.now().toUtc().toIso8601String(),
+        'status': 'PENDING_SEND',
+        NotificationBridge.viaNotificationKey: true,
+      };
       await QueueManager.instance.addOutgoingMessageJob(
         id: tempId,
         chatUUID: chatUUID,
         subID: subID,
-        message: {
-          'id': tempId,
-          'chatUUID': chatUUID,
-          'subID': subID,
-          'senderUUID': userUUID,
-          'userUUID': userUUID,
-          'content': content,
-          'type': 'message',
-          'createdAt': DateTime.now().toUtc().toIso8601String(),
-          'status': 'PENDING_SEND',
-        },
+        message: message,
       );
       sent = true;
     } catch (e) {
@@ -94,12 +97,15 @@ class NotificationActions {
         );
         sent = res.success;
         if (sent && res.message != null) {
-          await GlobalEventEmitter.instance.message.add({
+          final confirmed = {
             ...res.message!,
             'chatUUID': chatUUID,
             'subID': subID,
             'status': 'sent',
-          });
+            NotificationBridge.viaNotificationKey: true,
+          };
+          await GlobalEventEmitter.instance.message.add(confirmed);
+          NotificationBridge.forwardMessage(confirmed);
         }
       } catch (e) {
         debugPrint('[NotificationActions] gateway reply failed: $e');

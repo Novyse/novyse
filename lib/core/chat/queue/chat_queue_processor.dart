@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:novyse/core/chat/queue/queue_job.dart';
 import 'package:novyse/core/chat/queue/queue_manager.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
+import 'package:novyse/core/notifications/notification_bridge.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/storage/database/database.dart';
 import 'package:novyse/core/storage/file/file.dart';
@@ -549,6 +550,12 @@ class ChatQueueProcessor {
         );
       }
       await GlobalEventEmitter.instance.message.add(serverMessage);
+
+      // Forward message to NotificationBridge if it originated from a notification
+      if (message[NotificationBridge.viaNotificationKey] == true) {
+        serverMessage[NotificationBridge.viaNotificationKey] = true;
+        NotificationBridge.forwardMessage(serverMessage);
+      }
     } catch (e) {
       rethrow;
     }
