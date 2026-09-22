@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -35,7 +36,64 @@ class CommsUserCard extends ConsumerStatefulWidget {
 }
 
 class _CommsUserCardState extends ConsumerState<CommsUserCard> {
+  static const _autoHideDuration = Duration(seconds: 3);
+
   bool _isHovered = false;
+
+  bool _overlayUiVisible = true;
+  Timer? _autoHideTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isFullScreen) _scheduleAutoHide();
+  }
+
+  @override
+  void didUpdateWidget(covariant CommsUserCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isFullScreen != oldWidget.isFullScreen) {
+      _showOverlayUi();
+      if (!widget.isFullScreen) _cancelAutoHide();
+    }
+  }
+
+  @override
+  void dispose() {
+    _cancelAutoHide();
+    super.dispose();
+  }
+
+  void _scheduleAutoHide() {
+    if (!widget.isFullScreen) return;
+    _cancelAutoHide();
+    _autoHideTimer = Timer(_autoHideDuration, () {
+      if (mounted && widget.isFullScreen) {
+        setState(() => _overlayUiVisible = false);
+      }
+    });
+  }
+
+  void _cancelAutoHide() {
+    _autoHideTimer?.cancel();
+    _autoHideTimer = null;
+  }
+
+  void _showOverlayUi() {
+    if (!mounted) return;
+    setState(() => _overlayUiVisible = true);
+    _scheduleAutoHide();
+  }
+
+  void _onCardTap() {
+    if (!widget.isFullScreen) return;
+    if (_overlayUiVisible) {
+      setState(() => _overlayUiVisible = false);
+      _cancelAutoHide();
+    } else {
+      _showOverlayUi();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,10 +119,23 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
     final hasVideo = tile.hasActiveVideo && tile.videoTrack != null;
     final isSpeaking = tile.isSpeaking && !tile.isScreenShare;
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: AnimatedContainer(
+    final controlsOpacity = widget.isFullScreen
+        ? (_overlayUiVisible ? 1.0 : 0.0)
+        : ((_isHovered || widget.isPinned) ? 1.0 : 0.0);
+
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: widget.isFullScreen ? _onCardTap : null,
+      child: MouseRegion(
+        onEnter: (_) {
+          setState(() => _isHovered = true);
+          if (widget.isFullScreen) _showOverlayUi();
+        },
+        onHover: (_) {
+          if (widget.isFullScreen) _showOverlayUi();
+        },
+        onExit: (_) => setState(() => _isHovered = false),
+        child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(widget.isFullScreen ? 0 : 20),
@@ -100,9 +171,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
               top: 8,
               right: 8,
               child: AnimatedOpacity(
-                opacity: (_isHovered || widget.isPinned || widget.isFullScreen)
-                    ? 1.0
-                    : 0.0,
+                opacity: controlsOpacity,
                 duration: const Duration(milliseconds: 150),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
@@ -176,47 +245,52 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
             Positioned(
               left: 10,
               bottom: 10,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                  child: Container(
-                    color: Colors.black.withValues(alpha: 0.45),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (tile.isScreenShare) ...[
-                          const Icon(
-                            Icons.screen_share_rounded,
-                            size: 14,
-                            color: Colors.white70,
-                          ),
-                          const SizedBox(width: 5),
-                        ],
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 160),
-                          child: Text(
-                            labelText,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+              child: AnimatedOpacity(
+                opacity: widget.isFullScreen ? controlsOpacity : 1.0,
+                duration: const Duration(milliseconds: 150),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.45),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (tile.isScreenShare) ...[
+                            const Icon(
+                              Icons.screen_share_rounded,
+                              size: 14,
+                              color: Colors.white70,
+                            ),
+                            const SizedBox(width: 5),
+                          ],
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 160),
+                            child: Text(
+                              labelText,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ],
+        ),
         ),
       ),
     );

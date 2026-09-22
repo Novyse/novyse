@@ -18,8 +18,7 @@ class CommsMembersLayout extends ConsumerStatefulWidget {
   const CommsMembersLayout({super.key, required this.tiles});
 
   @override
-  ConsumerState<CommsMembersLayout> createState() =>
-      _CommsMembersLayoutState();
+  ConsumerState<CommsMembersLayout> createState() => _CommsMembersLayoutState();
 }
 
 class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
@@ -111,9 +110,16 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
   void _showOverlay(CommsTileItem tile) {
     _hideOverlay();
     try {
-      final overlay = Overlay.maybeOf(context);
+      OverlayState? overlay;
+      try {
+        overlay = Overlay.of(context, rootOverlay: true);
+      } catch (_) {
+        overlay = Overlay.maybeOf(context);
+      }
       if (overlay == null) return;
       final entry = OverlayEntry(
+        opaque: true,
+        maintainState: false,
         builder: (overlayContext) => Material(
           color: Colors.black,
           child: Container(
@@ -124,14 +130,13 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
               tile: tile,
               isPinned: ref.read(commsProvider).pinnedStreamId == tile.id,
               isFullScreen: true,
-              onPin: () =>
-                  ref.read(commsProvider.notifier).togglePin(tile.id),
+              onPin: () => ref.read(commsProvider.notifier).togglePin(tile.id),
               onFullScreen: () =>
                   ref.read(commsProvider.notifier).exitFullscreen(),
               onStopShare: tile.trackSid != null
                   ? () => ref
-                      .read(commsProvider.notifier)
-                      .stopScreenShare(tile.trackSid)
+                        .read(commsProvider.notifier)
+                        .stopScreenShare(tile.trackSid)
                   : null,
             ),
           ),
