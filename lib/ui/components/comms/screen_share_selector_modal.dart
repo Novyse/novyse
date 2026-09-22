@@ -158,8 +158,9 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
               const SizedBox(height: 16),
 
               // Segmented switch for Screen / Window
-              Center(
-                child: SegmentedButton<ScreenShareType>(
+              if (!ScreenShareSelectorModal.hasNativePicker)
+                Center(
+                  child: SegmentedButton<ScreenShareType>(
                   segments: [
                     ButtonSegment(
                       value: ScreenShareType.screen,
@@ -203,25 +204,12 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                _selectedType == ScreenShareType.screen
-                                    ? Icons.monitor_rounded
-                                    : Icons.window_rounded,
+                              const Icon(
+                                Icons.screen_share_rounded,
                                 size: 56,
                                 color: AppColors.primary,
                               ),
                               const SizedBox(height: 16),
-                              Text(
-                                _selectedType == ScreenShareType.screen
-                                    ? l10n.screenShareEntireScreenTitle
-                                    : l10n.screenShareWindowSharingTitle,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
                               Text(
                                 l10n.screenShareNativePickerNotice,
                                 textAlign: TextAlign.center,
@@ -333,7 +321,8 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
               const SizedBox(height: 12),
 
               // Audio toggle row (only for full screens)
-              if (_selectedType == ScreenShareType.screen)
+              if (_selectedType == ScreenShareType.screen ||
+                  ScreenShareSelectorModal.hasNativePicker)
                 Row(
                   children: [
                     Checkbox(
