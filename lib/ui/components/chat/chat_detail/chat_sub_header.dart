@@ -22,14 +22,14 @@ class ChatSubHeader extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(10),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
             color: colorScheme.surface.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: colorScheme.outline.withValues(alpha: 0.25),
             ),

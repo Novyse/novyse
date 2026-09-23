@@ -19,7 +19,7 @@ import 'package:novyse/ui/components/chat/join_or_create_chat_modal.dart';
 import 'package:novyse/ui/components/status/global_status_bar.dart';
 
 const _statusBarPadding = EdgeInsets.symmetric(horizontal: 4, vertical: 4);
-const _floatingPillSpacing = 8.0;
+const _floatingPillSpacing = 12.0;
 
 class ChatListPage extends ConsumerStatefulWidget {
   const ChatListPage({super.key});
@@ -225,7 +225,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
           children: [
             CustomScrollView(
               slivers: [
-                SliverToBoxAdapter(child: SizedBox(height: topInset + 68)),
+                SliverToBoxAdapter(child: SizedBox(height: topInset + 72)),
                 if (chatListState.loading && chats.isEmpty)
                   const SliverFillRemaining(
                     hasScrollBody: false,

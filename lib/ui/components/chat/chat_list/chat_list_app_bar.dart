@@ -27,7 +27,7 @@ class ChatListAppBar extends StatelessWidget {
   final VoidCallback onCloseSearch;
   final VoidCallback onNewChat;
 
-  static const _pillSpacing = 8.0;
+  static const _pillSpacing = 12.0;
 
   Widget _pill({
     required ColorScheme scheme,
@@ -135,14 +135,6 @@ class ChatListAppBar extends StatelessWidget {
       );
     }
 
-    return ProgressiveOpacityBackground(
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-          child: content,
-        ),
-      ),
-    );
+    return ProgressiveOpacityBackground(child: content);
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -10,6 +11,7 @@ import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/favorite_messages_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/pages/app/chat_routes.dart';
+import 'package:novyse/ui/components/chat/chat_favorites/chat_favorites_app_bar.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Favorites (Preferiti / Favorite messages) for a single chat.
@@ -75,61 +77,74 @@ class _ChatFavoritesPageState extends ConsumerState<ChatFavoritesPage> {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final state = ref.watch(favoriteMessagesProvider(widget.chatUUID));
+    final topInset = MediaQuery.paddingOf(context).top;
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-        title: Text(l10n.favoriteMessages),
-      ),
-      body: Builder(
-        builder: (context) {
-          if (state.loading && state.favorites.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state.favorites.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.star_border,
-                    size: 44,
-                    color: colorScheme.onSurfaceVariant,
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          Builder(
+            builder: (context) {
+              if (state.loading && state.favorites.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (state.favorites.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.star_border,
+                        size: 44,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.noFavoriteMessages,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.noFavoriteMessages,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-          return RefreshIndicator(
-            onRefresh: () => ref
-                .read(favoriteMessagesProvider(widget.chatUUID).notifier)
-                .reload(),
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-              itemCount: state.favorites.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                final message = state.favorites[index];
-                return _FavoriteRow(
-                  message: message,
-                  onToggle: () => _toggleFavorite(message),
-                  onTap: () => _openMessage(message),
                 );
-              },
+              }
+              return RefreshIndicator(
+                onRefresh: () => ref
+                    .read(favoriteMessagesProvider(widget.chatUUID).notifier)
+                    .reload(),
+                child: ListView.separated(
+                  padding: EdgeInsets.fromLTRB(16, topInset + 72 + 12, 16, 32),
+                  itemCount: state.favorites.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final message = state.favorites[index];
+                    return _FavoriteRow(
+                      message: message,
+                      onToggle: () => _toggleFavorite(message),
+                      onTap: () => _openMessage(message),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: AnnotatedRegion<SystemUiOverlayStyle>(
+              value: colorScheme.brightness == Brightness.dark
+                  ? SystemUiOverlayStyle.light
+                  : SystemUiOverlayStyle.dark,
+              child: ChatFavoritesAppBar(
+                title: l10n.favoriteMessages,
+                onBack: () => Navigator.of(context).maybePop(),
+              ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -183,10 +198,7 @@ class _FavoriteRow extends StatelessWidget {
         ),
         subtitle: Text(
           subtitleText,
-          style: TextStyle(
-            fontSize: 12,
-            color: colorScheme.onSurfaceVariant,
-          ),
+          style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
         ),
         trailing: IconButton(
           tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,

@@ -487,7 +487,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
                 selectedSub: selectedSub,
                 isCollapsed: subListCollapsed,
                 width: subListWidth,
-                topPadding: 72,
+                topPadding: 76,
               ),
               if (wideLayout)
                 SubListResizeHandle(

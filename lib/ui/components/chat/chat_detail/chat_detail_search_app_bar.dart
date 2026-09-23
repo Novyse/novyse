@@ -30,7 +30,7 @@ class ChatDetailSearchAppBar extends StatelessWidget {
   final VoidCallback onPrevious;
   final Widget? bottom;
 
-  static const _pillSpacing = 8.0;
+  static const _pillSpacing = 12.0;
 
   Widget _pill({
     required ColorScheme scheme,
@@ -152,19 +152,13 @@ class ChatDetailSearchAppBar extends StatelessWidget {
     );
 
     return ProgressiveOpacityBackground(
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              content,
-              if (bottom != null) ...[const SizedBox(height: 8), bottom!],
-            ],
-          ),
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          content,
+          if (bottom != null) ...[const SizedBox(height: 12), bottom!],
+        ],
       ),
     );
   }

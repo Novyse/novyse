@@ -17,12 +17,17 @@ import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/chat/chat_list_item.dart';
+import 'package:novyse/ui/components/chat/chat_overview/chat_overview_app_bar.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 enum _OverviewTab { members, media, files, links, music, voice, gifs }
 
 class ChatOverviewPage extends ConsumerStatefulWidget {
-  const ChatOverviewPage({super.key, required this.chatUUID, required this.subID});
+  const ChatOverviewPage({
+    super.key,
+    required this.chatUUID,
+    required this.subID,
+  });
 
   final String chatUUID;
   final int subID;
@@ -59,10 +64,8 @@ class _ChatOverviewPageState extends ConsumerState<ChatOverviewPage> {
         try {
           ref
               .read(
-                chatMessagesProvider((
-                  chatUUID: widget.chatUUID,
-                  subID: subID,
-                )).notifier,
+                chatMessagesProvider((chatUUID: widget.chatUUID, subID: subID))
+                    .notifier,
               )
               .init();
         } catch (_) {}
@@ -77,15 +80,40 @@ class _ChatOverviewPageState extends ConsumerState<ChatOverviewPage> {
     final colorScheme = Theme.of(context).colorScheme;
 
     if (chat == null) {
+      final topInset = MediaQuery.paddingOf(context).top;
       return Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
-            onPressed: () => Navigator.of(context).maybePop(),
-          ),
-          title: Text(l10n.chatNotFound),
+        extendBodyBehindAppBar: true,
+        body: Stack(
+          children: [
+            Padding(
+              padding: EdgeInsets.only(top: topInset + 72),
+              child: Center(
+                child: Text(l10n.chatNotFoundWithId(widget.chatUUID)),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: AnnotatedRegion<SystemUiOverlayStyle>(
+                value: colorScheme.brightness == Brightness.dark
+                    ? SystemUiOverlayStyle.light
+                    : SystemUiOverlayStyle.dark,
+                child: ChatOverviewAppBar(
+                  title: l10n.chatNotFound,
+                  subtitle: '',
+                  subtitleHighlighted: false,
+                  avatarUuid: null,
+                  seedKey: widget.chatUUID,
+                  isOnline: false,
+                  isSavedMessages: false,
+                  chatType: null,
+                  onBack: () => Navigator.of(context).maybePop(),
+                ),
+              ),
+            ),
+          ],
         ),
-        body: Center(child: Text(l10n.chatNotFoundWithId(widget.chatUUID))),
       );
     }
 
@@ -136,92 +164,117 @@ class _ChatOverviewPageState extends ConsumerState<ChatOverviewPage> {
         ? _OverviewTab.values.where((t) => t != _OverviewTab.members).toList()
         : _OverviewTab.values.toList();
 
+    final topInset = MediaQuery.paddingOf(context).top;
+    final String appBarSubtitle;
+    if (metadata.isSavedMessages) {
+      appBarSubtitle = '';
+    } else if (isDM) {
+      appBarSubtitle = metadata.isOnline ? l10n.online : l10n.offline;
+    } else {
+      appBarSubtitle = l10n.membersCount(chat.members.length);
+    }
+    final appBarSubtitleHighlighted =
+        isDM && metadata.isOnline && !metadata.isSavedMessages;
+
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-        title: Text(
-          isDM ? metadata.name : l10n.overviewTitle,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _HeaderBlock(
-              chat: chat,
-              metadata: metadata,
-              isDM: isDM,
-              localUserUUID: localUserUUID,
-              users: users,
-            ),
-            if (isDM)
-              _DmInfoCard(
-                chat: chat,
-                metadata: metadata,
-                localUserUUID: localUserUUID,
-                users: users,
-              ),
-            if (isForum)
-              _SubSection(
-                chat: chat,
-                effectiveSub: effectiveSub,
-                onSelect: (id) {
-                  ref.read(activeChatProvider.notifier).setSelectedSub(id);
-                  final target = chatOverviewPath(widget.chatUUID, id);
-                  if (GoRouterState.of(context).uri.path != target) {
-                    context.replace(target);
-                  }
-                },
-              ),
-            const SizedBox(height: 8),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  for (final t in availableTabs)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
-                        selected: tab == t,
-                        label: Text(_tabLabel(t, l10n)),
-                        onSelected: (_) => setState(() => _tab = t),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (isForum && tab != _OverviewTab.members)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  l10n.overviewSharedInSub(
-                    _subName(chat, effectiveSub),
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(16, topInset + 72 + 12, 16, 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _HeaderBlock(
+                  chat: chat,
+                  metadata: metadata,
+                  isDM: isDM,
+                  localUserUUID: localUserUUID,
+                  users: users,
+                ),
+                if (isDM)
+                  _DmInfoCard(
+                    chat: chat,
+                    metadata: metadata,
+                    localUserUUID: localUserUUID,
+                    users: users,
                   ),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: colorScheme.onSurfaceVariant,
+                if (isForum)
+                  _SubSection(
+                    chat: chat,
+                    effectiveSub: effectiveSub,
+                    onSelect: (id) {
+                      ref.read(activeChatProvider.notifier).setSelectedSub(id);
+                      final target = chatOverviewPath(widget.chatUUID, id);
+                      if (GoRouterState.of(context).uri.path != target) {
+                        context.replace(target);
+                      }
+                    },
+                  ),
+                const SizedBox(height: 8),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (final t in availableTabs)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            selected: tab == t,
+                            label: Text(_tabLabel(t, l10n)),
+                            onSelected: (_) => setState(() => _tab = t),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
+                const SizedBox(height: 12),
+                if (isForum && tab != _OverviewTab.members)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      l10n.overviewSharedInSub(_subName(chat, effectiveSub)),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                if (tab == _OverviewTab.members && !isDM)
+                  _MembersList(chat: chat, users: users)
+                else
+                  _TabContent(
+                    tab: tab,
+                    messages: scopedMessages,
+                    chatUUID: widget.chatUUID,
+                  ),
+                const SizedBox(height: 16),
+                _ActionsCard(chatUUID: widget.chatUUID),
+              ],
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: AnnotatedRegion<SystemUiOverlayStyle>(
+              value: colorScheme.brightness == Brightness.dark
+                  ? SystemUiOverlayStyle.light
+                  : SystemUiOverlayStyle.dark,
+              child: ChatOverviewAppBar(
+                title: metadata.name,
+                subtitle: appBarSubtitle,
+                subtitleHighlighted: appBarSubtitleHighlighted,
+                avatarUuid: metadata.profilePictureUUID,
+                seedKey: widget.chatUUID,
+                isOnline: metadata.isOnline,
+                isSavedMessages: metadata.isSavedMessages,
+                chatType: chat.type,
+                onBack: () => Navigator.of(context).maybePop(),
               ),
-            if (tab == _OverviewTab.members && !isDM)
-              _MembersList(chat: chat, users: users)
-            else
-              _TabContent(
-                tab: tab,
-                messages: scopedMessages,
-                chatUUID: widget.chatUUID,
-              ),
-            const SizedBox(height: 16),
-            _ActionsCard(chatUUID: widget.chatUUID),
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -275,7 +328,9 @@ FileTypeCategory _categoryOf(Map<String, dynamic> file) {
 }
 
 bool _isGifFile(Map<String, dynamic> file) {
-  final name = (file['name'] ?? file['fileName'] ?? '').toString().toLowerCase();
+  final name = (file['name'] ?? file['fileName'] ?? '')
+      .toString()
+      .toLowerCase();
   if (name.endsWith('.gif')) return true;
   final mime = getMimeType(file).toLowerCase();
   return mime == 'image/gif';
@@ -445,7 +500,10 @@ class _DmInfoCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     value,
@@ -530,8 +588,7 @@ class _SubSection extends StatelessWidget {
             _SubRow(
               sub: chat.subs[i],
               isActive: (chat.subs[i]['id'] as num).toInt() == effectiveSub,
-              onTap: () =>
-                  onSelect((chat.subs[i]['id'] as num).toInt()),
+              onTap: () => onSelect((chat.subs[i]['id'] as num).toInt()),
             ),
             if (i != chat.subs.length - 1)
               Divider(
@@ -549,7 +606,11 @@ class _SubSection extends StatelessWidget {
 }
 
 class _SubRow extends StatelessWidget {
-  const _SubRow({required this.sub, required this.isActive, required this.onTap});
+  const _SubRow({
+    required this.sub,
+    required this.isActive,
+    required this.onTap,
+  });
 
   final Map<String, dynamic> sub;
   final bool isActive;
@@ -650,7 +711,10 @@ class _MembersList extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     if (chat.members.isEmpty) {
-      return _EmptyState(icon: Icons.people_outline, text: l10n.overviewNoMembers);
+      return _EmptyState(
+        icon: Icons.people_outline,
+        text: l10n.overviewNoMembers,
+      );
     }
 
     return Column(
@@ -691,10 +755,13 @@ class _MemberRow extends StatelessWidget {
     final user = uuid != null ? users[uuid] : null;
     final name = user?.displayName.trim().isNotEmpty == true
         ? user!.displayName.trim()
-        : ((member['name'] ?? member['handle'] ?? l10n.chatUnknown)?.toString());
+        : ((member['name'] ?? member['handle'] ?? l10n.chatUnknown)
+              ?.toString());
     final isOnline =
-        user?.isOnline ?? (member['status']?.toString().toUpperCase() == 'ONLINE');
-    final pfp = user?.profilePictureUUID ?? member['profilePictureUUID']?.toString();
+        user?.isOnline ??
+        (member['status']?.toString().toUpperCase() == 'ONLINE');
+    final pfp =
+        user?.profilePictureUUID ?? member['profilePictureUUID']?.toString();
     final joinedAt = DateTime.tryParse(member['joinedAt']?.toString() ?? '');
 
     return InkWell(
@@ -736,9 +803,8 @@ class _MemberRow extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withValues(alpha: 0.12),
+                              color: Theme.of(context).colorScheme.primary
+                                  .withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
@@ -777,7 +843,8 @@ class _MemberRow extends StatelessWidget {
   ) {
     final l10n = AppLocalizations.of(context)!;
     final uuid = (member['uuid'] ?? member['userUUID'])?.toString() ?? '';
-    final name = user?.displayName ?? member['name']?.toString() ?? l10n.chatUnknown;
+    final name =
+        user?.displayName ?? member['name']?.toString() ?? l10n.chatUnknown;
     final handle = user?.handle ?? member['handle']?.toString();
     final bio = user?.biography ?? member['biography']?.toString();
     showDialog<void>(
@@ -853,9 +920,9 @@ class _TabContent extends StatelessWidget {
 
     if (tab == _OverviewTab.gifs) {
       final gifLinks = _collectGifLinks(messages);
-      final gifFiles = _collectFiles(
-        messages,
-      ).where((e) => _isGifFile(e.file)).toList();
+      final gifFiles = _collectFiles(messages)
+          .where((e) => _isGifFile(e.file))
+          .toList();
       if (gifLinks.isEmpty && gifFiles.isEmpty) {
         return _EmptyState(
           icon: Icons.gif_box_outlined,
@@ -864,7 +931,8 @@ class _TabContent extends StatelessWidget {
       }
       return Column(
         children: [
-          for (final item in gifLinks) _LinkRow(url: item.url, message: item.message),
+          for (final item in gifLinks)
+            _LinkRow(url: item.url, message: item.message),
           for (final entry in gifFiles)
             _FileRow(entry: entry, chatUUID: chatUUID),
         ],
@@ -905,7 +973,8 @@ class _TabContent extends StatelessWidget {
 
     return Column(
       children: [
-        for (final entry in filtered) _FileRow(entry: entry, chatUUID: chatUUID),
+        for (final entry in filtered)
+          _FileRow(entry: entry, chatUUID: chatUUID),
       ],
     );
   }
@@ -959,15 +1028,13 @@ class _FileRow extends StatelessWidget {
         trailing: IconButton(
           icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedDownload01),
           onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(l10n.overviewWip)),
-            );
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(l10n.overviewWip)));
           },
         ),
         onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.overviewWip)),
-          );
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(l10n.overviewWip)));
         },
       ),
     );
@@ -1091,10 +1158,7 @@ class _ActionsCard extends ConsumerWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: fg,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600, color: fg),
                 ),
               ),
               if (trailing != null)
@@ -1121,9 +1185,8 @@ class _ActionsCard extends ConsumerWidget {
     }
 
     void wip() {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.overviewWip)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.overviewWip)));
     }
 
     void openFavorites() {
@@ -1152,9 +1215,8 @@ class _ActionsCard extends ConsumerWidget {
         ),
       );
       if (confirmed == true && context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.overviewWip)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.overviewWip)));
       }
     }
 
@@ -1166,7 +1228,11 @@ class _ActionsCard extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          row(icon: Icons.settings_outlined, label: l10n.overviewSettings, onTap: wip),
+          row(
+            icon: Icons.settings_outlined,
+            label: l10n.overviewSettings,
+            onTap: wip,
+          ),
           Divider(
             height: 1,
             indent: 12,
