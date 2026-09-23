@@ -1,7 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
+import 'package:novyse/ui/components/settings/settings_page_template.dart';
+import 'package:novyse/ui/components/settings/settings_section.dart';
 
+import 'settings_demo_page.dart';
 import 'settings_subpages.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -9,106 +14,100 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-        children: [
-          const _SettingsSection(title: 'Generali'),
-          _SettingsTile(
-            icon: HugeIcons.strokeRoundedSmile,
-            title: 'Account',
-            subtitle: 'Gestisci il tuo profilo',
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const SettingsAccountPage(),
-              ),
+    final l10n = AppLocalizations.of(context)!;
+
+    return SettingsPageTemplate(
+      title: l10n.settings,
+      showBack: false,
+      children: [
+        const SettingsSection(
+          title: 'Generali',
+          children: [
+            _AccountRow(),
+            _NotificationsRow(),
+            SettingsNavigationRow(
+              icon: HugeIcons.strokeRoundedShield01,
+              title: 'Privacy',
+              subtitle: 'Controlla i permessi e la sicurezza',
             ),
-          ),
-          _SettingsTile(
-            icon: HugeIcons.strokeRoundedNotification01,
-            title: 'Notifiche',
-            subtitle: 'Preferenze di notifica',
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const SettingsNotificationsPage(),
-              ),
+          ],
+        ),
+        const SettingsSection(
+          title: 'App',
+          children: [
+            SettingsNavigationRow(
+              icon: HugeIcons.strokeRoundedAlbum01,
+              title: 'Tema',
+              subtitle: 'Leggero, scuro e automatico',
             ),
+            SettingsNavigationRow(
+              icon: HugeIcons.strokeRoundedChat01,
+              title: 'Lingua',
+              subtitle: 'Italiano',
+            ),
+            SettingsNavigationRow(
+              icon: HugeIcons.strokeRoundedInformationCircle,
+              title: 'Info',
+              subtitle: 'Versione e dettagli',
+            ),
+          ],
+        ),
+        if (kDebugMode) const _DebugSection(),
+      ],
+    );
+  }
+}
+
+class _DebugSection extends StatelessWidget {
+  const _DebugSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return SettingsSection(
+      title: 'Debug',
+      children: [
+        SettingsNavigationRow(
+          icon: HugeIcons.strokeRoundedTestTube01,
+          title: 'Demo componenti',
+          subtitle: 'Showcase delle righe settings',
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const SettingsDemoPage()),
           ),
-          const _SettingsTile(
-            icon: HugeIcons.strokeRoundedShield01,
-            title: 'Privacy',
-            subtitle: 'Controlla i permessi e la sicurezza',
-          ),
-          const SizedBox(height: 20),
-          const _SettingsSection(title: 'App'),
-          const _SettingsTile(
-            icon: HugeIcons.strokeRoundedAlbum01,
-            title: 'Tema',
-            subtitle: 'Leggero, scuro e automatico',
-          ),
-          const _SettingsTile(
-            icon: HugeIcons.strokeRoundedChat01,
-            title: 'Lingua',
-            subtitle: 'Italiano',
-          ),
-          const _SettingsTile(
-            icon: HugeIcons.strokeRoundedInformationCircle,
-            title: 'Info',
-            subtitle: 'Versione e dettagli',
-          ),
-        ],
+        ),
+      ],
+    );
+  }
+}
+
+class _AccountRow extends StatelessWidget {
+  const _AccountRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return SettingsNavigationRow(
+      icon: HugeIcons.strokeRoundedSmile,
+      title: 'Account',
+      subtitle: 'Gestisci il tuo profilo',
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => const SettingsAccountPage()),
       ),
     );
   }
 }
 
-class _SettingsSection extends StatelessWidget {
-  final String title;
-
-  const _SettingsSection({required this.title});
+class _NotificationsRow extends StatelessWidget {
+  const _NotificationsRow();
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8, top: 8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.w700,
+    return SettingsNavigationRow(
+      icon: HugeIcons.strokeRoundedNotification01,
+      title: 'Notifiche',
+      subtitle: 'Preferenze di notifica',
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const SettingsNotificationsPage(),
         ),
-      ),
-    );
-  }
-}
-
-class _SettingsTile extends StatelessWidget {
-  final List<List<dynamic>> icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback? onTap;
-
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        leading: AppHugeIcon(
-          icon: icon,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowRight01),
-        onTap: onTap,
       ),
     );
   }

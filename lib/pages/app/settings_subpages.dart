@@ -1,27 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
-import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/settings/settings_page_template.dart';
+import 'package:novyse/ui/components/settings/settings_section.dart';
+import 'package:novyse/ui/components/settings/settings_switch_row.dart';
+import 'package:novyse/ui/components/settings/settings_value_row.dart';
 
 class SettingsAccountPage extends StatelessWidget {
   const SettingsAccountPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Account'),
-        leading: IconButton(
-          icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
-          onPressed: () => Navigator.of(context).maybePop(),
+    return const SettingsPageTemplate(
+      title: 'Account',
+      children: [
+        SettingsSection(
+          children: [
+            SettingsValueRow(title: 'Username', valueText: 'mattia'),
+            SettingsValueRow(title: 'Email', valueText: 'mattia@novyse.app'),
+          ],
         ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-        children: const [
-          ListTile(title: Text('Username'), subtitle: Text('mattia')),
-          ListTile(title: Text('Email'), subtitle: Text('mattia@novyse.app')),
-        ],
-      ),
+      ],
     );
   }
 }
@@ -31,31 +28,26 @@ class SettingsNotificationsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notifiche'),
-        leading: IconButton(
-          icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
-          onPressed: () => Navigator.of(context).maybePop(),
+    return const SettingsPageTemplate(
+      title: 'Notifiche',
+      children: [
+        SettingsSection(
+          children: [
+            SettingsSwitchRow(
+              title: 'Messaggi',
+              subtitle: 'Placeholder',
+              value: true,
+              onChanged: null,
+            ),
+            SettingsSwitchRow(
+              title: 'Anteprime',
+              subtitle: 'Placeholder',
+              value: false,
+              onChanged: null,
+            ),
+          ],
         ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-        children: const [
-          SwitchListTile(
-            value: true,
-            onChanged: null,
-            title: Text('Messaggi'),
-            subtitle: Text('Placeholder'),
-          ),
-          SwitchListTile(
-            value: false,
-            onChanged: null,
-            title: Text('Anteprime'),
-            subtitle: Text('Placeholder'),
-          ),
-        ],
-      ),
+      ],
     );
   }
 }
