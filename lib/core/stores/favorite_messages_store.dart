@@ -88,8 +88,12 @@ class FavoriteMessagesNotifier
     }
   }
 
-  Future<void> reload() async {
-    try {
+  void clear() {
+    _loaded = false;
+    state = const FavoriteMessagesState();
+  }
+
+  Future<void> reload() async {    try {
       final db = AppDatabase.instance;
       if (!db.isOpen) await db.initialize();
       final raw = await db.message.favorite.list(chatUUID: arg);

@@ -73,8 +73,7 @@ class FcmService {
     }
   }
 
-  Future<void> saveToken(String token) async {
-    final authToken = await auth_service.auth.token.get();
+  Future<void> saveToken(String token) async {    final authToken = await auth_service.auth.token.get();
     if (authToken == null || authToken.isEmpty) {
       debugPrint('[FcmService] Not logged in, skip token sync');
       return;
@@ -89,5 +88,21 @@ class FcmService {
       await prefs.setString(_kFcmTokenKey, token);
       debugPrint('[FcmService] Push token synced');
     }
+  }
+
+  Future<void> unregister() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_kFcmTokenKey);
+    } catch (_) {}
+    if (!isSupported) return;
+    try {
+      await FirebaseMessaging.instance.deleteToken();
+    } catch (e) {
+      debugPrint('[FcmService] deleteToken failed: $e');
+    }
+    try {
+      await Gateway.instance.notification.deleteFCMToken();
+    } catch (_) {}
   }
 }

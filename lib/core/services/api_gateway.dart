@@ -1083,4 +1083,13 @@ class NotificationModule {
     );
     return _ok(res);
   }
+
+  Future<bool> deleteFCMToken() async {
+    try {
+      final res = await _dio.delete('/notification/push-token');
+      return _ok(res);
+    } catch (_) {
+      return false;
+    }
+  }
 }

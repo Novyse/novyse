@@ -253,6 +253,14 @@ class LocalNotificationService {
     await _plugin.cancel(id: _notificationIdForChat(chatUUID));
   }
 
+  Future<void> clearAll() async {
+    _history.clear();
+    _meta.clear();
+    try {
+      await _plugin.cancelAll();
+    } catch (_) {}
+  }
+
   /// Append the user's quick-reply to the MessagingStyle thread and refresh.
   Future<void> reflectOwnReply({
     required String chatUUID,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:novyse/core/auth/onboarding_manager.dart';
+import 'package:novyse/core/auth/session_cleanup.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/themes/themes.dart';
@@ -37,7 +37,7 @@ class ProfilePage extends ConsumerWidget {
     );
 
     if (confirmed == true && context.mounted) {
-      await ref.read(authProvider.notifier).logout();
+      await performLogout(ref);
     }
   }
 

@@ -228,4 +228,9 @@ class NotificationManager {
   Future<void> clearChat(String chatUUID) {
     return LocalNotificationService.instance.clearChat(chatUUID);
   }
+
+  Future<void> reset() async {
+    _processedIds.clear();
+    await LocalNotificationService.instance.clearAll();
+  }
 }
