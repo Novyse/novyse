@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:novyse/core/events/global_event_emitter.dart';
+import 'package:novyse/core/settings/settings_catalog.dart';
 
 /// Handles receiving events from the Socket.IO server and passing them
 /// to the [GlobalEventEmitter].
@@ -39,6 +40,17 @@ class EventReceiver {
             data,
           );
         }
+      }
+    });
+
+    socket.on('user:setting:update', (raw) async {
+      if (raw is Map) {
+        final data = Map<String, dynamic>.from(raw);
+        final key = data['key']?.toString();
+        if (key == null || key.isEmpty) return;
+        final item = SettingsCatalog.findBySettingKey(key);
+        if (item == null || item.scope != SettingScope.synchronized) return;
+        await emitter.user.setting.value.update(key, data['value']);
       }
     });
 

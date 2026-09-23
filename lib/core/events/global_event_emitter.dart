@@ -312,9 +312,26 @@ class UserSettingEmitter {
   final EventBus _bus;
   final AppDatabase _db;
   late final UserSettingChatEmitter chat;
+  late final UserSettingValueEmitter value;
 
   UserSettingEmitter(this._bus, this._db) {
     chat = UserSettingChatEmitter(_bus, _db);
+    value = UserSettingValueEmitter(_bus, _db);
+  }
+}
+
+class UserSettingValueEmitter {
+  final EventBus _bus;
+  final AppDatabase _db;
+  UserSettingValueEmitter(this._bus, this._db);
+
+  Future<void> update(String key, Object? value) async {
+    await _db.settings.upsertSetting(
+      key: key,
+      value: value,
+      scope: 'synchronized',
+    );
+    _bus.emit(SettingValueUpdateEvent(key: key, value: value));
   }
 }
 

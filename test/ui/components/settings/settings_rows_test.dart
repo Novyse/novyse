@@ -29,7 +29,7 @@ void main() {
                 SettingsNavigationRow(
                   icon: HugeIcons.strokeRoundedSmile,
                   title: 'Account',
-                  subtitle: 'Gestisci il tuo profilo🛑🛑🛑',
+                  subtitle: 'Gestisci il tuo profilo',
                 ),
               ],
             ),

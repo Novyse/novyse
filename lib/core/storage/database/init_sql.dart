@@ -41,6 +41,13 @@ VALUES
     ('CHAT', 'The handle refers to a chat.'),
     ('BOT', 'The handle refers to a bot.');
 
+CREATE TABLE IF NOT EXISTS local_settings (
+    key TEXT PRIMARY KEY,
+    value_json TEXT NOT NULL,
+    scope TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS chat (
     uuid TEXT PRIMARY KEY,
     type TEXT NOT NULL,

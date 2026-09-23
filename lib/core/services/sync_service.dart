@@ -9,6 +9,8 @@ import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/notifications/notification_manager.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/services/socket_service.dart';
+import 'package:novyse/core/settings/settings_catalog.dart';
+import 'package:novyse/core/settings/settings_sync.dart';
 import 'package:novyse/core/storage/database/database.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/network_store.dart';
@@ -47,6 +49,7 @@ abstract class SyncUserEventType {
   static const chatUnpinned = 'CHAT_UNPINNED';
   static const messageFavorited = 'MESSAGE_FAVORITED';
   static const messageUnfavorited = 'MESSAGE_UNFAVORITED';
+  static const settingUpdated = 'SETTING_UPDATED';
 }
 
 /// Orchestrates full account initialization and delta synchronization.
@@ -181,7 +184,15 @@ class SyncService {
         }
       }
 
-      // 3. Favorite messages (user-scoped, from /user/initialize)
+      // 3. Synchronized settings snapshot (from /user/initialize).
+      final settingsSnapshot = local['settings'];
+      if (settingsSnapshot is Map) {
+        await SettingsSync.applyRemoteValues(
+          Map<String, Object?>.from(settingsSnapshot),
+        );
+      }
+
+      // 3b. Favorite messages (user-scoped, from /user/initialize)
       final favoriteMessages = local['favoriteMessages'];
       if (favoriteMessages is List && favoriteMessages.isNotEmpty) {
         await _db.message.favorite.addMultiple(favoriteMessages);
@@ -506,6 +517,16 @@ class SyncService {
               eventId,
               payload,
             );
+            break;
+          case SyncUserEventType.settingUpdated:
+            final settingKey = payload['key']?.toString() ?? '';
+            final item = SettingsCatalog.findBySettingKey(settingKey);
+            if (item != null && item.scope == SettingScope.synchronized) {
+              await _emitter.user.setting.value.update(
+                settingKey,
+                payload['value'],
+              );
+            }
             break;
         }
       }

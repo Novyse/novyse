@@ -5,6 +5,7 @@ import 'package:novyse/core/notifications/fcm_service.dart';
 import 'package:novyse/core/notifications/notification_manager.dart';
 import 'package:novyse/core/services/socket_service.dart';
 import 'package:novyse/core/services/sync_service.dart';
+import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/core/storage/database/database.dart';
 import 'package:novyse/core/storage/file/file_storage.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
@@ -65,6 +66,9 @@ Future<void> runLogoutCleanup(WidgetRef ref) async {
   } catch (_) {}
   try {
     ref.invalidate(favoriteMessagesProvider);
+  } catch (_) {}
+  try {
+    ref.invalidate(settingsControllerProvider);
   } catch (_) {}
 
   // 4. Persistent storage (SQLite + downloaded files).

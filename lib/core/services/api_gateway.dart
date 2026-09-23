@@ -170,8 +170,11 @@ class CheckModule {
 class UserModule {
   final Dio _dio;
   final UserProfileModule profile;
+  final UserSettingsModule settings;
 
-  UserModule(this._dio) : profile = UserProfileModule(_dio);
+  UserModule(this._dio)
+      : profile = UserProfileModule(_dio),
+        settings = UserSettingsModule(_dio);
 
   /// Initialize user data after login.
   Future<Map<String, dynamic>> initialize() async {
@@ -224,6 +227,38 @@ class UserModule {
     if (_ok(res)) return (success: true, data: _data(res));
     return (success: false, data: null);
   }
+}
+
+// user.settings
+
+class UserSettingsModule {
+  final Dio _dio;
+  UserSettingsModule(this._dio);
+
+  /// Pushes one synchronized preference value.
+  /// Same-value retries converge naturally (server keeps last per key).
+  Future<({bool success, int? userEventID})> updateSetting(
+    String key,
+    Object? value,
+  ) async {
+    try {
+      final res = await _dio.put(
+        '/user/settings/preferences',
+        data: {'key': key, 'value': value},
+      );
+      if (_ok(res)) {
+        final d = _data(res);
+        return (
+          success: true,
+          userEventID: (d?['userEventID'] as num?)?.toInt(),
+        );
+      }
+      return (success: false, userEventID: null);
+    } catch (_) {
+      return (success: false, userEventID: null);
+    }
+  }
+
 }
 
 // user.profile

@@ -82,6 +82,13 @@ class UserSettingChatUpdateEvent {
   });
 }
 
+class SettingValueUpdateEvent {
+  final String key;
+  final Object? value;
+
+  const SettingValueUpdateEvent({required this.key, required this.value});
+}
+
 class FavoriteMessageUpdateEvent {
   final String chatUUID;
   final int subID;
