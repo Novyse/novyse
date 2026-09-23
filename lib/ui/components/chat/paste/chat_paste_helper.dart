@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mime/mime.dart' show defaultMagicNumbersMaxLength;
 import 'package:super_clipboard/super_clipboard.dart';
@@ -213,6 +214,8 @@ class ChatPasteHelper {
 
   /// Extracts plain text from a [ClipboardReader].
   /// Returns the first plain text content found, or null if no text is present.
+  /// Falls back to HTML text when plain text is absent (common when copying
+  /// rich content from web pages).
   static Future<String?> extractTextFromReader(ClipboardReader reader) async {
     for (final item in reader.items) {
       if (item.canProvide(Formats.plainText)) {
@@ -228,7 +231,78 @@ class ChatPasteHelper {
         }
       }
     }
+    // Fallback: HTML copy (e.g. from web pages) without plain text entry.
+    for (final item in reader.items) {
+      if (item.canProvide(Formats.htmlText)) {
+        final completer = Completer<String?>();
+        item.getValue<String>(
+          Formats.htmlText,
+          (text) => completer.complete(text),
+          onError: (_) => completer.complete(null),
+        );
+        final text = await completer.future;
+        if (text != null && text.isNotEmpty) {
+          return text;
+        }
+      }
+    }
     return null;
+  }
+
+
+  /// Inserts [text] into the currently focused editable text field.
+  ///
+  /// Used on web when the `ClipboardReadEvent` listener already called
+  /// `getClipboardReader()` (which does `event.preventDefault()`), blocking
+  /// the browser's default text insertion, but the clipboard only contained
+  /// text and no media. We locate the focused [EditableTextState] and
+  /// insert the text at the current cursor position.
+  static void pasteTextIntoFocusedField(String text) {
+    try {
+      final focusNode = FocusManager.instance.primaryFocus;
+      if (focusNode == null) return;
+
+      // Walk up the focus-node's context to find an EditableTextState.
+      final context = focusNode.context;
+      if (context == null) return;
+
+      EditableTextState? editableTextState;
+      context.visitAncestorElements((element) {
+        final widget = element.widget;
+        if (widget is EditableText) {
+          editableTextState =
+              (element as StatefulElement).state as EditableTextState;
+          return false; // stop
+        }
+        return true;
+      });
+
+      if (editableTextState != null) {
+        final controller = editableTextState!.widget.controller;
+        final selection = controller.selection;
+        final currentText = controller.text;
+
+        if (selection.isValid &&
+            selection.start >= 0 &&
+            selection.end <= currentText.length) {
+          final start = selection.start;
+          final end = selection.end;
+          final newText = currentText.replaceRange(start, end, text);
+          controller.value = TextEditingValue(
+            text: newText,
+            selection: TextSelection.collapsed(offset: start + text.length),
+          );
+        } else {
+          final newText = '$currentText$text';
+          controller.value = TextEditingValue(
+            text: newText,
+            selection: TextSelection.collapsed(offset: newText.length),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[ChatPasteHelper] pasteTextIntoFocusedField error: $e');
+    }
   }
 
   /// Pastes images or files from the clipboard into the draft.

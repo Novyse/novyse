@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -25,6 +26,11 @@ class _ChatDropZoneState extends ConsumerState<ChatDropZone> {
     final media = await ChatPasteHelper.extractMediaFromReader(reader);
     if (media.isNotEmpty && mounted) {
       ChatPasteHelper.appendFiles(ref, widget.chatUUID, media);
+    } else if (kIsWeb) {
+      final text = await ChatPasteHelper.extractTextFromReader(reader);
+      if (text != null && text.isNotEmpty && mounted) {
+        ChatPasteHelper.pasteTextIntoFocusedField(text);
+      }
     }
   }
 
