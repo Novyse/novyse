@@ -257,12 +257,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
       );
     }
 
-    final subExists = chat.subs.isEmpty
-        ? selectedSub == 0
-        : chat.subs.any((s) => (s['id'] as num?)?.toInt() == selectedSub);
-    if (!subExists) {
-      selectedSub = 0;
-    }
+    selectedSub = resolveChatSub(subs: chat.subs, requestedSub: selectedSub);
     if (_routeSyncPending && providerSub == widget.subID) {
       _routeSyncPending = false;
     }

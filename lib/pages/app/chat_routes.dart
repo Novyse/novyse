@@ -19,6 +19,21 @@ int chatSubIDFromPath(String path) {
   return 0;
 }
 
+
+/// - empty subs (DM/group without subs) -> 0
+/// - requested sub exists -> requested sub
+/// - otherwise -> first available sub id (FORUMs often have no 0 sub)
+int resolveChatSub({
+  required List<Map<String, dynamic>> subs,
+  required int requestedSub,
+}) {
+  if (subs.isEmpty) return 0;
+  if (subs.any((s) => (s['id'] as num?)?.toInt() == requestedSub)) {
+    return requestedSub;
+  }
+  return (subs.first['id'] as num?)?.toInt() ?? 0;
+}
+
 String chatSubPath(String chatUUID, int subID) => '/chats/$chatUUID/$subID';
 
 String chatOverviewPath(String chatUUID, int subID) =>

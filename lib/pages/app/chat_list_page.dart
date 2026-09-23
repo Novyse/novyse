@@ -161,9 +161,18 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
 
   void _openChat(String chatUUID) {
     final active = ref.read(activeChatProvider);
-    final int sub = active.selectedChatUUID == chatUUID
+    final storedSub = active.selectedChatUUID == chatUUID
         ? active.selectedSub
         : ref.read(chatDraftProvider(chatUUID)).selectedSub;
+    final chat = ref
+        .read(chatListProvider)
+        .chats
+        .where((c) => c.uuid == chatUUID)
+        .firstOrNull;
+    final sub = resolveChatSub(
+      subs: chat?.subs ?? const [],
+      requestedSub: storedSub,
+    );
     final target = chatSubPath(chatUUID, sub);
     if (GoRouterState.of(context).uri.path == target) return;
     ref

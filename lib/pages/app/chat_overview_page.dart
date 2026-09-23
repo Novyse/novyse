@@ -133,10 +133,7 @@ class _ChatOverviewPageState extends ConsumerState<ChatOverviewPage> {
     final tab = _effectiveTab(isDM);
 
     final rawSub = widget.subID;
-    final subExists = chat.subs.isEmpty
-        ? rawSub == 0
-        : chat.subs.any((s) => (s['id'] as num?)?.toInt() == rawSub);
-    final resolvedSub = subExists ? rawSub : 0;
+    final resolvedSub = resolveChatSub(subs: chat.subs, requestedSub: rawSub);
     final effectiveSub = resolvedSub;
     if (resolvedSub != rawSub) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
