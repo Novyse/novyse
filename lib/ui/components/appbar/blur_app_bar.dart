@@ -3,16 +3,6 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:novyse/ui/components/appbar/scrolled_under.dart';
-import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
-
-/// Standard Material 3 app bar with a frosted-glass background that only
-/// appears once content scrolls underneath it.
-///
-/// Drop-in replacement for [AppBar] inside [Scaffold.appBar]: same layout
-/// slots ([leading]/[title]/[actions]/[bottom]), transparent base, blur +
-/// surface tint driven by [scrolledUnder]. When [scrolledUnder] is null (or
-/// false) the bar stays fully transparent.
 class BlurAppBar extends StatelessWidget implements PreferredSizeWidget {
   const BlurAppBar({
     super.key,
