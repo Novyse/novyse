@@ -249,7 +249,7 @@ class _ChatOverviewPageState extends ConsumerState<ChatOverviewPage> {
                     chatUUID: widget.chatUUID,
                   ),
                 const SizedBox(height: 16),
-                _ActionsCard(chatUUID: widget.chatUUID),
+                _ActionsCard(chatUUID: widget.chatUUID, subID: effectiveSub),
               ],
             ),
           ),
@@ -1127,9 +1127,10 @@ class _EmptyState extends StatelessWidget {
 }
 
 class _ActionsCard extends ConsumerWidget {
-  const _ActionsCard({required this.chatUUID});
+  const _ActionsCard({required this.chatUUID, required this.subID});
 
   final String chatUUID;
+  final int subID;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1190,7 +1191,7 @@ class _ActionsCard extends ConsumerWidget {
     }
 
     void openFavorites() {
-      context.push(chatFavoritesPath(chatUUID, 0));
+      context.push(chatFavoritesPath(chatUUID, subID));
     }
 
     Future<void> confirmLeave() async {

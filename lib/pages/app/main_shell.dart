@@ -15,6 +15,7 @@ import 'settings_page.dart';
 import '../../core/l10n/l10n.dart';
 import '../../core/router/navigator_keys.dart';
 import '../../core/services/sync_service.dart';
+import '../../core/stores/active_chat_store.dart';
 
 class HomeTabControllerScope extends InheritedWidget {
   const HomeTabControllerScope({
@@ -92,6 +93,24 @@ class _HomeShellState extends ConsumerState<HomeShell>
 
   String? get _chatUUID => chatUUIDFromPath(_path);
 
+  void _syncActiveChatWithRoute() {
+    final chatUUID = _chatUUID;
+    if (chatUUID == null) {
+      final active = ref.read(activeChatProvider).selectedChatUUID;
+      if (active != null) {
+        ref.read(activeChatProvider.notifier).clear();
+      }
+      return;
+    }
+    final active = ref.read(activeChatProvider);
+    if (active.selectedChatUUID != chatUUID) {
+      final sub = chatSubIDFromPath(_path);
+      ref
+          .read(activeChatProvider.notifier)
+          .setSelectedChatUUID(chatUUID, subOverride: sub);
+    }
+  }
+
   void _syncUrlWhenNoChat() {
     if (!mounted || _tabController.indexIsChanging) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -107,6 +126,10 @@ class _HomeShellState extends ConsumerState<HomeShell>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _syncActiveChatWithRoute();
+    });
     final fromUrl = tabIndexFromPath(_path);
     if (fromUrl == null ||
         fromUrl == _tabController.index ||

@@ -58,21 +58,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/chats';
       }
 
-      if (location == '/home' || location == '/home/chat') {
-        return '/chats';
-      }
-      if (location.startsWith('/home/chat/')) {
-        return '${location.replaceFirst('/home/chat/', '/chats/')}/0';
-      }
-      if (location == '/home/settings' ||
-          location.startsWith('/home/settings/')) {
-        return location.replaceFirst('/home/settings', '/settings');
-      }
-      if (location == '/home/profile' ||
-          location.startsWith('/home/profile/')) {
-        return location.replaceFirst('/home/profile', '/profile');
-      }
-
       return null;
     },
     routes: [
@@ -98,7 +83,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(path: '/signup', builder: (context, state) => const SignupPage()),
-      GoRoute(path: '/home', redirect: (context, state) => '/chats'),
       ShellRoute(
         navigatorKey: shellNavigatorKey,
         builder: (context, state, child) => HomeShell(detailNavigator: child),
@@ -108,14 +92,20 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/chats/:chatUUID',
             redirect: (context, state) {
               final chatUUID = state.pathParameters['chatUUID'] ?? '';
-              return '/chats/$chatUUID/0';
+              final querySuffix = state.uri.query.isEmpty
+                  ? ''
+                  : '?${state.uri.query}';
+              return '/chats/$chatUUID/0$querySuffix';
             },
           ),
           GoRoute(
             path: '/chats/:chatUUID/overview',
             redirect: (context, state) {
               final chatUUID = state.pathParameters['chatUUID'] ?? '';
-              return '/chats/$chatUUID/0/overview';
+              final querySuffix = state.uri.query.isEmpty
+                  ? ''
+                  : '?${state.uri.query}';
+              return '/chats/$chatUUID/0/overview$querySuffix';
             },
           ),
           GoRoute(
@@ -127,7 +117,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                 final suffix = state.uri.path.endsWith('/overview')
                     ? '/overview'
                     : '';
-                return '/chats/$chatUUID/0$suffix';
+                final querySuffix = state.uri.query.isEmpty
+                    ? ''
+                    : '?${state.uri.query}';
+                return '/chats/$chatUUID/0$suffix$querySuffix';
               }
               return null;
             },

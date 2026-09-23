@@ -218,7 +218,7 @@ class _QrContentState extends ConsumerState<_QrContent> {
           sessionId: data['session_id']?.toString(),
         );
         if (mounted) {
-          context.go('/home');
+          context.go('/chats');
         }
       },
     )..init();

@@ -75,10 +75,10 @@ class LoginPage extends ConsumerWidget {
                             }
                           }
                           if (!context.mounted) return;
-                          context.go('/home');
+                          context.go('/chats');
                         },
                     onSubmit: () {
-                      context.go('/home');
+                      context.go('/chats');
                     },
                   ),
                 ),

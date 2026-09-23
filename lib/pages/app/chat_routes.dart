@@ -11,6 +11,14 @@ String? chatUUIDFromPath(String path) {
   return null;
 }
 
+int chatSubIDFromPath(String path) {
+  final segments = Uri.parse(path).pathSegments;
+  if (segments.length >= 3 && segments.first == 'chats') {
+    return int.tryParse(segments[2]) ?? 0;
+  }
+  return 0;
+}
+
 String chatSubPath(String chatUUID, int subID) => '/chats/$chatUUID/$subID';
 
 String chatOverviewPath(String chatUUID, int subID) =>

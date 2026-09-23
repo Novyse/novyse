@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
+import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/pages/app/chat_routes.dart';
@@ -159,7 +160,10 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
   }
 
   void _openChat(String chatUUID) {
-    const sub = 0;
+    final active = ref.read(activeChatProvider);
+    final int sub = active.selectedChatUUID == chatUUID
+        ? active.selectedSub
+        : ref.read(chatDraftProvider(chatUUID)).selectedSub;
     final target = chatSubPath(chatUUID, sub);
     if (GoRouterState.of(context).uri.path == target) return;
     ref
