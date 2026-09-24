@@ -1,7 +1,6 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
@@ -17,63 +16,36 @@ class ChatFavoritesAppBar extends StatelessWidget {
   final String subtitle;
   final VoidCallback onBack;
 
-  static const _pillSpacing = 12.0;
-
-  Widget _pill({
-    required ColorScheme scheme,
-    required Widget child,
-    EdgeInsetsGeometry padding = EdgeInsets.zero,
-    double radius = 100,
-  }) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: scheme.surface.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(radius),
-            border: Border.all(color: scheme.outline.withValues(alpha: 0.25)),
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     final content = Row(
       children: [
-        _pill(
-          scheme: colorScheme,
-          padding: const EdgeInsets.all(2),
+        FloatingPill(
+          padding: FloatingAppBarConsts.iconPillPadding,
           child: IconButton(
             icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
             onPressed: onBack,
           ),
         ),
-        const SizedBox(width: _pillSpacing),
+        const SizedBox(width: FloatingAppBarConsts.pillSpacing),
         Expanded(
-          child: _pill(
-            scheme: colorScheme,
-            radius: 28,
-            padding: const EdgeInsets.fromLTRB(2, 2, 2, 2),
+          child: FloatingPill(
+            radius: FloatingAppBarConsts.centralRadius,
+            padding: FloatingAppBarConsts.centralAvatarPadding,
             child: Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: FloatingAppBarConsts.leadingSize,
+                  height: FloatingAppBarConsts.leadingSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: colorScheme.primary.withValues(alpha: 0.12),
                   ),
                   child: Icon(Icons.star, size: 20, color: colorScheme.primary),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: FloatingAppBarConsts.leadingGap),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,19 +53,15 @@ class ChatFavoritesAppBar extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: FloatingAppBarConsts.titleStyle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (subtitle.isNotEmpty)
                         Text(
                           subtitle,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: colorScheme.onSurfaceVariant,
+                          style: FloatingAppBarConsts.subtitleStyle(
+                            colorScheme,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

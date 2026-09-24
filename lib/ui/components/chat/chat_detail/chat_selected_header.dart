@@ -1,8 +1,7 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
@@ -24,31 +23,6 @@ class ChatSelectedHeader extends StatelessWidget {
   final VoidCallback? onDelete;
   final Widget? bottom;
 
-  static const _pillSpacing = 12.0;
-
-  Widget _pill({
-    required ColorScheme scheme,
-    required Widget child,
-    EdgeInsetsGeometry padding = EdgeInsets.zero,
-    double radius = 100,
-  }) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: scheme.surface.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(radius),
-            border: Border.all(color: scheme.outline.withValues(alpha: 0.25)),
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -60,20 +34,18 @@ class ChatSelectedHeader extends StatelessWidget {
 
     final content = Row(
       children: [
-        _pill(
-          scheme: colorScheme,
-          padding: const EdgeInsets.all(2),
+        FloatingPill(
+          padding: FloatingAppBarConsts.iconPillPadding,
           child: IconButton(
             icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
             tooltip: l10n.cancel,
             onPressed: onClose,
           ),
         ),
-        const SizedBox(width: _pillSpacing),
+        const SizedBox(width: FloatingAppBarConsts.pillSpacing),
         Expanded(
-          child: _pill(
-            scheme: colorScheme,
-            radius: 28,
+          child: FloatingPill(
+            radius: FloatingAppBarConsts.centralRadius,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
             child: SizedBox(
               height: 48,
@@ -94,10 +66,9 @@ class ChatSelectedHeader extends StatelessWidget {
           ),
         ),
         if (hasActions) ...[
-          const SizedBox(width: _pillSpacing),
-          _pill(
-            scheme: colorScheme,
-            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+          const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+          FloatingPill(
+            padding: FloatingAppBarConsts.actionsPadding,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -172,7 +143,10 @@ class ChatSelectedHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           content,
-          if (bottom != null) ...[const SizedBox(height: 12), bottom!],
+          if (bottom != null) ...[
+            const SizedBox(height: FloatingAppBarConsts.bottomGap),
+            bottom!,
+          ],
         ],
       ),
     );

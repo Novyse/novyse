@@ -1,8 +1,7 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/chat/chat_list_app_menu.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
@@ -27,35 +26,8 @@ class ChatListAppBar extends StatelessWidget {
   final VoidCallback onCloseSearch;
   final VoidCallback onNewChat;
 
-  static const _pillSpacing = 12.0;
-
-  Widget _pill({
-    required ColorScheme scheme,
-    required Widget child,
-    EdgeInsetsGeometry padding = EdgeInsets.zero,
-    double radius = 100,
-  }) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: scheme.surface.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(radius),
-            border: Border.all(color: scheme.outline.withValues(alpha: 0.25)),
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     final Widget content;
     if (searching) {
       final l10n = AppLocalizations.of(context)!;
@@ -63,21 +35,19 @@ class ChatListAppBar extends StatelessWidget {
 
       content = Row(
         children: [
-          _pill(
-            scheme: colorScheme,
-            padding: const EdgeInsets.all(2),
+          FloatingPill(
+            padding: FloatingAppBarConsts.iconPillPadding,
             child: IconButton(
               icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
               tooltip: l10n.cancel,
               onPressed: onCloseSearch,
             ),
           ),
-          const SizedBox(width: _pillSpacing),
+          const SizedBox(width: FloatingAppBarConsts.pillSpacing),
           Expanded(
-            child: _pill(
-              scheme: colorScheme,
-              radius: 28,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: FloatingPill(
+              radius: FloatingAppBarConsts.centralRadius,
+              padding: FloatingAppBarConsts.searchFieldPadding,
               child: TextField(
                 controller: searchController,
                 focusNode: searchFocusNode,
@@ -117,18 +87,16 @@ class ChatListAppBar extends StatelessWidget {
     } else {
       content = Row(
         children: [
-          _pill(
-            scheme: colorScheme,
-            padding: const EdgeInsets.all(2),
+          FloatingPill(
+            padding: FloatingAppBarConsts.iconPillPadding,
             child: IconButton(
               icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedSearch01),
               onPressed: onOpenSearch,
             ),
           ),
           const Spacer(),
-          _pill(
-            scheme: colorScheme,
-            padding: const EdgeInsets.all(2),
+          FloatingPill(
+            padding: FloatingAppBarConsts.iconPillPadding,
             child: ChatListAppMenu(onNewChat: onNewChat),
           ),
         ],

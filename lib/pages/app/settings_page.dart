@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 
+import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
 import 'package:novyse/ui/components/settings/settings_page_template.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
@@ -19,6 +21,14 @@ class SettingsPage extends StatelessWidget {
     return SettingsPageTemplate(
       title: l10n.settings,
       showBack: false,
+      actions: [
+        IconButton(
+          icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedSearch01),
+          tooltip: l10n.searchHint,
+          // Search UI only for now: no filtering/navigation yet.
+          onPressed: () {},
+        ),
+      ],
       children: [
         SettingsSection(
           children: [

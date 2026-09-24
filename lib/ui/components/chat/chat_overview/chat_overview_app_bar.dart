@@ -1,7 +1,6 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
@@ -32,63 +31,36 @@ class ChatOverviewAppBar extends StatelessWidget {
 
   final VoidCallback onBack;
 
-  static const _pillSpacing = 12.0;
-
-  Widget _pill({
-    required ColorScheme scheme,
-    required Widget child,
-    EdgeInsetsGeometry padding = EdgeInsets.zero,
-    double radius = 100,
-  }) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: scheme.surface.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(radius),
-            border: Border.all(color: scheme.outline.withValues(alpha: 0.25)),
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     final content = Row(
       children: [
-        _pill(
-          scheme: colorScheme,
-          padding: const EdgeInsets.all(2),
+        FloatingPill(
+          padding: FloatingAppBarConsts.iconPillPadding,
           child: IconButton(
             icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
             onPressed: onBack,
           ),
         ),
-        const SizedBox(width: _pillSpacing),
+        const SizedBox(width: FloatingAppBarConsts.pillSpacing),
         Expanded(
-          child: _pill(
-            scheme: colorScheme,
-            radius: 28,
-            padding: const EdgeInsets.fromLTRB(2, 2, 2, 2),
+          child: FloatingPill(
+            radius: FloatingAppBarConsts.centralRadius,
+            padding: FloatingAppBarConsts.centralAvatarPadding,
             child: Row(
               children: [
                 Avatar(
                   uuid: avatarUuid,
                   name: title,
                   seedKey: seedKey,
-                  size: 40,
+                  size: FloatingAppBarConsts.leadingSize,
                   isOnline: isOnline,
                   isSavedMessages: isSavedMessages,
                   type: chatType,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: FloatingAppBarConsts.leadingGap),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,10 +68,7 @@ class ChatOverviewAppBar extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: FloatingAppBarConsts.titleStyle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
