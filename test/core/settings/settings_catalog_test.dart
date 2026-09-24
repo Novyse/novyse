@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
+import 'package:novyse/core/utils/platform.dart';
 
 void main() {
   group('SettingsCatalog structure', () {
@@ -45,9 +46,42 @@ void main() {
       expect(ids.toSet().length, ids.length);
     });
 
-    test('catalog UI is interactive (nothing force-disabled)', () {
+    test('disabled defaults to false but WIP items are force-disabled', () {
+      // Only startup/tray items currently under implementation stay enabled.
+      const enabledIds = {'open_startup', 'open_background', 'close_to_tray'};
       for (final item in SettingsCatalog.allItems) {
-        expect(item.disabled, isFalse, reason: item.id);
+        if (enabledIds.contains(item.id)) {
+          expect(item.disabled, isFalse, reason: item.id);
+        } else {
+          expect(item.disabled, isTrue, reason: item.id);
+        }
+      }
+    });
+
+    test('system items are desktop-only (linux/windows/macos)', () {
+      const systemIds = {
+        'open_startup',
+        'open_background',
+        'close_to_tray',
+        'gpu_accel',
+        'shortcut_manager',
+        'global_hotkeys',
+      };
+      for (final item in SettingsCatalog.allItems) {
+        if (systemIds.contains(item.id)) {
+          expect(
+            item.supportedOS.map((e) => e.name).toSet(),
+            {'linux', 'windows', 'macos'},
+            reason: item.id,
+          );
+        } else {
+          // Default: visible everywhere.
+          expect(
+            item.supportedOS.length,
+            AppOS.values.length,
+            reason: item.id,
+          );
+        }
       }
     });
 

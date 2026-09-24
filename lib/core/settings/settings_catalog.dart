@@ -7,6 +7,7 @@ library;
 import 'package:flutter/widgets.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/utils/platform.dart';
 
 extension SettingsL10nX on BuildContext {
   String settingsText(String Function(AppLocalizations) text) =>
@@ -46,6 +47,10 @@ class SettingOption {
 /// - [actionId]: handler id resolved by the Flutter action registry.
 /// - [customRendererId]: renderer id for complex domain UI.
 /// - [valueProviderId]: provider id for read-only values (e.g. app version).
+/// - [disabled]: when true the row renders non-interactive (WIP placeholder).
+///   Defaults to false.
+/// - [supportedOS]: OS list where the item is visible. Defaults to all
+///   [AppOS.values]; e.g. tray/startup items use only desktop OS.
 class SettingItem {
   final String id;
   final SettingComponent component;
@@ -64,6 +69,7 @@ class SettingItem {
   final String Function(AppLocalizations) subtitle;
   final bool danger;
   final bool disabled;
+  final List<AppOS> supportedOS;
 
   const SettingItem({
     required this.id,
@@ -83,7 +89,14 @@ class SettingItem {
     this.icon,
     this.danger = false,
     this.disabled = false,
+    this.supportedOS = AppOS.values,
   });
+
+  /// Whether this item should be shown on the current OS.
+  bool get isSupportedOnCurrentOS => supportedOS.contains(currentOS);
+
+  /// Whether the row must render as non-interactive.
+  bool get isEffectivelyDisabled => disabled || !isSupportedOnCurrentOS;
 }
 
 class SettingGroup {
@@ -155,6 +168,7 @@ class SettingsCatalog {
                   component: SettingComponent.custom,
                   scope: SettingScope.synchronized,
                   customRendererId: 'profileEditor',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'avatar_banner',
@@ -163,6 +177,7 @@ class SettingsCatalog {
                   component: SettingComponent.custom,
                   scope: SettingScope.synchronized,
                   customRendererId: 'avatarEditor',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'bio_status',
@@ -171,6 +186,7 @@ class SettingsCatalog {
                   component: SettingComponent.custom,
                   scope: SettingScope.synchronized,
                   customRendererId: 'profileEditor',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'name_color',
@@ -180,6 +196,7 @@ class SettingsCatalog {
                   settingKey: 'account.nameColor',
                   scope: SettingScope.synchronized,
                   defaultValue: '#0F6FFF',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'linked_contacts',
@@ -188,6 +205,7 @@ class SettingsCatalog {
                   component: SettingComponent.custom,
                   scope: SettingScope.synchronized,
                   customRendererId: 'linkedContacts',
+                  disabled: true,
                 ),
               ],
             ),
@@ -202,6 +220,7 @@ class SettingsCatalog {
           component: SettingComponent.custom,
           scope: SettingScope.synchronized,
           customRendererId: 'sessionAuditor',
+          disabled: true,
         ),
         SettingItem(
           id: 'logout',
@@ -210,6 +229,7 @@ class SettingsCatalog {
           component: SettingComponent.action,
           scope: SettingScope.local,
           actionId: 'logout',
+          disabled: true,
         ),
         SettingItem(
           id: 'delete_profile',
@@ -219,6 +239,7 @@ class SettingsCatalog {
           scope: SettingScope.synchronized,
           actionId: 'deleteProfile',
           danger: true,
+          disabled: true,
         ),
       ],
     ),
@@ -246,6 +267,7 @@ class SettingsCatalog {
                   settingKey: 'chat.pauseMusicWhileRecording',
                   scope: SettingScope.local,
                   defaultValue: true,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'pause_music_playing',
@@ -255,6 +277,7 @@ class SettingsCatalog {
                   settingKey: 'chat.pauseMusicWhilePlaying',
                   scope: SettingScope.local,
                   defaultValue: true,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'autoplay_gifs',
@@ -264,6 +287,7 @@ class SettingsCatalog {
                   settingKey: 'chat.autoplayGifsAndVideos',
                   scope: SettingScope.local,
                   defaultValue: true,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'ear_speaker',
@@ -273,6 +297,7 @@ class SettingsCatalog {
                   settingKey: 'chat.earSpeakerMode',
                   scope: SettingScope.local,
                   defaultValue: false,
+                  disabled: true,
                 ),
               ],
             ),
@@ -295,6 +320,7 @@ class SettingsCatalog {
                   settingKey: 'chat.sendWithEnter',
                   scope: SettingScope.local,
                   defaultValue: true,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'markdown_toolbar',
@@ -304,6 +330,7 @@ class SettingsCatalog {
                   settingKey: 'chat.markdownToolbar',
                   scope: SettingScope.synchronized,
                   defaultValue: true,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'smart_emoji',
@@ -313,6 +340,7 @@ class SettingsCatalog {
                   settingKey: 'chat.smartEmojiSuggestions',
                   scope: SettingScope.synchronized,
                   defaultValue: true,
+                  disabled: true,
                 ),
               ],
             ),
@@ -345,13 +373,32 @@ class SettingsCatalog {
                   scope: SettingScope.synchronized,
                   defaultValue: 'dark_slate',
                   options: [
-                    SettingOption('dark_slate', (l) => l.settingsOptionThemeSelectorDarkSlateLabel),
-                    SettingOption('midnight_oled', (l) => l.settingsOptionThemeSelectorMidnightOledLabel),
-                    SettingOption('clean_light', (l) => l.settingsOptionThemeSelectorCleanLightLabel),
-                    SettingOption('cyberpunk_neon', (l) => l.settingsOptionThemeSelectorCyberpunkNeonLabel),
-                    SettingOption('forest', (l) => l.settingsOptionThemeSelectorForestLabel),
-                    SettingOption('sunset', (l) => l.settingsOptionThemeSelectorSunsetLabel),
+                    SettingOption(
+                      'dark_slate',
+                      (l) => l.settingsOptionThemeSelectorDarkSlateLabel,
+                    ),
+                    SettingOption(
+                      'midnight_oled',
+                      (l) => l.settingsOptionThemeSelectorMidnightOledLabel,
+                    ),
+                    SettingOption(
+                      'clean_light',
+                      (l) => l.settingsOptionThemeSelectorCleanLightLabel,
+                    ),
+                    SettingOption(
+                      'cyberpunk_neon',
+                      (l) => l.settingsOptionThemeSelectorCyberpunkNeonLabel,
+                    ),
+                    SettingOption(
+                      'forest',
+                      (l) => l.settingsOptionThemeSelectorForestLabel,
+                    ),
+                    SettingOption(
+                      'sunset',
+                      (l) => l.settingsOptionThemeSelectorSunsetLabel,
+                    ),
                   ],
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'theme_studio',
@@ -360,6 +407,7 @@ class SettingsCatalog {
                   component: SettingComponent.custom,
                   scope: SettingScope.synchronized,
                   customRendererId: 'themeStudio',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'sync_themes',
@@ -369,6 +417,7 @@ class SettingsCatalog {
                   settingKey: 'appearance.syncThemes',
                   scope: SettingScope.synchronized,
                   defaultValue: true,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'holiday_themes',
@@ -378,6 +427,7 @@ class SettingsCatalog {
                   settingKey: 'appearance.holidayThemes',
                   scope: SettingScope.synchronized,
                   defaultValue: false,
+                  disabled: true,
                 ),
               ],
             ),
@@ -401,12 +451,28 @@ class SettingsCatalog {
                   scope: SettingScope.local,
                   defaultValue: 'classic',
                   options: [
-                    SettingOption('classic', (l) => l.settingsOptionAppIconClassicLabel),
-                    SettingOption('minimalist', (l) => l.settingsOptionAppIconMinimalistLabel),
-                    SettingOption('dark_mono', (l) => l.settingsOptionAppIconDarkMonoLabel),
-                    SettingOption('retro_3d', (l) => l.settingsOptionAppIconRetro3dLabel),
-                    SettingOption('gradient', (l) => l.settingsOptionAppIconGradientLabel),
+                    SettingOption(
+                      'classic',
+                      (l) => l.settingsOptionAppIconClassicLabel,
+                    ),
+                    SettingOption(
+                      'minimalist',
+                      (l) => l.settingsOptionAppIconMinimalistLabel,
+                    ),
+                    SettingOption(
+                      'dark_mono',
+                      (l) => l.settingsOptionAppIconDarkMonoLabel,
+                    ),
+                    SettingOption(
+                      'retro_3d',
+                      (l) => l.settingsOptionAppIconRetro3dLabel,
+                    ),
+                    SettingOption(
+                      'gradient',
+                      (l) => l.settingsOptionAppIconGradientLabel,
+                    ),
                   ],
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'wallpaper',
@@ -417,6 +483,7 @@ class SettingsCatalog {
                   scope: SettingScope.synchronized,
                   defaultValue: 'solid_default',
                   customRendererId: 'wallpaperEditor',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'density_font',
@@ -427,6 +494,7 @@ class SettingsCatalog {
                   scope: SettingScope.local,
                   defaultValue: 'standard_100',
                   customRendererId: 'densityFont',
+                  disabled: true,
                 ),
               ],
             ),
@@ -457,6 +525,7 @@ class SettingsCatalog {
                   component: SettingComponent.custom,
                   scope: SettingScope.local,
                   customRendererId: 'storageUsage',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'clear_cache',
@@ -465,6 +534,7 @@ class SettingsCatalog {
                   component: SettingComponent.action,
                   scope: SettingScope.local,
                   actionId: 'clearCache',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'auto_remove',
@@ -475,11 +545,24 @@ class SettingsCatalog {
                   scope: SettingScope.local,
                   defaultValue: 'one_month',
                   options: [
-                    SettingOption('three_days', (l) => l.settingsOptionAutoRemoveThreeDaysLabel),
-                    SettingOption('one_week', (l) => l.settingsOptionAutoRemoveOneWeekLabel),
-                    SettingOption('one_month', (l) => l.settingsOptionAutoRemoveOneMonthLabel),
-                    SettingOption('forever', (l) => l.settingsOptionAutoRemoveForeverLabel),
+                    SettingOption(
+                      'three_days',
+                      (l) => l.settingsOptionAutoRemoveThreeDaysLabel,
+                    ),
+                    SettingOption(
+                      'one_week',
+                      (l) => l.settingsOptionAutoRemoveOneWeekLabel,
+                    ),
+                    SettingOption(
+                      'one_month',
+                      (l) => l.settingsOptionAutoRemoveOneMonthLabel,
+                    ),
+                    SettingOption(
+                      'forever',
+                      (l) => l.settingsOptionAutoRemoveForeverLabel,
+                    ),
                   ],
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'max_cache',
@@ -490,12 +573,28 @@ class SettingsCatalog {
                   scope: SettingScope.local,
                   defaultValue: 'unlimited',
                   options: [
-                    SettingOption('gb_1', (l) => l.settingsOptionMaxCacheGb1Label),
-                    SettingOption('gb_5', (l) => l.settingsOptionMaxCacheGb5Label),
-                    SettingOption('gb_16', (l) => l.settingsOptionMaxCacheGb16Label),
-                    SettingOption('gb_32', (l) => l.settingsOptionMaxCacheGb32Label),
-                    SettingOption('unlimited', (l) => l.settingsOptionMaxCacheUnlimitedLabel),
+                    SettingOption(
+                      'gb_1',
+                      (l) => l.settingsOptionMaxCacheGb1Label,
+                    ),
+                    SettingOption(
+                      'gb_5',
+                      (l) => l.settingsOptionMaxCacheGb5Label,
+                    ),
+                    SettingOption(
+                      'gb_16',
+                      (l) => l.settingsOptionMaxCacheGb16Label,
+                    ),
+                    SettingOption(
+                      'gb_32',
+                      (l) => l.settingsOptionMaxCacheGb32Label,
+                    ),
+                    SettingOption(
+                      'unlimited',
+                      (l) => l.settingsOptionMaxCacheUnlimitedLabel,
+                    ),
                   ],
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'media_explorer',
@@ -504,6 +603,7 @@ class SettingsCatalog {
                   component: SettingComponent.custom,
                   scope: SettingScope.local,
                   customRendererId: 'mediaExplorer',
+                  disabled: true,
                 ),
               ],
             ),
@@ -525,6 +625,7 @@ class SettingsCatalog {
                   component: SettingComponent.custom,
                   scope: SettingScope.synchronized,
                   customRendererId: 'cloudQuota',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'purge_cloud',
@@ -534,6 +635,7 @@ class SettingsCatalog {
                   scope: SettingScope.synchronized,
                   actionId: 'purgeCloudMedia',
                   danger: true,
+                  disabled: true,
                 ),
               ],
             ),
@@ -550,10 +652,20 @@ class SettingsCatalog {
           scope: SettingScope.local,
           defaultValue: 'photos',
           options: [
-            SettingOption('photos', (l) => l.settingsOptionWifiDownloadPhotosLabel),
-            SettingOption('videos', (l) => l.settingsOptionWifiDownloadVideosLabel),
-            SettingOption('files', (l) => l.settingsOptionWifiDownloadFilesLabel),
+            SettingOption(
+              'photos',
+              (l) => l.settingsOptionWifiDownloadPhotosLabel,
+            ),
+            SettingOption(
+              'videos',
+              (l) => l.settingsOptionWifiDownloadVideosLabel,
+            ),
+            SettingOption(
+              'files',
+              (l) => l.settingsOptionWifiDownloadFilesLabel,
+            ),
           ],
+          disabled: true,
         ),
         SettingItem(
           id: 'mobile_download',
@@ -564,10 +676,20 @@ class SettingsCatalog {
           scope: SettingScope.local,
           defaultValue: '',
           options: [
-            SettingOption('photos', (l) => l.settingsOptionMobileDownloadPhotosLabel),
-            SettingOption('videos', (l) => l.settingsOptionMobileDownloadVideosLabel),
-            SettingOption('files', (l) => l.settingsOptionMobileDownloadFilesLabel),
+            SettingOption(
+              'photos',
+              (l) => l.settingsOptionMobileDownloadPhotosLabel,
+            ),
+            SettingOption(
+              'videos',
+              (l) => l.settingsOptionMobileDownloadVideosLabel,
+            ),
+            SettingOption(
+              'files',
+              (l) => l.settingsOptionMobileDownloadFilesLabel,
+            ),
           ],
+          disabled: true,
         ),
         SettingItem(
           id: 'roaming_download',
@@ -578,10 +700,20 @@ class SettingsCatalog {
           scope: SettingScope.local,
           defaultValue: '',
           options: [
-            SettingOption('photos', (l) => l.settingsOptionRoamingDownloadPhotosLabel),
-            SettingOption('videos', (l) => l.settingsOptionRoamingDownloadVideosLabel),
-            SettingOption('files', (l) => l.settingsOptionRoamingDownloadFilesLabel),
+            SettingOption(
+              'photos',
+              (l) => l.settingsOptionRoamingDownloadPhotosLabel,
+            ),
+            SettingOption(
+              'videos',
+              (l) => l.settingsOptionRoamingDownloadVideosLabel,
+            ),
+            SettingOption(
+              'files',
+              (l) => l.settingsOptionRoamingDownloadFilesLabel,
+            ),
           ],
+          disabled: true,
         ),
         SettingItem(
           id: 'save_gallery',
@@ -592,11 +724,21 @@ class SettingsCatalog {
           scope: SettingScope.local,
           defaultValue: 'disabled',
           options: [
-            SettingOption('disabled', (l) => l.settingsOptionSaveGalleryDisabledLabel),
-            SettingOption('private_only', (l) => l.settingsOptionSaveGalleryPrivateOnlyLabel),
-            SettingOption('groups_only', (l) => l.settingsOptionSaveGalleryGroupsOnlyLabel),
+            SettingOption(
+              'disabled',
+              (l) => l.settingsOptionSaveGalleryDisabledLabel,
+            ),
+            SettingOption(
+              'private_only',
+              (l) => l.settingsOptionSaveGalleryPrivateOnlyLabel,
+            ),
+            SettingOption(
+              'groups_only',
+              (l) => l.settingsOptionSaveGalleryGroupsOnlyLabel,
+            ),
             SettingOption('all', (l) => l.settingsOptionSaveGalleryAllLabel),
           ],
+          disabled: true,
         ),
         SettingItem(
           id: 'reset_db',
@@ -606,6 +748,7 @@ class SettingsCatalog {
           scope: SettingScope.local,
           actionId: 'resetDatabase',
           danger: true,
+          disabled: true,
         ),
       ],
     ),
@@ -632,6 +775,7 @@ class SettingsCatalog {
                   component: SettingComponent.custom,
                   scope: SettingScope.synchronized,
                   customRendererId: 'passwordManager',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'mfa',
@@ -640,6 +784,7 @@ class SettingsCatalog {
                   component: SettingComponent.custom,
                   scope: SettingScope.synchronized,
                   customRendererId: 'mfaSetup',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'auth_sessions',
@@ -648,6 +793,7 @@ class SettingsCatalog {
                   component: SettingComponent.custom,
                   scope: SettingScope.synchronized,
                   customRendererId: 'sessionAuditor',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'api_keys',
@@ -656,6 +802,7 @@ class SettingsCatalog {
                   component: SettingComponent.custom,
                   scope: SettingScope.synchronized,
                   customRendererId: 'apiKeys',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'biometric_lock',
@@ -665,6 +812,7 @@ class SettingsCatalog {
                   settingKey: 'security.biometricLock',
                   scope: SettingScope.local,
                   defaultValue: false,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'blocked_users',
@@ -675,6 +823,7 @@ class SettingsCatalog {
                   scope: SettingScope.synchronized,
                   defaultValue: '[]',
                   customRendererId: 'blockedUsers',
+                  disabled: true,
                 ),
               ],
             ),
@@ -698,10 +847,20 @@ class SettingsCatalog {
                   scope: SettingScope.synchronized,
                   defaultValue: 'contacts',
                   options: [
-                    SettingOption('everyone', (l) => l.settingsOptionLastSeenEveryoneLabel),
-                    SettingOption('contacts', (l) => l.settingsOptionLastSeenContactsLabel),
-                    SettingOption('nobody', (l) => l.settingsOptionLastSeenNobodyLabel),
+                    SettingOption(
+                      'everyone',
+                      (l) => l.settingsOptionLastSeenEveryoneLabel,
+                    ),
+                    SettingOption(
+                      'contacts',
+                      (l) => l.settingsOptionLastSeenContactsLabel,
+                    ),
+                    SettingOption(
+                      'nobody',
+                      (l) => l.settingsOptionLastSeenNobodyLabel,
+                    ),
                   ],
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'profile_photo_visibility',
@@ -712,10 +871,22 @@ class SettingsCatalog {
                   scope: SettingScope.synchronized,
                   defaultValue: 'contacts',
                   options: [
-                    SettingOption('everyone', (l) => l.settingsOptionProfilePhotoVisibilityEveryoneLabel),
-                    SettingOption('contacts', (l) => l.settingsOptionProfilePhotoVisibilityContactsLabel),
-                    SettingOption('nobody', (l) => l.settingsOptionProfilePhotoVisibilityNobodyLabel),
+                    SettingOption(
+                      'everyone',
+                      (l) =>
+                          l.settingsOptionProfilePhotoVisibilityEveryoneLabel,
+                    ),
+                    SettingOption(
+                      'contacts',
+                      (l) =>
+                          l.settingsOptionProfilePhotoVisibilityContactsLabel,
+                    ),
+                    SettingOption(
+                      'nobody',
+                      (l) => l.settingsOptionProfilePhotoVisibilityNobodyLabel,
+                    ),
                   ],
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'bio_visibility',
@@ -726,10 +897,20 @@ class SettingsCatalog {
                   scope: SettingScope.synchronized,
                   defaultValue: 'contacts',
                   options: [
-                    SettingOption('everyone', (l) => l.settingsOptionBioVisibilityEveryoneLabel),
-                    SettingOption('contacts', (l) => l.settingsOptionBioVisibilityContactsLabel),
-                    SettingOption('nobody', (l) => l.settingsOptionBioVisibilityNobodyLabel),
+                    SettingOption(
+                      'everyone',
+                      (l) => l.settingsOptionBioVisibilityEveryoneLabel,
+                    ),
+                    SettingOption(
+                      'contacts',
+                      (l) => l.settingsOptionBioVisibilityContactsLabel,
+                    ),
+                    SettingOption(
+                      'nobody',
+                      (l) => l.settingsOptionBioVisibilityNobodyLabel,
+                    ),
                   ],
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'birthday_visibility',
@@ -740,10 +921,20 @@ class SettingsCatalog {
                   scope: SettingScope.synchronized,
                   defaultValue: 'contacts',
                   options: [
-                    SettingOption('everyone', (l) => l.settingsOptionBirthdayVisibilityEveryoneLabel),
-                    SettingOption('contacts', (l) => l.settingsOptionBirthdayVisibilityContactsLabel),
-                    SettingOption('nobody', (l) => l.settingsOptionBirthdayVisibilityNobodyLabel),
+                    SettingOption(
+                      'everyone',
+                      (l) => l.settingsOptionBirthdayVisibilityEveryoneLabel,
+                    ),
+                    SettingOption(
+                      'contacts',
+                      (l) => l.settingsOptionBirthdayVisibilityContactsLabel,
+                    ),
+                    SettingOption(
+                      'nobody',
+                      (l) => l.settingsOptionBirthdayVisibilityNobodyLabel,
+                    ),
                   ],
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'read_receipts',
@@ -753,6 +944,7 @@ class SettingsCatalog {
                   settingKey: 'privacy.readReceipts',
                   scope: SettingScope.synchronized,
                   defaultValue: true,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'forward_attribution',
@@ -762,6 +954,7 @@ class SettingsCatalog {
                   settingKey: 'privacy.forwardAttribution',
                   scope: SettingScope.synchronized,
                   defaultValue: true,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'call_routing',
@@ -771,7 +964,17 @@ class SettingsCatalog {
                   settingKey: 'privacy.callRouting',
                   scope: SettingScope.synchronized,
                   defaultValue: 'relay',
-                  options: [SettingOption('p2p', (l) => l.settingsOptionCallRoutingP2pLabel), SettingOption('relay', (l) => l.settingsOptionCallRoutingRelayLabel)],
+                  options: [
+                    SettingOption(
+                      'p2p',
+                      (l) => l.settingsOptionCallRoutingP2pLabel,
+                    ),
+                    SettingOption(
+                      'relay',
+                      (l) => l.settingsOptionCallRoutingRelayLabel,
+                    ),
+                  ],
+                  disabled: true,
                 ),
               ],
             ),
@@ -803,6 +1006,7 @@ class SettingsCatalog {
                   settingKey: 'notifications.privateChats',
                   scope: SettingScope.synchronized,
                   defaultValue: true,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'groups_mode',
@@ -813,10 +1017,20 @@ class SettingsCatalog {
                   scope: SettingScope.synchronized,
                   defaultValue: 'mentions',
                   options: [
-                    SettingOption('all', (l) => l.settingsOptionGroupsModeAllLabel),
-                    SettingOption('mentions', (l) => l.settingsOptionGroupsModeMentionsLabel),
-                    SettingOption('muted', (l) => l.settingsOptionGroupsModeMutedLabel),
+                    SettingOption(
+                      'all',
+                      (l) => l.settingsOptionGroupsModeAllLabel,
+                    ),
+                    SettingOption(
+                      'mentions',
+                      (l) => l.settingsOptionGroupsModeMentionsLabel,
+                    ),
+                    SettingOption(
+                      'muted',
+                      (l) => l.settingsOptionGroupsModeMutedLabel,
+                    ),
                   ],
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'channels_notif',
@@ -826,6 +1040,7 @@ class SettingsCatalog {
                   settingKey: 'notifications.channels',
                   scope: SettingScope.synchronized,
                   defaultValue: true,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'forums_notif',
@@ -836,10 +1051,20 @@ class SettingsCatalog {
                   scope: SettingScope.synchronized,
                   defaultValue: 'subscribed',
                   options: [
-                    SettingOption('all', (l) => l.settingsOptionForumsNotifAllLabel),
-                    SettingOption('subscribed', (l) => l.settingsOptionForumsNotifSubscribedLabel),
-                    SettingOption('muted', (l) => l.settingsOptionForumsNotifMutedLabel),
+                    SettingOption(
+                      'all',
+                      (l) => l.settingsOptionForumsNotifAllLabel,
+                    ),
+                    SettingOption(
+                      'subscribed',
+                      (l) => l.settingsOptionForumsNotifSubscribedLabel,
+                    ),
+                    SettingOption(
+                      'muted',
+                      (l) => l.settingsOptionForumsNotifMutedLabel,
+                    ),
                   ],
+                  disabled: true,
                 ),
               ],
             ),
@@ -863,6 +1088,7 @@ class SettingsCatalog {
                   scope: SettingScope.local,
                   defaultValue: 'default',
                   customRendererId: 'ringtonePicker',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'vibration',
@@ -873,11 +1099,24 @@ class SettingsCatalog {
                   scope: SettingScope.local,
                   defaultValue: 'heartbeat',
                   options: [
-                    SettingOption('continuous', (l) => l.settingsOptionVibrationContinuousLabel),
-                    SettingOption('heartbeat', (l) => l.settingsOptionVibrationHeartbeatLabel),
-                    SettingOption('pulse', (l) => l.settingsOptionVibrationPulseLabel),
-                    SettingOption('silent', (l) => l.settingsOptionVibrationSilentLabel),
+                    SettingOption(
+                      'continuous',
+                      (l) => l.settingsOptionVibrationContinuousLabel,
+                    ),
+                    SettingOption(
+                      'heartbeat',
+                      (l) => l.settingsOptionVibrationHeartbeatLabel,
+                    ),
+                    SettingOption(
+                      'pulse',
+                      (l) => l.settingsOptionVibrationPulseLabel,
+                    ),
+                    SettingOption(
+                      'silent',
+                      (l) => l.settingsOptionVibrationSilentLabel,
+                    ),
                   ],
+                  disabled: true,
                 ),
               ],
             ),
@@ -900,6 +1139,7 @@ class SettingsCatalog {
                   settingKey: 'notifications.inAppSounds',
                   scope: SettingScope.local,
                   defaultValue: true,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'inapp_vibrate',
@@ -909,6 +1149,7 @@ class SettingsCatalog {
                   settingKey: 'notifications.inAppVibrate',
                   scope: SettingScope.local,
                   defaultValue: false,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'inapp_preview',
@@ -918,6 +1159,7 @@ class SettingsCatalog {
                   settingKey: 'notifications.inAppPreview',
                   scope: SettingScope.local,
                   defaultValue: true,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'inapp_effects',
@@ -927,6 +1169,7 @@ class SettingsCatalog {
                   settingKey: 'notifications.inChatEffects',
                   scope: SettingScope.local,
                   defaultValue: true,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'badge_rules',
@@ -937,10 +1180,20 @@ class SettingsCatalog {
                   scope: SettingScope.local,
                   defaultValue: 'unread_messages',
                   options: [
-                    SettingOption('unread_messages', (l) => l.settingsOptionBadgeRulesUnreadMessagesLabel),
-                    SettingOption('unread_chats', (l) => l.settingsOptionBadgeRulesUnreadChatsLabel),
-                    SettingOption('exclude_muted', (l) => l.settingsOptionBadgeRulesExcludeMutedLabel),
+                    SettingOption(
+                      'unread_messages',
+                      (l) => l.settingsOptionBadgeRulesUnreadMessagesLabel,
+                    ),
+                    SettingOption(
+                      'unread_chats',
+                      (l) => l.settingsOptionBadgeRulesUnreadChatsLabel,
+                    ),
+                    SettingOption(
+                      'exclude_muted',
+                      (l) => l.settingsOptionBadgeRulesExcludeMutedLabel,
+                    ),
                   ],
+                  disabled: true,
                 ),
               ],
             ),
@@ -973,6 +1226,7 @@ class SettingsCatalog {
                   scope: SettingScope.local,
                   defaultValue: 'default',
                   customRendererId: 'audioDevicePicker',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'output_device',
@@ -983,6 +1237,7 @@ class SettingsCatalog {
                   scope: SettingScope.local,
                   defaultValue: 'default',
                   customRendererId: 'audioDevicePicker',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'mic_test',
@@ -991,6 +1246,7 @@ class SettingsCatalog {
                   component: SettingComponent.action,
                   scope: SettingScope.local,
                   actionId: 'micTest',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'input_mode',
@@ -1000,7 +1256,17 @@ class SettingsCatalog {
                   settingKey: 'comms.inputMode',
                   scope: SettingScope.local,
                   defaultValue: 'vad',
-                  options: [SettingOption('vad', (l) => l.settingsOptionInputModeVadLabel), SettingOption('ptt', (l) => l.settingsOptionInputModePttLabel)],
+                  options: [
+                    SettingOption(
+                      'vad',
+                      (l) => l.settingsOptionInputModeVadLabel,
+                    ),
+                    SettingOption(
+                      'ptt',
+                      (l) => l.settingsOptionInputModePttLabel,
+                    ),
+                  ],
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'noise_suppression',
@@ -1010,6 +1276,7 @@ class SettingsCatalog {
                   settingKey: 'comms.noiseSuppression',
                   scope: SettingScope.local,
                   defaultValue: true,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'expander',
@@ -1019,6 +1286,7 @@ class SettingsCatalog {
                   settingKey: 'comms.expander',
                   scope: SettingScope.local,
                   defaultValue: false,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'noise_gate',
@@ -1030,6 +1298,7 @@ class SettingsCatalog {
                   defaultValue: -42,
                   min: -60,
                   max: 0,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'keystroke_attenuation',
@@ -1039,6 +1308,7 @@ class SettingsCatalog {
                   settingKey: 'comms.keystrokeAttenuation',
                   scope: SettingScope.local,
                   defaultValue: true,
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'echo_cancellation',
@@ -1048,6 +1318,7 @@ class SettingsCatalog {
                   settingKey: 'comms.echoCancellation',
                   scope: SettingScope.local,
                   defaultValue: true,
+                  disabled: true,
                 ),
               ],
             ),
@@ -1071,6 +1342,7 @@ class SettingsCatalog {
                   scope: SettingScope.local,
                   defaultValue: 'default',
                   customRendererId: 'cameraPicker',
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'video_quality',
@@ -1081,10 +1353,20 @@ class SettingsCatalog {
                   scope: SettingScope.local,
                   defaultValue: '1080p',
                   options: [
-                    SettingOption('720p', (l) => l.settingsOptionVideoQuality720pLabel),
-                    SettingOption('1080p', (l) => l.settingsOptionVideoQuality1080pLabel),
-                    SettingOption('4k', (l) => l.settingsOptionVideoQuality4kLabel),
+                    SettingOption(
+                      '720p',
+                      (l) => l.settingsOptionVideoQuality720pLabel,
+                    ),
+                    SettingOption(
+                      '1080p',
+                      (l) => l.settingsOptionVideoQuality1080pLabel,
+                    ),
+                    SettingOption(
+                      '4k',
+                      (l) => l.settingsOptionVideoQuality4kLabel,
+                    ),
                   ],
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'video_fps',
@@ -1094,7 +1376,11 @@ class SettingsCatalog {
                   settingKey: 'comms.videoFramerate',
                   scope: SettingScope.local,
                   defaultValue: '30',
-                  options: [SettingOption('30', (l) => l.settingsOptionVideoFps30Label), SettingOption('60', (l) => l.settingsOptionVideoFps60Label)],
+                  options: [
+                    SettingOption('30', (l) => l.settingsOptionVideoFps30Label),
+                    SettingOption('60', (l) => l.settingsOptionVideoFps60Label),
+                  ],
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'virtual_bg',
@@ -1105,11 +1391,24 @@ class SettingsCatalog {
                   scope: SettingScope.local,
                   defaultValue: 'none',
                   options: [
-                    SettingOption('none', (l) => l.settingsOptionVirtualBgNoneLabel),
-                    SettingOption('light_blur', (l) => l.settingsOptionVirtualBgLightBlurLabel),
-                    SettingOption('heavy_blur', (l) => l.settingsOptionVirtualBgHeavyBlurLabel),
-                    SettingOption('custom', (l) => l.settingsOptionVirtualBgCustomLabel),
+                    SettingOption(
+                      'none',
+                      (l) => l.settingsOptionVirtualBgNoneLabel,
+                    ),
+                    SettingOption(
+                      'light_blur',
+                      (l) => l.settingsOptionVirtualBgLightBlurLabel,
+                    ),
+                    SettingOption(
+                      'heavy_blur',
+                      (l) => l.settingsOptionVirtualBgHeavyBlurLabel,
+                    ),
+                    SettingOption(
+                      'custom',
+                      (l) => l.settingsOptionVirtualBgCustomLabel,
+                    ),
                   ],
+                  disabled: true,
                 ),
               ],
             ),
@@ -1133,9 +1432,16 @@ class SettingsCatalog {
                   scope: SettingScope.local,
                   defaultValue: 'clarity',
                   options: [
-                    SettingOption('fluid_60', (l) => l.settingsOptionShareQualityFluid60Label),
-                    SettingOption('clarity', (l) => l.settingsOptionShareQualityClarityLabel),
+                    SettingOption(
+                      'fluid_60',
+                      (l) => l.settingsOptionShareQualityFluid60Label,
+                    ),
+                    SettingOption(
+                      'clarity',
+                      (l) => l.settingsOptionShareQualityClarityLabel,
+                    ),
                   ],
+                  disabled: true,
                 ),
                 SettingItem(
                   id: 'hifi_audio',
@@ -1145,6 +1451,7 @@ class SettingsCatalog {
                   settingKey: 'comms.hifiAudioPassthrough',
                   scope: SettingScope.local,
                   defaultValue: false,
+                  disabled: true,
                 ),
               ],
             ),
@@ -1168,6 +1475,7 @@ class SettingsCatalog {
                   scope: SettingScope.local,
                   defaultValue: '{}',
                   customRendererId: 'soundboard',
+                  disabled: true,
                 ),
               ],
             ),
@@ -1199,6 +1507,7 @@ class SettingsCatalog {
                   settingKey: 'system.openOnStartup',
                   scope: SettingScope.local,
                   defaultValue: false,
+                  supportedOS: const [AppOS.linux, AppOS.windows, AppOS.macos],
                 ),
                 SettingItem(
                   id: 'open_background',
@@ -1208,6 +1517,7 @@ class SettingsCatalog {
                   settingKey: 'system.openInBackground',
                   scope: SettingScope.local,
                   defaultValue: false,
+                  supportedOS: const [AppOS.linux, AppOS.windows, AppOS.macos],
                 ),
                 SettingItem(
                   id: 'close_to_tray',
@@ -1217,6 +1527,7 @@ class SettingsCatalog {
                   settingKey: 'system.closeToTray',
                   scope: SettingScope.local,
                   defaultValue: true,
+                  supportedOS: const [AppOS.linux, AppOS.windows, AppOS.macos],
                 ),
                 SettingItem(
                   id: 'gpu_accel',
@@ -1226,6 +1537,8 @@ class SettingsCatalog {
                   settingKey: 'system.gpuAcceleration',
                   scope: SettingScope.local,
                   defaultValue: true,
+                  disabled: true,
+                  supportedOS: const [AppOS.linux, AppOS.windows, AppOS.macos],
                 ),
               ],
             ),
@@ -1249,6 +1562,8 @@ class SettingsCatalog {
                   scope: SettingScope.synchronized,
                   defaultValue: '{}',
                   customRendererId: 'shortcutManager',
+                  disabled: true,
+                  supportedOS: const [AppOS.linux, AppOS.windows, AppOS.macos],
                 ),
                 SettingItem(
                   id: 'global_hotkeys',
@@ -1259,6 +1574,8 @@ class SettingsCatalog {
                   scope: SettingScope.local,
                   defaultValue: '{}',
                   customRendererId: 'globalHotkeys',
+                  disabled: true,
+                  supportedOS: const [AppOS.linux, AppOS.windows, AppOS.macos],
                 ),
               ],
             ),
@@ -1290,6 +1607,7 @@ class SettingsCatalog {
             SettingOption('ja', (l) => l.settingsOptionAppLanguageJaLabel),
             SettingOption('zh', (l) => l.settingsOptionAppLanguageZhLabel),
           ],
+          disabled: true,
         ),
         SettingItem(
           id: 'hour_format',
@@ -1299,7 +1617,11 @@ class SettingsCatalog {
           settingKey: 'locale.hourFormat',
           scope: SettingScope.synchronized,
           defaultValue: '24h',
-          options: [SettingOption('24h', (l) => l.settingsOptionHourFormat24hLabel), SettingOption('12h', (l) => l.settingsOptionHourFormat12hLabel)],
+          options: [
+            SettingOption('24h', (l) => l.settingsOptionHourFormat24hLabel),
+            SettingOption('12h', (l) => l.settingsOptionHourFormat12hLabel),
+          ],
+          disabled: true,
         ),
         SettingItem(
           id: 'first_day',
@@ -1309,7 +1631,11 @@ class SettingsCatalog {
           settingKey: 'locale.firstDayOfWeek',
           scope: SettingScope.synchronized,
           defaultValue: 'monday',
-          options: [SettingOption('monday', (l) => l.settingsOptionFirstDayMondayLabel), SettingOption('sunday', (l) => l.settingsOptionFirstDaySundayLabel)],
+          options: [
+            SettingOption('monday', (l) => l.settingsOptionFirstDayMondayLabel),
+            SettingOption('sunday', (l) => l.settingsOptionFirstDaySundayLabel),
+          ],
+          disabled: true,
         ),
         SettingItem(
           id: 'spellcheck',
@@ -1319,6 +1645,7 @@ class SettingsCatalog {
           settingKey: 'locale.spellcheck',
           scope: SettingScope.local,
           defaultValue: true,
+          disabled: true,
         ),
       ],
     ),
@@ -1336,6 +1663,7 @@ class SettingsCatalog {
           component: SettingComponent.value,
           scope: SettingScope.local,
           valueProviderId: 'appVersion',
+          disabled: true,
         ),
         SettingItem(
           id: 'release_channel',
@@ -1346,10 +1674,20 @@ class SettingsCatalog {
           scope: SettingScope.local,
           defaultValue: 'stable',
           options: [
-            SettingOption('stable', (l) => l.settingsOptionReleaseChannelStableLabel),
-            SettingOption('beta', (l) => l.settingsOptionReleaseChannelBetaLabel),
-            SettingOption('nightly', (l) => l.settingsOptionReleaseChannelNightlyLabel),
+            SettingOption(
+              'stable',
+              (l) => l.settingsOptionReleaseChannelStableLabel,
+            ),
+            SettingOption(
+              'beta',
+              (l) => l.settingsOptionReleaseChannelBetaLabel,
+            ),
+            SettingOption(
+              'nightly',
+              (l) => l.settingsOptionReleaseChannelNightlyLabel,
+            ),
           ],
+          disabled: true,
         ),
         SettingItem(
           id: 'check_updates',
@@ -1358,6 +1696,7 @@ class SettingsCatalog {
           component: SettingComponent.action,
           scope: SettingScope.local,
           actionId: 'checkUpdates',
+          disabled: true,
         ),
         SettingItem(
           id: 'resource_links',
@@ -1366,6 +1705,7 @@ class SettingsCatalog {
           component: SettingComponent.custom,
           scope: SettingScope.synchronized,
           customRendererId: 'resourceLinks',
+          disabled: true,
         ),
         SettingItem(
           id: 'export_logs',
@@ -1374,6 +1714,7 @@ class SettingsCatalog {
           component: SettingComponent.action,
           scope: SettingScope.local,
           actionId: 'exportLogs',
+          disabled: true,
         ),
       ],
     ),

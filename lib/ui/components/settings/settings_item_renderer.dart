@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/config/global.dart' as config;
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
+import 'package:novyse/core/utils/platform.dart';
 
 import 'package:novyse/pages/app/settings_catalog_page.dart';
 import 'package:novyse/ui/components/settings/settings_modal_row.dart';
@@ -20,10 +21,20 @@ class SettingsItemRenderer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Hide items not supported on this OS (e.g. tray/startup on mobile/web).
+    if (!item.supportedOS.contains(currentOS)) {
+      return const SizedBox.shrink();
+    }
+    final bool isDisabled = item.disabled;
     final title = context.settingsText(item.title);
     final subtitle = context.settingsText(item.subtitle);
     final subtitleOrNull = subtitle.isEmpty ? null : subtitle;
     final settingKey = item.settingKey;
+
+    Widget wrapDisabled(Widget child) {
+      if (!isDisabled) return child;
+      return Opacity(opacity: 0.5, child: IgnorePointer(child: child));
+    }
 
     switch (item.component) {
       case SettingComponent.switchToggle:
@@ -33,16 +44,18 @@ class SettingsItemRenderer extends ConsumerWidget {
         final value = raw is bool
             ? raw
             : (item.defaultValue is bool ? item.defaultValue as bool : false);
-        return SettingsSwitchRow(
-          icon: item.icon,
-          title: title,
-          subtitle: subtitleOrNull,
-          value: value,
-          onChanged: settingKey == null
-              ? null
-              : (next) => ref
-                  .read(settingsControllerProvider.notifier)
-                  .set(settingKey, next),
+        return wrapDisabled(
+          SettingsSwitchRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            value: value,
+            onChanged: (isDisabled || settingKey == null)
+                ? null
+                : (next) => ref
+                    .read(settingsControllerProvider.notifier)
+                    .set(settingKey, next),
+          ),
         );
 
       case SettingComponent.select:
@@ -53,12 +66,14 @@ class SettingsItemRenderer extends ConsumerWidget {
         final raw = settingKey == null
             ? null
             : ref.watch(settingValueProvider(settingKey));
-        return SettingsValueRow(
-          icon: item.icon,
-          title: title,
-          subtitle: subtitleOrNull,
-          valueText: _displayValue(context, raw ?? item.defaultValue),
-          onTap: () => _openSheet(context, ref),
+        return wrapDisabled(
+          SettingsValueRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            valueText: _displayValue(context, raw ?? item.defaultValue),
+            onTap: isDisabled ? null : () => _openSheet(context, ref),
+          ),
         );
 
       case SettingComponent.hotkey:
@@ -66,43 +81,56 @@ class SettingsItemRenderer extends ConsumerWidget {
         final raw = settingKey == null
             ? null
             : ref.watch(settingValueProvider(settingKey));
-        return SettingsValueRow(
-          icon: item.icon,
-          title: title,
-          subtitle: subtitleOrNull,
-          valueText: _displayValue(context, raw ?? item.defaultValue),
-          onTap: () => showSettingsComingSoonSheet(
-            context: context,
-            item: item,
+        return wrapDisabled(
+          SettingsValueRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            valueText: _displayValue(context, raw ?? item.defaultValue),
+            onTap: isDisabled
+                ? null
+                : () => showSettingsComingSoonSheet(
+                      context: context,
+                      item: item,
+                    ),
           ),
         );
 
       case SettingComponent.value:
-        return SettingsValueRow(
-          icon: item.icon,
-          title: title,
-          subtitle: subtitleOrNull,
-          valueText:
-              item.valueProviderId == 'appVersion' ? config.appVersion : null,
+        return wrapDisabled(
+          SettingsValueRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            valueText: item.valueProviderId == 'appVersion'
+                ? config.appVersion
+                : null,
+          ),
         );
 
       case SettingComponent.staticText:
-        return SettingsValueRow(
-          icon: item.icon,
-          title: title,
-          subtitle: subtitleOrNull,
+        return wrapDisabled(
+          SettingsValueRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+          ),
         );
 
       case SettingComponent.action:
-        return SettingsNavigationRow(
-          icon: item.icon,
-          title: title,
-          subtitle: subtitleOrNull,
-          danger: item.danger,
-          onTap: () => showSettingsConfirmSheet(
-            context: context,
-            ref: ref,
-            item: item,
+        return wrapDisabled(
+          SettingsNavigationRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            danger: item.danger,
+            onTap: isDisabled
+                ? null
+                : () => showSettingsConfirmSheet(
+                      context: context,
+                      ref: ref,
+                      item: item,
+                    ),
           ),
         );
 
@@ -110,10 +138,12 @@ class SettingsItemRenderer extends ConsumerWidget {
       case SettingComponent.modal:
         final target = item.targetPageId;
         if (target == null) {
-          return SettingsValueRow(
-            icon: item.icon,
-            title: title,
-            subtitle: subtitleOrNull,
+          return wrapDisabled(
+            SettingsValueRow(
+              icon: item.icon,
+              title: title,
+              subtitle: subtitleOrNull,
+            ),
           );
         }
         final parts = target.split('/');
@@ -122,26 +152,28 @@ class SettingsItemRenderer extends ConsumerWidget {
           title: title,
           subtitle: subtitleOrNull,
           danger: item.danger,
-          onTap: parts.length == 2
-              ? () => Navigator.of(context).push(
+          onTap: (isDisabled || parts.length != 2)
+              ? null
+              : () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (_) => SettingsGroupPage(
                         categoryId: parts[0],
                         pageId: parts[1],
                       ),
                     ),
-                  )
-              : null,
+                  ),
         );
         if (item.component == SettingComponent.modal) {
-          return SettingsModalRow(
-            icon: item.icon,
-            title: title,
-            subtitle: subtitleOrNull,
-            onTap: row.onTap,
+          return wrapDisabled(
+            SettingsModalRow(
+              icon: item.icon,
+              title: title,
+              subtitle: subtitleOrNull,
+              onTap: row.onTap,
+            ),
           );
         }
-        return row;
+        return wrapDisabled(row);
     }
   }
 
