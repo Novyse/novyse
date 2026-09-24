@@ -1,7 +1,9 @@
 abstract final class DesktopWindowController {
   static bool get isCustomChromeEnabled => false;
 
-  static Future<void> init() async {}
+  static bool closeToTray = true;
+
+  static Future<void> init({bool startHidden = false}) async {}
 
   static bool get isMaximized => false;
 
@@ -9,11 +11,13 @@ abstract final class DesktopWindowController {
 
   static void toggleMaximize({bool? maximized}) {}
 
-  static void close({bool hideToTray = false}) {}
+  static void close({bool? hideToTray}) {}
 
   static void showWindow() {}
 
   static void quitApp() {}
+
+  static void resetForceQuitForTest() {}
 
   static void startDragging() {}
 

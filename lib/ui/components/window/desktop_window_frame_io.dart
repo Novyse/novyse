@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nativeapi/nativeapi.dart' hide Image;
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/window/desktop_window_controller.dart';
 import 'package:novyse/ui/components/window/window_style.dart';
@@ -28,14 +30,14 @@ class DesktopWindowFrame extends StatelessWidget {
   }
 }
 
-class CustomTitleBar extends StatefulWidget {
+class CustomTitleBar extends ConsumerStatefulWidget {
   const CustomTitleBar({super.key});
 
   @override
-  State<CustomTitleBar> createState() => _CustomTitleBarState();
+  ConsumerState<CustomTitleBar> createState() => _CustomTitleBarState();
 }
 
-class _CustomTitleBarState extends State<CustomTitleBar> {
+class _CustomTitleBarState extends ConsumerState<CustomTitleBar> {
   bool _isMaximized = false;
   int? _listenerId;
 
@@ -70,7 +72,13 @@ class _CustomTitleBarState extends State<CustomTitleBar> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _syncMaximized());
   }
 
-  void _onClose() => DesktopWindowController.close(hideToTray: true);
+  void _onClose() {
+    final closeToTray = ref.read(settingValueProvider('system.closeToTray'))
+            as bool? ??
+        DesktopWindowController.closeToTray;
+    DesktopWindowController.closeToTray = closeToTray;
+    DesktopWindowController.close(hideToTray: closeToTray);
+  }
 
   @override
   Widget build(BuildContext context) {

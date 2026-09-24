@@ -1,10 +1,19 @@
-import 'dart:io' show Platform;
+import 'dart:async' show Future;
+import 'dart:io' show Platform, exit;
+import 'dart:ui' show AppExitResponse;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleListener;
 import 'package:nativeapi/nativeapi.dart';
+import 'package:novyse/ui/components/window/desktop_tray_controller.dart';
 import 'package:novyse/ui/components/window/window_style.dart';
 
 abstract final class DesktopWindowController {
+  static bool closeToTray = true;
+  static AppLifecycleListener? _lifecycleListener;
+
+  static bool _forceQuit = false;
+
   static bool get isCustomChromeEnabled {
     if (kIsWeb) return false;
     try {
@@ -29,17 +38,37 @@ abstract final class DesktopWindowController {
     }
   }
 
-  static Future<void> init() async {
+  static void _setupLifecycleListener() {
+    _lifecycleListener?.dispose();
+    _lifecycleListener = AppLifecycleListener(
+      onExitRequested: () async {
+        if (_forceQuit) return AppExitResponse.exit;
+        if (!isCustomChromeEnabled) return AppExitResponse.exit;
+        if (closeToTray && DesktopTrayController.isInitialized) {
+          close(hideToTray: true);
+          return AppExitResponse.cancel;
+        }
+        return AppExitResponse.exit;
+      },
+    );
+  }
+
+  static Future<void> init({bool startHidden = false}) async {
     if (!isCustomChromeEnabled) return;
     try {
+      _setupLifecycleListener();
       final window = WindowManager.instance.getCurrent();
       if (window == null) return;
       window.titleBarStyle = TitleBarStyle.hidden;
       window.minimumSize = WindowDefaults.minimumSize;
       window.contentSize = WindowDefaults.initialSize;
       window.center();
-      window.show();
-      window.focus();
+      if (startHidden) {
+        window.hide();
+      } else {
+        window.show();
+        window.focus();
+      }
     } catch (_) {}
   }
 
@@ -70,13 +99,24 @@ abstract final class DesktopWindowController {
     } catch (_) {}
   }
 
-  static void close({bool hideToTray = false}) {
+  static void close({bool? hideToTray}) {
     try {
-      if (hideToTray) {
+      final shouldHide =
+          hideToTray ?? (closeToTray && DesktopTrayController.isInitialized);
+      if (shouldHide && DesktopTrayController.isInitialized) {
         current?.hide();
         return;
       }
-      Application.instance.quit(0);
+      _forceQuit = true;
+      if (!isCustomChromeEnabled) return;
+      try {
+        Application.instance.quit(0);
+      } catch (_) {}
+      Future.delayed(const Duration(milliseconds: 500), () {
+        try {
+          exit(0);
+        } catch (_) {}
+      });
     } catch (_) {}
   }
 
@@ -91,9 +131,20 @@ abstract final class DesktopWindowController {
   }
 
   static void quitApp() {
+    _forceQuit = true;
+    if (!isCustomChromeEnabled) return;
     try {
       Application.instance.quit(0);
     } catch (_) {}
+    Future.delayed(const Duration(milliseconds: 500), () {
+      try {
+        exit(0);
+      } catch (_) {}
+    });
+  }
+
+  static void resetForceQuitForTest() {
+    _forceQuit = false;
   }
 
   static void startDragging() {
