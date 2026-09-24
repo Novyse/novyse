@@ -40,7 +40,7 @@ class ChatDetailSearchAppBar extends StatelessWidget {
       children: [
         FloatingPill(
           padding: FloatingAppBarConsts.iconPillPadding,
-          child: IconButton(
+          child: FloatingIconButton(
             icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
             tooltip: l10n.cancel,
             onPressed: onClose,
@@ -51,39 +51,49 @@ class ChatDetailSearchAppBar extends StatelessWidget {
           child: FloatingPill(
             radius: FloatingAppBarConsts.centralRadius,
             padding: FloatingAppBarConsts.searchFieldPadding,
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              autofocus: true,
-              textInputAction: TextInputAction.search,
-              onChanged: onQueryChanged,
-              onSubmitted: (_) {
-                if (hasResults) onNext();
-              },
-              decoration: InputDecoration(
-                hintText: l10n.searchHint,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                isDense: true,
-                filled: false,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                suffixIconConstraints: const BoxConstraints(
-                  minWidth: 32,
-                  minHeight: 32,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                minHeight: FloatingAppBarConsts.searchFieldHeight,
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  autofocus: true,
+                  textInputAction: TextInputAction.search,
+                  textAlignVertical: TextAlignVertical.center,
+                  onChanged: onQueryChanged,
+                  onSubmitted: (_) {
+                    if (hasResults) onNext();
+                  },
+                  decoration: InputDecoration(
+                    hintText: l10n.searchHint,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    isDense: true,
+                    filled: false,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                    suffixIconConstraints: FloatingAppBarConsts
+                        .searchClearConstraints,
+                    suffixIcon: hasQuery
+                        ? IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: FloatingAppBarConsts
+                                .searchClearConstraints,
+                            icon: const AppHugeIcon(
+                              icon: HugeIcons.strokeRoundedCancel01,
+                              size: 18,
+                            ),
+                            onPressed: () {
+                              controller.clear();
+                              onQueryChanged('');
+                            },
+                          )
+                        : null,
+                  ),
                 ),
-                suffixIcon: hasQuery
-                    ? IconButton(
-                        icon: const AppHugeIcon(
-                          icon: HugeIcons.strokeRoundedCancel01,
-                          size: 18,
-                        ),
-                        onPressed: () {
-                          controller.clear();
-                          onQueryChanged('');
-                        },
-                      )
-                    : null,
               ),
             ),
           ),
@@ -106,11 +116,11 @@ class ChatDetailSearchAppBar extends StatelessWidget {
                   ),
                 ),
               ),
-              IconButton(
+              FloatingIconButton(
                 icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowUp01),
                 onPressed: hasResults ? onPrevious : null,
               ),
-              IconButton(
+              FloatingIconButton(
                 icon: const AppHugeIcon(
                   icon: HugeIcons.strokeRoundedArrowDown01,
                 ),

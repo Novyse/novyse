@@ -131,7 +131,7 @@ class _SettingsFloatingAppBar extends StatelessWidget {
         if (showBack) ...[
           FloatingPill(
             padding: FloatingAppBarConsts.iconPillPadding,
-            child: IconButton(
+            child: FloatingIconButton(
               icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
               onPressed: onBack,
             ),
@@ -182,7 +182,7 @@ class _SettingsFloatingAppBar extends StatelessWidget {
         ] else if (showBack) ...[
           // Balances the back pill so the title stays centered,
           // like `production` HeaderWithBackArrow's right spacer.
-          const SizedBox(width: 52),
+          const SizedBox(width: FloatingAppBarConsts.iconPillOuterSize),
         ],
       ],
     );

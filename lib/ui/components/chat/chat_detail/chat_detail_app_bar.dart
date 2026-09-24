@@ -59,7 +59,7 @@ class ChatDetailAppBar extends StatelessWidget {
       children: [
         FloatingPill(
           padding: FloatingAppBarConsts.iconPillPadding,
-          child: IconButton(
+          child: FloatingIconButton(
             icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
             onPressed: onBack,
           ),
@@ -129,7 +129,7 @@ class ChatDetailAppBar extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (showSearch)
-                  IconButton(
+                  FloatingIconButton(
                     icon: AppHugeIcon(
                       icon: HugeIcons.strokeRoundedSearch01,
                       color: colorScheme.onSurface,
@@ -137,7 +137,7 @@ class ChatDetailAppBar extends StatelessWidget {
                     onPressed: onOpenSearch,
                   ),
                 if (showViewToggle)
-                  IconButton(
+                  FloatingIconButton(
                     icon: AppHugeIcon(
                       icon: showVocal
                           ? HugeIcons.strokeRoundedChat01

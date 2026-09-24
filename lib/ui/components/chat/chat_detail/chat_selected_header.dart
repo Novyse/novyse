@@ -36,7 +36,7 @@ class ChatSelectedHeader extends StatelessWidget {
       children: [
         FloatingPill(
           padding: FloatingAppBarConsts.iconPillPadding,
-          child: IconButton(
+          child: FloatingIconButton(
             icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
             tooltip: l10n.cancel,
             onPressed: onClose,
@@ -46,9 +46,11 @@ class ChatSelectedHeader extends StatelessWidget {
         Expanded(
           child: FloatingPill(
             radius: FloatingAppBarConsts.centralRadius,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-            child: SizedBox(
-              height: 48,
+            padding: FloatingAppBarConsts.centralTitlePadding,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                minHeight: FloatingAppBarConsts.centralMinHeight,
+              ),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -73,7 +75,7 @@ class ChatSelectedHeader extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (canReply && onReply != null)
-                  IconButton(
+                  FloatingIconButton(
                     icon: AppHugeIcon(
                       icon: HugeIcons.strokeRoundedArrowMoveUpLeft,
                       color: colorScheme.onSurface,
@@ -82,7 +84,7 @@ class ChatSelectedHeader extends StatelessWidget {
                     onPressed: onReply,
                   ),
                 if (onForward != null)
-                  IconButton(
+                  FloatingIconButton(
                     icon: AppHugeIcon(
                       icon: HugeIcons.strokeRoundedLinkForward,
                       color: colorScheme.onSurface,
@@ -91,7 +93,7 @@ class ChatSelectedHeader extends StatelessWidget {
                     onPressed: onForward,
                   ),
                 if (onDelete != null)
-                  IconButton(
+                  FloatingIconButton(
                     icon: AppHugeIcon(
                       icon: HugeIcons.strokeRoundedDelete02,
                       color: colorScheme.error,

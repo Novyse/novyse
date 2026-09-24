@@ -39,7 +39,7 @@ class ChatOverviewAppBar extends StatelessWidget {
       children: [
         FloatingPill(
           padding: FloatingAppBarConsts.iconPillPadding,
-          child: IconButton(
+          child: FloatingIconButton(
             icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
             onPressed: onBack,
           ),

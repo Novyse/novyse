@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class ChatListAppMenu extends StatefulWidget {
@@ -41,7 +42,7 @@ class _ChatListAppMenuState extends State<ChatListAppMenu> {
       ),
       alignmentOffset: const Offset(0, 8),
       builder: (_, controller, child) {
-        return IconButton(
+        return FloatingIconButton(
           focusNode: _buttonFocusNode,
           icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedMoreVertical),
           tooltip: l10n.newChat,
