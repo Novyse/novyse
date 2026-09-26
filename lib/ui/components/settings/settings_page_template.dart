@@ -21,6 +21,7 @@ class SettingsPageTemplate extends StatelessWidget {
     this.onBack,
     this.actions,
     this.bottom,
+    this.appBarContent,
     this.maxWidth = 768,
   });
 
@@ -39,6 +40,10 @@ class SettingsPageTemplate extends StatelessWidget {
 
   /// Extra widget under the app bar (same slot as chat app bars).
   final Widget? bottom;
+
+  /// Replaces the default title + actions row (e.g. with a search field,
+  /// like the chat list/detail searching state). [bottom] still applies.
+  final Widget? appBarContent;
 
   final double maxWidth;
 
@@ -94,6 +99,7 @@ class SettingsPageTemplate extends StatelessWidget {
                 onBack: backHandler ?? () => Navigator.of(context).maybePop(),
                 actions: actions,
                 bottom: bottom,
+                contentOverride: appBarContent,
               ),
             ),
           ),
@@ -111,6 +117,7 @@ class _SettingsFloatingAppBar extends StatelessWidget {
     required this.onBack,
     this.actions,
     this.bottom,
+    this.contentOverride,
   });
 
   final String title;
@@ -120,15 +127,23 @@ class _SettingsFloatingAppBar extends StatelessWidget {
   final List<Widget>? actions;
   final Widget? bottom;
 
+  /// When non-null, replaces the default title + actions row entirely.
+  final Widget? contentOverride;
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final extraActions = actions;
     final subtitleText = subtitle;
+    final override = contentOverride;
 
-    final content = Row(
-      children: [
-        if (showBack) ...[
+    final Widget content;
+    if (override != null) {
+      content = override;
+    } else {
+      content = Row(
+        children: [
+          if (showBack) ...[
           FloatingPill(
             padding: FloatingAppBarConsts.iconPillPadding,
             child: FloatingIconButton(
@@ -184,8 +199,9 @@ class _SettingsFloatingAppBar extends StatelessWidget {
           // like `production` HeaderWithBackArrow's right spacer.
           const SizedBox(width: FloatingAppBarConsts.iconPillOuterSize),
         ],
-      ],
-    );
+        ],
+      );
+    }
 
     return ProgressiveOpacityBackground(
       child: Column(

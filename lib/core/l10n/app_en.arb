@@ -248,6 +248,8 @@
   "createChatAction": "Create",
   "createChatError": "Error during chat creation",
   "settings": "Settings",
+  "settingsSearchHint": "Search settings...",
+  "settingsSearchNoResults": "No settings found",
   "user": "User",
   "screenShareModalTitle": "Share screen",
   "screenShareEntireScreen": "Entire screen",

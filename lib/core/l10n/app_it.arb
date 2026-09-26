@@ -248,6 +248,8 @@
   "createChatAction": "Crea",
   "createChatError": "Errore durante la creazione della chat",
   "settings": "Impostazioni",
+  "settingsSearchHint": "Cerca nelle impostazioni...",
+  "settingsSearchNoResults": "Nessuna impostazione trovata",
   "user": "Utente",
   "screenShareModalTitle": "Condividi schermo",
   "screenShareEntireScreen": "Schermo intero",
