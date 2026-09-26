@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/pages/app/settings_page.dart';
+import 'package:novyse/pages/app/settings/settings_page.dart';
 import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_detail_app_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_detail_search_app_bar.dart';

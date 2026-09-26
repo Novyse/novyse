@@ -5,7 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:novyse/core/auth/session_cleanup.dart';
 import 'package:novyse/core/config/global.dart' as config;
 import 'package:novyse/core/router/router.dart';
-import 'package:novyse/pages/app/app_license_page.dart';
+import 'package:novyse/pages/app/settings/app_license_page.dart';
+import 'package:novyse/pages/app/settings/oss_licenses_page.dart';
 
 /// Opens [url] in the system browser (or self tab on web).
 Future<bool> _openLegalUrl(String url) async {
@@ -19,11 +20,8 @@ Future<bool> _openLegalUrl(String url) async {
 
 Future<bool> _openLicenses(BuildContext context) async {
   if (!context.mounted) return false;
-  showLicensePage(
-    context: context,
-    applicationName: config.appName,
-    applicationVersion: config.appVersion,
-    applicationLegalese: '© 2026 Novyse · GPL-3.0-or-later',
+  await Navigator.of(context).push(
+    MaterialPageRoute<void>(builder: (_) => const OssLicensesPage()),
   );
   return true;
 }

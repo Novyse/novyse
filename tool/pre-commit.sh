@@ -13,6 +13,9 @@ echo "🔄 [Pre-Commit] Syncing version..."
 echo "🔄 [Pre-Commit] Syncing branch & environment..."
 ./scripts/sync-branch.sh
 
+echo "🔄 [Pre-Commit] Syncing OSS licenses..."
+./scripts/sync-licenses.sh
+
 echo "🔍 [Pre-Commit] Running Flutter Analyze..."
 flutter analyze
 

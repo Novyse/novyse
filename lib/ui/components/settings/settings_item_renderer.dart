@@ -7,7 +7,7 @@ import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/core/utils/platform.dart';
 
-import 'package:novyse/pages/app/settings_catalog_page.dart';
+import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
 import 'package:novyse/ui/components/settings/settings_modal_row.dart';
 import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
 import 'package:novyse/ui/components/settings/settings_sheets.dart';

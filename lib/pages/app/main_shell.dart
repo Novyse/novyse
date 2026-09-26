@@ -11,7 +11,7 @@ import 'adaptive.dart';
 import 'chat_list_page.dart';
 import 'chat_routes.dart';
 import 'profile_page.dart';
-import 'settings_page.dart';
+import 'settings/settings_page.dart';
 import '../../core/l10n/l10n.dart';
 import '../../core/router/navigator_keys.dart';
 import '../../core/services/sync_service.dart';

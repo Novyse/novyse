@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
-import 'package:novyse/pages/app/settings_catalog_page.dart';
-import 'package:novyse/pages/app/settings_page.dart';
+import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
+import 'package:novyse/pages/app/settings/settings_page.dart';
 import 'package:novyse/ui/components/settings/settings_item_renderer.dart';
 
 Widget _wrap(Widget child) {

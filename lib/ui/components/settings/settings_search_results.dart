@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
-import 'package:novyse/pages/app/settings_catalog_page.dart';
+import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
 import 'package:novyse/ui/components/settings/settings_item_renderer.dart';
 import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
