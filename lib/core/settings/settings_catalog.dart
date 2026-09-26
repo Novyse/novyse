@@ -1655,6 +1655,53 @@ class SettingsCatalog {
       title: (l) => l.settingsCategoryInfoTitle,
       subtitle: (l) => l.settingsCategoryInfoSubtitle,
       icon: HugeIcons.strokeRoundedInformationCircle,
+      pages: [
+        SettingPage(
+          id: 'legal',
+          title: (l) => l.settingsPageInfoLegalTitle,
+          subtitle: (l) => l.settingsPageInfoLegalSubtitle,
+          groups: [
+            SettingGroup(
+              id: 'legal',
+              title: (l) => l.settingsGroupLegalTitle,
+              items: [
+                SettingItem(
+                  id: 'privacy_policy',
+                  title: (l) => l.settingsItemPrivacyPolicyTitle,
+                  subtitle: (l) => l.settingsItemPrivacyPolicySubtitle,
+                  component: SettingComponent.action,
+                  scope: SettingScope.local,
+                  actionId: 'openPrivacyPolicy',
+                ),
+                SettingItem(
+                  id: 'terms_of_service',
+                  title: (l) => l.settingsItemTermsTitle,
+                  subtitle: (l) => l.settingsItemTermsSubtitle,
+                  component: SettingComponent.action,
+                  scope: SettingScope.local,
+                  actionId: 'openTerms',
+                ),
+                SettingItem(
+                  id: 'app_license',
+                  title: (l) => l.settingsItemAppLicenseTitle,
+                  subtitle: (l) => l.settingsItemAppLicenseSubtitle,
+                  component: SettingComponent.action,
+                  scope: SettingScope.local,
+                  actionId: 'openAppLicense',
+                ),
+                SettingItem(
+                  id: 'open_source_licenses',
+                  title: (l) => l.settingsItemOpenSourceTitle,
+                  subtitle: (l) => l.settingsItemOpenSourceSubtitle,
+                  component: SettingComponent.action,
+                  scope: SettingScope.local,
+                  actionId: 'openLicenses',
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
       items: [
         SettingItem(
           id: 'version',

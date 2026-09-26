@@ -1028,5 +1028,16 @@
   "settingsPageSystemGeneralSubtitle": "Avvio, tray e grafica",
   "settingsPageSystemGeneralTitle": "Generali",
   "settingsPageSystemShortcutsSubtitle": "Tastiera e hotkey globali",
-  "settingsPageSystemShortcutsTitle": "Scorciatoie"
+  "settingsPageSystemShortcutsTitle": "Scorciatoie",
+  "settingsPageInfoLegalSubtitle": "Privacy, termini e licenze",
+  "settingsPageInfoLegalTitle": "Legale e Privacy",
+  "settingsGroupLegalTitle": "Legale",
+  "settingsItemPrivacyPolicySubtitle": "Come trattiamo i tuoi dati",
+  "settingsItemPrivacyPolicyTitle": "Informativa sulla Privacy",
+  "settingsItemTermsSubtitle": "Regole di utilizzo di Novyse",
+  "settingsItemTermsTitle": "Termini di Servizio",
+  "settingsItemAppLicenseSubtitle": "Novyse è GPL-3.0-or-later",
+  "settingsItemAppLicenseTitle": "Licenza App",
+  "settingsItemOpenSourceSubtitle": "Testo completo di ogni licenza inclusa",
+  "settingsItemOpenSourceTitle": "Licenze Open Source"
 }

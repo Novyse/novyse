@@ -99,6 +99,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - LICENSE
     - assets/audio/comms/
     - assets/audio/comms/screen_share/
     - assets/images/

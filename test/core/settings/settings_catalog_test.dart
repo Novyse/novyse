@@ -8,21 +8,18 @@ void main() {
   group('SettingsCatalog structure', () {
     test('has ten root categories matching the wiki taxonomy', () {
       expect(SettingsCatalog.categories.length, 10);
-      expect(
-        SettingsCatalog.categories.map((c) => c.id).toList(),
-        [
-          'account',
-          'chat',
-          'customization',
-          'storage',
-          'security',
-          'notifications',
-          'comms',
-          'system',
-          'language',
-          'info',
-        ],
-      );
+      expect(SettingsCatalog.categories.map((c) => c.id).toList(), [
+        'account',
+        'chat',
+        'customization',
+        'storage',
+        'security',
+        'notifications',
+        'comms',
+        'system',
+        'language',
+        'info',
+      ]);
     });
 
     test('every category has pages and/or loose items', () {
@@ -47,8 +44,17 @@ void main() {
     });
 
     test('disabled defaults to false but WIP items are force-disabled', () {
-      // Only startup/tray items currently under implementation stay enabled.
-      const enabledIds = {'open_startup', 'open_background', 'close_to_tray'};
+      // Only startup/tray items currently under implementation stay enabled,
+      // plus informational legal/licence rows
+      const enabledIds = {
+        'open_startup',
+        'open_background',
+        'close_to_tray',
+        'privacy_policy',
+        'terms_of_service',
+        'app_license',
+        'open_source_licenses',
+      };
       for (final item in SettingsCatalog.allItems) {
         if (enabledIds.contains(item.id)) {
           expect(item.disabled, isFalse, reason: item.id);
@@ -69,18 +75,14 @@ void main() {
       };
       for (final item in SettingsCatalog.allItems) {
         if (systemIds.contains(item.id)) {
-          expect(
-            item.supportedOS.map((e) => e.name).toSet(),
-            {'linux', 'windows', 'macos'},
-            reason: item.id,
-          );
+          expect(item.supportedOS.map((e) => e.name).toSet(), {
+            'linux',
+            'windows',
+            'macos',
+          }, reason: item.id);
         } else {
           // Default: visible everywhere.
-          expect(
-            item.supportedOS.length,
-            AppOS.values.length,
-            reason: item.id,
-          );
+          expect(item.supportedOS.length, AppOS.values.length, reason: item.id);
         }
       }
     });
@@ -88,26 +90,24 @@ void main() {
     test('loose category items follow the wiki layout', () {
       final account = SettingsCatalog.findCategory('account')!;
       expect(account.pages.map((p) => p.id).toList(), ['account_profile']);
-      expect(
-        account.items.map((i) => i.id).toList(),
-        ['active_sessions', 'logout', 'delete_profile'],
-      );
+      expect(account.items.map((i) => i.id).toList(), [
+        'active_sessions',
+        'logout',
+        'delete_profile',
+      ]);
 
       final storage = SettingsCatalog.findCategory('storage')!;
-      expect(
-        storage.pages.map((p) => p.id).toList(),
-        ['storage_local', 'storage_cloud'],
-      );
-      expect(
-        storage.items.map((i) => i.id).toList(),
-        [
-          'wifi_download',
-          'mobile_download',
-          'roaming_download',
-          'save_gallery',
-          'reset_db',
-        ],
-      );
+      expect(storage.pages.map((p) => p.id).toList(), [
+        'storage_local',
+        'storage_cloud',
+      ]);
+      expect(storage.items.map((i) => i.id).toList(), [
+        'wifi_download',
+        'mobile_download',
+        'roaming_download',
+        'save_gallery',
+        'reset_db',
+      ]);
 
       final language = SettingsCatalog.findCategory('language')!;
       expect(language.pages, isEmpty);
@@ -119,7 +119,7 @@ void main() {
       ]);
 
       final info = SettingsCatalog.findCategory('info')!;
-      expect(info.pages, isEmpty);
+      expect(info.pages.map((p) => p.id).toList(), ['legal']);
       expect(info.items.map((i) => i.id).toList(), [
         'version',
         'release_channel',
@@ -127,6 +127,20 @@ void main() {
         'resource_links',
         'export_logs',
       ]);
+    });
+
+    test('open source licences live in the legal group, after app licence', () {
+      final info = SettingsCatalog.findCategory('info')!;
+      final legal = info.pages.firstWhere((p) => p.id == 'legal');
+      expect(legal.groups.map((g) => g.id).toList(), ['legal']);
+      expect(legal.groups.first.items.map((i) => i.id).toList(), [
+        'privacy_policy',
+        'terms_of_service',
+        'app_license',
+        'open_source_licenses',
+      ]);
+      // The former standalone 'licenses' page is gone.
+      expect(info.pages.where((p) => p.id == 'licenses'), isEmpty);
     });
 
     test('persisted items always declare a scope', () {

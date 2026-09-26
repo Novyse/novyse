@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:novyse/core/config/global.dart' as config;
+import 'package:novyse/core/settings/settings_actions.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/core/utils/platform.dart';
@@ -118,6 +119,25 @@ class SettingsItemRenderer extends ConsumerWidget {
         );
 
       case SettingComponent.action:
+        const directActions = {
+          'openPrivacyPolicy',
+          'openTerms',
+          'openLicenses',
+          'openAppLicense',
+        };
+        if (directActions.contains(item.actionId)) {
+          return wrapDisabled(
+            SettingsNavigationRow(
+              icon: item.icon,
+              title: title,
+              subtitle: subtitleOrNull,
+              danger: item.danger,
+              onTap: isDisabled
+                  ? null
+                  : () => runSettingsAction(ref, context, item.actionId!),
+            ),
+          );
+        }
         return wrapDisabled(
           SettingsNavigationRow(
             icon: item.icon,
