@@ -8,6 +8,7 @@ import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/core/utils/platform.dart';
 
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
+import 'package:novyse/ui/components/settings/settings_external_link_row.dart';
 import 'package:novyse/ui/components/settings/settings_modal_row.dart';
 import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
 import 'package:novyse/ui/components/settings/settings_sheets.dart';
@@ -118,13 +119,20 @@ class SettingsItemRenderer extends ConsumerWidget {
           ),
         );
 
+      case SettingComponent.externalLink:
+        // URL-only rows open directly, no action needed.
+        return wrapDisabled(
+          SettingsExternalLinkRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            danger: item.danger,
+            url: isDisabled ? null : item.externalUrl,
+          ),
+        );
+
       case SettingComponent.action:
-        const directActions = {
-          'openPrivacyPolicy',
-          'openTerms',
-          'openLicenses',
-          'openAppLicense',
-        };
+        const directActions = {'openLicenses', 'openAppLicense'};
         if (directActions.contains(item.actionId)) {
           return wrapDisabled(
             SettingsNavigationRow(

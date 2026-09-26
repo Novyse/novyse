@@ -58,8 +58,8 @@ final String appUrl = switch (branch) {
 
 const String tinyAppUrl = 'https://vyse.me';
 const String landingPageUrl = 'https://www.novyse.com';
-final String privacyPolicyUrl = '$landingPageUrl/legal/privacy-policy';
-final String tosUrl = '$landingPageUrl/legal/terms-of-service';
+const String privacyPolicyUrl = '$landingPageUrl/legal/privacy-policy';
+const String tosUrl = '$landingPageUrl/legal/terms-of-service';
 
 // Third-party keys
 

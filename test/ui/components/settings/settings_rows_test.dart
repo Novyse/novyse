@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/settings/settings_external_link_row.dart';
 import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
 import 'package:novyse/ui/components/settings/settings_page_template.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
@@ -98,6 +99,87 @@ void main() {
     await tester.pumpAndSettle();
     // The trailing arrow.
     expect(find.byType(AppHugeIcon), findsOneWidget);
+  });
+
+  testWidgets('SettingsExternalLinkRow uses box-arrow icon only when tappable', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_wrap(const SettingsExternalLinkRow(title: 'Plain')));
+    await tester.pumpAndSettle();
+    expect(find.byType(AppHugeIcon), findsNothing);
+
+    await tester.pumpWidget(
+      _wrap(SettingsExternalLinkRow(title: 'Linked', onTap: () {})),
+    );
+    await tester.pumpAndSettle();
+    final iconWidget = tester.widget<AppHugeIcon>(find.byType(AppHugeIcon));
+    expect(iconWidget.icon, HugeIcons.strokeRoundedSquareArrowOutUpRight);
+  });
+
+  testWidgets('SettingsExternalLinkRow icon differs from navigation/modal', (
+    tester,
+  ) async {
+    expect(
+      HugeIcons.strokeRoundedSquareArrowOutUpRight,
+      isNot(HugeIcons.strokeRoundedArrowRight01),
+    );
+    expect(
+      HugeIcons.strokeRoundedSquareArrowOutUpRight,
+      isNot(HugeIcons.strokeRoundedArrowUpRight01),
+    );
+  });
+
+  testWidgets('SettingsExternalLinkRow triggers onTap', (tester) async {
+    var tapped = false;
+    await tester.pumpWidget(
+      _wrap(
+        SettingsExternalLinkRow(title: 'Website', onTap: () => tapped = true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Website'));
+    expect(tapped, isTrue);
+  });
+
+  testWidgets('SettingsExternalLinkRow shows icon when url is provided', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(const SettingsExternalLinkRow(title: 'Site', url: '')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(AppHugeIcon), findsNothing);
+
+    await tester.pumpWidget(
+      _wrap(
+        const SettingsExternalLinkRow(
+          title: 'Site',
+          url: 'https://www.novyse.com',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(AppHugeIcon), findsOneWidget);
+  });
+
+  testWidgets('SettingsExternalLinkRow onTap takes precedence over url', (
+    tester,
+  ) async {
+    var tapped = false;
+    await tester.pumpWidget(
+      _wrap(
+        SettingsExternalLinkRow(
+          title: 'Site',
+          url: 'https://www.novyse.com',
+          onTap: () => tapped = true,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Site'));
+    expect(tapped, isTrue);
   });
 
   testWidgets('SettingsNavigationRow navigates on tap', (tester) async {

@@ -143,6 +143,30 @@ void main() {
       expect(info.pages.where((p) => p.id == 'licenses'), isEmpty);
     });
 
+    test('legal external links carry a url and no action', () {
+      final info = SettingsCatalog.findCategory('info')!;
+      final legal = info.pages.firstWhere((p) => p.id == 'legal');
+      final items = {
+        for (final i in legal.groups.first.items) i.id: i,
+      };
+      for (final id in ['privacy_policy', 'terms_of_service']) {
+        final item = items[id]!;
+        expect(item.component, SettingComponent.externalLink, reason: id);
+        expect(item.actionId, isNull, reason: id);
+        expect(item.externalUrl, isNotNull, reason: id);
+        expect(item.externalUrl, isNotEmpty, reason: id);
+      }
+      // Internal licence rows still go through actions.
+      expect(
+        items['app_license']!.component,
+        SettingComponent.action,
+      );
+      expect(
+        items['open_source_licenses']!.component,
+        SettingComponent.action,
+      );
+    });
+
     test('persisted items always declare a scope', () {
       for (final item in SettingsCatalog.allItems) {
         if (item.settingKey != null) {

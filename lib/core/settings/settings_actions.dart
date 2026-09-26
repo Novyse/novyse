@@ -1,22 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:novyse/core/auth/session_cleanup.dart';
-import 'package:novyse/core/config/global.dart' as config;
 import 'package:novyse/core/router/router.dart';
 import 'package:novyse/pages/app/settings/app_license_page.dart';
 import 'package:novyse/pages/app/settings/oss_licenses_page.dart';
-
-/// Opens [url] in the system browser (or self tab on web).
-Future<bool> _openLegalUrl(String url) async {
-  final uri = Uri.parse(url);
-  try {
-    return await launchUrl(uri, mode: LaunchMode.externalApplication);
-  } catch (_) {
-    return false;
-  }
-}
 
 Future<bool> _openLicenses(BuildContext context) async {
   if (!context.mounted) return false;
@@ -47,10 +35,6 @@ Future<bool> runSettingsAction(
         ref.read(routerProvider).go('/welcome');
       }
       return true;
-    case 'openPrivacyPolicy':
-      return _openLegalUrl(config.privacyPolicyUrl);
-    case 'openTerms':
-      return _openLegalUrl(config.tosUrl);
     case 'openLicenses':
       return _openLicenses(context);
     case 'openAppLicense':

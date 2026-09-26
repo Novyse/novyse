@@ -6,6 +6,7 @@ library;
 
 import 'package:flutter/widgets.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/config/global.dart' as config;
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/utils/platform.dart';
 
@@ -19,6 +20,7 @@ enum SettingScope { local, synchronized }
 enum SettingComponent {
   navigation,
   modal,
+  externalLink,
   switchToggle,
   select,
   multiSelect,
@@ -45,6 +47,8 @@ class SettingOption {
 ///   read-only info and navigation elements).
 /// - [scope]: required when [settingKey] is present.
 /// - [actionId]: handler id resolved by the Flutter action registry.
+/// - [externalUrl]: URL opened directly by the external link row
+///   (no action needed; only for [SettingComponent.externalLink]).
 /// - [customRendererId]: renderer id for complex domain UI.
 /// - [valueProviderId]: provider id for read-only values (e.g. app version).
 /// - [disabled]: when true the row renders non-interactive (WIP placeholder).
@@ -61,6 +65,7 @@ class SettingItem {
   final double? min;
   final double? max;
   final String? actionId;
+  final String? externalUrl;
   final String? customRendererId;
   final String? valueProviderId;
   final String? targetPageId;
@@ -83,6 +88,7 @@ class SettingItem {
     this.min,
     this.max,
     this.actionId,
+    this.externalUrl,
     this.customRendererId,
     this.valueProviderId,
     this.targetPageId,
@@ -1669,17 +1675,17 @@ class SettingsCatalog {
                   id: 'privacy_policy',
                   title: (l) => l.settingsItemPrivacyPolicyTitle,
                   subtitle: (l) => l.settingsItemPrivacyPolicySubtitle,
-                  component: SettingComponent.action,
+                  component: SettingComponent.externalLink,
                   scope: SettingScope.local,
-                  actionId: 'openPrivacyPolicy',
+                  externalUrl: config.privacyPolicyUrl,
                 ),
                 SettingItem(
                   id: 'terms_of_service',
                   title: (l) => l.settingsItemTermsTitle,
                   subtitle: (l) => l.settingsItemTermsSubtitle,
-                  component: SettingComponent.action,
+                  component: SettingComponent.externalLink,
                   scope: SettingScope.local,
-                  actionId: 'openTerms',
+                  externalUrl: config.tosUrl,
                 ),
                 SettingItem(
                   id: 'app_license',

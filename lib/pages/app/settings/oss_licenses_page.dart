@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/oss_licenses.dart';
 import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/settings/settings_external_link_row.dart';
 import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
 import 'package:novyse/ui/components/settings/settings_page_template.dart';
 import 'package:novyse/ui/components/settings/settings_search_bar.dart';
@@ -185,28 +185,18 @@ class PackageLicenseDetailPage extends StatelessWidget {
                   ),
                 ),
               if (hasHomepage)
-                SettingsNavigationRow(
+                SettingsExternalLinkRow(
                   icon: HugeIcons.strokeRoundedGlobe,
                   title: 'Homepage',
                   subtitle: package.homepage,
-                  onTap: () {
-                    final uri = Uri.tryParse(package.homepage!);
-                    if (uri != null) {
-                      launchUrl(uri, mode: LaunchMode.externalApplication);
-                    }
-                  },
+                  url: package.homepage,
                 ),
               if (hasRepo)
-                SettingsNavigationRow(
+                SettingsExternalLinkRow(
                   icon: HugeIcons.strokeRoundedGlobe,
                   title: 'Repository',
                   subtitle: package.repository,
-                  onTap: () {
-                    final uri = Uri.tryParse(package.repository!);
-                    if (uri != null) {
-                      launchUrl(uri, mode: LaunchMode.externalApplication);
-                    }
-                  },
+                  url: package.repository,
                 ),
             ],
           ),
