@@ -67,7 +67,7 @@ class SettingsPageTemplate extends StatelessWidget {
         children: [
           CustomScrollView(
             slivers: [
-              SliverToBoxAdapter(child: SizedBox(height: topInset + 76)),
+              SliverToBoxAdapter(child: SizedBox(height: topInset + 78)),
               SliverToBoxAdapter(
                 child: Center(
                   child: ConstrainedBox(

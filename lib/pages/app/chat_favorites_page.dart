@@ -115,7 +115,7 @@ class _ChatFavoritesPageState extends ConsumerState<ChatFavoritesPage> {
                     .read(favoriteMessagesProvider(widget.chatUUID).notifier)
                     .reload(),
                 child: ListView.separated(
-                  padding: EdgeInsets.fromLTRB(16, topInset + 72 + 12, 16, 32),
+                  padding: EdgeInsets.fromLTRB(16, topInset + 74 + 12, 16, 32),
                   itemCount: state.favorites.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {

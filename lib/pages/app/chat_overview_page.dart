@@ -86,7 +86,7 @@ class _ChatOverviewPageState extends ConsumerState<ChatOverviewPage> {
         body: Stack(
           children: [
             Padding(
-              padding: EdgeInsets.only(top: topInset + 72),
+              padding: EdgeInsets.only(top: topInset + 74),
               child: Center(
                 child: Text(l10n.chatNotFoundWithId(widget.chatUUID)),
               ),
@@ -178,7 +178,7 @@ class _ChatOverviewPageState extends ConsumerState<ChatOverviewPage> {
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(16, topInset + 72 + 12, 16, 32),
+            padding: EdgeInsets.fromLTRB(16, topInset + 74 + 12, 16, 32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

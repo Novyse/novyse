@@ -26,22 +26,22 @@ List<double> _pillHeights(WidgetTester tester) => [
 ];
 
 void main() {
-  testWidgets('every floating app bar pill measures 46 (44 + border)',
+  testWidgets('every floating app bar pill measures 48 (46 + border)',
       (tester) async {
     final searchController = TextEditingController();
     final searchFocus = FocusNode();
     addTearDown(searchController.dispose);
     addTearDown(searchFocus.dispose);
 
-    Future<void> expectAll46(Widget bar, String label) async {
+    Future<void> expectAll48(Widget bar, String label) async {
       await tester.pumpWidget(_wrap(bar));
       await tester.pumpAndSettle();
       for (final h in _pillHeights(tester)) {
-        expect(h, moreOrLessEquals(46.0, epsilon: 0.5), reason: label);
+        expect(h, moreOrLessEquals(48.0, epsilon: 0.5), reason: label);
       }
     }
 
-    await expectAll46(
+    await expectAll48(
       ChatListAppBar(
         searching: true,
         searchController: searchController,
@@ -54,7 +54,7 @@ void main() {
       'chat-list searching',
     );
 
-    await expectAll46(
+    await expectAll48(
       ChatDetailSearchAppBar(
         controller: searchController,
         focusNode: searchFocus,
@@ -68,7 +68,7 @@ void main() {
       'chat-detail searching',
     );
 
-    await expectAll46(
+    await expectAll48(
       ChatDetailAppBar(
         title: 'T',
         subtitle: 'S',
@@ -88,7 +88,7 @@ void main() {
       'chat-detail normal',
     );
 
-    await expectAll46(
+    await expectAll48(
       ChatSelectedHeader(
         selectedCount: 2,
         onClose: () {},
@@ -99,6 +99,6 @@ void main() {
       'selected header',
     );
 
-    await expectAll46(const SettingsPage(), 'settings root');
+    await expectAll48(const SettingsPage(), 'settings root');
   });
 }

@@ -238,7 +238,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
           children: [
             CustomScrollView(
               slivers: [
-                SliverToBoxAdapter(child: SizedBox(height: topInset + 72)),
+                SliverToBoxAdapter(child: SizedBox(height: topInset + 74)),
                 if (chatListState.loading && chats.isEmpty)
                   const SliverFillRemaining(
                     hasScrollBody: false,

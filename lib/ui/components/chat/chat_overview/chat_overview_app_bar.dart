@@ -75,11 +75,9 @@ class ChatOverviewAppBar extends StatelessWidget {
                       if (subtitle.isNotEmpty)
                         Text(
                           subtitle,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: subtitleHighlighted
-                                ? colorScheme.primary
-                                : colorScheme.onSurfaceVariant,
+                          style: FloatingAppBarConsts.subtitleStyle(
+                            colorScheme,
+                            highlighted: subtitleHighlighted,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
