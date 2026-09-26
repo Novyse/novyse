@@ -332,6 +332,7 @@
   "cancelEdit": "Annulla Modifica",
   "edit": "Modifica",
   "forward": "Inoltra",
+  "unreadMessages": "Messaggi non letti",
   "select": "Seleziona",
   "delete": "Elimina",
   "selectedCount": "{count, plural, =1{1 selezionato} other{{count} selezionati}}",

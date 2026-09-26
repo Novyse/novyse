@@ -159,6 +159,9 @@ class ChatListState {
 /// Riverpod Notifier managing chat list metadata, unread counts, and realtime updates.
 class ChatListNotifier extends Notifier<ChatListState> {
   final List<StreamSubscription> _subscriptions = [];
+  final Map<String, int> _lastReadIdBySub = {};
+
+  final Set<String> _consumedBadgeDecrements = {};
 
   @override
   ChatListState build() {
@@ -227,6 +230,14 @@ class ChatListNotifier extends Notifier<ChatListState> {
           event.action,
           event.data,
         );
+      }),
+    );
+
+    _subscriptions.add(
+      bus.on<ChatBadgeDecrementEvent>().listen((event) {
+        final key = '${event.chatUUID}/${event.subID}/${event.targetId}';
+        if (!_consumedBadgeDecrements.add(key)) return;
+        applyRead(event.chatUUID, event.subID, event.targetId, event.count);
       }),
     );
   }
@@ -374,12 +385,18 @@ class ChatListNotifier extends Notifier<ChatListState> {
         senderUUID.isNotEmpty &&
         senderUUID == localUserUUID;
 
+    final msgId = MessageFieldParser.parseId(
+      message['id'] ?? message['messageID'],
+    );
+    final subID = MessageFieldParser.parseSubID(message['subID']);
+    final watermark = _lastReadIdBySub['$chatUUID/$subID'] ?? 0;
+
     final updated = state.chats.map((chat) {
       if (chat.uuid != chatUUID) return chat;
-      return chat.copyWith(
-        lastMessage: message,
-        unreadCount: isFromMe ? chat.unreadCount : chat.unreadCount + 1,
-      );
+      final unread = !isFromMe && (msgId <= 0 || msgId > watermark)
+          ? chat.unreadCount + 1
+          : chat.unreadCount;
+      return chat.copyWith(lastMessage: message, unreadCount: unread);
     }).toList();
 
     _sortChats(updated);
@@ -390,6 +407,23 @@ class ChatListNotifier extends Notifier<ChatListState> {
     final updated = state.chats.map((chat) {
       if (chat.uuid != chatUUID) return chat;
       return chat.copyWith(unreadCount: 0);
+    }).toList();
+
+    state = state.copyWith(chats: updated);
+  }
+
+  /// Applies an exact read: advances the watermark to [targetId] and scales
+  /// the badge by [count] newly-read messages.
+  void applyRead(String chatUUID, int subID, int targetId, int count) {
+    final key = '$chatUUID/$subID';
+    if (targetId > (_lastReadIdBySub[key] ?? 0)) {
+      _lastReadIdBySub[key] = targetId;
+    }
+    if (count <= 0) return;
+    final updated = state.chats.map((chat) {
+      if (chat.uuid != chatUUID || chat.unreadCount == 0) return chat;
+      final next = chat.unreadCount - count;
+      return chat.copyWith(unreadCount: next < 0 ? 0 : next);
     }).toList();
 
     state = state.copyWith(chats: updated);
@@ -481,6 +515,15 @@ class ChatListNotifier extends Notifier<ChatListState> {
 
         state = state.copyWith(chats: updated);
         break;
+      case 'read':
+        final readerUUID = (data['userUUID'] as String?)?.trim() ?? '';
+        final localUserUUID = ref.read(userStoreProvider).localUserUUID;
+        if (readerUUID.isEmpty || readerUUID != localUserUUID) break;
+        final key = '$chatUUID/$subID';
+        if (msgId > (_lastReadIdBySub[key] ?? 0)) {
+          _lastReadIdBySub[key] = msgId;
+        }
+        break;
     }
   }
 
@@ -511,6 +554,8 @@ class ChatListNotifier extends Notifier<ChatListState> {
   }
 
   void clear() {
+    _lastReadIdBySub.clear();
+    _consumedBadgeDecrements.clear();
     state = const ChatListState();
   }
 }

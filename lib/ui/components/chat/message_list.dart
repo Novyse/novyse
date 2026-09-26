@@ -1,16 +1,17 @@
-import 'dart:async' show Timer;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/chat/permissions.dart';
+import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/chat/message/action_menu/message_action_menu.dart';
-import 'package:novyse/ui/components/chat/message/message_base.dart';
-import 'package:novyse/ui/components/chat/message/swipe_to_reply.dart';
+import 'package:novyse/ui/components/chat/message/message_system.dart';
+import 'package:novyse/ui/components/chat/message_list_item.dart';
+import 'package:novyse/ui/components/chat/message_list_scroller.dart';
+import 'package:novyse/ui/components/chat/message_read_tracker.dart';
 
 class MessageList extends ConsumerStatefulWidget {
   const MessageList({
@@ -32,41 +33,47 @@ class MessageList extends ConsumerStatefulWidget {
   ConsumerState<MessageList> createState() => _MessageListState();
 }
 
-class _MessageListState extends ConsumerState<MessageList> {
+class _MessageListState extends ConsumerState<MessageList>
+    with MessageReadTracker, MessageListScroller {
   final Map<String, GlobalKey> _itemKeys = {};
   late final ScrollController _internalController;
-  int _scrollAttempts = 0;
 
-  dynamic _jumpHighlightedMessageId;
-  int? _jumpRangeStart;
-  int? _jumpRangeEnd;
-  Timer? _jumpHighlightTimer;
+  @override
+  Map<String, GlobalKey> get itemKeys => _itemKeys;
 
-  ScrollController get _effectiveController =>
+  @override
+  ScrollController get effectiveController =>
       widget.scrollController ?? _internalController;
+
+  @override
+  String get chatUUID => widget.chatUUID;
+
+  @override
+  int get subID => widget.subID;
+
+  @override
+  dynamic get highlightedMessageId => widget.highlightedMessageId;
 
   @override
   void initState() {
     super.initState();
     _internalController = ScrollController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ref
-            .read(
-              chatMessagesProvider((
-                chatUUID: widget.chatUUID,
-                subID: widget.subID,
-              )).notifier,
-            )
-            .init();
-        _scrollToHighlighted();
-      }
+      if (!mounted) return;
+      final chatUUID = widget.chatUUID;
+      final subID = widget.subID;
+      ref
+          .read(
+            chatMessagesProvider((chatUUID: chatUUID, subID: subID)).notifier,
+          )
+          .init()
+          .then((_) => anchorToFirstUnread(chatUUID, subID));
+      scrollToHighlighted();
     });
   }
 
   @override
   void dispose() {
-    _jumpHighlightTimer?.cancel();
     _internalController.dispose();
     super.dispose();
   }
@@ -77,117 +84,26 @@ class _MessageListState extends ConsumerState<MessageList> {
     if (oldWidget.chatUUID != widget.chatUUID ||
         oldWidget.subID != widget.subID) {
       _itemKeys.clear();
+      resetUnreadAnchor();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
+          final chatUUID = widget.chatUUID;
+          final subID = widget.subID;
           ref
               .read(
-                chatMessagesProvider((
-                  chatUUID: widget.chatUUID,
-                  subID: widget.subID,
-                )).notifier,
+                chatMessagesProvider((chatUUID: chatUUID, subID: subID))
+                    .notifier,
               )
-              .init();
+              .init()
+              .then((_) => anchorToFirstUnread(chatUUID, subID));
         }
       });
     } else if (oldWidget.highlightedMessageId?.toString() !=
         widget.highlightedMessageId?.toString()) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _scrollToHighlighted();
+        if (mounted) scrollToHighlighted();
       });
     }
-  }
-
-  void _jumpToMessage(dynamic messageId, {int? rangeStart, int? rangeEnd}) {
-    _jumpHighlightTimer?.cancel();
-    setState(() {
-      _jumpHighlightedMessageId = messageId;
-      _jumpRangeStart = rangeStart;
-      _jumpRangeEnd = rangeEnd;
-    });
-
-    _scrollAttempts = 0;
-    _attemptScrollTo(messageId.toString());
-
-    _jumpHighlightTimer = Timer(const Duration(milliseconds: 2000), () {
-      if (mounted) {
-        setState(() {
-          _jumpHighlightedMessageId = null;
-          _jumpRangeStart = null;
-          _jumpRangeEnd = null;
-        });
-      }
-    });
-  }
-
-  void _scrollToHighlighted() {
-    if (widget.highlightedMessageId == null) return;
-    _scrollAttempts = 0;
-    _attemptScrollTo(widget.highlightedMessageId.toString());
-  }
-
-  void _attemptScrollTo(String targetId) {
-    if (!mounted) return;
-    final key = _itemKeys[targetId];
-    final itemContext = key?.currentContext;
-    if (itemContext != null) {
-      if (_scrollAttempts >= 25) return;
-      try {
-        Scrollable.ensureVisible(
-          itemContext,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          alignment: 0.5,
-        );
-      } catch (_) {
-        _scrollAttempts++;
-        _scheduleRetry(targetId);
-      }
-      return;
-    }
-    _scrollTowardTarget(targetId);
-  }
-
-  void _scrollTowardTarget(String id) {
-    if (_scrollAttempts >= 25 || !mounted) return;
-    _scrollAttempts++;
-    final messages = ref
-        .read(
-          chatMessagesProvider((
-            chatUUID: widget.chatUUID,
-            subID: widget.subID,
-          )),
-        )
-        .messages;
-    final index = messages.indexWhere((m) => m.id.toString() == id);
-    if (index < 0 || messages.isEmpty) {
-      _scheduleRetry(id);
-      return;
-    }
-    final controller = _effectiveController;
-    if (!controller.hasClients) {
-      _scheduleRetry(id);
-      return;
-    }
-    final max = controller.position.maxScrollExtent;
-    if (max <= 0) {
-      _scheduleRetry(id);
-      return;
-    }
-    final target = (max * (index / messages.length)).clamp(0.0, max);
-    controller
-        .animateTo(
-          target,
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeInOut,
-        )
-        .then((_) => _scheduleRetry(id))
-        .catchError((_) => _scheduleRetry(id));
-  }
-
-  void _scheduleRetry(String targetId) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _attemptScrollTo(targetId);
-    });
   }
 
   void _openContextMenu(
@@ -213,20 +129,14 @@ class _MessageListState extends ConsumerState<MessageList> {
       activeChatProvider.select(
         (s) => (s.scrollToMessageID, s.scrollToRangeStart, s.scrollToRangeEnd),
       ),
-      (previous, next) async {
+      (previous, next) {
         final id = next.$1;
         if (id != null && id.isNotEmpty) {
-          final notifier = ref.read(
-            chatMessagesProvider((
-              chatUUID: widget.chatUUID,
-              subID: widget.subID,
-            )).notifier,
-          );
-          await notifier.fetchMessageById(id);
-          if (mounted) {
-            _jumpToMessage(id, rangeStart: next.$2, rangeEnd: next.$3);
-            ref.read(activeChatProvider.notifier).clearScrollTarget();
-          }
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              handleScrollTarget(id, rangeStart: next.$2, rangeEnd: next.$3);
+            }
+          });
         }
       },
     );
@@ -235,7 +145,41 @@ class _MessageListState extends ConsumerState<MessageList> {
       chatMessagesProvider((chatUUID: chatUUID, subID: subID)),
     );
     final messages = messagesState.messages;
-
+    // A new newest-message only triggers a visibility pass: it is marked
+    // solely when actually displayed (e.g. user at the bottom), never blindly.
+    ref.listen<String?>(
+      chatMessagesProvider((chatUUID: chatUUID, subID: subID)).select(
+        (state) =>
+            state.messages.isEmpty ? null : state.messages.first.id.toString(),
+      ),
+      (previous, next) {
+        if (next != null && next != previous) {
+          // Sending a message dismisses the unread divider
+          final local = ref.read(
+            userStoreProvider.select((s) => s.localUserUUID),
+          );
+          final newest = ref
+              .read(chatMessagesProvider((chatUUID: chatUUID, subID: subID)))
+              .messages
+              .firstOrNull;
+          if (local.isNotEmpty && newest != null && newest.userUUID == local) {
+            dismissUnreadDivider();
+          }
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) markVisibleAsRead(chatUUID, subID);
+          });
+        }
+      },
+    );
+    // Builder index of the unread divider (list is newest-first, so the
+    // divider sits right above the first unread, toward the older side).
+    var dividerAt = -1;
+    if (firstUnreadId != null) {
+      final k = messages.indexWhere(
+        (m) => m.id.toString() == firstUnreadId.toString(),
+      );
+      if (k >= 0) dividerAt = k + 1;
+    }
     if (messagesState.loading && messages.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -265,107 +209,118 @@ class _MessageListState extends ConsumerState<MessageList> {
         chat == null ||
         hasPermission(myRoles, ChatPermissions.sendMessage, subType);
 
-    return ListView.builder(
-      controller: _effectiveController,
-      reverse: true,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      itemCount: messages.length,
-      itemBuilder: (context, index) {
-        final message = messages[index];
-        final isSender = message.userUUID == localUserUUID;
-        final senderUser = users[message.userUUID];
-        final isSearchMatch =
-            widget.highlightedMessageId != null &&
-            message.id.toString() == widget.highlightedMessageId.toString();
-        final isJumpMatch =
-            _jumpHighlightedMessageId != null &&
-            message.id.toString() == _jumpHighlightedMessageId.toString();
-        final isCurrentMatch = isSearchMatch || isJumpMatch;
-
-        final isMsgSelected =
-            isCurrentMatch ||
-            selectedMessages.any(
-              (m) => m.id.toString() == message.id.toString(),
+    return NotificationListener<ScrollNotification>(
+      onNotification: onScrollNotification,
+      child: ListView.builder(
+        key: listKey,
+        controller: effectiveController,
+        reverse: true,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        itemCount: messages.length + (dividerAt >= 0 ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (dividerAt >= 0 && index == dividerAt) {
+            return KeyedSubtree(
+              key: unreadDividerKey,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: MessageSystem(
+                  type: 'separator-with-lines',
+                  data: context.l10n.unreadMessages,
+                ),
+              ),
             );
+          }
+          final message =
+              messages[dividerAt >= 0 && index > dividerAt ? index - 1 : index];
+          final isSender = message.userUUID == localUserUUID;
+          final senderUser = users[message.userUUID];
+          final isSearchMatch =
+              widget.highlightedMessageId != null &&
+              message.id.toString() == widget.highlightedMessageId.toString();
+          final isJumpMatch =
+              jumpHighlightedMessageId != null &&
+              message.id.toString() == jumpHighlightedMessageId.toString();
+          final isCurrentMatch = isSearchMatch || isJumpMatch;
 
-        final itemKey = _itemKeys.putIfAbsent(
-          message.id.toString(),
-          () => GlobalKey(),
-        );
+          final isMsgSelected =
+              isCurrentMatch ||
+              selectedMessages.any(
+                (m) => m.id.toString() == message.id.toString(),
+              );
 
-        final quoteHighlightRange =
-            isJumpMatch && _jumpRangeStart != null && _jumpRangeEnd != null
-            ? TextRange(start: _jumpRangeStart!, end: _jumpRangeEnd!)
-            : null;
+          final itemKey = _itemKeys.putIfAbsent(
+            message.id.toString(),
+            () => GlobalKey(),
+          );
 
-        return KeyedSubtree(
-          key: itemKey,
-          child: SwipeToReply(
-            enabled:
-                !isSelectionMode && message.type != 'system' && canReplyChat,
+          final quoteHighlightRange =
+              isJumpMatch && jumpRangeStart != null && jumpRangeEnd != null
+              ? TextRange(start: jumpRangeStart!, end: jumpRangeEnd!)
+              : null;
+
+          return MessageListItem(
+            itemKey: itemKey,
+            message: message,
             isSender: isSender,
+            isSelected: isMsgSelected,
+            isSelectionMode: isSelectionMode,
+            showAvatar: isGroup && !isSender,
+            showSenderName: isGroup && !isSender,
+            senderUser: senderUser,
+            searchHighlight: widget.searchQuery,
+            isCurrentSearchMatch: isCurrentMatch,
+            quoteHighlightRange: quoteHighlightRange,
+            canReply: canReplyChat,
             onReply: () {
               ref.read(chatDraftProvider(chatUUID).notifier).addReply(message);
             },
-            child: MessageBase(
-              message: message,
-              isSender: isSender,
-              isSelected: isMsgSelected,
-              isSelectionMode: isSelectionMode,
-              showAvatar: isGroup && !isSender,
-              showSenderName: isGroup && !isSender,
-              senderUser: senderUser,
-              searchHighlight: widget.searchQuery,
-              isCurrentSearchMatch: isCurrentMatch,
-              quoteHighlightRange: quoteHighlightRange,
-              onReplyTap:
-                  ({
-                    required String chatUUID,
-                    required int subID,
-                    required int messageID,
-                    int? rangeStart,
-                    int? rangeEnd,
-                  }) {
-                    if (chatUUID.isEmpty || chatUUID == widget.chatUUID) {
-                      ref
-                          .read(activeChatProvider.notifier)
-                          .jumpToMessage(
-                            messageID,
-                            subID: subID,
-                            rangeStart: rangeStart,
-                            rangeEnd: rangeEnd,
-                          );
-                    }
-                  },
-              onSelectionToggle: () {
-                ref
-                    .read(chatDraftProvider(chatUUID).notifier)
-                    .toggleSelectMessage(message);
-              },
-              onOpenContextMenu: (position, selectedText) {
-                _openContextMenu(message, position, selectedText);
-              },
-              getMessage: (lookupChatUUID, lookupSubID, lookupMessageID) {
-                try {
-                  final state = ref.read(
-                    chatMessagesProvider((
-                      chatUUID: lookupChatUUID,
-                      subID: lookupSubID,
-                    )),
-                  );
-                  return state.messages.firstWhere(
-                    (m) => m.id == lookupMessageID,
-                    orElse: () => throw Exception('Message not found'),
-                  );
-                } catch (_) {
-                  return null;
-                }
-              },
-              getUser: (uuid) => users[uuid],
-            ),
-          ),
-        );
-      },
+            onReplyTap:
+                ({
+                  required String chatUUID,
+                  required int subID,
+                  required int messageID,
+                  int? rangeStart,
+                  int? rangeEnd,
+                }) {
+                  if (chatUUID.isEmpty || chatUUID == widget.chatUUID) {
+                    ref
+                        .read(activeChatProvider.notifier)
+                        .jumpToMessage(
+                          messageID,
+                          subID: subID,
+                          rangeStart: rangeStart,
+                          rangeEnd: rangeEnd,
+                        );
+                  }
+                },
+            onSelectionToggle: () {
+              ref
+                  .read(chatDraftProvider(chatUUID).notifier)
+                  .toggleSelectMessage(message);
+            },
+            onOpenContextMenu: (position, selectedText) {
+              _openContextMenu(message, position, selectedText);
+            },
+            getMessage: (lookupChatUUID, lookupSubID, lookupMessageID) {
+              try {
+                final state = ref.read(
+                  chatMessagesProvider((
+                    chatUUID: lookupChatUUID,
+                    subID: lookupSubID,
+                  )),
+                );
+                return state.messages.firstWhere(
+                  (m) => m.id == lookupMessageID,
+                  orElse: () => throw Exception('Message not found'),
+                );
+              } catch (_) {
+                return null;
+              }
+            },
+            getUser: (uuid) => users[uuid],
+          );
+        },
+      ),
     );
   }
 }

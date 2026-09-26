@@ -30,16 +30,11 @@ class MessageMutations {
       final id = MessageFieldParser.parseId(rawId);
       final subID = MessageFieldParser.parseSubID(message['subID']);
 
-      final replyTo = message['replyTo'] is Map
-          ? Map<String, dynamic>.from(message['replyTo'] as Map)
-          : null;
-
       await db.execute(
         '''
         INSERT INTO message (
-          id, chatUUID, subID, senderUUID, content, type, system_action, created_at,
-          replyTo_chatUUID, replyTo_subID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          id, chatUUID, subID, senderUUID, content, type, system_action, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(chatUUID, subID, id) DO UPDATE SET
           content = excluded.content,
           type = excluded.type,
@@ -55,15 +50,6 @@ class MessageMutations {
           message['type'] ?? 'message',
           message['system_action'],
           createdAt,
-          replyTo?['chatUUID'],
-          replyTo?['subID'] != null
-              ? MessageFieldParser.parseId(replyTo!['subID'])
-              : null,
-          replyTo?['messageID'] != null
-              ? MessageFieldParser.parseId(replyTo!['messageID'])
-              : null,
-          replyTo?['rangeStart'],
-          replyTo?['rangeEnd'],
         ],
       );
 
@@ -103,15 +89,11 @@ class MessageMutations {
               chatUUID,
               subID,
               id,
-              r['chatUUID'] ?? r['replyTo_chatUUID'],
-              r['subID'] != null
-                  ? MessageFieldParser.parseId(r['subID'])
-                  : MessageFieldParser.parseId(r['replyTo_subID']),
-              r['messageID'] != null
-                  ? MessageFieldParser.parseId(r['messageID'])
-                  : MessageFieldParser.parseId(r['replyTo_messageID']),
-              r['rangeStart'] ?? r['replyTo_rangeStart'],
-              r['rangeEnd'] ?? r['replyTo_rangeEnd'],
+              r['chatUUID'],
+              MessageFieldParser.parseId(r['subID']),
+              MessageFieldParser.parseId(r['messageID']),
+              r['rangeStart'],
+              r['rangeEnd'],
             ],
           );
         }
@@ -161,48 +143,44 @@ class MessageMutations {
         }
       }
 
-      // Reads
-      final rawReads =
-          message['reads'] ?? message['readBy'] ?? message['message_reads'];
+      // Reads: exact keys `userUUID` / `readAt`. Blank entries are skipped.
+      final rawReads = message['reads'];
       if (rawReads is List) {
         for (final readRaw in rawReads) {
           if (readRaw is! Map) continue;
           final r = Map<String, dynamic>.from(readRaw);
-          final userUUID = (r['userUUID'] ?? r['user_uuid']) as String?;
+          final userUUID = (r['userUUID'] as String?)?.trim() ?? '';
           final readAt =
-              (r['readAt'] ?? r['read_at'] ?? DateTime.now().toIso8601String())
-                  as String;
-          if (userUUID != null) {
-            await db.execute(
-              '''
-              INSERT OR IGNORE INTO message_read (chat_uuid, sub_id, message_id, user_uuid, read_at)
-              VALUES (?, ?, ?, ?, ?);
-              ''',
-              [chatUUID, subID, id, userUUID, readAt],
-            );
-          }
+              (r['readAt'] as String?) ?? DateTime.now().toIso8601String();
+          if (userUUID.isEmpty) continue;
+          await db.execute(
+            '''
+            INSERT OR IGNORE INTO message_read (chatUUID, subID, messageID, userUUID, readAt)
+            VALUES (?, ?, ?, ?, ?);
+            ''',
+            [chatUUID, subID, id, userUUID, readAt],
+          );
         }
       }
 
-      // Reactions
-      if (message['reactions'] is List) {
-        for (final reactionRaw in message['reactions'] as List) {
+      // Reactions: exact keys `userUUID` / `reaction` / `created_at`.
+      final rawReactions = message['reactions'];
+      if (rawReactions is List) {
+        for (final reactionRaw in rawReactions) {
           if (reactionRaw is! Map) continue;
           final r = Map<String, dynamic>.from(reactionRaw);
-          final userUUID = (r['userUUID'] ?? r['user_uuid']) as String?;
-          final emoji = (r['reaction'] ?? r['emoji']) as String?;
+          final userUUID = (r['userUUID'] as String?)?.trim() ?? '';
+          final reaction = (r['reaction'] as String?)?.trim() ?? '';
+          if (userUUID.isEmpty || reaction.isEmpty) continue;
           final at =
-              (r['at'] ?? r['created_at'] ?? DateTime.now().toIso8601String())
-                  as String;
-          if (userUUID != null && emoji != null) {
-            await db.execute(
-              '''
-              INSERT OR IGNORE INTO reaction_message (chatUUID, subID, messageID, userUUID, reaction, at)
-              VALUES (?, ?, ?, ?, ?, ?);
-              ''',
-              [chatUUID, subID, id, userUUID, emoji, at],
-            );
-          }
+              (r['created_at'] as String?) ?? DateTime.now().toIso8601String();
+          await db.execute(
+            '''
+            INSERT OR IGNORE INTO reaction_message (chatUUID, subID, messageID, userUUID, reaction, at)
+            VALUES (?, ?, ?, ?, ?, ?);
+            ''',
+            [chatUUID, subID, id, userUUID, reaction, at],
+          );
         }
       }
 
@@ -218,96 +196,71 @@ class MessageMutations {
     try {
       if (messages.isEmpty) return false;
 
+      final messageRows = <List<Object?>>[];
+      final editedRows = <List<Object?>>[];
+      final pinnedRows = <List<Object?>>[];
+      final replyRows = <List<Object?>>[];
+      final reactionRows = <List<Object?>>[];
+      final readRows = <List<Object?>>[];
+      final fileRows = <List<Object?>>[];
+      final messageFileRows = <List<Object?>>[];
+
       for (final raw in messages) {
         if (raw is! Map) continue;
         final message = Map<String, dynamic>.from(raw);
         final rawId = message['id'] ?? message['messageID'];
         final chatUUID = MessageFieldParser.parseChatUUID(message);
         final senderUUID = MessageFieldParser.parseSenderUUID(message);
-        final createdAt = MessageFieldParser.parseCreatedAtString(message);
-
         if (rawId == null || chatUUID == null || senderUUID == null) continue;
         final id = MessageFieldParser.parseId(rawId);
         final subID = MessageFieldParser.parseSubID(message['subID']);
+        final createdAt = MessageFieldParser.parseCreatedAtString(message);
 
-        final replyTo = message['replyTo'] is Map
-            ? Map<String, dynamic>.from(message['replyTo'] as Map)
-            : null;
-
-        await db.execute(
-          '''
-          INSERT OR IGNORE INTO message (
-            id, chatUUID, subID, senderUUID, content, type, system_action, created_at,
-            replyTo_chatUUID, replyTo_subID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-          ''',
-          [
-            id,
-            chatUUID,
-            subID,
-            senderUUID,
-            message['content'],
-            message['type'] ?? 'message',
-            message['system_action'],
-            createdAt,
-            replyTo?['chatUUID'],
-            replyTo?['subID'] != null
-                ? MessageFieldParser.parseId(replyTo!['subID'])
-                : null,
-            replyTo?['messageID'] != null
-                ? MessageFieldParser.parseId(replyTo!['messageID'])
-                : null,
-            replyTo?['rangeStart'],
-            replyTo?['rangeEnd'],
-          ],
-        );
+        messageRows.add([
+          id,
+          chatUUID,
+          subID,
+          senderUUID,
+          message['content'],
+          message['type'] ?? 'message',
+          message['system_action'],
+          createdAt,
+        ]);
 
         if (MessageFieldParser.isEdited(message)) {
-          await db.execute(
-            '''
-            INSERT OR IGNORE INTO edited_message (chatUUID, subID, messageID)
-            VALUES (?, ?, ?);
-            ''',
-            [chatUUID, subID, id],
-          );
+          editedRows.add([chatUUID, subID, id]);
         }
 
         if (MessageFieldParser.isPinned(message)) {
-          await db.execute(
-            '''
-            INSERT OR IGNORE INTO pinned_message (chatUUID, subID, messageID, pinned_at, pinned_by)
-            VALUES (?, ?, ?, ?, ?);
-            ''',
-            [chatUUID, subID, id, DateTime.now().toIso8601String(), ''],
-          );
+          pinnedRows.add([
+            chatUUID,
+            subID,
+            id,
+            (message['pinnedAt'] as String?) ??
+                DateTime.now().toIso8601String(),
+            (message['pinnedBy'] as String?) ?? '',
+          ]);
         }
 
         if (message['replyTos'] is List) {
           for (final reply in message['replyTos'] as List) {
             if (reply is! Map) continue;
             final r = Map<String, dynamic>.from(reply);
-            await db.execute(
-              '''
-              INSERT OR IGNORE INTO message_reply (
-                chatUUID, subID, messageID,
-                replyTo_chatUUID, replyTo_subID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-              ''',
-              [
-                chatUUID,
-                subID,
-                id,
-                r['chatUUID'] ?? r['replyTo_chatUUID'],
-                r['subID'] != null
-                    ? MessageFieldParser.parseId(r['subID'])
-                    : MessageFieldParser.parseId(r['replyTo_subID']),
-                r['messageID'] != null
-                    ? MessageFieldParser.parseId(r['messageID'])
-                    : MessageFieldParser.parseId(r['replyTo_messageID']),
-                r['rangeStart'] ?? r['replyTo_rangeStart'],
-                r['rangeEnd'] ?? r['replyTo_rangeEnd'],
-              ],
-            );
+            final replyChatUUID = r['chatUUID']?.toString() ?? '';
+            if (replyChatUUID.isEmpty) continue;
+            final replySubID = MessageFieldParser.parseId(r['subID']);
+            final replyMessageID = MessageFieldParser.parseId(r['messageID']);
+            if (replyMessageID == 0) continue;
+            replyRows.add([
+              chatUUID,
+              subID,
+              id,
+              replyChatUUID,
+              replySubID,
+              replyMessageID,
+              r['rangeStart'],
+              r['rangeEnd'],
+            ]);
           }
         }
 
@@ -315,44 +268,26 @@ class MessageMutations {
           for (final reactionRaw in message['reactions'] as List) {
             if (reactionRaw is! Map) continue;
             final r = Map<String, dynamic>.from(reactionRaw);
-            final userUUID = (r['userUUID'] ?? r['user_uuid']) as String?;
-            final emoji = (r['reaction'] ?? r['emoji']) as String?;
+            final userUUID = (r['userUUID'] as String?)?.trim() ?? '';
+            final emoji = (r['reaction'] as String?)?.trim() ?? '';
+            if (userUUID.isEmpty || emoji.isEmpty) continue;
             final at =
-                (r['at'] ?? r['created_at'] ?? DateTime.now().toIso8601String())
-                    as String;
-            if (userUUID != null && emoji != null) {
-              await db.execute(
-                '''
-                INSERT OR IGNORE INTO reaction_message (chatUUID, subID, messageID, userUUID, reaction, at)
-                VALUES (?, ?, ?, ?, ?, ?);
-                ''',
-                [chatUUID, subID, id, userUUID, emoji, at],
-              );
-            }
+                (r['created_at'] as String?) ??
+                DateTime.now().toIso8601String();
+            reactionRows.add([chatUUID, subID, id, userUUID, emoji, at]);
           }
         }
 
-        final rawReads =
-            message['reads'] ?? message['readBy'] ?? message['message_reads'];
-        if (rawReads is List) {
-          for (final readRaw in rawReads) {
+        final reads = message['reads'];
+        if (reads is List) {
+          for (final readRaw in reads) {
             if (readRaw is! Map) continue;
             final r = Map<String, dynamic>.from(readRaw);
-            final userUUID = (r['userUUID'] ?? r['user_uuid']) as String?;
+            final userUUID = (r['userUUID'] as String?)?.trim() ?? '';
+            if (userUUID.isEmpty) continue;
             final readAt =
-                (r['readAt'] ??
-                        r['read_at'] ??
-                        DateTime.now().toIso8601String())
-                    as String;
-            if (userUUID != null) {
-              await db.execute(
-                '''
-                INSERT OR IGNORE INTO message_read (chat_uuid, sub_id, message_id, user_uuid, read_at)
-                VALUES (?, ?, ?, ?, ?);
-                ''',
-                [chatUUID, subID, id, userUUID, readAt],
-              );
-            }
+                (r['readAt'] as String?) ?? DateTime.now().toIso8601String();
+            readRows.add([chatUUID, subID, id, userUUID, readAt]);
           }
         }
 
@@ -374,38 +309,89 @@ class MessageMutations {
                         : jsonEncode(file['waveform']))
                   : null;
 
-              await db.execute(
-                '''
-                INSERT OR IGNORE INTO file (uuid, name, ref, mimeType, size, waveform, duration)
-                VALUES (?, ?, ?, ?, ?, ?, ?);
-                ''',
-                [
-                  fileUUID,
-                  name,
-                  file['ref'],
-                  mimeType,
-                  size,
-                  waveformStr,
-                  file['duration'] ?? 0,
-                ],
-              );
-
-              await db.execute(
-                '''
-                INSERT OR IGNORE INTO message_files (chatUUID, subID, messageID, fileUUID)
-                VALUES (?, ?, ?, ?);
-                ''',
-                [chatUUID, subID, id, fileUUID],
-              );
+              fileRows.add([
+                fileUUID,
+                name,
+                file['ref'],
+                mimeType,
+                size,
+                waveformStr,
+                file['duration'] ?? 0,
+              ]);
+              messageFileRows.add([chatUUID, subID, id, fileUUID]);
             }
           }
         }
       }
 
+      await _bulkInsert(
+        '''INSERT OR IGNORE INTO message (
+          id, chatUUID, subID, senderUUID, content, type, system_action, created_at
+        ) VALUES ''',
+        messageRows,
+        8,
+      );
+      await _bulkInsert(
+        'INSERT OR IGNORE INTO edited_message (chatUUID, subID, messageID) VALUES ',
+        editedRows,
+        3,
+      );
+      await _bulkInsert(
+        'INSERT OR IGNORE INTO pinned_message (chatUUID, subID, messageID, pinned_at, pinned_by) VALUES ',
+        pinnedRows,
+        5,
+      );
+      await _bulkInsert(
+        'INSERT OR IGNORE INTO message_reply (chatUUID, subID, messageID, replyTo_chatUUID, replyTo_subID, replyTo_messageID, replyTo_rangeStart, replyTo_rangeEnd) VALUES ',
+        replyRows,
+        8,
+      );
+      await _bulkInsert(
+        'INSERT OR IGNORE INTO reaction_message (chatUUID, subID, messageID, userUUID, reaction, at) VALUES ',
+        reactionRows,
+        6,
+      );
+      await _bulkInsert(
+        'INSERT OR IGNORE INTO message_read (chatUUID, subID, messageID, userUUID, readAt) VALUES ',
+        readRows,
+        5,
+      );
+      await _bulkInsert(
+        'INSERT OR IGNORE INTO file (uuid, name, ref, mimeType, size, waveform, duration) VALUES ',
+        fileRows,
+        7,
+      );
+      await _bulkInsert(
+        'INSERT OR IGNORE INTO message_files (chatUUID, subID, messageID, fileUUID) VALUES ',
+        messageFileRows,
+        4,
+      );
+
       return true;
     } catch (e) {
       debugPrint('Error adding multiple messages: $e');
       return false;
+    }
+  }
+
+  /// Executes one multi-row `INSERT` for [rows]; no-op when empty.
+  /// [columnsPerRow] guards against malformed rows.
+  Future<void> _bulkInsert(
+    String prefix,
+    List<List<Object?>> rows,
+    int columnsPerRow,
+  ) async {
+    final valid = rows.where((r) => r.length == columnsPerRow).toList();
+    if (valid.isEmpty) return;
+    final chunkSize = (999 ~/ columnsPerRow).clamp(1, 999);
+    for (var i = 0; i < valid.length; i += chunkSize) {
+      final chunk = valid.sublist(i, (i + chunkSize).clamp(0, valid.length));
+      final placeholders = List.filled(
+        chunk.length,
+        '(${List.filled(columnsPerRow, '?').join(', ')})',
+      ).join(', ');
+      final values = chunk.expand((r) => r).toList();
+      await db.execute('$prefix$placeholders;', values);
     }
   }
 

@@ -344,7 +344,7 @@ void main() {
       expect((msg['replyTos'] as List).isNotEmpty, isTrue);
       expect((msg['files'] as List).isNotEmpty, isTrue);
       expect((msg['reactions'] as List).isNotEmpty, isTrue);
-      expect((msg['readBy'] as List).isNotEmpty, isTrue);
+      expect((msg['reads'] as List).isNotEmpty, isTrue);
 
       // Search
       final searchResults = await db.message.search(

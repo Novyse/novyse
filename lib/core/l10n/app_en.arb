@@ -332,6 +332,7 @@
   "cancelEdit": "Cancel Edit",
   "edit": "Edit",
   "forward": "Forward",
+  "unreadMessages": "Unread messages",
   "select": "Select",
   "delete": "Delete",
   "selectedCount": "{count, plural, =1{1 selected} other{{count} selected}}",

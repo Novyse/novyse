@@ -105,11 +105,7 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AppHugeIcon(
-                icon: icon,
-                size: 16,
-                color: colorScheme.onSurface,
-              ),
+              AppHugeIcon(icon: icon, size: 16, color: colorScheme.onSurface),
               const SizedBox(width: 6),
               Text(
                 text,
@@ -328,8 +324,16 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
           ];
 
     // Stats calculations
-    final reads = message.reads;
-    final readCount = reads.length;
+
+    final distinctReaders = <String>{};
+    for (final r in message.reads) {
+      final uuid = ((r is Map ? (r['userUUID'] as String?) : r.toString()) ??
+              '')
+          .trim();
+      if (uuid.isEmpty || uuid == message.userUUID) continue;
+      distinctReaders.add(uuid);
+    } // excluding the author
+    final readCount = distinctReaders.length;
     final hasRead = readCount > 0;
 
     final reactions = message.reactions;
@@ -338,7 +342,8 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
       (acc, r) => acc + ((r['userUUIDs'] as List?)?.length ?? 0),
     );
     final hasReactions = totalReactions > 0;
-    final showStats = !message.isPending && ((isMine && hasRead) || hasReactions);
+    final showStats =
+        !message.isPending && ((isMine && hasRead) || hasReactions);
 
     const menuWidth = MessageActionMenu.menuWidth;
     const edgePadding = MessageActionMenu.edgePadding;
@@ -346,18 +351,28 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
 
     const reactionHeaderHeight = 44.0;
     const reactionHeaderMargin = 8.0;
-    final actionsCardHeight = items.isNotEmpty ? items.length * itemHeight + 12.0 : 0.0;
+    final actionsCardHeight = items.isNotEmpty
+        ? items.length * itemHeight + 12.0
+        : 0.0;
     final statsHeight = showStats ? 40.0 : 0.0;
 
     final expandedReactionHeight = math.max(
       390.0,
-      actionsCardHeight + reactionHeaderHeight + reactionHeaderMargin + statsHeight,
+      actionsCardHeight +
+          reactionHeaderHeight +
+          reactionHeaderMargin +
+          statsHeight,
     );
     final maxAllowedHeight = screenSize.height - edgePadding * 2;
-    final targetExpandedHeight = math.min(expandedReactionHeight, maxAllowedHeight);
+    final targetExpandedHeight = math.min(
+      expandedReactionHeight,
+      maxAllowedHeight,
+    );
 
     final collapsedTotalHeight =
-        (message.isPending ? 0.0 : (reactionHeaderHeight + reactionHeaderMargin)) +
+        (message.isPending
+            ? 0.0
+            : (reactionHeaderHeight + reactionHeaderMargin)) +
         actionsCardHeight +
         statsHeight;
 
@@ -412,7 +427,9 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
                   // Base column: Spacer for reaction header + actions + stats
                   Container(
                     constraints: BoxConstraints(
-                      minHeight: _isReactionExpanded ? targetExpandedHeight : 0.0,
+                      minHeight: _isReactionExpanded
+                          ? targetExpandedHeight
+                          : 0.0,
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -435,7 +452,10 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(20),
                                     child: BackdropFilter(
-                                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                                      filter: ImageFilter.blur(
+                                        sigmaX: 20,
+                                        sigmaY: 20,
+                                      ),
                                       child: Container(
                                         width: menuWidth,
                                         padding: const EdgeInsets.symmetric(
@@ -443,9 +463,12 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
                                           horizontal: 5,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: colorScheme.surfaceContainerHighest
+                                          color: colorScheme
+                                              .surfaceContainerHighest
                                               .withValues(alpha: 0.88),
-                                          borderRadius: BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                           border: Border.all(
                                             color: colorScheme.outlineVariant
                                                 .withValues(alpha: 0.35),
@@ -453,7 +476,9 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withValues(alpha: 0.2),
+                                              color: Colors.black.withValues(
+                                                alpha: 0.2,
+                                              ),
                                               blurRadius: 20,
                                               offset: const Offset(0, 8),
                                             ),
@@ -468,25 +493,27 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
 
                                             return InkWell(
                                               onTap: item.onTap,
-                                              borderRadius: BorderRadius.circular(14),
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
                                               hoverColor: item.isDanger
-                                                  ? colorScheme.error.withValues(
-                                                      alpha: 0.1,
-                                                    )
-                                                  : colorScheme.surfaceContainerHigh
-                                                      .withValues(alpha: 0.5),
+                                                  ? colorScheme.error
+                                                        .withValues(alpha: 0.1)
+                                                  : colorScheme
+                                                        .surfaceContainerHigh
+                                                        .withValues(alpha: 0.5),
                                               splashColor: item.isDanger
-                                                  ? colorScheme.error.withValues(
-                                                      alpha: 0.2,
-                                                    )
-                                                  : colorScheme.primary.withValues(
-                                                      alpha: 0.15,
-                                                    ),
+                                                  ? colorScheme.error
+                                                        .withValues(alpha: 0.2)
+                                                  : colorScheme.primary
+                                                        .withValues(
+                                                          alpha: 0.15,
+                                                        ),
                                               child: Container(
                                                 height: itemHeight,
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 10,
-                                                ),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                    ),
                                                 child: Row(
                                                   children: [
                                                     AppHugeIcon(
@@ -500,12 +527,13 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
                                                         item.label,
                                                         style: TextStyle(
                                                           fontSize: 13.5,
-                                                          fontWeight: FontWeight.w500,
+                                                          fontWeight:
+                                                              FontWeight.w500,
                                                           color: itemColor,
                                                         ),
                                                         maxLines: 1,
-                                                        overflow:
-                                                            TextOverflow.ellipsis,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
                                                       ),
                                                     ),
                                                   ],
@@ -530,7 +558,9 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
                                             text: '$readCount',
                                           ),
                                         ),
-                                      if (!message.isPending && hasRead && hasReactions)
+                                      if (!message.isPending &&
+                                          hasRead &&
+                                          hasReactions)
                                         const SizedBox(width: 8),
                                       if (hasReactions)
                                         Expanded(

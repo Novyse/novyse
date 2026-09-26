@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:novyse/core/auth/onboarding_manager.dart';
+import 'package:novyse/core/chat/message_read_service.dart';
 import 'package:novyse/core/chat/queue/queue_manager.dart';
+import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/notifications/local_notification_service.dart';
 import 'package:novyse/core/notifications/notification_bridge.dart';
-import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/storage/database/database.dart';
 
 abstract final class NotificationActionIds {
@@ -25,24 +26,11 @@ class NotificationActions {
   }) async {
     if (chatUUID.isEmpty || messageId.isEmpty) return;
     try {
-      final res = await Gateway.instance.message.read(
-        chatUUID,
-        subID,
-        messageId,
+      await MessageReadService.instance.markNotificationMessageAsRead(
+        chatUUID: chatUUID,
+        subID: subID,
+        messageID: messageId,
       );
-      if (res.success) {
-        if (!AppDatabase.instance.isOpen) {
-          await AppDatabase.instance.initialize();
-        }
-        await GlobalEventEmitter.instance.message.update(
-          chatUUID,
-          subID,
-          messageId,
-          'read',
-          res.chatEventID,
-          {'userUUID': res.userUUID, 'readAt': res.readAt},
-        );
-      }
     } catch (e) {
       debugPrint('[NotificationActions] markAsRead failed: $e');
     }

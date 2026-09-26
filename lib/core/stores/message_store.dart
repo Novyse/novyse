@@ -50,21 +50,21 @@ class MessageModel {
   bool get isSystem => type == 'system';
 
   factory MessageModel.fromMap(Map<String, dynamic> map) {
-    final rawCreatedAt = map['createdAt'] ?? map['created_at'];
-
     return MessageModel(
       id: map['id'] ?? map['messageID'] ?? 0,
       chatUUID: MessageFieldParser.parseChatUUID(map) ?? '',
       subID: MessageFieldParser.parseSubID(map['subID']),
       userUUID: MessageFieldParser.parseSenderUUID(map) ?? '',
-      createdAt: MessageFieldParser.parseCreatedAtDateTime(rawCreatedAt),
+      createdAt: MessageFieldParser.parseCreatedAtDateTime(
+        map['created_at'],
+      ),
       edited: MessageFieldParser.isEdited(map),
       pinned: MessageFieldParser.isPinned(map),
       favorited: MessageFieldParser.isFavorited(map),
       content: (map['content'])?.toString(),
       replyTos: map['replyTos'] is List ? (map['replyTos'] as List) : const [],
       reactions: MessageFieldParser.parseMapList(map['reactions']),
-      reads: map['reads'] is List ? (map['reads'] as List) : const [],
+      reads: MessageFieldParser.parseMapList(map['reads']),
       files: MessageFieldParser.parseMapList(map['files']),
       status: (map['status'] ?? 'sent').toString(),
       type: (map['type'] ?? 'message').toString(),
@@ -80,7 +80,7 @@ class MessageModel {
       'subID': subID,
       'userUUID': userUUID,
       'senderUUID': userUUID,
-      'createdAt': createdAt.toIso8601String(),
+      'created_at': createdAt.toIso8601String(),
       'edited': edited,
       'pinned': pinned,
       'favorited': favorited,
@@ -484,6 +484,38 @@ class MessageListNotifier
           messages: state.messages.map((m) {
             if (m.id.toString() == messageID) {
               return m.copyWith(favorited: false);
+            }
+            return m;
+          }).toList(),
+        );
+        break;
+
+      case 'read':
+        final readUserUUID =
+            (data['userUUID'] as String?)?.trim() ?? '';
+        if (readUserUUID.isEmpty) break;
+        final readAt =
+            (data['readAt'] as String?) ?? DateTime.now().toIso8601String();
+        final targetId = int.tryParse(messageID) ?? -1;
+        state = state.copyWith(
+          messages: state.messages.map((m) {
+            final mid = int.tryParse(m.id.toString());
+            // Watermark: reading `targetId` implies reading everything before
+            // it. The author's own messages never carry their own read.
+            if (mid == null ||
+                m.userUUID == readUserUUID ||
+                (targetId >= 0 && mid > targetId)) {
+              return m;
+            }
+            final reads = List<Map<String, dynamic>>.from(
+              m.reads.whereType<Map>().map((r) => Map<String, dynamic>.from(r)),
+            );
+            final already = reads.any(
+              (r) => (r['userUUID'] as String?) == readUserUUID,
+            );
+            if (!already) {
+              reads.add({'userUUID': readUserUUID, 'readAt': readAt});
+              return m.copyWith(reads: reads);
             }
             return m;
           }).toList(),

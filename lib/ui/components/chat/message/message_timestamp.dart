@@ -112,7 +112,7 @@ class MessageTimestamp extends StatelessWidget {
               const SizedBox(width: 4),
               AppHugeIcon(
                 icon: hasBeenRead
-                    ? HugeIcons.strokeRoundedTick02
+                    ? HugeIcons.strokeRoundedTickDouble01
                     : HugeIcons.strokeRoundedTick01,
                 size: 14,
                 color: textColor,

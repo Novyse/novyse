@@ -47,15 +47,24 @@ class MessageEnrichment {
     final chatUUID = MessageFieldParser.parseChatUUID(message);
     final subID = MessageFieldParser.parseSubID(message['subID']);
     final id = MessageFieldParser.parseMessageId(message);
+    final senderUUID = MessageFieldParser.parseSenderUUID(message) ?? '';
 
     final rows = await db.rawQuery(
-      'SELECT user_uuid, read_at FROM message_read WHERE chat_uuid = ? AND sub_id = ? AND message_id = ?;',
-      [chatUUID, subID, id],
+      '''
+      SELECT r.userUUID, MAX(r.readAt) as readAt
+      FROM message_read r
+      WHERE r.chatUUID = ? AND r.subID = ? AND r.messageID >= ?
+        AND r.userUUID != ?
+      GROUP BY r.userUUID
+      ORDER BY r.messageID ASC;
+      ''',
+      [chatUUID, subID, id, senderUUID],
     );
 
-    message['readBy'] = rows
-        .map((r) => {'userUUID': r['user_uuid'], 'readAt': r['read_at']})
+    final readsList = rows
+        .map((r) => {'userUUID': r['userUUID'], 'readAt': r['readAt']})
         .toList();
+    message['reads'] = readsList;
   }
 
   Future<void> _addReplyTos(Map<String, dynamic> message) async {

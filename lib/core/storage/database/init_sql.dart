@@ -115,11 +115,6 @@ CREATE TABLE IF NOT EXISTS message (
     type TEXT NOT NULL DEFAULT 'message',
     system_action TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    replyTo_chatUUID TEXT,
-    replyTo_subID INTEGER,
-    replyTo_messageID INTEGER,
-    replyTo_rangeStart INTEGER,
-    replyTo_rangeEnd INTEGER,
     PRIMARY KEY (chatUUID, subID, id),
     FOREIGN KEY (chatUUID) REFERENCES chat(uuid),
     FOREIGN KEY (senderUUID) REFERENCES user(uuid)
@@ -194,17 +189,17 @@ CREATE TABLE IF NOT EXISTS message_reply (
 CREATE INDEX IF NOT EXISTS idx_message_reply_chat_msg ON message_reply(chatUUID, subID, messageID);
 
 CREATE TABLE IF NOT EXISTS message_read (
-    chat_uuid TEXT NOT NULL,
-    sub_id INTEGER NOT NULL,
-    message_id INTEGER NOT NULL,
-    user_uuid TEXT NOT NULL,
-    read_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_message_read PRIMARY KEY (chat_uuid, sub_id, message_id, user_uuid),
-    CONSTRAINT fk_message_read_message FOREIGN KEY (chat_uuid, sub_id, message_id) REFERENCES message (chatUUID, subID, id) ON DELETE CASCADE,
-    FOREIGN KEY (user_uuid) REFERENCES user (uuid) ON DELETE CASCADE
+    chatUUID TEXT NOT NULL,
+    subID INTEGER NOT NULL,
+    messageID INTEGER NOT NULL,
+    userUUID TEXT NOT NULL,
+    readAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_message_read PRIMARY KEY (chatUUID, subID, messageID, userUUID),
+    CONSTRAINT fk_message_read_message FOREIGN KEY (chatUUID, subID, messageID) REFERENCES message (chatUUID, subID, id) ON DELETE CASCADE,
+    FOREIGN KEY (userUUID) REFERENCES user (uuid) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_message_read_user_chat ON message_read (chat_uuid, user_uuid, message_id DESC);
+CREATE INDEX IF NOT EXISTS idx_message_read_user_chat ON message_read (chatUUID, userUUID, messageID DESC);
 
 CREATE TABLE IF NOT EXISTS pending_message (
     id TEXT NOT NULL,

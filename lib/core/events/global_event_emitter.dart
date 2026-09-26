@@ -171,13 +171,10 @@ class MessageEmitter {
         );
         break;
       case 'read':
-        final userUUID =
-            (data['userUUID'] ?? data['user_uuid']) as String? ?? '';
+        final userUUID = (data['userUUID'] as String?)?.trim() ?? '';
+        if (userUUID.isEmpty) break;
         final readAt =
-            (data['readAt'] ??
-                    data['read_at'] ??
-                    DateTime.now().toIso8601String())
-                as String;
+            (data['readAt'] as String?) ?? DateTime.now().toIso8601String();
         await _db.message.read.add(
           chatUUID,
           subID,

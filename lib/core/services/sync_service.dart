@@ -227,11 +227,9 @@ class SyncService {
       await _storage.write(key: 'init', value: 'true');
       _network.setSynced(true);
 
-      // 7. Hydrate in-memory stores (loads local cache & fetches presence)
-      await Future.wait([
-        _ref.read(userStoreProvider.notifier).init(),
-        _ref.read(chatListProvider.notifier).init(),
-      ]);
+      // 7. Hydrate in-memory stores (loads local cache & fetches presence).
+      await _ref.read(userStoreProvider.notifier).init();
+      await _ref.read(chatListProvider.notifier).init();
 
       _status.dismissStatus('sync_status');
 
@@ -540,11 +538,9 @@ class SyncService {
       // 7. Mark synced before loading in-memory stores
       _network.setSynced(true);
 
-      // 8. Refresh in-memory stores to ensure latest data is loaded
-      await Future.wait([
-        _ref.read(userStoreProvider.notifier).init(),
-        _ref.read(chatListProvider.notifier).init(),
-      ]);
+      // 8. Refresh in-memory stores to ensure latest data is loaded.
+      await _ref.read(userStoreProvider.notifier).init();
+      await _ref.read(chatListProvider.notifier).init();
 
       _status.dismissStatus('sync_status');
       _socket.open();

@@ -125,6 +125,20 @@ class ChatUpdateEvent {
   });
 }
 
+class ChatBadgeDecrementEvent {
+  final String chatUUID;
+  final int subID;
+  final int targetId;
+  final int count;
+
+  const ChatBadgeDecrementEvent({
+    required this.chatUUID,
+    required this.subID,
+    required this.targetId,
+    required this.count,
+  });
+}
+
 class ChatMemberJoinedEvent {
   final String chatUUID;
   final Map<String, dynamic> user;

@@ -76,7 +76,8 @@ void main() {
     expect(find.text('14:30'), findsOneWidget);
     expect(
       find.byWidgetPredicate(
-        (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedTick02,
+        (w) =>
+            w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedTickDouble01,
       ),
       findsOneWidget,
     );

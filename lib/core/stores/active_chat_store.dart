@@ -98,10 +98,6 @@ class ActiveChatNotifier extends Notifier<ActiveChatState> {
       selectedSub: targetSub,
       activeRemoteChatData: () => null,
     );
-
-    if (uuid != null) {
-      ref.read(chatListProvider.notifier).markAsRead(uuid);
-    }
   }
 
   Future<void> setSelectedHandle(String? handle, {int? subOverride}) async {

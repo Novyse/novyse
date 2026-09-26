@@ -613,14 +613,15 @@ class ChatGetRepository {
         if (localUserUUID != null && localUserUUID.isNotEmpty) {
           final countRows = await _repo.db.rawQuery(
             '''
-            SELECT COUNT(*) as count FROM message
-            WHERE chatUUID = ? AND senderUUID != ?
-              AND id > (
-                SELECT COALESCE(MAX(message_id), 0)
+            SELECT COUNT(*) as count FROM message m
+            WHERE m.chatUUID = ? AND m.senderUUID != ?
+              AND m.id > (
+                SELECT COALESCE(MAX(messageID), 0)
                 FROM message_read
-                WHERE chat_uuid = ? AND user_uuid = ?
+                WHERE chatUUID = m.chatUUID AND subID = m.subID
+                  AND userUUID = ?
               )
-              AND created_at > (
+              AND m.created_at > (
                 SELECT joined_at
                 FROM member
                 WHERE chatUUID = ? AND userUUID = ?
@@ -629,7 +630,6 @@ class ChatGetRepository {
             [
               chatUUID,
               localUserUUID,
-              chatUUID,
               localUserUUID,
               chatUUID,
               localUserUUID,
@@ -642,25 +642,25 @@ class ChatGetRepository {
           // Load oldest unread message if it exists
           final oldestRows = await _repo.db.rawQuery(
             '''
-            SELECT id, subID FROM message
-            WHERE chatUUID = ? AND senderUUID != ?
-              AND id > (
-                SELECT COALESCE(MAX(message_id), 0)
+            SELECT m.id, m.subID FROM message m
+            WHERE m.chatUUID = ? AND m.senderUUID != ?
+              AND m.id > (
+                SELECT COALESCE(MAX(messageID), 0)
                 FROM message_read
-                WHERE chat_uuid = ? AND user_uuid = ?
+                WHERE chatUUID = m.chatUUID AND subID = m.subID
+                  AND userUUID = ?
               )
-              AND created_at > (
+              AND m.created_at > (
                 SELECT joined_at
                 FROM member
                 WHERE chatUUID = ? AND userUUID = ?
               )
-            ORDER BY created_at ASC
+            ORDER BY m.created_at ASC
             LIMIT 1;
             ''',
             [
               chatUUID,
               localUserUUID,
-              chatUUID,
               localUserUUID,
               chatUUID,
               localUserUUID,

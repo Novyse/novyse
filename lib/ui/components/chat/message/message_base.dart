@@ -482,7 +482,18 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
               ? '@${senderUser!.handle}'
               : (senderUser?.name ?? ''));
 
-    final hasBeenRead = isSender && (message.reads.isNotEmpty);
+    final hasBeenRead =
+        isSender &&
+        message.reads.any(
+          (r) {
+            final uuid = ((r is Map
+                        ? (r['userUUID'] as String?)
+                        : r.toString()) ??
+                    '')
+                .trim();
+            return uuid.isNotEmpty && uuid != message.userUUID;
+          },
+        );
 
     // Parse files and GIFs
     final files = _parseFiles();
