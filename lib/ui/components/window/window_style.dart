@@ -23,6 +23,7 @@ class WindowChromeStyle {
     required this.logoSize,
     required this.titleBarPaddingLeft,
     required this.resizeEdgeSize,
+    required this.resizeSideEdgeSize,
     required this.buttonAnimation,
     required this.closeHoverColor,
     required this.closeHoverIconColor,
@@ -38,6 +39,11 @@ class WindowChromeStyle {
   final double logoSize;
   final double titleBarPaddingLeft;
   final double resizeEdgeSize;
+
+  /// Thickness of the left/right resize handles. Kept thin (2px)
+  /// so the side scrollbars stay grabbable; top/bottom/corners use the
+  /// roomier [resizeEdgeSize].
+  final double resizeSideEdgeSize;
   final Duration buttonAnimation;
   final Color closeHoverColor;
   final Color closeHoverIconColor;
@@ -53,6 +59,7 @@ class WindowChromeStyle {
     logoSize: 40,
     titleBarPaddingLeft: 8,
     resizeEdgeSize: 8,
+    resizeSideEdgeSize: 2,
     buttonAnimation: Duration(milliseconds: 120),
     closeHoverColor: Color(0xFFE81123),
     closeHoverIconColor: Colors.white,
@@ -80,6 +87,7 @@ class WindowChromeStyle {
     double? logoSize,
     double? titleBarPaddingLeft,
     double? resizeEdgeSize,
+    double? resizeSideEdgeSize,
     Duration? buttonAnimation,
     Color? closeHoverColor,
     Color? closeHoverIconColor,
@@ -93,15 +101,13 @@ class WindowChromeStyle {
       iconSize: iconSize ?? this.iconSize,
       iconStrokeWidth: iconStrokeWidth ?? this.iconStrokeWidth,
       logoSize: logoSize ?? this.logoSize,
-      titleBarPaddingLeft:
-          titleBarPaddingLeft ?? this.titleBarPaddingLeft,
+      titleBarPaddingLeft: titleBarPaddingLeft ?? this.titleBarPaddingLeft,
       resizeEdgeSize: resizeEdgeSize ?? this.resizeEdgeSize,
+      resizeSideEdgeSize: resizeSideEdgeSize ?? this.resizeSideEdgeSize,
       buttonAnimation: buttonAnimation ?? this.buttonAnimation,
       closeHoverColor: closeHoverColor ?? this.closeHoverColor,
-      closeHoverIconColor:
-          closeHoverIconColor ?? this.closeHoverIconColor,
-      hoverBackgroundAlpha:
-          hoverBackgroundAlpha ?? this.hoverBackgroundAlpha,
+      closeHoverIconColor: closeHoverIconColor ?? this.closeHoverIconColor,
+      hoverBackgroundAlpha: hoverBackgroundAlpha ?? this.hoverBackgroundAlpha,
       iconOpacity: iconOpacity ?? this.iconOpacity,
     );
   }

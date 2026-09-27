@@ -144,61 +144,68 @@ class _SettingsFloatingAppBar extends StatelessWidget {
       content = Row(
         children: [
           if (showBack) ...[
-          FloatingPill(
-            padding: FloatingAppBarConsts.iconPillPadding,
-            child: FloatingIconButton(
-              icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
-              onPressed: onBack,
-            ),
-          ),
-          const SizedBox(width: FloatingAppBarConsts.pillSpacing),
-        ],
-        Expanded(
-          child: FloatingPill(
-            radius: FloatingAppBarConsts.centralRadius,
-            padding: FloatingAppBarConsts.centralTitlePadding,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                minHeight: FloatingAppBarConsts.centralMinHeight,
+            FloatingPill(
+              padding: FloatingAppBarConsts.iconPillPadding,
+              child: FloatingIconButton(
+                icon: const AppHugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowLeft01,
+                ),
+                onPressed: onBack,
               ),
-              child: Semantics(
-                header: true,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      title,
-                      style: FloatingAppBarConsts.titleStyle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                    if (subtitleText != null && subtitleText.isNotEmpty)
+            ),
+            const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+          ],
+          Expanded(
+            child: FloatingPill(
+              radius: FloatingAppBarConsts.centralRadius,
+              padding: FloatingAppBarConsts.centralTitlePadding,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minHeight: FloatingAppBarConsts.centralMinHeight,
+                ),
+                child: Semantics(
+                  header: true,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                       Text(
-                        subtitleText,
-                        style: FloatingAppBarConsts.subtitleStyle(colorScheme),
+                        title,
+                        style: FloatingAppBarConsts.titleStyle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
                       ),
-                  ],
+                      if (subtitleText != null && subtitleText.isNotEmpty)
+                        Text(
+                          subtitleText,
+                          style: FloatingAppBarConsts.subtitleStyle(
+                            colorScheme,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        if (extraActions != null && extraActions.isNotEmpty) ...[
-          const SizedBox(width: FloatingAppBarConsts.pillSpacing),
-          FloatingPill(
-            padding: FloatingAppBarConsts.actionsPadding,
-            child: Row(mainAxisSize: MainAxisSize.min, children: extraActions),
-          ),
-        ] else if (showBack) ...[
-          // Balances the back pill so the title stays centered,
-          // like `production` HeaderWithBackArrow's right spacer.
-          const SizedBox(width: FloatingAppBarConsts.iconPillOuterSize),
-        ],
+          if (extraActions != null && extraActions.isNotEmpty) ...[
+            const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+            FloatingPill(
+              padding: FloatingAppBarConsts.actionsPadding,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: extraActions,
+              ),
+            ),
+          ] else if (showBack) ...[
+            // Balances the back pill so the title stays centered,
+            // like `production` HeaderWithBackArrow's right spacer.
+            const SizedBox(width: FloatingAppBarConsts.iconPillOuterSize),
+          ],
         ],
       );
     }

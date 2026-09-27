@@ -220,27 +220,16 @@ class _HomeShellState extends ConsumerState<HomeShell>
 
     final Widget body;
     if (wide) {
-      body = Stack(
+      // Il resizer vive nel flusso tra i pannelli (non sopra il contenuto):
+      // solo il pill centrale intercetta il pointer, il resto del bordo
+      // del master resta libero per la scrollbar.
+      body = Row(
         children: [
-          // Layout principale senza spaziatura aggiuntiva per il resizer
-          Row(
-            children: [
-              SizedBox(width: masterPaneWidth, child: master),
-              Expanded(child: detail),
-            ],
+          SizedBox(width: masterPaneWidth, child: master),
+          _MasterPaneResizer(
+            onDrag: (delta) => _resizeMasterPane(delta, screenWidth),
           ),
-          // Resizer trasparente e invisibile posizionato esattamente sul bordo
-          Positioned(
-            left:
-                masterPaneWidth -
-                8, // Shift a sinistra per centrare la hit area
-            top: 0,
-            bottom: 0,
-            width: 16, // Ampia hit area per un drag/hover agevole (16px)
-            child: _MasterPaneResizer(
-              onDrag: (delta) => _resizeMasterPane(delta, screenWidth),
-            ),
-          ),
+          Expanded(child: detail),
         ],
       );
     } else {
@@ -306,6 +295,15 @@ class _MasterPaneResizer extends StatefulWidget {
 
   final ValueChanged<double> onDrag;
 
+  /// Width of the in-flow strip separating master and detail.
+  static const double stripWidth = 12;
+
+  /// Height of the interactive pill hit area (centered vertically).
+  static const double hitHeight = 72;
+
+  /// Height of the visible pill (same as `SubListResizeHandle`).
+  static const double pillHeight = 36;
+
   @override
   State<_MasterPaneResizer> createState() => _MasterPaneResizerState();
 }
@@ -318,28 +316,39 @@ class _MasterPaneResizerState extends State<_MasterPaneResizer> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final active = _hovered || _dragging;
-    final dividerColor = active
+    final pillColor = active
         ? scheme.primary.withValues(alpha: 0.55)
         : scheme.outlineVariant.withValues(alpha: 0.65);
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.resizeColumn,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onHorizontalDragStart: (_) => setState(() => _dragging = true),
-        onHorizontalDragUpdate: (details) => widget.onDrag(details.delta.dx),
-        onHorizontalDragEnd: (_) => setState(() => _dragging = false),
-        onHorizontalDragCancel: () => setState(() => _dragging = false),
-        child: SizedBox.expand(
-          child: Center(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 120),
-              width: active
-                  ? 3
-                  : 1, // Cambia solo l'aspetto visivo, non la Hit Area
-              color: dividerColor,
+    return SizedBox(
+      width: _MasterPaneResizer.stripWidth,
+      height: double.infinity,
+      child: Center(
+        child: MouseRegion(
+          cursor: SystemMouseCursors.resizeColumn,
+          onEnter: (_) => setState(() => _hovered = true),
+          onExit: (_) => setState(() => _hovered = false),
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onHorizontalDragStart: (_) => setState(() => _dragging = true),
+            onHorizontalDragUpdate: (details) =>
+                widget.onDrag(details.delta.dx),
+            onHorizontalDragEnd: (_) => setState(() => _dragging = false),
+            onHorizontalDragCancel: () => setState(() => _dragging = false),
+            child: SizedBox(
+              width: _MasterPaneResizer.stripWidth,
+              height: _MasterPaneResizer.hitHeight,
+              child: Center(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 120),
+                  width: 3,
+                  height: _MasterPaneResizer.pillHeight,
+                  decoration: BoxDecoration(
+                    color: pillColor,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
             ),
           ),
         ),

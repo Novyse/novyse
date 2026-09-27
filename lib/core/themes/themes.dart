@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:novyse/ui/components/app_scrollbar.dart';
 
 class AppColors {
   static const Color primary = Color(0xFF0F6FFF);
@@ -102,6 +103,13 @@ class AppTheme {
           side: BorderSide(color: lightScheme.outline),
         ),
       ),
+      scrollbarTheme: ScrollbarThemeData(
+        thickness: const WidgetStatePropertyAll(AppScrollbarTokens.thickness),
+        trackVisibility: const WidgetStatePropertyAll(false),
+        interactive: true,
+        radius: AppScrollbarTokens.radius,
+        minThumbLength: AppScrollbarTokens.minThumbLength,
+      ),
     );
   }
 
@@ -179,6 +187,13 @@ class AppTheme {
           borderRadius: BorderRadius.circular(24),
           side: BorderSide(color: darkScheme.outline),
         ),
+      ),
+      scrollbarTheme: ScrollbarThemeData(
+        thickness: const WidgetStatePropertyAll(AppScrollbarTokens.thickness),
+        trackVisibility: const WidgetStatePropertyAll(false),
+        interactive: true,
+        radius: AppScrollbarTokens.radius,
+        minThumbLength: AppScrollbarTokens.minThumbLength,
       ),
     );
   }

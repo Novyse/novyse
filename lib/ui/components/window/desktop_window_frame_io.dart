@@ -9,22 +9,66 @@ import 'package:novyse/ui/components/window/window_style.dart';
 
 bool get showCustomTitleBar => DesktopWindowController.isCustomChromeEnabled;
 
-class DesktopWindowFrame extends StatelessWidget {
+class DesktopWindowFrame extends StatefulWidget {
   const DesktopWindowFrame({super.key, required this.child});
 
   final Widget child;
 
   @override
+  State<DesktopWindowFrame> createState() => _DesktopWindowFrameState();
+}
+
+class _DesktopWindowFrameState extends State<DesktopWindowFrame> {
+  bool _isMaximized = false;
+  int? _listenerId;
+
+  @override
+  void initState() {
+    super.initState();
+    _isMaximized = DesktopWindowController.isMaximized;
+    _listenerId = DesktopWindowController.addMaximizedListener((maximized) {
+      if (mounted && maximized != _isMaximized) {
+        setState(() => _isMaximized = maximized);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    DesktopWindowController.removeMaximizedListener(_listenerId);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (!showCustomTitleBar) return child;
+    if (!showCustomTitleBar) return widget.child;
     final style = WindowChromeStyle.resolve();
+    // A maximized window cannot be resized: disable every handle so the
+    // resize cursor never shows and pointer events reach the content.
+    const noEdges = <ResizeEdge>[];
+    // Thin side handles leave the side scrollbars
+    // grabbable; top/bottom/corners keep the roomier edge size.
+    const topBottomEdges = <ResizeEdge>[
+      ResizeEdge.top,
+      ResizeEdge.bottom,
+      ResizeEdge.topLeft,
+      ResizeEdge.topRight,
+      ResizeEdge.bottomLeft,
+      ResizeEdge.bottomRight,
+    ];
+    const sideEdges = <ResizeEdge>[ResizeEdge.left, ResizeEdge.right];
     return DragToResizeArea(
       resizeEdgeSize: style.resizeEdgeSize,
-      child: Column(
-        children: [
-          const CustomTitleBar(),
-          Expanded(child: child),
-        ],
+      enableResizeEdges: _isMaximized ? noEdges : topBottomEdges,
+      child: DragToResizeArea(
+        resizeEdgeSize: style.resizeSideEdgeSize,
+        enableResizeEdges: _isMaximized ? noEdges : sideEdges,
+        child: Column(
+          children: [
+            const CustomTitleBar(),
+            Expanded(child: widget.child),
+          ],
+        ),
       ),
     );
   }
@@ -73,8 +117,8 @@ class _CustomTitleBarState extends ConsumerState<CustomTitleBar> {
   }
 
   void _onClose() {
-    final closeToTray = ref.read(settingValueProvider('system.closeToTray'))
-            as bool? ??
+    final closeToTray =
+        ref.read(settingValueProvider('system.closeToTray')) as bool? ??
         DesktopWindowController.closeToTray;
     DesktopWindowController.closeToTray = closeToTray;
     DesktopWindowController.close(hideToTray: closeToTray);
@@ -97,13 +141,10 @@ class _CustomTitleBarState extends ConsumerState<CustomTitleBar> {
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onDoubleTap: _onMaximizeToggle,
-                onPanStart: (_) =>
-                    DesktopWindowController.startDragging(),
+                onPanStart: (_) => DesktopWindowController.startDragging(),
                 child: Container(
                   height: style.titleBarHeight,
-                  padding: EdgeInsets.only(
-                    left: style.titleBarPaddingLeft,
-                  ),
+                  padding: EdgeInsets.only(left: style.titleBarPaddingLeft),
                   alignment: Alignment.centerLeft,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
