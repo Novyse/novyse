@@ -19,6 +19,9 @@ import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/chat/chat_list_item.dart';
 import 'package:novyse/ui/components/chat/chat_overview/chat_overview_app_bar.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
+import 'package:novyse/ui/components/settings/settings_section.dart';
+import 'package:novyse/ui/components/settings/settings_value_row.dart';
 
 enum _OverviewTab { members, media, files, links, music, voice, gifs }
 
@@ -466,7 +469,6 @@ class _DmInfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
     final dmUser = _dmUser();
     if (dmUser == null && metadata.isSavedMessages) {
       return const SizedBox.shrink();
@@ -474,70 +476,21 @@ class _DmInfoCard extends StatelessWidget {
     final handle = dmUser?.handle;
     final bio = dmUser?.biography;
 
-    Widget row({
-      required IconData icon,
-      required String title,
-      required String value,
-    }) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colorScheme.primary.withValues(alpha: 0.12),
-              ),
-              child: Icon(icon, size: 18, color: colorScheme.primary),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    value,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
-      ),
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: SettingsSection(
         children: [
-          row(
-            icon: Icons.person_outline,
+          SettingsValueRow(
+            icon: HugeIcons.strokeRoundedUser,
             title: l10n.overviewUsername,
-            value: handle != null && handle.isNotEmpty
+            valueText: handle != null && handle.isNotEmpty
                 ? '@$handle'
                 : l10n.overviewNotSpecified,
           ),
-          Divider(height: 1, color: colorScheme.outline.withValues(alpha: 0.2)),
-          row(
-            icon: Icons.info_outline,
+          SettingsValueRow(
+            icon: HugeIcons.strokeRoundedInformationCircle,
             title: l10n.overviewBiography,
-            value: bio != null && bio.trim().isNotEmpty
+            subtitle: bio != null && bio.trim().isNotEmpty
                 ? bio.trim()
                 : l10n.overviewNoDescription,
           ),
@@ -1132,55 +1085,8 @@ class _ActionsCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
     final favoritesState = ref.watch(favoriteMessagesProvider(chatUUID));
     final favoritesCount = favoritesState.favorites.length;
-
-    Widget row({
-      required IconData icon,
-      required String label,
-      required VoidCallback onTap,
-      bool danger = false,
-      String? trailing,
-    }) {
-      final fg = danger ? colorScheme.error : colorScheme.onSurface;
-      return InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          child: Row(
-            children: [
-              Icon(icon, size: 20, color: fg),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(fontWeight: FontWeight.w600, color: fg),
-                ),
-              ),
-              if (trailing != null)
-                Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: Text(
-                    trailing,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              Icon(
-                Icons.chevron_right,
-                size: 18,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
 
     void wip() {
       ScaffoldMessenger.of(context)
@@ -1218,45 +1124,26 @@ class _ActionsCard extends ConsumerWidget {
       }
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        children: [
-          row(
-            icon: Icons.settings_outlined,
-            label: l10n.overviewSettings,
-            onTap: wip,
-          ),
-          Divider(
-            height: 1,
-            indent: 12,
-            endIndent: 12,
-            color: colorScheme.outline.withValues(alpha: 0.15),
-          ),
-          row(
-            icon: favoritesCount > 0 ? Icons.star : Icons.star_border,
-            label: l10n.favoriteMessages,
-            trailing: favoritesCount > 0 ? '$favoritesCount' : null,
-            onTap: openFavorites,
-          ),
-          Divider(
-            height: 1,
-            indent: 12,
-            endIndent: 12,
-            color: colorScheme.outline.withValues(alpha: 0.15),
-          ),
-          row(
-            icon: Icons.logout,
-            label: l10n.overviewLeave,
-            danger: true,
-            onTap: confirmLeave,
-          ),
-        ],
-      ),
+    return SettingsSection(
+      children: [
+        SettingsNavigationRow(
+          icon: HugeIcons.strokeRoundedSettings01,
+          title: l10n.overviewSettings,
+          onTap: wip,
+        ),
+        SettingsNavigationRow(
+          icon: HugeIcons.strokeRoundedFavourite,
+          title: l10n.favoriteMessages,
+          trailingText: favoritesCount > 0 ? '$favoritesCount' : null,
+          onTap: openFavorites,
+        ),
+        SettingsNavigationRow(
+          icon: HugeIcons.strokeRoundedLogout01,
+          title: l10n.overviewLeave,
+          danger: true,
+          onTap: confirmLeave,
+        ),
+      ],
     );
   }
 }
