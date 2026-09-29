@@ -112,93 +112,90 @@ class _CreateSubModalState extends ConsumerState<CreateSubModal> {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.createSubTitle,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.createSubTitle,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.createSubSubtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.createSubSubtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              IconButton(
-                icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
-                onPressed: () =>
-                    Navigator.of(context, rootNavigator: true).pop(),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          OnboardingTextField(
-            label: l10n.createChatName,
-            hint: l10n.createChatNameHint,
-            controller: _nameController,
-            textInputAction: TextInputAction.done,
-            onChanged: (_) {
-              if (_error != null) setState(() => _error = null);
-            },
-          ),
-          const SizedBox(height: 20),
-          Text(
-            l10n.createSubType,
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w600,
             ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final type in _creatableSubTypes)
-                ChoiceChip(
-                  label: Text(_labelFor(type, l10n)),
-                  selected: _type == type,
-                  onSelected: (_) => setState(() => _type = type),
-                ),
-              for (final type in _disabledSubTypes)
-                ChoiceChip(
-                  label: Text(_labelFor(type, l10n)),
-                  selected: false,
-                  onSelected: null,
-                ),
-            ],
-          ),
-          if (_error != null) ...[
-            const SizedBox(height: 12),
-            StatusMessage(
-              type: StatusMessageType.danger,
-              content: [_error!],
-              visible: true,
-              onClose: () => setState(() => _error = null),
+            IconButton(
+              icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
+              onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
             ),
           ],
-          const SizedBox(height: 20),
-          OnboardingPrimaryButton(
-            label: l10n.createChatAction,
-            isLoading: _creating,
-            onPressed: _creating ? null : _onCreate,
+        ),
+        const SizedBox(height: 20),
+        OnboardingTextField(
+          label: l10n.createChatName,
+          hint: l10n.createChatNameHint,
+          controller: _nameController,
+          textInputAction: TextInputAction.done,
+          onChanged: (_) {
+            if (_error != null) setState(() => _error = null);
+          },
+        ),
+        const SizedBox(height: 20),
+        Text(
+          l10n.createSubType,
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final type in _creatableSubTypes)
+              ChoiceChip(
+                label: Text(_labelFor(type, l10n)),
+                selected: _type == type,
+                onSelected: (_) => setState(() => _type = type),
+              ),
+            for (final type in _disabledSubTypes)
+              ChoiceChip(
+                label: Text(_labelFor(type, l10n)),
+                selected: false,
+                onSelected: null,
+              ),
+          ],
+        ),
+        if (_error != null) ...[
+          const SizedBox(height: 12),
+          StatusMessage(
+            type: StatusMessageType.danger,
+            content: [_error!],
+            visible: true,
+            onClose: () => setState(() => _error = null),
           ),
         ],
-      ),
+        const SizedBox(height: 20),
+        OnboardingPrimaryButton(
+          label: l10n.createChatAction,
+          isLoading: _creating,
+          onPressed: _creating ? null : _onCreate,
+        ),
+      ],
     );
   }
 }

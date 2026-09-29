@@ -4,6 +4,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
 class ChatSelectedHeader extends StatelessWidget {
   const ChatSelectedHeader({
@@ -100,32 +101,15 @@ class ChatSelectedHeader extends StatelessWidget {
                     ),
                     tooltip: l10n.delete,
                     onPressed: () async {
-                      final confirmed = await showDialog<bool>(
-                        context: context,
-                        builder: (dialogCtx) => AlertDialog(
-                          title: Text(l10n.delete),
-                          content: Text(
-                            selectedCount == 1
-                                ? l10n.deleteMessageConfirm
-                                : l10n.deleteMessagesConfirm(selectedCount),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () =>
-                                  Navigator.of(dialogCtx).pop(false),
-                              child: Text(l10n.cancel),
-                            ),
-                            FilledButton(
-                              style: FilledButton.styleFrom(
-                                backgroundColor: colorScheme.error,
-                                foregroundColor: colorScheme.onError,
-                              ),
-                              onPressed: () =>
-                                  Navigator.of(dialogCtx).pop(true),
-                              child: Text(l10n.delete),
-                            ),
-                          ],
-                        ),
+                      final confirmed = await showOverlayConfirm(
+                        context,
+                        title: l10n.delete,
+                        message: selectedCount == 1
+                            ? l10n.deleteMessageConfirm
+                            : l10n.deleteMessagesConfirm(selectedCount),
+                        confirmLabel: l10n.delete,
+                        cancelLabel: l10n.cancel,
+                        isDanger: true,
                       );
                       if (confirmed == true) {
                         onDelete?.call();

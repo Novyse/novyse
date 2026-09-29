@@ -14,26 +14,13 @@ class ProfilePage extends ConsumerWidget {
 
   Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.logoutConfirmTitle),
-        content: Text(l10n.logoutConfirmMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.danger,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.logout),
-          ),
-        ],
-      ),
+    final confirmed = await showOverlayConfirm(
+      context,
+      title: l10n.logoutConfirmTitle,
+      message: l10n.logoutConfirmMessage,
+      confirmLabel: l10n.logout,
+      cancelLabel: l10n.cancel,
+      isDanger: true,
     );
 
     if (confirmed == true && context.mounted) {

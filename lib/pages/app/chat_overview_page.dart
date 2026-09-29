@@ -19,6 +19,7 @@ import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/chat/chat_list_item.dart';
 import 'package:novyse/ui/components/chat/chat_overview/chat_overview_app_bar.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
 import 'package:novyse/ui/components/settings/settings_value_row.dart';
@@ -797,43 +798,43 @@ class _MemberRow extends StatelessWidget {
         user?.displayName ?? member['name']?.toString() ?? l10n.chatUnknown;
     final handle = user?.handle ?? member['handle']?.toString();
     final bio = user?.biography ?? member['biography']?.toString();
-    showDialog<void>(
+    ResponsiveOverlay.show<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Avatar(
-              uuid: user?.profilePictureUUID,
-              name: name,
-              seedKey: uuid.isNotEmpty ? uuid : name,
-              size: 64,
-              isOnline: user?.isOnline == true,
-              type: 'USER',
-            ),
-            const SizedBox(height: 12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Avatar(
+            uuid: user?.profilePictureUUID,
+            name: name,
+            seedKey: uuid.isNotEmpty ? uuid : name,
+            size: 64,
+            isOnline: user?.isOnline == true,
+            type: 'USER',
+          ),
+          const SizedBox(height: 12),
+          Text(
+            name,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            textAlign: TextAlign.center,
+          ),
+          if (handle != null && handle.isNotEmpty)
             Text(
-              name,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-              textAlign: TextAlign.center,
-            ),
-            if (handle != null && handle.isNotEmpty)
-              Text(
-                '@$handle',
-                style: TextStyle(
-                  color: Theme.of(ctx).colorScheme.onSurfaceVariant,
-                ),
+              '@$handle',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-            if (bio != null && bio.trim().isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(bio.trim(), textAlign: TextAlign.center),
-            ],
+            ),
+          if (bio != null && bio.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(bio.trim(), textAlign: TextAlign.center),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(l10n.cancel),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+              child: Text(l10n.cancel),
+            ),
           ),
         ],
       ),
@@ -1098,25 +1099,13 @@ class _ActionsCard extends ConsumerWidget {
     }
 
     Future<void> confirmLeave() async {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(l10n.overviewLeaveConfirmTitle),
-          content: Text(l10n.overviewLeaveConfirmMessage),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text(l10n.cancel),
-            ),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(ctx).colorScheme.error,
-              ),
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: Text(l10n.overviewLeave),
-            ),
-          ],
-        ),
+      final confirmed = await showOverlayConfirm(
+        context,
+        title: l10n.overviewLeaveConfirmTitle,
+        message: l10n.overviewLeaveConfirmMessage,
+        confirmLabel: l10n.overviewLeave,
+        cancelLabel: l10n.cancel,
+        isDanger: true,
       );
       if (confirmed == true && context.mounted) {
         ScaffoldMessenger.of(context)

@@ -7,6 +7,7 @@ import 'package:novyse/ui/components/chat/emoji_menu/emoji/emoji_category.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/emoji/emoji_recents_store.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/emoji/emoji_repository.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:unicode_emojis/unicode_emojis.dart' as ue;
 
 /// Single scrollable emoji list: recents + nine categories, with search.
@@ -203,35 +204,27 @@ class _EmojiSectionListState extends ConsumerState<EmojiSectionList> {
 
   Future<void> _showSkinTonePicker(ue.Emoji base) async {
     final variants = [base, ...?base.skinVariations];
-    final selected = await showDialog<String>(
+    final selected = await ResponsiveOverlay.show<String>(
       context: context,
-      builder: (dialogContext) {
-        final colorScheme = Theme.of(dialogContext).colorScheme;
-        return Dialog(
-          backgroundColor: colorScheme.surfaceContainerHighest,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 4,
-              children: [
-                for (final v in variants)
-                  InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () => Navigator.of(dialogContext).pop(v.emoji),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Text(
-                        v.emoji,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ),
-                  ),
-              ],
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 4,
+        children: [
+          for (final v in variants)
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () =>
+                  Navigator.of(context, rootNavigator: true).pop(v.emoji),
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text(
+                  v.emoji,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+              ),
             ),
-          ),
-        );
-      },
+        ],
+      ),
     );
     if (selected != null) widget.onSelect(selected);
   }
@@ -302,7 +295,9 @@ class _EmojiSectionListState extends ConsumerState<EmojiSectionList> {
               builder: (context, constraints) {
                 final columns = constraints.maxWidth < 200 ? 4 : 8;
                 final cellSize = (constraints.maxWidth - 20) / columns;
-                final fontSize = cellSize * (currentPlatform == AppPlatform.mobile ? 0.75 : 0.6);
+                final fontSize =
+                    cellSize *
+                    (currentPlatform == AppPlatform.mobile ? 0.75 : 0.6);
                 return CustomScrollView(
                   controller: _scrollController,
                   slivers: [

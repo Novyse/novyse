@@ -24,9 +24,7 @@ Future<T?> _showSettingsSheet<T>({
   return ResponsiveOverlay.show<T>(
     context: context,
     mode: ResponsiveOverlayMode.dynamic,
-    child: SingleChildScrollView(
-      child: child,
-    ),
+    child: child,
   );
 }
 
@@ -248,10 +246,9 @@ Future<void> showSettingsSliderSheet({
             onChanged: (next) => setSheetState(() => current = next),
             onChangeEnd: (next) {
               if (settingKey != null) {
-                ref.read(settingsControllerProvider.notifier).set(
-                      settingKey,
-                      next % 1 == 0 ? next.toInt() : next,
-                    );
+                ref
+                    .read(settingsControllerProvider.notifier)
+                    .set(settingKey, next % 1 == 0 ? next.toInt() : next);
               }
             },
           ),
@@ -330,10 +327,7 @@ Future<void> showSettingsColorSheet({
 }) {
   return _showSettingsSheet(
     context: context,
-    child: _SettingsColorPickerSheet(
-      item: item,
-      ref: ref,
-    ),
+    child: _SettingsColorPickerSheet(item: item, ref: ref),
   );
 }
 
@@ -341,10 +335,7 @@ class _SettingsColorPickerSheet extends StatefulWidget {
   final SettingItem item;
   final WidgetRef ref;
 
-  const _SettingsColorPickerSheet({
-    required this.item,
-    required this.ref,
-  });
+  const _SettingsColorPickerSheet({required this.item, required this.ref});
 
   @override
   State<_SettingsColorPickerSheet> createState() =>
@@ -369,8 +360,7 @@ class _SettingsColorPickerSheetState extends State<_SettingsColorPickerSheet> {
   void initState() {
     super.initState();
     final key = widget.item.settingKey;
-    final raw =
-        key == null ? null : widget.ref.read(settingValueProvider(key));
+    final raw = key == null ? null : widget.ref.read(settingValueProvider(key));
     final initialHex =
         (raw ?? widget.item.defaultValue)?.toString() ?? '#0F6FFF';
     _selectedColor = colorFromHex(initialHex) ?? const Color(0xFF0F6FFF);
@@ -395,15 +385,11 @@ class _SettingsColorPickerSheetState extends State<_SettingsColorPickerSheet> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .colorScheme
-                  .surfaceContainerHighest
+              color: Theme.of(context).colorScheme.surfaceContainerHighest
                   .withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Theme.of(context)
-                    .colorScheme
-                    .outlineVariant
+                color: Theme.of(context).colorScheme.outlineVariant
                     .withValues(alpha: 0.5),
               ),
             ),
@@ -425,9 +411,9 @@ class _SettingsColorPickerSheetState extends State<_SettingsColorPickerSheet> {
                 Text(
                   hexString,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontFamily: 'monospace',
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -469,10 +455,8 @@ class _SettingsColorPickerSheetState extends State<_SettingsColorPickerSheet> {
                         border: Border.all(
                           color: hexString == hex
                               ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context)
-                                  .colorScheme
-                                  .outline
-                                  .withValues(alpha: 0.4),
+                              : Theme.of(context).colorScheme.outline
+                                    .withValues(alpha: 0.4),
                           width: hexString == hex ? 2.5 : 1.0,
                         ),
                       ),
@@ -562,10 +546,8 @@ Future<bool> showSettingsConfirmSheet({
               child: FilledButton(
                 style: item.danger
                     ? FilledButton.styleFrom(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.error,
-                        foregroundColor:
-                            Theme.of(context).colorScheme.onError,
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                        foregroundColor: Theme.of(context).colorScheme.onError,
                       )
                     : null,
                 onPressed: () async {

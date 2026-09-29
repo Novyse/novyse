@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
 enum _MenuLevel { main, formatting }
 
@@ -102,32 +103,55 @@ class _ChatContextMenuState extends State<ChatContextMenu> {
     final urlController = TextEditingController();
     final l10n = AppLocalizations.of(context)!;
 
-    final url = await showDialog<String>(
+    final url = await ResponsiveOverlay.show<String>(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
-        title: Text(l10n.formatLink),
-        content: TextField(
-          controller: urlController,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: l10n.linkUrlHint,
-            labelText: 'URL',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.formatLink,
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.w700),
           ),
-          keyboardType: TextInputType.url,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: Text(l10n.cancel),
+          const SizedBox(height: 12),
+          TextField(
+            controller: urlController,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: l10n.linkUrlHint,
+              labelText: 'URL',
+            ),
+            keyboardType: TextInputType.url,
+            onSubmitted: (value) =>
+                Navigator.of(context, rootNavigator: true).pop(value.trim()),
           ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.of(dialogCtx).pop(urlController.text.trim()),
-            child: Text(l10n.apply),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () =>
+                      Navigator.of(context, rootNavigator: true).pop(),
+                  child: Text(l10n.cancel),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  onPressed: () => Navigator.of(
+                    context,
+                    rootNavigator: true,
+                  ).pop(urlController.text.trim()),
+                  child: Text(l10n.apply),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
+    urlController.dispose();
 
     if (url != null && url.isNotEmpty) {
       final linkText = selectedText.isNotEmpty ? selectedText : url;

@@ -139,162 +139,159 @@ class _JoinOrCreateChatModalState extends ConsumerState<JoinOrCreateChatModal> {
     final chat = widget.chat;
     final title = _getTitle(l10n);
 
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Top row: Modal title & close button
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Top row: Modal title & close button
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
                 ),
-              ),
-              IconButton(
-                icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
-                onPressed: () =>
-                    Navigator.of(context, rootNavigator: true).pop(),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-
-          // User / Chat info centered
-          Center(
-            child: Column(
-              children: [
-                Avatar(
-                  uuid: chat.profilePictureUUID,
-                  name: chat.name,
-                  seedKey: chat.uuid.isNotEmpty ? chat.uuid : chat.name,
-                  size: 84,
-                  type: chat.type,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  chat.name,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (chat.handle != null && chat.handle!.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    '@${chat.handle}',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Main Info Box
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHighest.withValues(alpha: 0.45),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: scheme.outlineVariant.withValues(alpha: 0.5),
               ),
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppHugeIcon(
-                  icon: HugeIcons.strokeRoundedInformationCircle,
-                  size: 20,
-                  color: scheme.primary,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    _isUser ? l10n.joinCreateUserDesc : l10n.joinCreateChatDesc,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: scheme.onSurface,
-                      height: 1.35,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Security Notice
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppHugeIcon(
-                icon: HugeIcons.strokeRoundedShield01,
-                size: 18,
-                color: scheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  l10n.joinCreateSecurityDesc,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    height: 1.3,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Notifications Notice
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppHugeIcon(
-                icon: HugeIcons.strokeRoundedNotificationOff01,
-                size: 18,
-                color: scheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  l10n.joinCreateNotificationDesc,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    height: 1.3,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          if (_error != null) ...[
-            const SizedBox(height: 14),
-            StatusMessage(
-              type: StatusMessageType.danger,
-              content: [_error!],
-              visible: true,
-              onClose: () => setState(() => _error = null),
+            IconButton(
+              icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
+              onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
             ),
           ],
-          const SizedBox(height: 22),
-          OnboardingPrimaryButton(
-            label: _loading ? l10n.joinCreateProcessing : title,
-            isLoading: _loading,
-            onPressed: _loading ? null : _handleAction,
+        ),
+        const SizedBox(height: 18),
+
+        // User / Chat info centered
+        Center(
+          child: Column(
+            children: [
+              Avatar(
+                uuid: chat.profilePictureUUID,
+                name: chat.name,
+                seedKey: chat.uuid.isNotEmpty ? chat.uuid : chat.name,
+                size: 84,
+                type: chat.type,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                chat.name,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (chat.handle != null && chat.handle!.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  '@${chat.handle}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Main Info Box
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHighest.withValues(alpha: 0.45),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: scheme.outlineVariant.withValues(alpha: 0.5),
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppHugeIcon(
+                icon: HugeIcons.strokeRoundedInformationCircle,
+                size: 20,
+                color: scheme.primary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  _isUser ? l10n.joinCreateUserDesc : l10n.joinCreateChatDesc,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurface,
+                    height: 1.35,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Security Notice
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppHugeIcon(
+              icon: HugeIcons.strokeRoundedShield01,
+              size: 18,
+              color: scheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                l10n.joinCreateSecurityDesc,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  height: 1.3,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // Notifications Notice
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppHugeIcon(
+              icon: HugeIcons.strokeRoundedNotificationOff01,
+              size: 18,
+              color: scheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                l10n.joinCreateNotificationDesc,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  height: 1.3,
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (_error != null) ...[
+          const SizedBox(height: 14),
+          StatusMessage(
+            type: StatusMessageType.danger,
+            content: [_error!],
+            visible: true,
+            onClose: () => setState(() => _error = null),
           ),
         ],
-      ),
+        const SizedBox(height: 22),
+        OnboardingPrimaryButton(
+          label: _loading ? l10n.joinCreateProcessing : title,
+          isLoading: _loading,
+          onPressed: _loading ? null : _handleAction,
+        ),
+      ],
     );
   }
 }

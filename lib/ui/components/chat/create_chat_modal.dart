@@ -270,168 +270,165 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
     final scheme = theme.colorScheme;
     final errors = [_nameError, _handleError].whereType<String>().toList();
 
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.createChatTitle,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.createChatTitle,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.createChatSubtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.createChatSubtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              IconButton(
-                icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
-                onPressed: () =>
-                    Navigator.of(context, rootNavigator: true).pop(),
-              ),
-            ],
+            ),
+            IconButton(
+              icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
+              onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        OnboardingTextField(
+          label: l10n.createChatName,
+          hint: l10n.createChatNameHint,
+          controller: _nameController,
+          textInputAction: TextInputAction.next,
+          onChanged: _onNameChanged,
+        ),
+        const SizedBox(height: 20),
+        Text(
+          l10n.createChatType,
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
           ),
-          const SizedBox(height: 20),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _TypeCard(
+                selected: _type == CreateChatType.group,
+                icon: HugeIcons.strokeRoundedChat01,
+                title: l10n.createChatGroup,
+                subtitle: l10n.createChatGroupDesc,
+                onTap: () => setState(() => _type = CreateChatType.group),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _TypeCard(
+                selected: _type == CreateChatType.channel,
+                icon: HugeIcons.strokeRoundedMegaphone01,
+                title: l10n.createChatChannel,
+                subtitle: l10n.createChatChannelDesc,
+                onTap: () => setState(() => _type = CreateChatType.channel),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _TypeCard(
+                selected: _type == CreateChatType.forum,
+                icon: HugeIcons.strokeRoundedDocumentAttachment,
+                title: l10n.createChatForum,
+                subtitle: l10n.createChatForumDesc,
+                onTap: () => setState(() => _type = CreateChatType.forum),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        Text(
+          l10n.createChatPrivacy,
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SegmentedButton<CreateChatPrivacy>(
+          segments: [
+            ButtonSegment(
+              value: CreateChatPrivacy.private,
+              label: Text(l10n.createChatPrivate),
+              icon: const AppHugeIcon(
+                icon: HugeIcons.strokeRoundedShield01,
+                size: 16,
+              ),
+            ),
+            ButtonSegment(
+              value: CreateChatPrivacy.public,
+              label: Text(l10n.createChatPublic),
+              icon: const AppHugeIcon(
+                icon: HugeIcons.strokeRoundedMegaphone01,
+                size: 16,
+              ),
+            ),
+          ],
+          selected: {_privacy},
+          onSelectionChanged: (s) => _onPrivacyChanged(s.first),
+          style: SegmentedButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+          ),
+        ),
+        if (_privacy == CreateChatPrivacy.public) ...[
+          const SizedBox(height: 16),
           OnboardingTextField(
-            label: l10n.createChatName,
-            hint: l10n.createChatNameHint,
-            controller: _nameController,
-            textInputAction: TextInputAction.next,
-            onChanged: _onNameChanged,
+            label: l10n.createChatHandle,
+            hint: l10n.createChatHandleHint,
+            controller: _handleController,
+            keyboardType: TextInputType.text,
+            textInputAction: TextInputAction.done,
+            onChanged: _onHandleChanged,
+            prefixIcon: const Padding(
+              padding: EdgeInsets.only(left: 16, right: 4),
+              child: Text(
+                '@',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+              ),
+            ),
+            suffixIcon: _buildHandleSuffix(scheme),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 6),
           Text(
-            l10n.createChatType,
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w600,
+            l10n.createChatHandleHelper,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _TypeCard(
-                  selected: _type == CreateChatType.group,
-                  icon: HugeIcons.strokeRoundedChat01,
-                  title: l10n.createChatGroup,
-                  subtitle: l10n.createChatGroupDesc,
-                  onTap: () => setState(() => _type = CreateChatType.group),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _TypeCard(
-                  selected: _type == CreateChatType.channel,
-                  icon: HugeIcons.strokeRoundedMegaphone01,
-                  title: l10n.createChatChannel,
-                  subtitle: l10n.createChatChannelDesc,
-                  onTap: () => setState(() => _type = CreateChatType.channel),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _TypeCard(
-                  selected: _type == CreateChatType.forum,
-                  icon: HugeIcons.strokeRoundedDocumentAttachment,
-                  title: l10n.createChatForum,
-                  subtitle: l10n.createChatForumDesc,
-                  onTap: () => setState(() => _type = CreateChatType.forum),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Text(
-            l10n.createChatPrivacy,
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          SegmentedButton<CreateChatPrivacy>(
-            segments: [
-              ButtonSegment(
-                value: CreateChatPrivacy.private,
-                label: Text(l10n.createChatPrivate),
-                icon: const AppHugeIcon(
-                  icon: HugeIcons.strokeRoundedShield01,
-                  size: 16,
-                ),
-              ),
-              ButtonSegment(
-                value: CreateChatPrivacy.public,
-                label: Text(l10n.createChatPublic),
-                icon: const AppHugeIcon(
-                  icon: HugeIcons.strokeRoundedMegaphone01,
-                  size: 16,
-                ),
-              ),
-            ],
-            selected: {_privacy},
-            onSelectionChanged: (s) => _onPrivacyChanged(s.first),
-            style: SegmentedButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-            ),
-          ),
-          if (_privacy == CreateChatPrivacy.public) ...[
-            const SizedBox(height: 16),
-            OnboardingTextField(
-              label: l10n.createChatHandle,
-              hint: l10n.createChatHandleHint,
-              controller: _handleController,
-              keyboardType: TextInputType.text,
-              textInputAction: TextInputAction.done,
-              onChanged: _onHandleChanged,
-              prefixIcon: const Padding(
-                padding: EdgeInsets.only(left: 16, right: 4),
-                child: Text(
-                  '@',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-                ),
-              ),
-              suffixIcon: _buildHandleSuffix(scheme),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              l10n.createChatHandleHelper,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-          if (errors.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            StatusMessage(
-              type: StatusMessageType.danger,
-              content: errors,
-              visible: true,
-              onClose: () => setState(() {
-                _nameError = null;
-                _handleError = null;
-              }),
-            ),
-          ],
-          const SizedBox(height: 20),
-          OnboardingPrimaryButton(
-            label: l10n.createChatAction,
-            isLoading: _creating,
-            onPressed: _creating ? null : _onCreate,
           ),
         ],
-      ),
+        if (errors.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          StatusMessage(
+            type: StatusMessageType.danger,
+            content: errors,
+            visible: true,
+            onClose: () => setState(() {
+              _nameError = null;
+              _handleError = null;
+            }),
+          ),
+        ],
+        const SizedBox(height: 20),
+        OnboardingPrimaryButton(
+          label: l10n.createChatAction,
+          isLoading: _creating,
+          onPressed: _creating ? null : _onCreate,
+        ),
+      ],
     );
   }
 }

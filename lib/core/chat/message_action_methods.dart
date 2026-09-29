@@ -8,6 +8,7 @@ import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/forward_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
 /// Encapsulates action handlers for messages (reply, quote, copy, select, forward, delete, pin, edit, download).
 class MessageActionMethods {
@@ -126,9 +127,7 @@ class MessageActionMethods {
             messageIdStr,
             'favorite_add',
             res.userEventID,
-            {
-              'createdAt': res.createdAt,
-            },
+            {'createdAt': res.createdAt},
           );
         }
       } catch (e) {
@@ -197,28 +196,14 @@ class MessageActionMethods {
   /// Prompts for confirmation and deletes the message.
   Future<void> delete(MessageModel message) async {
     final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogCtx) => AlertDialog(
-        title: Text(l10n.delete),
-        content: Text(l10n.deleteMessageConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogCtx).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: colorScheme.error,
-              foregroundColor: colorScheme.onError,
-            ),
-            onPressed: () => Navigator.of(dialogCtx).pop(true),
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
+    final confirmed = await showOverlayConfirm(
+      context,
+      title: l10n.delete,
+      message: l10n.deleteMessageConfirm,
+      confirmLabel: l10n.delete,
+      cancelLabel: l10n.cancel,
+      isDanger: true,
     );
 
     if (confirmed == true) {
@@ -246,7 +231,8 @@ class MessageActionMethods {
     final existingReaction = message.reactions
         .where((r) => r['emoji'] == emoji)
         .firstOrNull;
-    final userUUIDs = (existingReaction?['userUUIDs'] as List?)
+    final userUUIDs =
+        (existingReaction?['userUUIDs'] as List?)
             ?.map((u) => u.toString())
             .toList() ??
         const [];
@@ -267,10 +253,7 @@ class MessageActionMethods {
             messageIdStr,
             'reaction_remove',
             res.chatEventID,
-            {
-              'userUUID': localUserUUID,
-              'reaction': emoji,
-            },
+            {'userUUID': localUserUUID, 'reaction': emoji},
           );
         }
       } catch (e) {
