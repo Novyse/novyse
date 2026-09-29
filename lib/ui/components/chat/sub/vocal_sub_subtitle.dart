@@ -22,9 +22,7 @@ class VocalSubSubtitle extends ConsumerWidget {
     final roomData = ref.watch(
       commsDataProvider((chatUUID: chatUUID, sub: subId)),
     );
-    final participants = roomData.tiles
-        .where((t) => !t.isScreenShare)
-        .toList();
+    final participants = roomData.tiles.where((t) => !t.isScreenShare).toList();
     final users = ref.watch(userStoreProvider.select((s) => s.users));
     final colorScheme = Theme.of(context).colorScheme;
 

@@ -122,10 +122,13 @@ class _OssLicensesPageState extends State<OssLicensesPage> {
                 for (final package in filteredPackages)
                   SettingsNavigationRow(
                     title: package.name,
-                    subtitle: package.version != null ? 'v${package.version}' : null,
+                    subtitle: package.version != null
+                        ? 'v${package.version}'
+                        : null,
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (_) => PackageLicenseDetailPage(package: package),
+                        builder: (_) =>
+                            PackageLicenseDetailPage(package: package),
                       ),
                     ),
                   ),
@@ -149,8 +152,10 @@ class PackageLicenseDetailPage extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     final hasDescription = package.description.trim().isNotEmpty;
-    final hasHomepage = package.homepage != null && package.homepage!.trim().isNotEmpty;
-    final hasRepo = package.repository != null &&
+    final hasHomepage =
+        package.homepage != null && package.homepage!.trim().isNotEmpty;
+    final hasRepo =
+        package.repository != null &&
         package.repository!.trim().isNotEmpty &&
         package.repository != package.homepage;
     final hasAuthors = package.authors.isNotEmpty;
@@ -176,7 +181,10 @@ class PackageLicenseDetailPage extends StatelessWidget {
                 ),
               if (hasAuthors)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: Text(
                     package.authors.join(', '),
                     style: theme.textTheme.bodySmall?.copyWith(

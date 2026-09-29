@@ -138,161 +138,161 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
         },
         onExit: (_) => setState(() => _isHovered = false),
         child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(widget.isFullScreen ? 0 : 20),
-          border: Border.all(
-            color: isSpeaking
-                ? AppColors.success
-                : colorScheme.outline.withValues(alpha: 0.25),
-            width: isSpeaking ? 2.5 : 1,
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(widget.isFullScreen ? 0 : 20),
+            border: Border.all(
+              color: isSpeaking
+                  ? AppColors.success
+                  : colorScheme.outline.withValues(alpha: 0.25),
+              width: isSpeaking ? 2.5 : 1,
+            ),
+            boxShadow: isSpeaking
+                ? [
+                    BoxShadow(
+                      color: AppColors.success.withValues(alpha: 0.4),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                    ),
+                  ]
+                : null,
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
           ),
-          boxShadow: isSpeaking
-              ? [
-                  BoxShadow(
-                    color: AppColors.success.withValues(alpha: 0.4),
-                    blurRadius: 16,
-                    spreadRadius: 2,
-                  ),
-                ]
-              : null,
-          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Video or Avatar Content
-            if (hasVideo)
-              VideoTrackRenderer(tile.videoTrack!)
-            else
-              _buildAvatarFallback(context, pfpUUID, displayName),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Video or Avatar Content
+              if (hasVideo)
+                VideoTrackRenderer(tile.videoTrack!)
+              else
+                _buildAvatarFallback(context, pfpUUID, displayName),
 
-            // Top-right controls (Pin, Fullscreen, Stop share)
-            Positioned(
-              top: 8,
-              right: 8,
-              child: AnimatedOpacity(
-                opacity: controlsOpacity,
-                duration: const Duration(milliseconds: 150),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.45),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 2,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (!widget.isFullScreen)
+              // Top-right controls (Pin, Fullscreen, Stop share)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: AnimatedOpacity(
+                  opacity: controlsOpacity,
+                  duration: const Duration(milliseconds: 150),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 2,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (!widget.isFullScreen)
+                              IconButton(
+                                icon: AppHugeIcon(
+                                  icon: widget.isPinned
+                                      ? HugeIcons.strokeRoundedPinOff
+                                      : HugeIcons.strokeRoundedPin,
+                                  color: widget.isPinned
+                                      ? AppColors.primary
+                                      : Colors.white,
+                                  size: 18,
+                                ),
+                                visualDensity: VisualDensity.compact,
+                                padding: const EdgeInsets.all(6),
+                                tooltip: widget.isPinned
+                                    ? l10n.commsUnpin
+                                    : l10n.commsPin,
+                                onPressed: widget.onPin,
+                              ),
                             IconButton(
                               icon: AppHugeIcon(
-                                icon: widget.isPinned
-                                    ? HugeIcons.strokeRoundedPinOff
-                                    : HugeIcons.strokeRoundedPin,
-                                color: widget.isPinned
-                                    ? AppColors.primary
-                                    : Colors.white,
-                                size: 18,
-                              ),
-                              visualDensity: VisualDensity.compact,
-                              padding: const EdgeInsets.all(6),
-                              tooltip: widget.isPinned
-                                  ? l10n.commsUnpin
-                                  : l10n.commsPin,
-                              onPressed: widget.onPin,
-                            ),
-                          IconButton(
-                            icon: AppHugeIcon(
-                              icon: widget.isFullScreen
-                                  ? HugeIcons.strokeRoundedArrowShrink01
-                                  : HugeIcons.strokeRoundedArrowExpand01,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.all(6),
-                            tooltip: widget.isFullScreen
-                                ? l10n.commsExitFullScreen
-                                : l10n.commsFullScreen,
-                            onPressed: widget.onFullScreen,
-                          ),
-                          if (tile.isScreenShare &&
-                              tile.isLocal &&
-                              widget.onStopShare != null)
-                            IconButton(
-                              icon: const AppHugeIcon(
-                                icon: HugeIcons.strokeRoundedComputerRemove,
-                                color: AppColors.danger,
-                                size: 18,
-                              ),
-                              visualDensity: VisualDensity.compact,
-                              padding: const EdgeInsets.all(6),
-                              tooltip: l10n.commsStopScreenShare,
-                              onPressed: widget.onStopShare,
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            // Bottom-left name tag
-            Positioned(
-              left: 10,
-              bottom: 10,
-              child: AnimatedOpacity(
-                opacity: widget.isFullScreen ? controlsOpacity : 1.0,
-                duration: const Duration(milliseconds: 150),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.45),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (tile.isScreenShare) ...[
-                            const Icon(
-                              Icons.screen_share_rounded,
-                              size: 14,
-                              color: Colors.white70,
-                            ),
-                            const SizedBox(width: 5),
-                          ],
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 160),
-                            child: Text(
-                              labelText,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                                icon: widget.isFullScreen
+                                    ? HugeIcons.strokeRoundedArrowShrink01
+                                    : HugeIcons.strokeRoundedArrowExpand01,
                                 color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                                size: 18,
                               ),
+                              visualDensity: VisualDensity.compact,
+                              padding: const EdgeInsets.all(6),
+                              tooltip: widget.isFullScreen
+                                  ? l10n.commsExitFullScreen
+                                  : l10n.commsFullScreen,
+                              onPressed: widget.onFullScreen,
                             ),
-                          ),
-                        ],
+                            if (tile.isScreenShare &&
+                                tile.isLocal &&
+                                widget.onStopShare != null)
+                              IconButton(
+                                icon: const AppHugeIcon(
+                                  icon: HugeIcons.strokeRoundedComputerRemove,
+                                  color: AppColors.danger,
+                                  size: 18,
+                                ),
+                                visualDensity: VisualDensity.compact,
+                                padding: const EdgeInsets.all(6),
+                                tooltip: l10n.commsStopScreenShare,
+                                onPressed: widget.onStopShare,
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
+
+              // Bottom-left name tag
+              Positioned(
+                left: 10,
+                bottom: 10,
+                child: AnimatedOpacity(
+                  opacity: widget.isFullScreen ? controlsOpacity : 1.0,
+                  duration: const Duration(milliseconds: 150),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (tile.isScreenShare) ...[
+                              const Icon(
+                                Icons.screen_share_rounded,
+                                size: 14,
+                                color: Colors.white70,
+                              ),
+                              const SizedBox(width: 5),
+                            ],
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 160),
+                              child: Text(
+                                labelText,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

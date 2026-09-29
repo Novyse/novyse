@@ -13,10 +13,7 @@ import 'package:novyse/ui/components/settings/settings_section.dart';
 /// [SettingsItemRenderer], so rows stay fully functional (switches toggle,
 /// selects open their sheets, ...) exactly like on their category page.
 class SettingsSearchResults extends StatelessWidget {
-  const SettingsSearchResults({
-    super.key,
-    required this.results,
-  });
+  const SettingsSearchResults({super.key, required this.results});
 
   final Map<SettingCategory, List<SettingItem>> results;
 
@@ -28,9 +25,8 @@ class SettingsSearchResults extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
         child: Text(
           AppLocalizations.of(context)!.settingsSearchNoResults,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+          style: Theme.of(context).textTheme.bodySmall
+              ?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
       );
     }
@@ -50,13 +46,11 @@ class SettingsSearchResults extends StatelessWidget {
               subtitle: context.settingsText(category.subtitle),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) =>
-                      SettingsCategoryPage(categoryId: category.id),
+                  builder: (_) => SettingsCategoryPage(categoryId: category.id),
                 ),
               ),
             ),
-            for (final item in entry.value)
-              SettingsItemRenderer(item: item),
+            for (final item in entry.value) SettingsItemRenderer(item: item),
           ],
         ),
       );

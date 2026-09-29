@@ -327,9 +327,8 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
 
     final distinctReaders = <String>{};
     for (final r in message.reads) {
-      final uuid = ((r is Map ? (r['userUUID'] as String?) : r.toString()) ??
-              '')
-          .trim();
+      final uuid =
+          ((r is Map ? (r['userUUID'] as String?) : r.toString()) ?? '').trim();
       if (uuid.isEmpty || uuid == message.userUUID) continue;
       distinctReaders.add(uuid);
     } // excluding the author

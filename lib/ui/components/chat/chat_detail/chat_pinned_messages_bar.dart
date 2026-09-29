@@ -58,9 +58,7 @@ class _ChatPinnedMessagesBarState extends ConsumerState<ChatPinnedMessagesBar> {
     );
     final allPinned = chat?.pinnedMessages ?? const [];
     final pinnedMessages = chat?.type == 'FORUM'
-        ? allPinned
-              .where((p) => p['subID'] == selectedSub)
-              .toList()
+        ? allPinned.where((p) => p['subID'] == selectedSub).toList()
         : allPinned;
 
     if (pinnedMessages.isEmpty) {

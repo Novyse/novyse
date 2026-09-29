@@ -163,7 +163,9 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
     if (_emojiMenuEntry != null) return;
     final overlay = Overlay.maybeOf(context);
     if (overlay == null) return;
-    final textController = ref.read(chatTextControllerProvider(widget.chatUUID));
+    final textController = ref.read(
+      chatTextControllerProvider(widget.chatUUID),
+    );
     _emojiMenuEntry = OverlayEntry(
       builder: (context) => EmojiMenuOverlay(
         link: _emojiMenuLink,

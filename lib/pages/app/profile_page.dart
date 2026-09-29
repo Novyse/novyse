@@ -6,6 +6,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
+import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
@@ -118,20 +119,15 @@ class ProfilePage extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          FilledButton.icon(
+          AppButton(
+            label: 'Modifica profilo',
             onPressed: () => ResponsiveOverlay.show(context: context),
-            icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02),
-            label: const Text('Modifica profilo'),
           ),
           const SizedBox(height: 12),
-          OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.danger,
-              side: const BorderSide(color: AppColors.danger),
-            ),
+          AppButton(
+            label: l10n.logout,
+            variant: AppButtonVariant.danger,
             onPressed: () => _handleLogout(context, ref),
-            icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedLogout01),
-            label: Text(l10n.logout),
           ),
         ],
       ),

@@ -59,10 +59,7 @@ class ReactionPill extends ConsumerWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                emoji,
-                style: const TextStyle(fontSize: 13, height: 1.1),
-              ),
+              Text(emoji, style: const TextStyle(fontSize: 13, height: 1.1)),
               if (displayedAvatars.isNotEmpty) ...[
                 const SizedBox(width: 4),
                 SizedBox(
@@ -74,7 +71,8 @@ class ReactionPill extends ConsumerWidget {
                         Align(
                           widthFactor: i == 0 ? 1.0 : 0.65,
                           child: () {
-                            final user = getUser?.call(displayedAvatars[i]) ??
+                            final user =
+                                getUser?.call(displayedAvatars[i]) ??
                                 ref.watch(
                                   userStoreProvider.select(
                                     (s) => s.users[displayedAvatars[i]],

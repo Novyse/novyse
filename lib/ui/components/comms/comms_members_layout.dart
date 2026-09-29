@@ -162,9 +162,7 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
     final fullscreenId = ref.watch(
       commsProvider.select((s) => s.fullscreenStreamId),
     );
-    final pinnedId = ref.watch(
-      commsProvider.select((s) => s.pinnedStreamId),
-    );
+    final pinnedId = ref.watch(commsProvider.select((s) => s.pinnedStreamId));
 
     final controller = ref.read(commsProvider.notifier);
 

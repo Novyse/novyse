@@ -43,7 +43,9 @@ class SubList extends ConsumerWidget {
     final myMember = chat.members
         .where((m) => m['uuid'] == localUserUUID)
         .firstOrNull;
-    return chat.roles.where((r) => (myMember?['roleIDs'] as List).contains(r['id'])).toList();
+    return chat.roles
+        .where((r) => (myMember?['roleIDs'] as List).contains(r['id']))
+        .toList();
   }
 
   String? _lastMessagePreview(
@@ -73,9 +75,7 @@ class SubList extends ConsumerWidget {
     final goRouter = GoRouter.of(context);
 
     if (type == 'VOCAL') {
-      final isJoined = ref
-          .read(commsProvider)
-          .isRoomMatch(chat.uuid, subId);
+      final isJoined = ref.read(commsProvider).isRoomMatch(chat.uuid, subId);
       if (!isJoined) {
         await ref.read(commsProvider.notifier).join(chat.uuid, sub: subId);
       }
@@ -126,8 +126,8 @@ class SubList extends ConsumerWidget {
                     final sub = chat.subs[index];
                     final subId = sub['id'] as int;
                     final isActive = selectedSub == subId;
-                    final name = (sub['name']?.toString().trim().isNotEmpty ==
-                            true)
+                    final name =
+                        (sub['name']?.toString().trim().isNotEmpty == true)
                         ? sub['name'].toString()
                         : 'Sub $subId';
                     final type = sub['type'] as String;
@@ -259,10 +259,7 @@ class SubList extends ConsumerWidget {
 
 /// Vertical drag handle used to resize the forum SubList column.
 class SubListResizeHandle extends StatelessWidget {
-  const SubListResizeHandle({
-    super.key,
-    required this.onDragUpdate,
-  });
+  const SubListResizeHandle({super.key, required this.onDragUpdate});
 
   final ValueChanged<double> onDragUpdate;
 

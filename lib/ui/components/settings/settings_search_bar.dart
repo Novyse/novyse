@@ -55,8 +55,7 @@ class SettingsSearchBar extends StatelessWidget {
               suffixIcon: hasQuery
                   ? IconButton(
                       padding: EdgeInsets.zero,
-                      constraints:
-                          FloatingAppBarConsts.searchClearConstraints,
+                      constraints: FloatingAppBarConsts.searchClearConstraints,
                       icon: const AppHugeIcon(
                         icon: HugeIcons.strokeRoundedCancel01,
                         size: 18,

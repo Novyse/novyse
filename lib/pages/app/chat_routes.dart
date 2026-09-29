@@ -19,7 +19,6 @@ int chatSubIDFromPath(String path) {
   return 0;
 }
 
-
 /// - empty subs (DM/group without subs) -> 0
 /// - requested sub exists -> requested sub
 /// - otherwise -> first available sub id (FORUMs often have no 0 sub)
@@ -41,7 +40,6 @@ String chatOverviewPath(String chatUUID, int subID) =>
 
 String chatFavoritesPath(String chatUUID, int subID) =>
     '/chats/$chatUUID/$subID/overview/favorites';
-
 
 String pathForTab(int index) {
   switch (index) {

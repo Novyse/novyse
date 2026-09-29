@@ -13,8 +13,7 @@ import 'package:novyse/core/storage/database/database.dart';
 /// Read-receipt tracking for the message list: unread anchor, divider jump
 /// and visibility-based marking. Mixed into the list state; the state itself
 /// only provides the abstract getters below.
-mixin MessageReadTracker<T extends ConsumerStatefulWidget>
-    on ConsumerState<T> {
+mixin MessageReadTracker<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   String get chatUUID;
   int get subID;
   dynamic get highlightedMessageId;
@@ -72,9 +71,7 @@ mixin MessageReadTracker<T extends ConsumerStatefulWidget>
   /// marked as read here — receipts follow actual visibility below.
   /// An explicit highlight target (search / jump-to-message) always wins.
   Future<void> anchorToFirstUnread(String chatUUID, int subID) async {
-    if (!mounted ||
-        this.chatUUID != chatUUID ||
-        this.subID != subID) {
+    if (!mounted || this.chatUUID != chatUUID || this.subID != subID) {
       return;
     }
     if (highlightedMessageId != null) return;
@@ -91,9 +88,7 @@ mixin MessageReadTracker<T extends ConsumerStatefulWidget>
       localUserUUID,
     );
     final firstUnread = anchor.firstUnreadId;
-    if (!mounted ||
-        this.chatUUID != chatUUID ||
-        this.subID != subID) {
+    if (!mounted || this.chatUUID != chatUUID || this.subID != subID) {
       _anchoring = false;
       return;
     }
@@ -121,9 +116,7 @@ mixin MessageReadTracker<T extends ConsumerStatefulWidget>
           )
           .loadMore();
     }
-    if (!mounted ||
-        this.chatUUID != chatUUID ||
-        this.subID != subID) {
+    if (!mounted || this.chatUUID != chatUUID || this.subID != subID) {
       _anchoring = false;
       return;
     }
@@ -167,12 +160,7 @@ mixin MessageReadTracker<T extends ConsumerStatefulWidget>
       }
     }
     final messages = ref
-        .read(
-          chatMessagesProvider((
-            chatUUID: chatUUID,
-            subID: subID,
-          )),
-        )
+        .read(chatMessagesProvider((chatUUID: chatUUID, subID: subID)))
         .messages;
     final k = messages.indexWhere(
       (m) => m.id.toString() == _firstUnreadId.toString(),
@@ -216,18 +204,12 @@ mixin MessageReadTracker<T extends ConsumerStatefulWidget>
   /// Uses the per-message keys (no new dependencies); partially visible
   /// items count as displayed.
   int _maxVisibleIncomingId(String localUserUUID) {
-    final listBox =
-        _listKey.currentContext?.findRenderObject() as RenderBox?;
+    final listBox = _listKey.currentContext?.findRenderObject() as RenderBox?;
     if (listBox == null || !listBox.attached) return 0;
     final viewHeight = listBox.size.height;
     if (viewHeight <= 0) return 0;
     final messages = ref
-        .read(
-          chatMessagesProvider((
-            chatUUID: chatUUID,
-            subID: subID,
-          )),
-        )
+        .read(chatMessagesProvider((chatUUID: chatUUID, subID: subID)))
         .messages;
     var maxId = 0;
     for (final m in messages) {
@@ -273,9 +255,7 @@ mixin MessageReadTracker<T extends ConsumerStatefulWidget>
     int targetId,
   ) {
     final messages = ref
-        .read(
-          chatMessagesProvider((chatUUID: chatUUID, subID: subID)),
-        )
+        .read(chatMessagesProvider((chatUUID: chatUUID, subID: subID)))
         .messages;
     var count = 0;
     for (final m in messages) {

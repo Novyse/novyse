@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
 enum _MenuLevel { main, formatting }
@@ -130,20 +131,20 @@ class _ChatContextMenuState extends State<ChatContextMenu> {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: AppButton(
+                  label: l10n.cancel,
                   onPressed: () =>
                       Navigator.of(context, rootNavigator: true).pop(),
-                  child: Text(l10n.cancel),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: FilledButton(
+                child: AppButton(
+                  label: l10n.apply,
                   onPressed: () => Navigator.of(
                     context,
                     rootNavigator: true,
                   ).pop(urlController.text.trim()),
-                  child: Text(l10n.apply),
                 ),
               ),
             ],

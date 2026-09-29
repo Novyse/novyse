@@ -99,12 +99,7 @@ mixin MessageListScroller<T extends ConsumerStatefulWidget>
     if (_scrollAttempts >= 25 || !mounted) return;
     _scrollAttempts++;
     final messages = ref
-        .read(
-          chatMessagesProvider((
-            chatUUID: chatUUID,
-            subID: subID,
-          )),
-        )
+        .read(chatMessagesProvider((chatUUID: chatUUID, subID: subID)))
         .messages;
     final index = messages.indexWhere((m) => m.id.toString() == id);
     if (index < 0 || messages.isEmpty) {

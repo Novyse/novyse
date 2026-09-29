@@ -7,7 +7,7 @@ import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
-import 'package:novyse/ui/components/onboarding/onboarding_primary_button.dart';
+import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
 
@@ -286,7 +286,7 @@ class _JoinOrCreateChatModalState extends ConsumerState<JoinOrCreateChatModal> {
           ),
         ],
         const SizedBox(height: 22),
-        OnboardingPrimaryButton(
+        AppButton(
           label: _loading ? l10n.joinCreateProcessing : title,
           isLoading: _loading,
           onPressed: _loading ? null : _handleAction,

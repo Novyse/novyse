@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
 /// Homogeneous confirm content used inside [ResponsiveOverlay].
@@ -50,24 +51,21 @@ class OverlayConfirmContent extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton(
+              child: AppButton(
+                label: cancelLabel ?? 'Cancel',
                 onPressed: () =>
                     Navigator.of(context, rootNavigator: true).pop(false),
-                child: Text(cancelLabel ?? 'Cancel'),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: FilledButton(
-                style: isDanger
-                    ? FilledButton.styleFrom(
-                        backgroundColor: colorScheme.error,
-                        foregroundColor: colorScheme.onError,
-                      )
-                    : null,
+              child: AppButton(
+                label: confirmLabel,
+                variant: isDanger
+                    ? AppButtonVariant.danger
+                    : AppButtonVariant.primary,
                 onPressed: () =>
                     Navigator.of(context, rootNavigator: true).pop(true),
-                child: Text(confirmLabel),
               ),
             ),
           ],

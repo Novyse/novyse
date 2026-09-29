@@ -212,8 +212,7 @@ class _GifPickerState extends ConsumerState<GifPicker> {
                   _ProviderChip(
                     label: l10n.gifProviderAll,
                     selected: _selectedProvider == 'all',
-                    onTap: () =>
-                        setState(() => _selectedProvider = 'all'),
+                    onTap: () => setState(() => _selectedProvider = 'all'),
                   ),
                   for (final p in _availableProviders)
                     _ProviderChip(
@@ -230,7 +229,11 @@ class _GifPickerState extends ConsumerState<GifPicker> {
     );
   }
 
-  Widget _buildBody(AppLocalizations l10n, List<GifItem> recents, bool isSearching) {
+  Widget _buildBody(
+    AppLocalizations l10n,
+    List<GifItem> recents,
+    bool isSearching,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
 
     if (_loading) {
@@ -238,7 +241,9 @@ class _GifPickerState extends ConsumerState<GifPicker> {
         child: CircularProgressIndicator(color: colorScheme.primary),
       );
     }
-    if (_error != null && _results.isEmpty && (isSearching || recents.isEmpty)) {
+    if (_error != null &&
+        _results.isEmpty &&
+        (isSearching || recents.isEmpty)) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -275,7 +280,9 @@ class _GifPickerState extends ConsumerState<GifPicker> {
       }
       return _GifSliverGrid(
         controller: _scrollController,
-        sections: [GifSection(title: l10n.gifSearchResults, gifs: filteredResults)],
+        sections: [
+          GifSection(title: l10n.gifSearchResults, gifs: filteredResults),
+        ],
         loadingMore: _loadingMore,
         onTap: widget.onSelectGif,
       );
@@ -378,12 +385,11 @@ class _GifSliverGrid extends StatelessWidget {
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   sliver: SliverGrid(
-                    gridDelegate:
-                        SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: count,
-                          mainAxisSpacing: 6,
-                          crossAxisSpacing: 6,
-                        ),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: count,
+                      mainAxisSpacing: 6,
+                      crossAxisSpacing: 6,
+                    ),
                     delegate: SliverChildBuilderDelegate(
                       (context, i) => GifCard(
                         gif: section.gifs[i],

@@ -10,8 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Emoji recents live in the sibling [EmojiRecentsStore] (custom single
 /// list, no picker library).
 class GifRecentsStore extends StateNotifier<List<GifItem>> {
-  GifRecentsStore(this._prefs)
-    : super(const []) {
+  GifRecentsStore(this._prefs) : super(const []) {
     _load();
   }
 

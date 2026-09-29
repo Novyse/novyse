@@ -35,9 +35,10 @@ class EmojiRecentsStore extends StateNotifier<List<String>> {
 
   Future<void> push(String emoji) async {
     if (emoji.isEmpty) return;
-    final updated = [emoji, ...state.where((e) => e != emoji)]
-        .take(maxRecents)
-        .toList();
+    final updated = [
+      emoji,
+      ...state.where((e) => e != emoji),
+    ].take(maxRecents).toList();
     state = updated;
     try {
       await _prefs?.setString(storageKey, jsonEncode(updated));

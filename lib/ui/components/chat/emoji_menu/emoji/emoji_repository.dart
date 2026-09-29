@@ -62,9 +62,7 @@ class EmojiRepository {
     for (final category in EmojiCategory.values) {
       if (category == EmojiCategory.recents) continue;
       final datasetCategory = category.datasetCategory!;
-      final emojis = all
-          .where((e) => e.category == datasetCategory)
-          .toList();
+      final emojis = all.where((e) => e.category == datasetCategory).toList();
       if (emojis.isNotEmpty) {
         sections.add(EmojiSection(category: category, emojis: emojis));
       }

@@ -41,9 +41,7 @@ class ChatPasteHelper {
               return;
             }
             var name =
-                file.fileName ??
-                await item.getSuggestedName() ??
-                'image.$ext';
+                file.fileName ?? await item.getSuggestedName() ?? 'image.$ext';
             final mimeType = getMimeTypeByName(name, headerBytes: bytes);
             final resolved = mimeType.startsWith('image/')
                 ? mimeType
@@ -248,7 +246,6 @@ class ChatPasteHelper {
     }
     return null;
   }
-
 
   /// Inserts [text] into the currently focused editable text field.
   ///

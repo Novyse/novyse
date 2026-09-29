@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:novyse/ui/components/button/app_button.dart';
+
 import '../core/config/global.dart' as config;
 import '../core/l10n/l10n.dart';
 import '../core/utils/platform.dart';
@@ -157,26 +159,9 @@ class UpdateRequiredPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: FilledButton(
-                          onPressed: _handleAction,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: theme.colorScheme.primary,
-                            foregroundColor: theme.colorScheme.onPrimary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                          ),
-                          child: Text(
-                            _getButtonLabel(l10n),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
+                      AppButton(
+                        label: _getButtonLabel(l10n),
+                        onPressed: () => _handleAction(),
                       ),
                     ],
                   ),

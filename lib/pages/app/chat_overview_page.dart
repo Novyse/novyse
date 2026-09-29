@@ -19,6 +19,7 @@ import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/chat/chat_list_item.dart';
 import 'package:novyse/ui/components/chat/chat_overview/chat_overview_app_bar.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
@@ -829,12 +830,9 @@ class _MemberRow extends StatelessWidget {
             Text(bio.trim(), textAlign: TextAlign.center),
           ],
           const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-              child: Text(l10n.cancel),
-            ),
+          AppButton(
+            label: l10n.cancel,
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
           ),
         ],
       ),

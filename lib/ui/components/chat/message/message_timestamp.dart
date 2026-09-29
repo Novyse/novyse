@@ -87,10 +87,7 @@ class MessageTimestamp extends StatelessWidget {
               color: textColor,
             ),
             const SizedBox(width: 2),
-            Text(
-              l10n.edited,
-              style: TextStyle(fontSize: 10, color: textColor),
-            ),
+            Text(l10n.edited, style: TextStyle(fontSize: 10, color: textColor)),
             const SizedBox(width: 4),
           ],
           if (isPending) ...[

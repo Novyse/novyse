@@ -55,8 +55,8 @@ class SettingsItemRenderer extends ConsumerWidget {
             onChanged: (isDisabled || settingKey == null)
                 ? null
                 : (next) => ref
-                    .read(settingsControllerProvider.notifier)
-                    .set(settingKey, next),
+                      .read(settingsControllerProvider.notifier)
+                      .set(settingKey, next),
           ),
         );
 
@@ -91,10 +91,8 @@ class SettingsItemRenderer extends ConsumerWidget {
             valueText: _displayValue(context, raw ?? item.defaultValue),
             onTap: isDisabled
                 ? null
-                : () => showSettingsComingSoonSheet(
-                      context: context,
-                      item: item,
-                    ),
+                : () =>
+                      showSettingsComingSoonSheet(context: context, item: item),
           ),
         );
 
@@ -155,10 +153,10 @@ class SettingsItemRenderer extends ConsumerWidget {
             onTap: isDisabled
                 ? null
                 : () => showSettingsConfirmSheet(
-                      context: context,
-                      ref: ref,
-                      item: item,
-                    ),
+                    context: context,
+                    ref: ref,
+                    item: item,
+                  ),
           ),
         );
 
@@ -183,13 +181,13 @@ class SettingsItemRenderer extends ConsumerWidget {
           onTap: (isDisabled || parts.length != 2)
               ? null
               : () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => SettingsGroupPage(
-                        categoryId: parts[0],
-                        pageId: parts[1],
-                      ),
+                  MaterialPageRoute<void>(
+                    builder: (_) => SettingsGroupPage(
+                      categoryId: parts[0],
+                      pageId: parts[1],
                     ),
                   ),
+                ),
         );
         if (item.component == SettingComponent.modal) {
           return wrapDisabled(

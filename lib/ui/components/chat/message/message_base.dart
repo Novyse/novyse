@@ -125,24 +125,21 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
         alignment: alignment,
         spacing: 4,
         runSpacing: 4,
-        children: message.reactions
-            .whereType<Map>()
-            .map((r) {
-              final emoji = (r['emoji'] as String?) ?? '';
-              final userUUIDs = ((r['userUUIDs'] as List?) ?? [])
-                  .map((u) => u.toString())
-                  .toList();
+        children: message.reactions.whereType<Map>().map((r) {
+          final emoji = (r['emoji'] as String?) ?? '';
+          final userUUIDs = ((r['userUUIDs'] as List?) ?? [])
+              .map((u) => u.toString())
+              .toList();
 
-              return ReactionPill(
-                emoji: emoji,
-                userUUIDs: userUUIDs,
-                getUser: getUser,
-                onTap: () {
-                  methods.toggleReaction(message, emoji);
-                },
-              );
-            })
-            .toList(),
+          return ReactionPill(
+            emoji: emoji,
+            userUUIDs: userUUIDs,
+            getUser: getUser,
+            onTap: () {
+              methods.toggleReaction(message, emoji);
+            },
+          );
+        }).toList(),
       ),
     );
   }
@@ -484,16 +481,12 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
 
     final hasBeenRead =
         isSender &&
-        message.reads.any(
-          (r) {
-            final uuid = ((r is Map
-                        ? (r['userUUID'] as String?)
-                        : r.toString()) ??
-                    '')
-                .trim();
-            return uuid.isNotEmpty && uuid != message.userUUID;
-          },
-        );
+        message.reads.any((r) {
+          final uuid =
+              ((r is Map ? (r['userUUID'] as String?) : r.toString()) ?? '')
+                  .trim();
+          return uuid.isNotEmpty && uuid != message.userUUID;
+        });
 
     // Parse files and GIFs
     final files = _parseFiles();

@@ -8,6 +8,7 @@ import 'package:novyse/core/settings/settings_actions.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 
+import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
 import 'package:novyse/ui/components/settings/settings_select_row.dart';
@@ -165,7 +166,8 @@ Future<void> showSettingsMultiSelectSheet({
             ],
           ),
           const SizedBox(height: 16),
-          FilledButton(
+          AppButton(
+            label: context.l10n.settingsCommonDone,
             onPressed: () async {
               if (settingKey != null) {
                 await ref
@@ -176,7 +178,6 @@ Future<void> showSettingsMultiSelectSheet({
                 Navigator.of(context, rootNavigator: true).pop();
               }
             },
-            child: Text(context.l10n.settingsCommonDone),
           ),
         ],
       ),
@@ -253,9 +254,9 @@ Future<void> showSettingsSliderSheet({
             },
           ),
           const SizedBox(height: 8),
-          FilledButton.tonal(
+          AppButton(
+            label: sheetContext.l10n.settingsCommonDone,
             onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-            child: Text(sheetContext.l10n.settingsCommonDone),
           ),
         ],
       ),
@@ -302,7 +303,8 @@ Future<void> showSettingsTextSheet({
           },
         ),
         const SizedBox(height: 16),
-        FilledButton(
+        AppButton(
+          label: context.l10n.settingsCommonSave,
           onPressed: () async {
             if (settingKey != null) {
               await ref
@@ -313,7 +315,6 @@ Future<void> showSettingsTextSheet({
               Navigator.of(context, rootNavigator: true).pop();
             }
           },
-          child: Text(context.l10n.settingsCommonSave),
         ),
       ],
     ),
@@ -467,7 +468,8 @@ class _SettingsColorPickerSheetState extends State<_SettingsColorPickerSheet> {
           ),
         ),
         const SizedBox(height: 20),
-        FilledButton(
+        AppButton(
+          label: context.l10n.settingsCommonSave,
           onPressed: () async {
             final settingKey = widget.item.settingKey;
             if (settingKey != null) {
@@ -479,7 +481,6 @@ class _SettingsColorPickerSheetState extends State<_SettingsColorPickerSheet> {
               Navigator.of(context, rootNavigator: true).pop();
             }
           },
-          child: Text(context.l10n.settingsCommonSave),
         ),
       ],
     );
@@ -504,9 +505,9 @@ Future<void> showSettingsComingSoonSheet({
           context.l10n.settingsCommonComingSoonTitle,
           '$title · ${context.l10n.settingsCommonComingSoonMessage}',
         ),
-        FilledButton.tonal(
+        AppButton(
+          label: context.l10n.settingsCommonDone,
           onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-          child: Text(context.l10n.settingsCommonDone),
         ),
       ],
     ),
@@ -535,21 +536,19 @@ Future<bool> showSettingsConfirmSheet({
         Row(
           children: [
             Expanded(
-              child: OutlinedButton(
+              child: AppButton(
+                label: context.l10n.settingsCommonCancel,
                 onPressed: () =>
                     Navigator.of(context, rootNavigator: true).pop(),
-                child: Text(context.l10n.settingsCommonCancel),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: FilledButton(
-                style: item.danger
-                    ? FilledButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.error,
-                        foregroundColor: Theme.of(context).colorScheme.onError,
-                      )
-                    : null,
+              child: AppButton(
+                label: context.l10n.settingsCommonConfirm,
+                variant: item.danger
+                    ? AppButtonVariant.danger
+                    : AppButtonVariant.primary,
                 onPressed: () async {
                   var handled = false;
                   if (actionId != null) {
@@ -560,7 +559,6 @@ Future<bool> showSettingsConfirmSheet({
                     Navigator.of(context, rootNavigator: true).pop();
                   }
                 },
-                child: Text(context.l10n.settingsCommonConfirm),
               ),
             ),
           ],

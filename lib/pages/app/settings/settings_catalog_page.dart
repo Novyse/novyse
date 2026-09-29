@@ -44,8 +44,7 @@ class SettingsCategoryPage extends ConsumerWidget {
                   ),
                 ),
               ),
-            for (final item in visibleItems)
-              SettingsItemRenderer(item: item),
+            for (final item in visibleItems) SettingsItemRenderer(item: item),
           ],
         ),
       ],
@@ -88,8 +87,7 @@ class SettingsGroupPage extends ConsumerWidget {
           SettingsSection(
             title: context.settingsText(entry.group.title),
             children: [
-              for (final item in entry.items)
-                SettingsItemRenderer(item: item),
+              for (final item in entry.items) SettingsItemRenderer(item: item),
             ],
           ),
       ],

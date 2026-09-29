@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/themes/themes.dart';
+import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
 enum ScreenShareType { screen, window }
@@ -335,47 +336,33 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
             ],
           ),
         const SizedBox(height: 16),
-
         // Bottom Buttons
         Row(
-          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            TextButton(
-              onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-              child: Text(
-                l10n.cancel,
-                style: TextStyle(color: colorScheme.onSurfaceVariant),
+            Expanded(
+              child: AppButton(
+                label: l10n.cancel,
+                onPressed: () =>
+                    Navigator.of(context, rootNavigator: true).pop(),
               ),
             ),
             const SizedBox(width: 12),
-            ElevatedButton(
-              onPressed:
-                  (ScreenShareSelectorModal.hasNativePicker ||
-                      _selectedSource != null)
-                  ? () {
-                      Navigator.of(context, rootNavigator: true).pop(
-                        ScreenShareSelectionResult(
-                          source: _selectedSource,
-                          type: _selectedType,
-                          includeAudio: _includeAudio,
-                        ),
-                      );
-                    }
-                  : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-              ),
-              child: Text(
-                l10n.screenShareStart,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+            Expanded(
+              child: AppButton(
+                label: l10n.screenShareStart,
+                onPressed:
+                    (ScreenShareSelectorModal.hasNativePicker ||
+                        _selectedSource != null)
+                    ? () {
+                        Navigator.of(context, rootNavigator: true).pop(
+                          ScreenShareSelectionResult(
+                            source: _selectedSource,
+                            type: _selectedType,
+                            includeAudio: _includeAudio,
+                          ),
+                        );
+                      }
+                    : null,
               ),
             ),
           ],

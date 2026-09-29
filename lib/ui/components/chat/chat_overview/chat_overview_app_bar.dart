@@ -5,7 +5,6 @@ import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
-
 class ChatOverviewAppBar extends StatelessWidget {
   const ChatOverviewAppBar({
     super.key,

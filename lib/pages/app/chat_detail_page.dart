@@ -28,7 +28,11 @@ import 'package:novyse/ui/components/chat/sub/sub_list.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class ChatDetailPage extends ConsumerStatefulWidget {
-  const ChatDetailPage({super.key, required this.chatUUID, required this.subID});
+  const ChatDetailPage({
+    super.key,
+    required this.chatUUID,
+    required this.subID,
+  });
 
   final String chatUUID;
   final int subID;
@@ -318,7 +322,8 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
 
     final forum = chat.type == 'FORUM';
     final wideLayout = isMasterDetailLayout(context);
-    final subListCollapsed = !wideLayout || _subListWidth < kSubListExpandThreshold;
+    final subListCollapsed =
+        !wideLayout || _subListWidth < kSubListExpandThreshold;
     final subListWidth = forum
         ? (wideLayout ? _subListWidth : kSubListCollapsedWidth)
         : 0.0;
@@ -342,8 +347,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         subType == 'MIXED' ||
         subType == 'TEXT' ||
         subType == 'ANNOUNCE';
-    final showVocal =
-        subType == 'VOCAL' || (showViewToggle && _callOpen);
+    final showVocal = subType == 'VOCAL' || (showViewToggle && _callOpen);
 
     if (subType == 'VOCAL' && _searching) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

@@ -75,13 +75,13 @@ class ChatDetailSearchAppBar extends StatelessWidget {
                     isDense: true,
                     filled: false,
                     contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                    suffixIconConstraints: FloatingAppBarConsts
-                        .searchClearConstraints,
+                    suffixIconConstraints:
+                        FloatingAppBarConsts.searchClearConstraints,
                     suffixIcon: hasQuery
                         ? IconButton(
                             padding: EdgeInsets.zero,
-                            constraints: FloatingAppBarConsts
-                                .searchClearConstraints,
+                            constraints:
+                                FloatingAppBarConsts.searchClearConstraints,
                             icon: const AppHugeIcon(
                               icon: HugeIcons.strokeRoundedCancel01,
                               size: 18,

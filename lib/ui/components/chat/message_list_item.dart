@@ -49,7 +49,8 @@ class MessageListItem extends StatelessWidget {
     required int messageID,
     int? rangeStart,
     int? rangeEnd,
-  })? onReplyTap;
+  })?
+  onReplyTap;
   final VoidCallback? onSelectionToggle;
   final void Function(Offset position, String? selectedText)? onOpenContextMenu;
   final MessageModel? Function(String chatUUID, int subID, int messageID)?
