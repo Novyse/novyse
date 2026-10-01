@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,34 +8,32 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Persists recently used GIFs across restarts (per-device).
 ///
 /// Mirrors the legacy `novyse-recent-gifs` AsyncStorage key (max 24).
-/// Emoji recents live in the sibling [EmojiRecentsStore] (custom single
+/// Emoji recents live in the sibling `EmojiRecentsStore` (custom single
 /// list, no picker library).
-class GifRecentsStore extends StateNotifier<List<GifItem>> {
-  GifRecentsStore(this._prefs) : super(const []) {
-    _load();
-  }
-
+class GifRecentsStore extends Notifier<List<GifItem>> {
   static const storageKey = 'novyse-recent-gifs';
   static const maxRecents = 24;
 
-  final SharedPreferences _prefs;
+  SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
 
-  void _load() {
+  @override
+  List<GifItem> build() {
     final raw = _prefs.getString(storageKey);
-    if (raw == null || raw.isEmpty) return;
+    if (raw == null || raw.isEmpty) return const [];
     try {
       final decoded = jsonDecode(raw);
       if (decoded is List) {
-        state = decoded
+        return decoded
             .whereType<Map>()
             .map((e) => GifItem.fromJson(Map<String, dynamic>.from(e)))
             .where((g) => g.url.isNotEmpty)
             .take(maxRecents)
             .toList();
       }
-    } catch (_) {
-      // Ignore corrupt storage, keep empty.
+    } catch (e) {
+      debugPrint('[GifRecents] Ignoring corrupt storage: $e');
     }
+    return const [];
   }
 
   Future<void> push(GifItem gif) async {
@@ -48,8 +47,8 @@ class GifRecentsStore extends StateNotifier<List<GifItem>> {
         storageKey,
         jsonEncode(updated.map((g) => g.toJson()).toList()),
       );
-    } catch (_) {
-      // Best-effort persistence.
+    } catch (e) {
+      debugPrint('[GifRecents] Persist failed: $e');
     }
   }
 
@@ -57,7 +56,9 @@ class GifRecentsStore extends StateNotifier<List<GifItem>> {
     state = const [];
     try {
       await _prefs.remove(storageKey);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[GifRecents] Clear failed: $e');
+    }
   }
 }
 
@@ -65,8 +66,6 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('Override sharedPreferencesProvider in main/test');
 });
 
-final gifRecentsProvider =
-    StateNotifierProvider<GifRecentsStore, List<GifItem>>((ref) {
-      final prefs = ref.watch(sharedPreferencesProvider);
-      return GifRecentsStore(prefs);
-    });
+final gifRecentsProvider = NotifierProvider<GifRecentsStore, List<GifItem>>(
+  GifRecentsStore.new,
+);

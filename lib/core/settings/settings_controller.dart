@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,38 +8,38 @@ import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/storage/database/database.dart';
 
 /// In-memory mirror of settings values for the UI.
-class SettingsController extends StateNotifier<Map<String, Object?>> {
-  final Ref _ref;
-  final List<StreamSubscription> _subscriptions = [];
+class SettingsController extends Notifier<Map<String, Object?>> {
   Future<void>? _initFuture;
+  bool _disposed = false;
 
-  SettingsController(this._ref)
-      : super(Map<String, Object?>.from(SettingsCatalog.defaults)) {
-    _ref.onDispose(() {
-      for (final sub in _subscriptions) {
-        sub.cancel();
-      }
-      _subscriptions.clear();
+  @override
+  Map<String, Object?> build() {
+    ref.onDispose(() => _disposed = true);
+
+    final bus = ref.read(eventBusProvider);
+    final sub = bus.on<SettingValueUpdateEvent>().listen((event) {
+      final item = SettingsCatalog.findBySettingKey(event.key);
+      if (item == null) return;
+      if (item.scope != SettingScope.synchronized) return;
+      state = {...state, event.key: event.value};
     });
-    final bus = _ref.read(eventBusProvider);
-    _subscriptions.add(
-      bus.on<SettingValueUpdateEvent>().listen(_onRemoteValue),
-    );
+    ref.onDispose(sub.cancel);
     Future.microtask(() => init());
+    return Map<String, Object?>.from(SettingsCatalog.defaults);
   }
 
-  AppDatabase get _db => _ref.read(databaseProvider);
+  AppDatabase get _db => ref.read(databaseProvider);
 
   Future<void> init() => _initFuture ??= _load();
 
   Future<void> _load() async {
     try {
       final stored = await _db.settings.getAllSettings();
-      if (!mounted) return;
+      if (_disposed) return;
       state = {...SettingsCatalog.defaults, ...stored};
     } catch (e) {
       debugPrint('[SettingsController] init failed: $e');
-      if (!mounted) return;
+      if (_disposed) return;
       state = Map<String, Object?>.from(SettingsCatalog.defaults);
     }
   }
@@ -74,22 +72,16 @@ class SettingsController extends StateNotifier<Map<String, Object?>> {
     }
     return true;
   }
-
-  void _onRemoteValue(SettingValueUpdateEvent event) {
-    if (!mounted) return;
-    final item = SettingsCatalog.findBySettingKey(event.key);
-    if (item == null) return;
-    if (item.scope != SettingScope.synchronized) return;
-    state = {...state, event.key: event.value};
-  }
 }
 
 final settingsControllerProvider =
-    StateNotifierProvider<SettingsController, Map<String, Object?>>(
-  (ref) => SettingsController(ref),
-);
+    NotifierProvider<SettingsController, Map<String, Object?>>(
+      SettingsController.new,
+    );
 
-final settingValueProvider =
-    Provider.family<Object?, String>((ref, settingKey) {
+final settingValueProvider = Provider.family<Object?, String>((
+  ref,
+  settingKey,
+) {
   return ref.watch(settingsControllerProvider)[settingKey];
 });

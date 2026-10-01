@@ -1,36 +1,43 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_recents_store.dart'
     show sharedPreferencesProvider;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Persists recently used emojis across restarts (per-device).
-class EmojiRecentsStore extends StateNotifier<List<String>> {
-  EmojiRecentsStore([this._prefs]) : super(const []) {
-    _load();
-  }
-
+class EmojiRecentsStore extends Notifier<List<String>> {
   static const storageKey = 'novyse-recent-emojis';
   static const maxRecents = 24;
 
-  final SharedPreferences? _prefs;
+  SharedPreferences? get _prefs {
+    // Tests and early startup may run without an override; recents then stay
+    // in-memory only.
+    try {
+      return ref.read(sharedPreferencesProvider);
+    } catch (_) {
+      return null;
+    }
+  }
 
-  void _load() {
+  @override
+  List<String> build() {
     final raw = _prefs?.getString(storageKey);
-    if (raw == null || raw.isEmpty) return;
+    if (raw == null || raw.isEmpty) return const [];
     try {
       final decoded = jsonDecode(raw);
       if (decoded is List) {
-        state = decoded
+        return decoded
             .whereType<String>()
             .where((e) => e.isNotEmpty)
             .take(maxRecents)
             .toList();
       }
-    } catch (_) {
-      // Ignore corrupt storage, keep empty.
+    } catch (e) {
+      debugPrint('[EmojiRecents] Ignoring corrupt storage: $e');
     }
+    return const [];
   }
 
   Future<void> push(String emoji) async {
@@ -42,8 +49,8 @@ class EmojiRecentsStore extends StateNotifier<List<String>> {
     state = updated;
     try {
       await _prefs?.setString(storageKey, jsonEncode(updated));
-    } catch (_) {
-      // Best-effort persistence.
+    } catch (e) {
+      debugPrint('[EmojiRecents] Persist failed: $e');
     }
   }
 
@@ -51,16 +58,12 @@ class EmojiRecentsStore extends StateNotifier<List<String>> {
     state = const [];
     try {
       await _prefs?.remove(storageKey);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[EmojiRecents] Clear failed: $e');
+    }
   }
 }
 
-final emojiRecentsProvider =
-    StateNotifierProvider<EmojiRecentsStore, List<String>>((ref) {
-      try {
-        final prefs = ref.watch(sharedPreferencesProvider);
-        return EmojiRecentsStore(prefs);
-      } catch (_) {
-        return EmojiRecentsStore();
-      }
-    });
+final emojiRecentsProvider = NotifierProvider<EmojiRecentsStore, List<String>>(
+  EmojiRecentsStore.new,
+);
