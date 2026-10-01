@@ -14,6 +14,14 @@ abstract final class DesktopWindowController {
 
   static bool _forceQuit = false;
 
+  static void _guard(String op, void Function() fn) {
+    try {
+      fn();
+    } catch (e) {
+      debugPrint('[Window] $op failed: $e');
+    }
+  }
+
   static bool get isCustomChromeEnabled {
     if (kIsWeb) return false;
     try {
@@ -69,7 +77,9 @@ abstract final class DesktopWindowController {
         window.show();
         window.focus();
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[Window] init failed: $e');
+    }
   }
 
   static bool get isMaximized {
@@ -81,13 +91,11 @@ abstract final class DesktopWindowController {
   }
 
   static void minimize() {
-    try {
-      current?.minimize();
-    } catch (_) {}
+    _guard('minimize', () => current?.minimize());
   }
 
   static void toggleMaximize({bool? maximized}) {
-    try {
+    _guard('toggleMaximize', () {
       final window = current;
       if (window == null) return;
       final isMax = maximized ?? window.isMaximized;
@@ -96,11 +104,11 @@ abstract final class DesktopWindowController {
       } else {
         window.maximize();
       }
-    } catch (_) {}
+    });
   }
 
   static void close({bool? hideToTray}) {
-    try {
+    _guard('close', () {
       final shouldHide =
           hideToTray ?? (closeToTray && DesktopTrayController.isInitialized);
       if (shouldHide && DesktopTrayController.isInitialized) {
@@ -109,38 +117,32 @@ abstract final class DesktopWindowController {
       }
       _forceQuit = true;
       if (!isCustomChromeEnabled) return;
-      try {
-        Application.instance.quit(0);
-      } catch (_) {}
-      Future.delayed(const Duration(milliseconds: 500), () {
-        try {
-          exit(0);
-        } catch (_) {}
-      });
-    } catch (_) {}
+      _guard('quit', () => Application.instance.quit(0));
+      Future.delayed(
+        const Duration(milliseconds: 500),
+        () => _guard('exit', () => exit(0)),
+      );
+    });
   }
 
   static void showWindow() {
-    try {
+    _guard('showWindow', () {
       final window = current;
       if (window == null) return;
       if (!window.isVisible) window.show();
       if (window.isMinimized) window.restore();
       window.focus();
-    } catch (_) {}
+    });
   }
 
   static void quitApp() {
     _forceQuit = true;
     if (!isCustomChromeEnabled) return;
-    try {
-      Application.instance.quit(0);
-    } catch (_) {}
-    Future.delayed(const Duration(milliseconds: 500), () {
-      try {
-        exit(0);
-      } catch (_) {}
-    });
+    _guard('quit', () => Application.instance.quit(0));
+    Future.delayed(
+      const Duration(milliseconds: 500),
+      () => _guard('exit', () => exit(0)),
+    );
   }
 
   static void resetForceQuitForTest() {
@@ -148,9 +150,7 @@ abstract final class DesktopWindowController {
   }
 
   static void startDragging() {
-    try {
-      current?.startDragging();
-    } catch (_) {}
+    _guard('startDragging', () => current?.startDragging());
   }
 
   static bool get isFullscreen {
@@ -162,12 +162,12 @@ abstract final class DesktopWindowController {
   }
 
   static void setFullscreen(bool value) {
-    try {
+    _guard('setFullscreen', () {
       final window = current;
       if (window == null) return;
       if (window.isFullScreen == value) return;
       window.isFullScreen = value;
-    } catch (_) {}
+    });
   }
 
   static int? addMaximizedListener(void Function(bool isMaximized) onChanged) {
@@ -188,8 +188,9 @@ abstract final class DesktopWindowController {
 
   static void removeMaximizedListener(int? listenerId) {
     if (listenerId == null) return;
-    try {
-      WindowManager.instance.removeListener(listenerId);
-    } catch (_) {}
+    _guard(
+      'removeMaximizedListener',
+      () => WindowManager.instance.removeListener(listenerId),
+    );
   }
 }
