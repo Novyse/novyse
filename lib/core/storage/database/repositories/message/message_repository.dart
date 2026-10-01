@@ -1,4 +1,3 @@
-import 'package:sqflite/sqflite.dart';
 import 'package:novyse/core/storage/database/repositories/message/enrichment/message_enrichment.dart';
 import 'package:novyse/core/storage/database/repositories/message/favorite/message_favorite_repository.dart';
 import 'package:novyse/core/storage/database/repositories/message/get/message_get_repository.dart';
@@ -10,6 +9,7 @@ import 'package:novyse/core/storage/database/repositories/message/mutations/mess
 import 'package:novyse/core/storage/database/repositories/message/pin/message_pin_repository.dart';
 import 'package:novyse/core/storage/database/repositories/message/reaction/message_reaction_repository.dart';
 import 'package:novyse/core/storage/database/repositories/message/read/message_read_repository.dart';
+import 'package:sqflite/sqflite.dart';
 
 /// Central facade coordinating message database operations, queries, and enrichment.
 class MessageRepository implements MessageRepositoryContext {

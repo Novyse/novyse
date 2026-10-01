@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:novyse/core/storage/file/file_type.dart';
 import 'package:novyse/core/storage/file/file_storage.dart';
+import 'package:novyse/core/storage/file/file_type.dart';
 
 final List<double> defaultWaveform = List.filled(50, 0.0);
 

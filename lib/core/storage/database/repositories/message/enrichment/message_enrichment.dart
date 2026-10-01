@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:sqflite/sqflite.dart';
 import 'package:novyse/core/storage/database/repositories/message/helpers/message_field_parser.dart';
+import 'package:sqflite/sqflite.dart';
 
 /// Handles enriching raw message maps with associated records (reads, reactions,
 /// replies, files, pinned/edited status, and favorite status).

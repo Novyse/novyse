@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show debugPrint;
-import 'package:sqflite/sqflite.dart';
 import 'package:novyse/core/storage/database/repositories/message/helpers/message_field_parser.dart';
+import 'package:sqflite/sqflite.dart';
 
 /// Handles insert, update, batch insert, and delete operations for messages.
 class MessageMutations {

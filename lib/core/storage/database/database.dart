@@ -2,30 +2,29 @@ import 'dart:io' as io;
 
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/storage/database/init_sql.dart';
+import 'package:novyse/core/storage/database/repositories/chat_repository.dart';
+import 'package:novyse/core/storage/database/repositories/event_repository.dart';
+import 'package:novyse/core/storage/database/repositories/file_repository.dart';
+import 'package:novyse/core/storage/database/repositories/handle_repository.dart';
+import 'package:novyse/core/storage/database/repositories/message_repository.dart';
+import 'package:novyse/core/storage/database/repositories/queue_job_repository.dart';
+import 'package:novyse/core/storage/database/repositories/settings_repository.dart';
+import 'package:novyse/core/storage/database/repositories/user_repository.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
-import 'package:novyse/core/storage/database/init_sql.dart';
-import 'package:novyse/core/storage/database/repositories/user_repository.dart';
-import 'package:novyse/core/storage/database/repositories/handle_repository.dart';
-import 'package:novyse/core/storage/database/repositories/chat_repository.dart';
-import 'package:novyse/core/storage/database/repositories/message_repository.dart';
-import 'package:novyse/core/storage/database/repositories/file_repository.dart';
-import 'package:novyse/core/storage/database/repositories/event_repository.dart';
-import 'package:novyse/core/storage/database/repositories/queue_job_repository.dart';
-import 'package:novyse/core/storage/database/repositories/settings_repository.dart';
-
 export 'package:novyse/core/storage/database/init_sql.dart';
-export 'package:novyse/core/storage/database/repositories/user_repository.dart';
-export 'package:novyse/core/storage/database/repositories/handle_repository.dart';
 export 'package:novyse/core/storage/database/repositories/chat_repository.dart';
-export 'package:novyse/core/storage/database/repositories/message_repository.dart';
-export 'package:novyse/core/storage/database/repositories/file_repository.dart';
 export 'package:novyse/core/storage/database/repositories/event_repository.dart';
+export 'package:novyse/core/storage/database/repositories/file_repository.dart';
+export 'package:novyse/core/storage/database/repositories/handle_repository.dart';
+export 'package:novyse/core/storage/database/repositories/message_repository.dart';
 export 'package:novyse/core/storage/database/repositories/queue_job_repository.dart';
 export 'package:novyse/core/storage/database/repositories/settings_repository.dart';
+export 'package:novyse/core/storage/database/repositories/user_repository.dart';
 
 /// Main SQLite database service for Novyse.
 /// One SQLite file per user (`novyse_<userUUID>.db`). Call [openForUser]

@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show debugPrint;
-import 'package:sqflite/sqflite.dart';
 import 'package:novyse/core/storage/database/repositories/handle_repository.dart';
 import 'package:novyse/core/storage/database/repositories/message_repository.dart';
+import 'package:sqflite/sqflite.dart';
 
 class MemberRepository {
   DatabaseExecutor? _db;
