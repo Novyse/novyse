@@ -418,9 +418,7 @@ class ChatListItem extends ConsumerWidget {
       final senderHandle = senderUser?.handle ?? '';
       final senderName = senderDisplay.isNotEmpty
           ? senderDisplay
-          : (senderHandle.isNotEmpty
-                ? '@$senderHandle'
-                : l10n.chatUnknown);
+          : (senderHandle.isNotEmpty ? '@$senderHandle' : l10n.chatUnknown);
       prefix = '$senderName: ';
     }
 

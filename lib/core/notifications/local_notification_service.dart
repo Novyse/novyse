@@ -45,8 +45,9 @@ class LocalNotificationService {
     final l10n = lookupAppL10n();
 
     try {
-      const android =
-          AndroidInitializationSettings('@drawable/notification_icon');
+      const android = AndroidInitializationSettings(
+        '@drawable/notification_icon',
+      );
 
       final darwin = DarwinInitializationSettings(
         requestAlertPermission: false,
@@ -103,8 +104,10 @@ class LocalNotificationService {
       );
 
       if (_isAndroid) {
-        final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+        final androidPlugin = _plugin
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
         await androidPlugin?.createNotificationChannel(
           AndroidNotificationChannel(
             _androidChannelId,
@@ -134,13 +137,17 @@ class LocalNotificationService {
         return await _ensureWebPermission();
       }
       if (_isAndroid) {
-        final android = _plugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+        final android = _plugin
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
         return await android?.requestNotificationsPermission() ?? false;
       }
       if (defaultTargetPlatform == TargetPlatform.iOS) {
-        final ios = _plugin.resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
+        final ios = _plugin
+            .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin
+            >();
         return await ios?.requestPermissions(
               alert: true,
               badge: true,
@@ -149,8 +156,10 @@ class LocalNotificationService {
             false;
       }
       if (defaultTargetPlatform == TargetPlatform.macOS) {
-        final mac = _plugin.resolvePlatformSpecificImplementation<
-            MacOSFlutterLocalNotificationsPlugin>();
+        final mac = _plugin
+            .resolvePlatformSpecificImplementation<
+              MacOSFlutterLocalNotificationsPlugin
+            >();
         return await mac?.requestPermissions(
               alert: true,
               badge: true,
@@ -166,8 +175,10 @@ class LocalNotificationService {
   }
 
   Future<bool> _ensureWebPermission() async {
-    final web = _plugin.resolvePlatformSpecificImplementation<
-        WebFlutterLocalNotificationsPlugin>();
+    final web = _plugin
+        .resolvePlatformSpecificImplementation<
+          WebFlutterLocalNotificationsPlugin
+        >();
     if (web == null) return false;
 
     if (web.permissionStatus == WebNotificationPermission.granted) {
@@ -280,11 +291,7 @@ class LocalNotificationService {
 
     final l10n = lookupAppL10n();
     history.add(
-      Message(
-        content,
-        DateTime.now(),
-        Person(name: l10n.notifMe, key: 'me'),
-      ),
+      Message(content, DateTime.now(), Person(name: l10n.notifMe, key: 'me')),
     );
     if (history.length > 10) {
       history.removeRange(0, history.length - 10);
@@ -326,10 +333,7 @@ class LocalNotificationService {
     }
 
     final when = timestamp ?? DateTime.now();
-    final person = Person(
-      name: senderName,
-      key: senderUUID,
-    );
+    final person = Person(name: senderName, key: senderUUID);
 
     final history = _history.putIfAbsent(chatUUID, () => <Message>[]);
     history.add(Message(body, when, person));
@@ -399,9 +403,7 @@ class LocalNotificationService {
           NotificationActionIds.reply,
           l10n.reply,
           inputs: [
-            AndroidNotificationActionInput(
-              label: l10n.notifReplyPlaceholder,
-            ),
+            AndroidNotificationActionInput(label: l10n.notifReplyPlaceholder),
           ],
         ),
         AndroidNotificationAction(
@@ -449,8 +451,9 @@ class LocalNotificationService {
       ),
     );
 
-    final notificationBody =
-        isGroup ? l10n.notifGroupMessageBody(senderName, body) : body;
+    final notificationBody = isGroup
+        ? l10n.notifGroupMessageBody(senderName, body)
+        : body;
 
     try {
       await _plugin.show(

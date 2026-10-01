@@ -33,10 +33,7 @@ Widget _wrapWithRouter(Widget child) {
   final router = GoRouter(
     initialLocation: '/',
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => child,
-      ),
+      GoRoute(path: '/', builder: (context, state) => child),
       GoRoute(
         path: '/chats/:uuid/:sub',
         builder: (context, state) => const SizedBox(),
@@ -57,9 +54,7 @@ void main() {
     tester,
   ) async {
     final container = ProviderContainer(
-      overrides: [
-        userStoreProvider.overrideWith(_TestUserNotifier.new),
-      ],
+      overrides: [userStoreProvider.overrideWith(_TestUserNotifier.new)],
     );
     addTearDown(container.dispose);
 

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/core/stores/status_store.dart';
-import 'package:novyse/ui/components/status/status_message.dart';
 
 void main() {
   late ProviderContainer container;

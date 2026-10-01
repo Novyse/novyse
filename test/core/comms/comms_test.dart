@@ -65,8 +65,7 @@ void main() {
       expect(data.screenShares, isEmpty);
     });
 
-    test('CommsRoomRemoteData.fromApi extracts screen shares from tracks',
-        () {
+    test('CommsRoomRemoteData.fromApi extracts screen shares from tracks', () {
       final rawParticipants = [
         {
           'identity': 'uuid-aaa_session1',

@@ -8,17 +8,15 @@ import 'package:novyse/pages/app/settings/oss_licenses_page.dart';
 
 Future<bool> _openLicenses(BuildContext context) async {
   if (!context.mounted) return false;
-  await Navigator.of(context).push(
-    MaterialPageRoute<void>(builder: (_) => const OssLicensesPage()),
-  );
+  await Navigator.of(context)
+      .push(MaterialPageRoute<void>(builder: (_) => const OssLicensesPage()));
   return true;
 }
 
 Future<bool> _openAppLicense(BuildContext context) async {
   if (!context.mounted) return false;
-  await Navigator.of(context).push(
-    MaterialPageRoute<void>(builder: (_) => const AppLicensePage()),
-  );
+  await Navigator.of(context)
+      .push(MaterialPageRoute<void>(builder: (_) => const AppLicensePage()));
   return true;
 }
 

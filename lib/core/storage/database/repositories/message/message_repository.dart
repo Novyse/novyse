@@ -72,13 +72,7 @@ class MessageRepository implements MessageRepositoryContext {
     dynamic messageID,
     String? content, {
     List<dynamic>? files,
-  }) => _mutations.edit(
-    chatUUID,
-    subID,
-    messageID,
-    content,
-    files: files,
-  );
+  }) => _mutations.edit(chatUUID, subID, messageID, content, files: files);
 
   /// Deletes a message from the database.
   Future<bool> delete(String chatUUID, int subID, dynamic messageID) =>

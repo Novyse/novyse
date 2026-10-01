@@ -28,23 +28,25 @@ void main() {
     await db.close();
   });
 
-  test('loads persisted values on init, seeded with catalog defaults',
-      () async {
-    await db.settings.upsertSetting(
-      key: 'chat.sendWithEnter',
-      value: false,
-      scope: 'local',
-    );
+  test(
+    'loads persisted values on init, seeded with catalog defaults',
+    () async {
+      await db.settings.upsertSetting(
+        key: 'chat.sendWithEnter',
+        value: false,
+        scope: 'local',
+      );
 
-    final notifier = container.read(settingsControllerProvider.notifier);
-    await notifier.init();
+      final notifier = container.read(settingsControllerProvider.notifier);
+      await notifier.init();
 
-    final state = container.read(settingsControllerProvider);
-    // Persisted value wins over the catalog default (true).
-    expect(state['chat.sendWithEnter'], isFalse);
-    // Untouched keys keep catalog defaults.
-    expect(state['chat.markdownToolbar'], isTrue);
-  });
+      final state = container.read(settingsControllerProvider);
+      // Persisted value wins over the catalog default (true).
+      expect(state['chat.sendWithEnter'], isFalse);
+      // Untouched keys keep catalog defaults.
+      expect(state['chat.markdownToolbar'], isTrue);
+    },
+  );
 
   test('bootstrap applies per-key events after the bulk write', () async {
     final notifier = container.read(settingsControllerProvider.notifier);
@@ -83,8 +85,7 @@ void main() {
     expect(state.containsKey('nope.unknown'), isFalse);
   });
 
-  test('applyRemoteValues writes only allowlisted synchronized keys',
-      () async {
+  test('applyRemoteValues writes only allowlisted synchronized keys', () async {
     await SettingsSync.applyRemoteValues({
       'notifications.privateChats': false,
       'chat.sendWithEnter': true, // local scope -> dropped

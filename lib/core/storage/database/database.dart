@@ -53,17 +53,14 @@ class AppDatabase {
   String? get currentUserUUID => _currentUserUUID;
   String? get currentDbPath => _dbPath;
 
-  bool isOpenForUser(String userUUID) =>
-      isOpen && _currentUserUUID == userUUID;
+  bool isOpenForUser(String userUUID) => isOpen && _currentUserUUID == userUUID;
 
   static String fileNameForUser(String userUUID) => 'novyse_$userUUID.db';
 
   Future<String> _resolveDbPath(String userUUID) async {
     final fileName = fileNameForUser(userUUID);
     if (kIsWeb) return fileName;
-    if (io.Platform.isLinux ||
-        io.Platform.isWindows ||
-        io.Platform.isMacOS) {
+    if (io.Platform.isLinux || io.Platform.isWindows || io.Platform.isMacOS) {
       final appSupportDir = await getApplicationSupportDirectory();
       return p.join(appSupportDir.path, fileName);
     } else {

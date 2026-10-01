@@ -46,9 +46,21 @@ void main() {
     });
 
     test('equality is id + url based', () {
-      const a = GifItem(id: '1', url: 'https://a.gif', previewUrl: 'https://a.gif');
-      const b = GifItem(id: '1', url: 'https://a.gif', previewUrl: 'https://other.gif');
-      const c = GifItem(id: '2', url: 'https://a.gif', previewUrl: 'https://a.gif');
+      const a = GifItem(
+        id: '1',
+        url: 'https://a.gif',
+        previewUrl: 'https://a.gif',
+      );
+      const b = GifItem(
+        id: '1',
+        url: 'https://a.gif',
+        previewUrl: 'https://other.gif',
+      );
+      const c = GifItem(
+        id: '2',
+        url: 'https://a.gif',
+        previewUrl: 'https://a.gif',
+      );
       expect(a, b);
       expect(a == c, isFalse);
     });

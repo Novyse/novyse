@@ -69,11 +69,7 @@ class MessageFavoriteRepository {
   }
 
   /// Checks if a specific message is favorited.
-  Future<bool> isFavorite(
-    String chatUUID,
-    int subID,
-    dynamic messageID,
-  ) async {
+  Future<bool> isFavorite(String chatUUID, int subID, dynamic messageID) async {
     try {
       final id = MessageFieldParser.parseId(messageID);
       final rows = await _repo.db.rawQuery(
@@ -96,8 +92,7 @@ class MessageFavoriteRepository {
       final args = chatUUID != null && chatUUID.isNotEmpty
           ? <dynamic>[chatUUID]
           : <dynamic>[];
-      final rows = await _repo.db.rawQuery(
-        '''
+      final rows = await _repo.db.rawQuery('''
         SELECT f.chatUUID, f.subID, f.messageID, f.createdAt as favoritedAt,
                m.*, u.name as sender_name, u.profilePictureUUID as profile_picture_uuid
         FROM favorite_message f
@@ -105,9 +100,7 @@ class MessageFavoriteRepository {
         LEFT JOIN user u ON m.senderUUID = u.uuid
         $where
         ORDER BY f.createdAt DESC;
-        ''',
-        args,
-      );
+        ''', args);
       final out = <Map<String, dynamic>>[];
       for (final row in rows) {
         final msg = Map<String, dynamic>.from(row);

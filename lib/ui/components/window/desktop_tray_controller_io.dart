@@ -37,10 +37,14 @@ abstract final class DesktopTrayController {
       if (Menu.isBackendSupported(MenuBackend.winUi3)) {
         menu.setBackend(MenuBackend.winUi3);
       }
-      final openItem =
-          MenuItem.createWithLabelAndType(l10n.trayOpen, MenuItemType.normal);
-      final closeItem =
-          MenuItem.createWithLabelAndType(l10n.trayClose, MenuItemType.normal);
+      final openItem = MenuItem.createWithLabelAndType(
+        l10n.trayOpen,
+        MenuItemType.normal,
+      );
+      final closeItem = MenuItem.createWithLabelAndType(
+        l10n.trayClose,
+        MenuItemType.normal,
+      );
       if (openItem == null || closeItem == null) {
         openItem?.dispose();
         closeItem?.dispose();

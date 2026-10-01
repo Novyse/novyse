@@ -71,7 +71,11 @@ void main() {
         ),
       );
 
-      final methods = MessageActionMethods(ref: testRef, chatUUID: chatUUID);
+      final methods = MessageActionMethods(
+        ref: testRef,
+        context: tester.element(find.byType(SizedBox)),
+        chatUUID: chatUUID,
+      );
       methods.edit(message);
 
       final draftState = container.read(chatDraftProvider(chatUUID));

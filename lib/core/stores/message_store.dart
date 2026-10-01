@@ -55,9 +55,7 @@ class MessageModel {
       chatUUID: MessageFieldParser.parseChatUUID(map) ?? '',
       subID: MessageFieldParser.parseSubID(map['subID']),
       userUUID: MessageFieldParser.parseSenderUUID(map) ?? '',
-      createdAt: MessageFieldParser.parseCreatedAtDateTime(
-        map['created_at'],
-      ),
+      createdAt: MessageFieldParser.parseCreatedAtDateTime(map['created_at']),
       edited: MessageFieldParser.isEdited(map),
       pinned: MessageFieldParser.isPinned(map),
       favorited: MessageFieldParser.isFavorited(map),
@@ -488,8 +486,7 @@ class MessageListNotifier
         break;
 
       case 'read':
-        final readUserUUID =
-            (data['userUUID'] as String?)?.trim() ?? '';
+        final readUserUUID = (data['userUUID'] as String?)?.trim() ?? '';
         if (readUserUUID.isEmpty) break;
         final readAt =
             (data['readAt'] as String?) ?? DateTime.now().toIso8601String();

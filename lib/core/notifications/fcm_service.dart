@@ -36,9 +36,7 @@ class FcmService {
         sound: true,
         provisional: false,
       );
-      debugPrint(
-        '[FcmService] Permission: ${settings.authorizationStatus}',
-      );
+      debugPrint('[FcmService] Permission: ${settings.authorizationStatus}');
 
       FirebaseMessaging.onMessage.listen((message) {
         debugPrint('[FcmService] Foreground FCM: ${message.messageId}');
@@ -72,7 +70,8 @@ class FcmService {
     }
   }
 
-  Future<void> saveToken(String token) async {    final authToken = await auth_service.auth.token.get();
+  Future<void> saveToken(String token) async {
+    final authToken = await auth_service.auth.token.get();
     if (authToken == null || authToken.isEmpty) {
       debugPrint('[FcmService] Not logged in, skip token sync');
       return;

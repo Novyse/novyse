@@ -19,11 +19,12 @@ Widget _wrap(Widget child) {
 }
 
 void main() {
-  testWidgets('Account category lists pages and loose actions in wiki order',
-      (tester) async {
-    await tester.pumpWidget(_wrap(const SettingsCategoryPage(
-      categoryId: 'account',
-    )));
+  testWidgets('Account category lists pages and loose actions in wiki order', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(const SettingsCategoryPage(categoryId: 'account')),
+    );
     await tester.pumpAndSettle();
 
     final editProfile = find.text('Edit Profile');
@@ -44,17 +45,15 @@ void main() {
       tester.getTopLeft(sessions).dy < tester.getTopLeft(logout).dy,
       isTrue,
     );
-    expect(
-      tester.getTopLeft(logout).dy < tester.getTopLeft(delete).dy,
-      isTrue,
-    );
+    expect(tester.getTopLeft(logout).dy < tester.getTopLeft(delete).dy, isTrue);
   });
 
-  testWidgets('Logout action is WIP-disabled: tap opens no sheet',
-      (tester) async {
-    await tester.pumpWidget(_wrap(const SettingsCategoryPage(
-      categoryId: 'account',
-    )));
+  testWidgets('Logout action is WIP-disabled: tap opens no sheet', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(const SettingsCategoryPage(categoryId: 'account')),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Log Out'));
@@ -64,8 +63,9 @@ void main() {
     expect(find.text('Confirm'), findsNothing);
   });
 
-  testWidgets('Enabled action item still opens a confirmation sheet',
-      (tester) async {
+  testWidgets('Enabled action item still opens a confirmation sheet', (
+    tester,
+  ) async {
     final item = SettingItem(
       id: 'test_logout_enabled',
       component: SettingComponent.action,
@@ -90,12 +90,17 @@ void main() {
     expect(find.text('Confirm'), findsNothing);
   });
 
-  testWidgets('Theme select is WIP-disabled: tap opens no picker',
-      (tester) async {
-    await tester.pumpWidget(_wrap(const SettingsGroupPage(
-      categoryId: 'customization',
-      pageId: 'customization_themes',
-    )));
+  testWidgets('Theme select is WIP-disabled: tap opens no picker', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        const SettingsGroupPage(
+          categoryId: 'customization',
+          pageId: 'customization_themes',
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Theme'));
@@ -104,8 +109,9 @@ void main() {
     expect(find.text('Midnight OLED'), findsNothing);
   });
 
-  testWidgets('Enabled select item still opens the option picker sheet',
-      (tester) async {
+  testWidgets('Enabled select item still opens the option picker sheet', (
+    tester,
+  ) async {
     final item = SettingItem(
       id: 'test_theme_enabled',
       component: SettingComponent.select,

@@ -17,9 +17,8 @@ Widget _wrap(Widget child) {
   );
 }
 
-Finder _iconFinder(List<List<dynamic>> icon) => find.byWidgetPredicate(
-      (w) => w is AppHugeIcon && w.icon == icon,
-    );
+Finder _iconFinder(List<List<dynamic>> icon) =>
+    find.byWidgetPredicate((w) => w is AppHugeIcon && w.icon == icon);
 
 Future<void> _openSearch(WidgetTester tester) async {
   await tester.pumpWidget(_wrap(const SettingsPage()));
@@ -38,8 +37,9 @@ void main() {
     expect(find.text('Account'), findsOneWidget);
   });
 
-  testWidgets('typing groups functional rows under a category header',
-      (tester) async {
+  testWidgets('typing groups functional rows under a category header', (
+    tester,
+  ) async {
     await _openSearch(tester);
 
     await tester.enterText(find.byType(TextField), 'password');
@@ -54,8 +54,9 @@ void main() {
     expect(find.text('Account'), findsNothing);
   });
 
-  testWidgets('tapping the category header opens the category page',
-      (tester) async {
+  testWidgets('tapping the category header opens the category page', (
+    tester,
+  ) async {
     await _openSearch(tester);
 
     await tester.enterText(find.byType(TextField), 'password');

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
 
 void main() {

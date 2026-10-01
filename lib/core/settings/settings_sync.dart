@@ -23,10 +23,7 @@ class SettingsSync {
       if (filtered.isEmpty) return;
       final db = AppDatabase.instance;
       if (!db.isOpen) return;
-      await db.settings.upsertAll(
-        values: filtered,
-        scope: 'synchronized',
-      );
+      await db.settings.upsertAll(values: filtered, scope: 'synchronized');
       for (final entry in filtered.entries) {
         EventBus.instance.emit(
           SettingValueUpdateEvent(key: entry.key, value: entry.value),

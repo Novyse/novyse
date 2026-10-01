@@ -23,7 +23,9 @@ Widget _wrap(Widget child) {
 }
 
 void main() {
-  testWidgets('OssLicensesPage displays package list and filters', (tester) async {
+  testWidgets('OssLicensesPage displays package list and filters', (
+    tester,
+  ) async {
     await tester.pumpWidget(_wrap(const OssLicensesPage()));
     await tester.pumpAndSettle();
 
@@ -34,7 +36,9 @@ void main() {
     expect(find.byType(OssLicensesPage), findsOneWidget);
 
     // Open search
-    final searchButton = find.byTooltip('Cerca chat'); // searchChats translation
+    final searchButton = find.byTooltip(
+      'Cerca chat',
+    ); // searchChats translation
     if (searchButton.evaluate().isNotEmpty) {
       await tester.tap(searchButton);
       await tester.pumpAndSettle();
@@ -47,7 +51,9 @@ void main() {
     }
   });
 
-  testWidgets('runSettingsAction openLicenses pushes OssLicensesPage', (tester) async {
+  testWidgets('runSettingsAction openLicenses pushes OssLicensesPage', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _wrap(
         Consumer(

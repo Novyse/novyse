@@ -107,11 +107,13 @@ abstract final class FloatingAppBarConsts {
     fontWeight: FontWeight.w700,
   );
 
-  static TextStyle subtitleStyle(ColorScheme scheme, {bool highlighted = false}) =>
-      TextStyle(
-        fontSize: 10,
-        color: highlighted ? scheme.primary : scheme.onSurfaceVariant,
-      );
+  static TextStyle subtitleStyle(
+    ColorScheme scheme, {
+    bool highlighted = false,
+  }) => TextStyle(
+    fontSize: 10,
+    color: highlighted ? scheme.primary : scheme.onSurfaceVariant,
+  );
 }
 
 /// Icon button pre-sized for floating app bars: exactly

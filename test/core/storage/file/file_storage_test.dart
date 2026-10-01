@@ -42,30 +42,24 @@ void main() {
     test('sniffs JPEG magic bytes when name has no useful extension', () {
       // JPEG SOI marker
       final jpegHeader = [0xFF, 0xD8, 0xFF, 0xE0];
-      expect(
-        getMimeTypeByName('blob', headerBytes: jpegHeader),
-        'image/jpeg',
-      );
-      expect(
-        getMimeType('unknown.bin', headerBytes: jpegHeader),
-        'image/jpeg',
-      );
+      expect(getMimeTypeByName('blob', headerBytes: jpegHeader), 'image/jpeg');
+      expect(getMimeType('unknown.bin', headerBytes: jpegHeader), 'image/jpeg');
     });
 
     test('does not override a trustworthy existing MIME with sniffing', () {
       final jpegHeader = [0xFF, 0xD8, 0xFF, 0xE0];
       expect(
-        getMimeType(
-          {'mimeType': 'application/pdf', 'name': 'photo.bin'},
-          headerBytes: jpegHeader,
-        ),
+        getMimeType({
+          'mimeType': 'application/pdf',
+          'name': 'photo.bin',
+        }, headerBytes: jpegHeader),
         'application/pdf',
       );
       expect(
-        getMimeType(
-          {'mimeType': 'image/png', 'name': 'x'},
-          headerBytes: jpegHeader,
-        ),
+        getMimeType({
+          'mimeType': 'image/png',
+          'name': 'x',
+        }, headerBytes: jpegHeader),
         'image/png',
       );
     });
@@ -73,10 +67,10 @@ void main() {
     test('sniffs when existing MIME is empty or octet-stream', () {
       final jpegHeader = [0xFF, 0xD8, 0xFF, 0xE0];
       expect(
-        getMimeType(
-          {'mimeType': defaultMimeType, 'name': 'blob'},
-          headerBytes: jpegHeader,
-        ),
+        getMimeType({
+          'mimeType': defaultMimeType,
+          'name': 'blob',
+        }, headerBytes: jpegHeader),
         'image/jpeg',
       );
       expect(

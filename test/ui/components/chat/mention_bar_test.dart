@@ -196,7 +196,10 @@ void main() {
           ),
           userStoreProvider.overrideWith(
             () => _TestUserNotifier(
-              const UserStoreState(localUserUUID: 'me', users: {'user-1': user1}),
+              const UserStoreState(
+                localUserUUID: 'me',
+                users: {'user-1': user1},
+              ),
             ),
           ),
         ],

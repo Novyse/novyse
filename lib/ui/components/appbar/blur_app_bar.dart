@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 class BlurAppBar extends StatelessWidget implements PreferredSizeWidget {
   const BlurAppBar({
     super.key,

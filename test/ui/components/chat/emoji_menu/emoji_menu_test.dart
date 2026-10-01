@@ -51,8 +51,7 @@ Widget _app(ProviderContainer container, Widget child) {
   );
 }
 
-Widget _sized(Widget child) =>
-    SizedBox(height: 400, child: child);
+Widget _sized(Widget child) => SizedBox(height: 400, child: child);
 
 void main() {
   group('EmojiMenuPanel', () {
@@ -64,10 +63,7 @@ void main() {
 
       GifItem? selected;
       await tester.pumpWidget(
-        _app(
-          container,
-          EmojiMenuPanel(onSelectGif: (g) => selected = g),
-        ),
+        _app(container, EmojiMenuPanel(onSelectGif: (g) => selected = g)),
       );
       await tester.pumpAndSettle();
 
@@ -124,9 +120,7 @@ void main() {
   });
 
   group('EmojiSectionList', () {
-    testWidgets('category toolbar jumps to the tapped section', (
-      tester,
-    ) async {
+    testWidgets('category toolbar jumps to the tapped section', (tester) async {
       final container = await _container();
       addTearDown(container.dispose);
 
@@ -137,8 +131,7 @@ void main() {
 
       await tester.tap(
         find.byWidgetPredicate(
-          (w) =>
-              w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedFlag02,
+          (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedFlag02,
         ),
       );
       await tester.pumpAndSettle();
@@ -163,8 +156,7 @@ void main() {
       // Category toolbar hides while searching (legacy behavior).
       expect(
         find.byWidgetPredicate(
-          (w) =>
-              w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedFlag02,
+          (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedFlag02,
         ),
         findsNothing,
       );
@@ -210,10 +202,7 @@ void main() {
 
       String? picked;
       await tester.pumpWidget(
-        _app(
-          container,
-          _sized(EmojiSectionList(onSelect: (e) => picked = e)),
-        ),
+        _app(container, _sized(EmojiSectionList(onSelect: (e) => picked = e))),
       );
       await tester.pumpAndSettle();
 

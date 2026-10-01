@@ -49,16 +49,12 @@ class SettingsLocalRepository {
     try {
       final now = DateTime.now().toIso8601String();
       for (final entry in values.entries) {
-        await db.insert(
-          'local_settings',
-          {
-            'key': entry.key,
-            'value_json': jsonEncode(entry.value),
-            'scope': scope,
-            'updated_at': now,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        await db.insert('local_settings', {
+          'key': entry.key,
+          'value_json': jsonEncode(entry.value),
+          'scope': scope,
+          'updated_at': now,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
       return true;
     } catch (_) {

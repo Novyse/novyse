@@ -101,20 +101,23 @@ void main() {
     expect(find.byType(AppHugeIcon), findsOneWidget);
   });
 
-  testWidgets('SettingsExternalLinkRow uses box-arrow icon only when tappable', (
-    tester,
-  ) async {
-    await tester.pumpWidget(_wrap(const SettingsExternalLinkRow(title: 'Plain')));
-    await tester.pumpAndSettle();
-    expect(find.byType(AppHugeIcon), findsNothing);
+  testWidgets(
+    'SettingsExternalLinkRow uses box-arrow icon only when tappable',
+    (tester) async {
+      await tester.pumpWidget(
+        _wrap(const SettingsExternalLinkRow(title: 'Plain')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(AppHugeIcon), findsNothing);
 
-    await tester.pumpWidget(
-      _wrap(SettingsExternalLinkRow(title: 'Linked', onTap: () {})),
-    );
-    await tester.pumpAndSettle();
-    final iconWidget = tester.widget<AppHugeIcon>(find.byType(AppHugeIcon));
-    expect(iconWidget.icon, HugeIcons.strokeRoundedSquareArrowOutUpRight);
-  });
+      await tester.pumpWidget(
+        _wrap(SettingsExternalLinkRow(title: 'Linked', onTap: () {})),
+      );
+      await tester.pumpAndSettle();
+      final iconWidget = tester.widget<AppHugeIcon>(find.byType(AppHugeIcon));
+      expect(iconWidget.icon, HugeIcons.strokeRoundedSquareArrowOutUpRight);
+    },
+  );
 
   testWidgets('SettingsExternalLinkRow icon differs from navigation/modal', (
     tester,

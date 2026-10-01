@@ -95,20 +95,17 @@ void main() {
       await notifier.push(_g2);
       await notifier.push(_g1); // re-select moves to front, no duplicate
 
-      expect(
-        container.read(gifRecentsProvider).map((g) => g.id),
-        ['g1', 'g2'],
-      );
+      expect(container.read(gifRecentsProvider).map((g) => g.id), ['g1', 'g2']);
 
       // Simulate restart: new store reads the same prefs.
       final container2 = ProviderContainer(
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       );
       addTearDown(container2.dispose);
-      expect(
-        container2.read(gifRecentsProvider).map((g) => g.id),
-        ['g1', 'g2'],
-      );
+      expect(container2.read(gifRecentsProvider).map((g) => g.id), [
+        'g1',
+        'g2',
+      ]);
     });
 
     test('corrupt storage yields empty recents instead of throwing', () async {

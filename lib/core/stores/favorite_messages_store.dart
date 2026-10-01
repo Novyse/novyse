@@ -14,7 +14,10 @@ class FavoriteMessagesState {
   final List<MessageModel> favorites;
   final bool loading;
 
-  const FavoriteMessagesState({this.favorites = const [], this.loading = false});
+  const FavoriteMessagesState({
+    this.favorites = const [],
+    this.loading = false,
+  });
 
   FavoriteMessagesState copyWith({
     List<MessageModel>? favorites,
@@ -92,12 +95,11 @@ class FavoriteMessagesNotifier
     state = const FavoriteMessagesState();
   }
 
-  Future<void> reload() async {    try {
+  Future<void> reload() async {
+    try {
       final db = AppDatabase.instance;
       final raw = await db.message.favorite.list(chatUUID: arg);
-      state = state.copyWith(
-        favorites: raw.map(MessageModel.fromMap).toList(),
-      );
+      state = state.copyWith(favorites: raw.map(MessageModel.fromMap).toList());
     } catch (e) {
       debugPrint('FavoriteMessages reload error: $e');
     }

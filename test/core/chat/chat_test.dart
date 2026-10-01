@@ -171,18 +171,26 @@ void main() {
       }, l10n: en);
       expect(created['content'], equals('Chat created'));
 
-      final joined = formatMessage({
-        'type': 'system',
-        'system_action': 'USER_JOINED',
-        'content': 'user-123',
-      }, l10n: en, getUser: (uuid) => {'name': 'Alice'});
+      final joined = formatMessage(
+        {
+          'type': 'system',
+          'system_action': 'USER_JOINED',
+          'content': 'user-123',
+        },
+        l10n: en,
+        getUser: (uuid) => {'name': 'Alice'},
+      );
       expect(joined['content'], equals('Alice joined the chat'));
 
-      final youJoined = formatMessage({
-        'type': 'system',
-        'system_action': 'USER_JOINED',
-        'content': 'me-uuid',
-      }, l10n: en, localUserUUID: 'me-uuid');
+      final youJoined = formatMessage(
+        {
+          'type': 'system',
+          'system_action': 'USER_JOINED',
+          'content': 'me-uuid',
+        },
+        l10n: en,
+        localUserUUID: 'me-uuid',
+      );
       expect(youJoined['content'], equals('You joined the chat'));
     });
 
@@ -205,22 +213,34 @@ void main() {
         'u3': {'name': 'Charlie'},
       };
 
-      final oneTyping = formatActivity([
-        {'action': 'TYPING', 'userUUID': 'u1'},
-      ], l10n: en, getUser: (uuid) => users[uuid]);
+      final oneTyping = formatActivity(
+        [
+          {'action': 'TYPING', 'userUUID': 'u1'},
+        ],
+        l10n: en,
+        getUser: (uuid) => users[uuid],
+      );
       expect(oneTyping, equals('Alice is typing...'));
 
-      final twoTyping = formatActivity([
-        {'action': 'TYPING', 'userUUID': 'u1'},
-        {'action': 'TYPING', 'userUUID': 'u2'},
-      ], l10n: en, getUser: (uuid) => users[uuid]);
+      final twoTyping = formatActivity(
+        [
+          {'action': 'TYPING', 'userUUID': 'u1'},
+          {'action': 'TYPING', 'userUUID': 'u2'},
+        ],
+        l10n: en,
+        getUser: (uuid) => users[uuid],
+      );
       expect(twoTyping, equals('Alice and Bob are typing...'));
 
-      final threeTyping = formatActivity([
-        {'action': 'TYPING', 'userUUID': 'u1'},
-        {'action': 'TYPING', 'userUUID': 'u2'},
-        {'action': 'TYPING', 'userUUID': 'u3'},
-      ], l10n: en, getUser: (uuid) => users[uuid]);
+      final threeTyping = formatActivity(
+        [
+          {'action': 'TYPING', 'userUUID': 'u1'},
+          {'action': 'TYPING', 'userUUID': 'u2'},
+          {'action': 'TYPING', 'userUUID': 'u3'},
+        ],
+        l10n: en,
+        getUser: (uuid) => users[uuid],
+      );
       expect(threeTyping, equals('Alice, Bob and 1 others are typing...'));
     });
 
@@ -229,9 +249,13 @@ void main() {
         'u1': {'name': 'Alice'},
       };
 
-      final oneTyping = formatActivity([
-        {'action': 'TYPING', 'userUUID': 'u1'},
-      ], l10n: it, getUser: (uuid) => users[uuid]);
+      final oneTyping = formatActivity(
+        [
+          {'action': 'TYPING', 'userUUID': 'u1'},
+        ],
+        l10n: it,
+        getUser: (uuid) => users[uuid],
+      );
       expect(oneTyping, equals('Alice sta scrivendo...'));
     });
 

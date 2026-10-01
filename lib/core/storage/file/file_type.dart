@@ -169,8 +169,7 @@ String getMimeType(dynamic file, {List<int>? headerBytes}) {
 /// when provided (magic-byte match runs inside [mime.lookupMimeType]).
 String getMimeTypeByName(String fileName, {List<int>? headerBytes}) {
   final path = fileName.isEmpty ? 'file' : fileName;
-  return mime.lookupMimeType(path, headerBytes: headerBytes) ??
-      defaultMimeType;
+  return mime.lookupMimeType(path, headerBytes: headerBytes) ?? defaultMimeType;
 }
 
 /// Returns the preferred file extension (without leading dot) for a MIME type.

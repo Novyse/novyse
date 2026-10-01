@@ -136,9 +136,7 @@ void main() {
       final localContainer = ProviderContainer(
         overrides: [
           databaseProvider.overrideWithValue(db),
-          userStoreProvider.overrideWith(
-            () => _FakeUserNotifier('me'),
-          ),
+          userStoreProvider.overrideWith(() => _FakeUserNotifier('me')),
         ],
       );
       addTearDown(localContainer.dispose);
@@ -168,10 +166,7 @@ void main() {
             subID: 0,
             messageID: id,
             action: 'read',
-            data: {
-              'userUUID': reader,
-              'readAt': '2026-09-24T10:05:00.000Z',
-            },
+            data: {'userUUID': reader, 'readAt': '2026-09-24T10:05:00.000Z'},
           ),
         );
         await Future<void>.delayed(const Duration(milliseconds: 10));
@@ -213,124 +208,126 @@ void main() {
       expect(badge(), equals(1));
     });
 
-    test('notification mark-as-read decrements the badge exactly once', () async {
-      await db.chat.add({'uuid': 'chat-7', 'name': 'Notify', 'type': 'DM'});
+    test(
+      'notification mark-as-read decrements the badge exactly once',
+      () async {
+        await db.chat.add({'uuid': 'chat-7', 'name': 'Notify', 'type': 'DM'});
 
-      final localContainer = ProviderContainer(
-        overrides: [
-          databaseProvider.overrideWithValue(db),
-          userStoreProvider.overrideWith(
-            () => _FakeUserNotifier('me'),
-          ),
-        ],
-      );
-      addTearDown(localContainer.dispose);
+        final localContainer = ProviderContainer(
+          overrides: [
+            databaseProvider.overrideWithValue(db),
+            userStoreProvider.overrideWith(() => _FakeUserNotifier('me')),
+          ],
+        );
+        addTearDown(localContainer.dispose);
 
-      final notifier = localContainer.read(chatListProvider.notifier);
-      await notifier.init();
-      final bus = localContainer.read(eventBusProvider);
+        final notifier = localContainer.read(chatListProvider.notifier);
+        await notifier.init();
+        final bus = localContainer.read(eventBusProvider);
 
-      int badge() =>
-          localContainer.read(chatProvider('chat-7'))?.unreadCount ?? -1;
+        int badge() =>
+            localContainer.read(chatProvider('chat-7'))?.unreadCount ?? -1;
 
-      Future<void> incoming(int id) async {
+        Future<void> incoming(int id) async {
+          bus.emit(
+            MessageNewEvent({
+              'id': id,
+              'chatUUID': 'chat-7',
+              'subID': 0,
+              'senderUUID': 'other',
+              'content': 'msg $id',
+              'created_at': '2026-09-24T10:00:00.000Z',
+            }),
+          );
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+
+        Future<void> decrement(int targetId) async {
+          bus.emit(
+            ChatBadgeDecrementEvent(
+              chatUUID: 'chat-7',
+              subID: 0,
+              targetId: targetId,
+              count: 1,
+            ),
+          );
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+
+        await incoming(21);
+        await incoming(22);
+        expect(badge(), equals(2));
+
+        await decrement(21);
+        expect(badge(), equals(1));
+
+        // Repeat of an already-covered target: idempotent, badge untouched.
+        await decrement(21);
+        expect(badge(), equals(1));
+
+        await decrement(22);
+        expect(badge(), equals(0));
+      },
+    );
+
+    test(
+      'badge drops when the generic read event precedes the decrement',
+      () async {
+        await db.chat.add({'uuid': 'chat-8', 'name': 'Race', 'type': 'DM'});
+
+        final localContainer = ProviderContainer(
+          overrides: [
+            databaseProvider.overrideWithValue(db),
+            userStoreProvider.overrideWith(() => _FakeUserNotifier('me')),
+          ],
+        );
+        addTearDown(localContainer.dispose);
+
+        await localContainer.read(chatListProvider.notifier).init();
+        final bus = localContainer.read(eventBusProvider);
+
+        int badge() =>
+            localContainer.read(chatProvider('chat-8'))?.unreadCount ?? -1;
+
         bus.emit(
-          MessageNewEvent({
-            'id': id,
-            'chatUUID': 'chat-7',
+          const MessageNewEvent({
+            'id': 31,
+            'chatUUID': 'chat-8',
             'subID': 0,
             'senderUUID': 'other',
-            'content': 'msg $id',
+            'content': 'hello',
             'created_at': '2026-09-24T10:00:00.000Z',
           }),
         );
         await Future<void>.delayed(const Duration(milliseconds: 10));
-      }
+        expect(badge(), equals(1));
 
-      Future<void> decrement(int targetId) async {
+        // The service emits the generic 'read' first (watermark advances)...
         bus.emit(
-          ChatBadgeDecrementEvent(
-            chatUUID: 'chat-7',
+          const MessageUpdateEvent(
+            chatUUID: 'chat-8',
             subID: 0,
-            targetId: targetId,
+            messageID: '31',
+            action: 'read',
+            data: {'userUUID': 'me', 'readAt': '2026-09-24T10:05:00.000Z'},
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        expect(badge(), equals(1));
+
+        // ...then the decrement event. A watermark gate here would see
+        // targetId <= watermark and wrongly skip: the badge must still drop.
+        bus.emit(
+          const ChatBadgeDecrementEvent(
+            chatUUID: 'chat-8',
+            subID: 0,
+            targetId: 31,
             count: 1,
           ),
         );
         await Future<void>.delayed(const Duration(milliseconds: 10));
-      }
-
-      await incoming(21);
-      await incoming(22);
-      expect(badge(), equals(2));
-
-      await decrement(21);
-      expect(badge(), equals(1));
-
-      // Repeat of an already-covered target: idempotent, badge untouched.
-      await decrement(21);
-      expect(badge(), equals(1));
-
-      await decrement(22);
-      expect(badge(), equals(0));
-    });
-
-    test('badge drops when the generic read event precedes the decrement', () async {
-      await db.chat.add({'uuid': 'chat-8', 'name': 'Race', 'type': 'DM'});
-
-      final localContainer = ProviderContainer(
-        overrides: [
-          databaseProvider.overrideWithValue(db),
-          userStoreProvider.overrideWith(
-            () => _FakeUserNotifier('me'),
-          ),
-        ],
-      );
-      addTearDown(localContainer.dispose);
-
-      await localContainer.read(chatListProvider.notifier).init();
-      final bus = localContainer.read(eventBusProvider);
-
-      int badge() =>
-          localContainer.read(chatProvider('chat-8'))?.unreadCount ?? -1;
-
-      bus.emit(
-        const MessageNewEvent({
-          'id': 31,
-          'chatUUID': 'chat-8',
-          'subID': 0,
-          'senderUUID': 'other',
-          'content': 'hello',
-          'created_at': '2026-09-24T10:00:00.000Z',
-        }),
-      );
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      expect(badge(), equals(1));
-
-      // The service emits the generic 'read' first (watermark advances)...
-      bus.emit(
-        const MessageUpdateEvent(
-          chatUUID: 'chat-8',
-          subID: 0,
-          messageID: '31',
-          action: 'read',
-          data: {'userUUID': 'me', 'readAt': '2026-09-24T10:05:00.000Z'},
-        ),
-      );
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      expect(badge(), equals(1));
-
-      // ...then the decrement event. A watermark gate here would see
-      // targetId <= watermark and wrongly skip: the badge must still drop.
-      bus.emit(
-        const ChatBadgeDecrementEvent(
-          chatUUID: 'chat-8',
-          subID: 0,
-          targetId: 31,
-          count: 1,
-        ),
-      );
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      expect(badge(), equals(0));
-    });
+        expect(badge(), equals(0));
+      },
+    );
   });
 }

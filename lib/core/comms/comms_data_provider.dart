@@ -64,7 +64,7 @@ class CommsDataNotifier
     ref.onDispose(() {
       _stopPolling();
     });
-    
+
     final commsState = ref.watch(commsProvider);
     final isMatch = commsState.isRoomMatch(arg.chatUUID, arg.sub);
 

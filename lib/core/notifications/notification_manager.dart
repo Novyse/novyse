@@ -86,27 +86,19 @@ class NotificationManager {
 
   Future<void> handleRemoteMessage(RemoteMessage message) async {
     if (_isAppActive && (isSocketOpen?.call() ?? false)) {
-      debugPrint(
-        '[NotificationManager] Skip FCM (app active + socket open)',
-      );
+      debugPrint('[NotificationManager] Skip FCM (app active + socket open)');
       return;
     }
-    await displayFromRemoteData(
-      message.data,
-      source: NotificationSource.fcm,
-    );
+    await displayFromRemoteData(message.data, source: NotificationSource.fcm);
   }
 
   /// Called for Socket.IO / in-app inbound messages.
   Future<void> handleInboundMessage(Map<String, dynamic> message) async {
-    await displayFromRemoteData(
-      {
-        'chatUUID': message['chatUUID'] ?? message['chat_uuid'],
-        'message': message,
-        'senderUUID': message['senderUUID'] ?? message['userUUID'],
-      },
-      source: NotificationSource.socket,
-    );
+    await displayFromRemoteData({
+      'chatUUID': message['chatUUID'] ?? message['chat_uuid'],
+      'message': message,
+      'senderUUID': message['senderUUID'] ?? message['userUUID'],
+    }, source: NotificationSource.socket);
   }
 
   Future<void> displayFromRemoteData(
@@ -126,17 +118,18 @@ class NotificationManager {
       messageData = Map<String, dynamic>.from(rawMessage);
     }
 
-    final chatUUID =
-        (data['chatUUID'] ?? messageData?['chatUUID'] ?? '').toString();
+    final chatUUID = (data['chatUUID'] ?? messageData?['chatUUID'] ?? '')
+        .toString();
     if (chatUUID.isEmpty) return;
 
     if (isChatMuted?.call(chatUUID) == true) return;
 
-    final senderUUID = (data['senderUUID'] ??
-            messageData?['senderUUID'] ??
-            messageData?['userUUID'] ??
-            '')
-        .toString();
+    final senderUUID =
+        (data['senderUUID'] ??
+                messageData?['senderUUID'] ??
+                messageData?['userUUID'] ??
+                '')
+            .toString();
     final localUUID = localUserUUID?.call();
     if (localUUID != null &&
         localUUID.isNotEmpty &&
@@ -156,12 +149,13 @@ class NotificationManager {
       return;
     }
 
-    final messageId = (messageData?['id'] ??
-            data['messageId'] ??
-            data['messageID'] ??
-            data['id'] ??
-            '')
-        .toString();
+    final messageId =
+        (messageData?['id'] ??
+                data['messageId'] ??
+                data['messageID'] ??
+                data['id'] ??
+                '')
+            .toString();
     if (messageId.isNotEmpty) {
       if (_processedIds.contains(messageId)) return;
       _processedIds.add(messageId);
@@ -176,10 +170,9 @@ class NotificationManager {
 
     final l10n = lookupAppL10n();
     final sender = senderUUID.isNotEmpty ? getUser?.call(senderUUID) : null;
-    final senderName = (sender?['name'] ??
-            sender?['displayName'] ??
-            l10n.notifUnknownSender)
-        .toString();
+    final senderName =
+        (sender?['name'] ?? sender?['displayName'] ?? l10n.notifUnknownSender)
+            .toString();
 
     String title;
     if (isGroup) {
@@ -198,10 +191,7 @@ class NotificationManager {
       );
       body = (formatted['content'] ?? '').toString();
     } else {
-      body = (data['content'] ??
-              data['body'] ??
-              messageData?['content'] ??
-              ' ')
+      body = (data['content'] ?? data['body'] ?? messageData?['content'] ?? ' ')
           .toString();
     }
     if (body.trim().isEmpty) body = ' ';

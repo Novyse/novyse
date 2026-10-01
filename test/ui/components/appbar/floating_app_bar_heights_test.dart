@@ -26,8 +26,9 @@ List<double> _pillHeights(WidgetTester tester) => [
 ];
 
 void main() {
-  testWidgets('every floating app bar pill measures 48 (46 + border)',
-      (tester) async {
+  testWidgets('every floating app bar pill measures 48 (46 + border)', (
+    tester,
+  ) async {
     final searchController = TextEditingController();
     final searchFocus = FocusNode();
     addTearDown(searchController.dispose);

@@ -130,93 +130,95 @@ void main() {
       },
     );
 
-    testWidgets('renders stats footer when author message has reads or reactions', (
-      tester,
-    ) async {
-      final myMsg = MessageModel(
-        id: 777,
-        chatUUID: 'chat-abc',
-        userUUID: 'me',
-        createdAt: DateTime.now(),
-        content: 'Testing stats',
-        reads: ['other1', 'other2'],
-        reactions: [
-          {
-            'emoji': '🚀',
-            'userUUIDs': ['other1', 'other2', 'me'],
-          },
-        ],
-      );
+    testWidgets(
+      'renders stats footer when author message has reads or reactions',
+      (tester) async {
+        final myMsg = MessageModel(
+          id: 777,
+          chatUUID: 'chat-abc',
+          userUUID: 'me',
+          createdAt: DateTime.now(),
+          content: 'Testing stats',
+          reads: ['other1', 'other2'],
+          reactions: [
+            {
+              'emoji': '🚀',
+              'userUUIDs': ['other1', 'other2', 'me'],
+            },
+          ],
+        );
 
-      final container = ProviderContainer(
-        overrides: [
-          userStoreProvider.overrideWith(() => FakeUserNotifier('me')),
-        ],
-      );
-      addTearDown(container.dispose);
+        final container = ProviderContainer(
+          overrides: [
+            userStoreProvider.overrideWith(() => FakeUserNotifier('me')),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            locale: const Locale('en'),
-            home: Scaffold(
-              body: MessageActionMenu(
-                position: const Offset(50, 50),
-                message: myMsg,
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: const Locale('en'),
+              home: Scaffold(
+                body: MessageActionMenu(
+                  position: const Offset(50, 50),
+                  message: myMsg,
+                ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      // Read count (2) and Reaction count (3) in footer
-      expect(find.text('2'), findsOneWidget);
-      expect(find.text('3'), findsOneWidget);
-    });
+        // Read count (2) and Reaction count (3) in footer
+        expect(find.text('2'), findsOneWidget);
+        expect(find.text('3'), findsOneWidget);
+      },
+    );
   });
 
   group('ReactionPill Widget Tests', () {
-    testWidgets('displays emoji, avatar overlap, extra count, and toggles on tap', (
-      tester,
-    ) async {
-      bool tapped = false;
+    testWidgets(
+      'displays emoji, avatar overlap, extra count, and toggles on tap',
+      (tester) async {
+        bool tapped = false;
 
-      final container = ProviderContainer(
-        overrides: [
-          userStoreProvider.overrideWith(() => FakeUserNotifier('me')),
-        ],
-      );
-      addTearDown(container.dispose);
+        final container = ProviderContainer(
+          overrides: [
+            userStoreProvider.overrideWith(() => FakeUserNotifier('me')),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: ReactionPill(
-                emoji: '🎉',
-                userUUIDs: const ['user1', 'user2', 'me'],
-                onTap: () {
-                  tapped = true;
-                },
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(
+              home: Scaffold(
+                body: ReactionPill(
+                  emoji: '🎉',
+                  userUUIDs: const ['user1', 'user2', 'me'],
+                  onTap: () {
+                    tapped = true;
+                  },
+                ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.text('🎉'), findsOneWidget);
-      // Total count: 3 users
-      expect(find.text('3'), findsOneWidget);
+        expect(find.text('🎉'), findsOneWidget);
+        // Total count: 3 users
+        expect(find.text('3'), findsOneWidget);
 
-      await tester.tap(find.byType(ReactionPill));
-      expect(tapped, isTrue);
-    });
+        await tester.tap(find.byType(ReactionPill));
+        expect(tapped, isTrue);
+      },
+    );
   });
 
   group('System Message Reaction Support Tests', () {

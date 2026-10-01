@@ -40,12 +40,12 @@ class SoundPlayer {
       return;
     }
 
-    try {
-      // audioplayers expects paths relative to the assets root
-      final sourcePath = path.startsWith('assets/')
-          ? path.substring('assets/'.length)
-          : path;
+    // audioplayers expects paths relative to the assets root
+    final sourcePath = path.startsWith('assets/')
+        ? path.substring('assets/'.length)
+        : path;
 
+    try {
       final player = AudioPlayer();
       await player.setPlayerMode(PlayerMode.lowLatency);
       await player.setVolume(volume.clamp(0.0, 1.0));
