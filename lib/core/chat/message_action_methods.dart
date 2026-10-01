@@ -15,11 +15,13 @@ import 'package:novyse/ui/components/status/status_message.dart';
 /// Encapsulates action handlers for messages (reply, quote, copy, select, forward, delete, pin, edit, download).
 class MessageActionMethods {
   final WidgetRef ref;
+  final BuildContext context;
   final String chatUUID;
   final int subID;
 
   const MessageActionMethods({
     required this.ref,
+    required this.context,
     required this.chatUUID,
     this.subID = 0,
   });
@@ -27,7 +29,9 @@ class MessageActionMethods {
   void _fail(String op, Object e) {
     debugPrint('[MessageAction] $op failed: $e');
     try {
-      ref.read(statusProvider.notifier).showStatus(
+      ref
+          .read(statusProvider.notifier)
+          .showStatus(
             StatusItem(
               id: 'message_action_$op',
               source: StatusSource.general,

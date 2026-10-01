@@ -82,7 +82,7 @@ class VoiceRecorderNotifier
         filePath = p.join(tempDir.path, fileName);
       }
 
-      final config = RecordConfig(
+      const config = RecordConfig(
         encoder: kIsWeb ? AudioEncoder.opus : AudioEncoder.aacLc,
         bitRate: 128000,
         sampleRate: 44100,
@@ -200,8 +200,8 @@ class VoiceRecorderNotifier
         fileSize = bytes?.length ?? 0;
       }
 
-      final ext = kIsWeb ? 'webm' : 'm4a';
-      final mime = kIsWeb ? 'audio/webm' : 'audio/aac';
+      const ext = kIsWeb ? 'webm' : 'm4a';
+      const mime = kIsWeb ? 'audio/webm' : 'audio/aac';
       final fileName =
           'novyse_vocal_${DateTime.now().millisecondsSinceEpoch}.$ext';
       final vocalFile = {
@@ -259,8 +259,8 @@ class VoiceRecorderNotifier
         fileSize = bytes?.length ?? 0;
       }
 
-      final ext = kIsWeb ? 'webm' : 'm4a';
-      final mime = kIsWeb ? 'audio/webm' : 'audio/aac';
+      const ext = kIsWeb ? 'webm' : 'm4a';
+      const mime = kIsWeb ? 'audio/webm' : 'audio/aac';
       final fileName =
           'novyse_vocal_${DateTime.now().millisecondsSinceEpoch}.$ext';
       final vocalFile = {

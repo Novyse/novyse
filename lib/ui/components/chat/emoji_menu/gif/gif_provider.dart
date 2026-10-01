@@ -55,8 +55,9 @@ class BackendGifProvider implements GifProvider {
     if (!res.success || res.data == null) {
       throw StateError(res.error ?? 'GIF search failed');
     }
-    final rawItems = res.data!['items'];
-    final rawProviders = res.data!['providers'];
+    final payload = res.data ?? <String, dynamic>{};
+    final rawItems = payload['items'];
+    final rawProviders = payload['providers'];
     final items = <GifItem>[];
     if (rawItems is List) {
       for (final e in rawItems) {

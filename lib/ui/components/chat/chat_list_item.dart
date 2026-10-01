@@ -57,11 +57,13 @@ ResolvedChatMetadata resolveChatMetadata({
         (otherMembers.first['uuid'] ?? otherMembers.first['userUUID'])
             as String?;
     final otherUser = otherUUID != null ? users[otherUUID] : null;
+    final otherDisplay = otherUser?.displayName.trim() ?? '';
+    final otherHandle = otherUser?.handle ?? '';
 
-    final displayName = otherUser?.displayName.trim().isNotEmpty == true
-        ? otherUser!.displayName.trim()
-        : (otherUser?.handle?.isNotEmpty == true
-              ? '@${otherUser!.handle}'
+    final displayName = otherDisplay.isNotEmpty
+        ? otherDisplay
+        : (otherHandle.isNotEmpty
+              ? '@$otherHandle'
               : (chat.name.trim().isNotEmpty ? chat.name.trim() : l10n.user));
 
     return ResolvedChatMetadata(
@@ -412,10 +414,12 @@ class ChatListItem extends ConsumerWidget {
       prefix = '${l10n.chatYou}: ';
     } else if (senderUUID != null && chat.type != 'DM') {
       final senderUser = users[senderUUID];
-      final senderName = senderUser?.displayName.trim().isNotEmpty == true
-          ? senderUser!.displayName.trim()
-          : (senderUser?.handle?.isNotEmpty == true
-                ? '@${senderUser!.handle}'
+      final senderDisplay = senderUser?.displayName.trim() ?? '';
+      final senderHandle = senderUser?.handle ?? '';
+      final senderName = senderDisplay.isNotEmpty
+          ? senderDisplay
+          : (senderHandle.isNotEmpty
+                ? '@$senderHandle'
                 : l10n.chatUnknown);
       prefix = '$senderName: ';
     }

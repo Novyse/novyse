@@ -5,13 +5,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mime/mime.dart' show defaultMagicNumbersMaxLength;
-import 'package:super_clipboard/super_clipboard.dart';
 import 'package:novyse/core/chat/queue/queue_manager.dart';
 import 'package:novyse/core/storage/file/file_type.dart';
 import 'package:novyse/core/storage/file/file_validators.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/files_bar.dart';
+import 'package:super_clipboard/super_clipboard.dart';
 
 class ChatPasteHelper {
   static const _clipboardImageFormats = <(FileFormat, String, String)>[
@@ -91,7 +91,9 @@ class ChatPasteHelper {
       } finally {
         await raf.close();
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[Paste] Magic-bytes sniff failed for $name: $e');
+    }
     return mimeType;
   }
 
@@ -125,7 +127,9 @@ class ChatPasteHelper {
           try {
             final f = io.File(path);
             if (await f.exists()) size = await f.length();
-          } catch (_) {}
+          } catch (e) {
+            debugPrint('[Paste] Size probe failed for $path: $e');
+          }
         }
         final name = path.split(RegExp(r'[\\/]')).last;
         final mimeType = await _mimeForPath(name, path);
@@ -373,7 +377,9 @@ class ChatPasteHelper {
             });
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[Paste] Skipping unreadable dropped line: $e');
+      }
     }
 
     if (validFiles.isNotEmpty && validFiles.length == lines.length) {
@@ -442,7 +448,9 @@ class ChatPasteHelper {
           'bytes': bytes,
           'mimeType': mimeType,
         });
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[Paste] Skipping unreadable dropped file: $e');
+      }
     }
 
     if (newFiles.isNotEmpty) {
@@ -523,7 +531,9 @@ class ChatPasteHelper {
         },
         files: [filePayload],
       );
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[Paste] Keyboard-inserted content failed: $e');
+    }
   }
 
   static String _readLocalUserUUID(dynamic ref) {

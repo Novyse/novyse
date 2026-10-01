@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/chat/message_read_service.dart';
+import 'package:novyse/core/storage/database/database.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
-import 'package:novyse/core/storage/database/database.dart';
 
 /// Read-receipt tracking for the message list: unread anchor, divider jump
 /// and visibility-based marking. Mixed into the list state; the state itself

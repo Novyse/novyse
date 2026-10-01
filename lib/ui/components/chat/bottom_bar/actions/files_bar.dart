@@ -1,10 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/chat/message_file.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/storage/file/draft_file_preview.dart';
 import 'package:novyse/core/storage/file/file_type.dart';
 import 'package:novyse/core/storage/file/file_utils.dart';
@@ -79,7 +81,7 @@ class _FilesBarState extends ConsumerState<FilesBar> {
 
     void handleClearAll() {
       // Stop any draft preview playback and drop cached web blob URLs.
-      stopDraftAudioForChat(chatUUID);
+      unawaited(stopDraftAudioForChat(chatUUID));
       revokeDraftBlobsForChat(chatUUID);
       final draftNotifier = ref.read(chatDraftProvider(chatUUID).notifier);
       draftNotifier.setFiles([]);
@@ -89,7 +91,7 @@ class _FilesBarState extends ConsumerState<FilesBar> {
     void handleRemoveFile(int index) {
       if (index < 0 || index >= files.length) return;
       revokeDraftBlobForFile(chatUUID, files[index]);
-      stopDraftAudioForChat(chatUUID);
+      unawaited(stopDraftAudioForChat(chatUUID));
       final updatedFiles = List<dynamic>.from(files)..removeAt(index);
       final draftNotifier = ref.read(chatDraftProvider(chatUUID).notifier);
       draftNotifier.setFiles(updatedFiles);

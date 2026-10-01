@@ -134,7 +134,7 @@ class _MentionBarState extends ConsumerState<MentionBar> {
         return const SizedBox.shrink();
       }
 
-      final query = mentionMatch.group(1)!.toLowerCase();
+      final query = (mentionMatch.group(1) ?? '').toLowerCase();
       final users = ref.watch(userStoreProvider.select((s) => s.users));
       final localUserUUID = ref.watch(
         userStoreProvider.select((s) => s.localUserUUID),

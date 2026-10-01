@@ -6,11 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:photo_view/photo_view.dart';
-
 import 'package:novyse/core/chat/message_file.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
 import 'package:novyse/core/stores/message_store.dart';
+import 'package:photo_view/photo_view.dart';
 
 class ChatMediaItem {
   const ChatMediaItem({

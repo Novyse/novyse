@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
-import 'package:novyse/ui/components/huge_icon.dart';
-
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 class ReplyBar extends ConsumerWidget {
   const ReplyBar({super.key, required this.chatUUID});

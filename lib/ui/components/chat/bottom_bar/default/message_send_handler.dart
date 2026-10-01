@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/chat/queue/queue_manager.dart';
@@ -49,7 +51,7 @@ class MessageSendHandler {
 
     final replyingTo = List<ChatReplyItem>.from(draftState.replyingTo);
 
-    stopDraftAudioForChat(chatUUID);
+    unawaited(stopDraftAudioForChat(chatUUID));
     revokeDraftBlobsForChat(chatUUID);
 
     onSendingChanged?.call(true);

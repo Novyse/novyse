@@ -206,7 +206,8 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
           });
           _formKey.currentState?.validate();
         }
-      } catch (_) {
+      } catch (e) {
+        debugPrint('[Onboarding] Handle availability check failed: $e');
         if (mounted) {
           setState(() {
             _isCheckingHandle = false;

@@ -2,11 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:super_clipboard/super_clipboard.dart';
-import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/chat/paste/chat_paste_helper.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:super_clipboard/super_clipboard.dart';
+import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 
 class ChatDropZone extends ConsumerStatefulWidget {
   const ChatDropZone({super.key, required this.chatUUID, required this.child});

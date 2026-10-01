@@ -41,10 +41,10 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Row(
-              children: const [
+              children: [
                 Expanded(
                   child: MessageVideo(
                     fileRef: 'file:///local/video.mp4',

@@ -221,7 +221,7 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
         final cellHeight = (availableHeight - (numRows + 1) * margin) / numRows;
 
         // Keep 16:9 aspect ratio or adapt to fill nicely
-        final cardAspectRatio = 16 / 9;
+        const cardAspectRatio = 16 / 9;
         double targetWidth = cellWidth;
         double targetHeight = targetWidth / cardAspectRatio;
 

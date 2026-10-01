@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -318,7 +319,7 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
                 isDanger: true,
                 onTap: () {
                   Navigator.of(context).pop();
-                  methods.delete(message);
+                  unawaited(methods.delete(context, message));
                 },
               ),
           ];

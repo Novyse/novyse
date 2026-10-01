@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/chat/message_format.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:photo_view/photo_view.dart';
-import 'package:novyse/core/chat/message_format.dart';
 
 /// Displays a GIF message with tap-to-zoom viewer.
 class MessageGif extends StatefulWidget {

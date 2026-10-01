@@ -37,8 +37,9 @@ class MessageSearchTile extends ConsumerWidget {
           ).name;
 
     final senderUUID = result['senderUUID']?.toString() ?? '';
-    final senderName = users[senderUUID]?.displayName.trim().isNotEmpty == true
-        ? users[senderUUID]!.displayName.trim()
+    final senderDisplay = users[senderUUID]?.displayName.trim() ?? '';
+    final senderName = senderDisplay.isNotEmpty
+        ? senderDisplay
         : (result['sender_name']?.toString().isNotEmpty == true
               ? result['sender_name'].toString()
               : l10n.chatUnknown);

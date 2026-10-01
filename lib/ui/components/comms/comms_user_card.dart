@@ -118,7 +118,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
       labelText = displayName;
     }
 
-    final hasVideo = tile.hasActiveVideo && tile.videoTrack != null;
+    final videoTrack = tile.hasActiveVideo ? tile.videoTrack : null;
     final isSpeaking = tile.isSpeaking && !tile.isScreenShare;
 
     final controlsOpacity = widget.isFullScreen
@@ -163,8 +163,8 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
             fit: StackFit.expand,
             children: [
               // Video or Avatar Content
-              if (hasVideo)
-                VideoTrackRenderer(tile.videoTrack!)
+              if (videoTrack != null)
+                VideoTrackRenderer(videoTrack)
               else
                 _buildAvatarFallback(context, pfpUUID, displayName),
 

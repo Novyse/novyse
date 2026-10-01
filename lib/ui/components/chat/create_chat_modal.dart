@@ -4,15 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-
 import 'package:novyse/core/auth/validator.dart';
+import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/services/api_gateway.dart';
-import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/pages/app/chat_routes.dart';
-import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/onboarding/onboarding_text_field.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
@@ -210,7 +209,7 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
           ref
               .read(activeChatProvider.notifier)
               .setSelectedChatUUID(uuid, subOverride: 0);
-          context.push(chatSubPath(uuid, 0));
+          unawaited(context.push(chatSubPath(uuid, 0)));
         }
       } else {
         setState(() {
