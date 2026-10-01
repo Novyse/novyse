@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
+import 'package:novyse/core/utils/media_kit_initializer.dart';
 import 'package:novyse/ui/components/chat/media/chat_media_viewer.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
@@ -113,6 +114,7 @@ class _MessageVideoState extends State<MessageVideo> {
     if (_initialized && _openedUri == uri) return;
     try {
       await _player?.dispose();
+      MediaKitInitializer.ensureInitialized();
       final player = Player();
       final controller = VideoController(player);
       if (mounted) {

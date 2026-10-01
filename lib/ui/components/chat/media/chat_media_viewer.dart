@@ -9,6 +9,7 @@ import 'package:media_kit_video/media_kit_video.dart';
 import 'package:novyse/core/chat/message_file.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
 import 'package:novyse/core/stores/message_store.dart';
+import 'package:novyse/core/utils/media_kit_initializer.dart';
 import 'package:photo_view/photo_view.dart';
 
 class ChatMediaItem {
@@ -366,6 +367,7 @@ class _ViewerVideoState extends State<_ViewerVideo> {
         }
         return;
       }
+      MediaKitInitializer.ensureInitialized();
       _player ??= Player();
       _controller ??= VideoController(_player!);
       if (mounted) setState(() {});

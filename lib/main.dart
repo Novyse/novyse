@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:novyse/core/config/global.dart';
 import 'package:novyse/core/events/global_event_receiver.dart';
 import 'package:novyse/core/l10n/l10n.dart';
@@ -46,7 +45,6 @@ Future<void> _initFirebase() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting();
-  MediaKit.ensureInitialized();
   await _initDesktopWindow();
   await _initFirebase();
   if (kIsWeb) {
