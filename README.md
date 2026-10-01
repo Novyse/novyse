@@ -76,7 +76,7 @@
 
 ## About The Project
 
-Novyse (/noʊˈvaɪs/) is an open-source messaging application built with React Native, designed to provide a simple, intuitive, and feature-rich communication platform. It supports real-time text-based chats across various types, including direct messages (DMs), group chats, channels, and forums, while integrating advanced features like voice and video calls powered by WebRTC. The app includes user authentication, customizable themes, privacy settings, and cross-platform compatibility for iOS, Android, web, and desktop via Electron. Currently in active development, Novyse emphasizes user privacy, open-source collaboration, and a clean, responsive interface to foster seamless conversations and community interactions.
+Novyse (/noʊˈvaɪs/) is an open-source messaging application built with Flutter, designed to provide a simple, intuitive, and feature-rich communication platform. It supports real-time text-based chats across various types, including direct messages (DMs), group chats, channels, and forums, while integrating advanced features like voice and video calls powered by LiveKit/WebRTC. The app includes user authentication, customizable themes, privacy settings, and cross-platform compatibility for iOS, Android, web, and desktop. Currently in active development, Novyse emphasizes user privacy, open-source collaboration, and a clean, responsive interface to foster seamless conversations and community interactions.
 
 ## Updates and Roadmap
 
@@ -98,17 +98,21 @@ A preview version with new features that are not yet fully tested may be availab
 
 ## Testing & Code Coverage
 
-To run all unit and widget tests:
+Prerequisites: Flutter SDK 3.35+ (Dart `^3.13.2`).
 
 ```bash
+flutter pub get
 flutter test
 ```
 
-To run tests with code coverage:
+With coverage:
 
 ```bash
 flutter test --coverage
 ```
+
+See the [Contributing Guidelines](CONTRIBUTING.md) for the full development
+workflow (running the app, formatting, static analysis).
 
 ### Contributing
 
@@ -152,5 +156,5 @@ For more details on trademark usage and guidelines, please refer to [TRADEMARK](
 ---
 
 <p align="center">
-© 2025 Novyse. All rights reserved.
+© 2026 Novyse. All rights reserved.
 </p>
