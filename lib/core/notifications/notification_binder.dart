@@ -2,16 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/notifications/notification_bridge.dart';
 import 'package:novyse/core/notifications/notification_manager.dart';
+import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/core/router/router.dart';
 import 'package:novyse/core/services/socket_service.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
-import 'package:novyse/pages/app/chat_routes.dart';
 
 /// Binds [NotificationManager] to Riverpod stores and listens for inbound messages.
 class NotificationBinder extends ConsumerStatefulWidget {

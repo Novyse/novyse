@@ -6,10 +6,10 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/chat/message_action_methods.dart';
 import 'package:novyse/core/chat/message_format.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/favorite_messages_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
-import 'package:novyse/pages/app/chat_routes.dart';
 import 'package:novyse/ui/components/chat/chat_favorites/chat_favorites_app_bar.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
@@ -46,6 +46,7 @@ class _ChatFavoritesPageState extends ConsumerState<ChatFavoritesPage> {
   Future<void> _toggleFavorite(MessageModel message) async {
     final methods = MessageActionMethods(
       ref: ref,
+      context: context,
       chatUUID: message.chatUUID,
       subID: message.subID,
     );

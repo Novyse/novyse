@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../auth/onboarding_manager.dart';
 import '../../pages/app/chat_detail_page.dart';
 import '../../pages/app/chat_favorites_page.dart';
 import '../../pages/app/chat_overview_page.dart';
@@ -11,6 +10,7 @@ import '../../pages/onboarding/login.dart';
 import '../../pages/onboarding/signup.dart';
 import '../../pages/onboarding/welcome.dart';
 import '../../pages/update_required.dart';
+import '../auth/onboarding_manager.dart';
 import 'navigator_keys.dart';
 
 Page<void> _placeholderPage(GoRouterState state) {
@@ -26,6 +26,25 @@ Page<void> _chatStackPage(GoRouterState state, Widget child) {
     name: state.uri.path,
     child: child,
   );
+}
+
+({String chatUUID, int subID}) _chatParams(GoRouterState state) {
+  return (
+    chatUUID: state.pathParameters['chatUUID'] ?? '',
+    subID: int.tryParse(state.pathParameters['subID'] ?? '') ?? 0,
+  );
+}
+
+String _querySuffix(Uri uri) => uri.query.isEmpty ? '' : '?${uri.query}';
+
+String _normalizedChatPath(
+  GoRouterState state, {
+  int? subID,
+  String suffix = '',
+}) {
+  final chatUUID = state.pathParameters['chatUUID'] ?? '';
+  final sub = subID ?? (int.tryParse(state.pathParameters['subID'] ?? '') ?? 0);
+  return '/chats/$chatUUID/$sub$suffix${_querySuffix(state.uri)}';
 }
 
 /// Global application GoRouter provider with authentication guard.
@@ -90,72 +109,55 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/chats', pageBuilder: (c, s) => _placeholderPage(s)),
           GoRoute(
             path: '/chats/:chatUUID',
-            redirect: (context, state) {
-              final chatUUID = state.pathParameters['chatUUID'] ?? '';
-              final querySuffix = state.uri.query.isEmpty
-                  ? ''
-                  : '?${state.uri.query}';
-              return '/chats/$chatUUID/0$querySuffix';
-            },
+            redirect: (context, state) => _normalizedChatPath(state),
           ),
           GoRoute(
             path: '/chats/:chatUUID/overview',
-            redirect: (context, state) {
-              final chatUUID = state.pathParameters['chatUUID'] ?? '';
-              final querySuffix = state.uri.query.isEmpty
-                  ? ''
-                  : '?${state.uri.query}';
-              return '/chats/$chatUUID/0/overview$querySuffix';
-            },
+            redirect: (context, state) =>
+                _normalizedChatPath(state, subID: 0, suffix: '/overview'),
           ),
           GoRoute(
             path: '/chats/:chatUUID/:subID',
             redirect: (context, state) {
-              final subRaw = state.pathParameters['subID'] ?? '';
-              if (int.tryParse(subRaw) == null) {
-                final chatUUID = state.pathParameters['chatUUID'] ?? '';
-                final suffix = state.uri.path.endsWith('/overview')
-                    ? '/overview'
-                    : '';
-                final querySuffix = state.uri.query.isEmpty
-                    ? ''
-                    : '?${state.uri.query}';
-                return '/chats/$chatUUID/0$suffix$querySuffix';
+              if (int.tryParse(state.pathParameters['subID'] ?? '') != null) {
+                return null;
               }
-              return null;
+              final suffix = state.uri.path.endsWith('/overview')
+                  ? '/overview'
+                  : '';
+              return _normalizedChatPath(state, subID: 0, suffix: suffix);
             },
             pageBuilder: (context, state) {
-              final chatUUID = state.pathParameters['chatUUID'] ?? '';
-              final subID =
-                  int.tryParse(state.pathParameters['subID'] ?? '') ?? 0;
+              final params = _chatParams(state);
               return _chatStackPage(
                 state,
-                ChatDetailPage(chatUUID: chatUUID, subID: subID),
+                ChatDetailPage(chatUUID: params.chatUUID, subID: params.subID),
               );
             },
             routes: [
               GoRoute(
                 path: 'overview',
                 pageBuilder: (context, state) {
-                  final chatUUID = state.pathParameters['chatUUID'] ?? '';
-                  final subID =
-                      int.tryParse(state.pathParameters['subID'] ?? '') ?? 0;
+                  final params = _chatParams(state);
                   return _chatStackPage(
                     state,
-                    ChatOverviewPage(chatUUID: chatUUID, subID: subID),
+                    ChatOverviewPage(
+                      chatUUID: params.chatUUID,
+                      subID: params.subID,
+                    ),
                   );
                 },
                 routes: [
                   GoRoute(
                     path: 'favorites',
                     pageBuilder: (context, state) {
-                      final chatUUID = state.pathParameters['chatUUID'] ?? '';
-                      final subID =
-                          int.tryParse(state.pathParameters['subID'] ?? '') ??
-                          0;
+                      final params = _chatParams(state);
                       return _chatStackPage(
                         state,
-                        ChatFavoritesPage(chatUUID: chatUUID, subID: subID),
+                        ChatFavoritesPage(
+                          chatUUID: params.chatUUID,
+                          subID: params.subID,
+                        ),
                       );
                     },
                   ),

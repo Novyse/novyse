@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:novyse/core/chat/chat_search_service.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
-import 'package:novyse/pages/app/chat_routes.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_list_app_bar.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_list_empty_view.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_list_view.dart';
@@ -146,7 +147,9 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
 
     if (canSearchRemote) {
       unawaited(
-        searchRemoteChats(q)
+        ref
+            .read(chatSearchServiceProvider)
+            .searchAll(q, l10n)
             .then((remoteResults) {
               if (!mounted || token != _searchToken || _query.trim() != q) {
                 return;

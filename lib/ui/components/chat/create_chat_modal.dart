@@ -5,11 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/auth/validator.dart';
+import 'package:novyse/core/chat/chat_service.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/core/services/api_gateway.dart';
+import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
-import 'package:novyse/pages/app/chat_routes.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/onboarding/onboarding_text_field.dart';
@@ -119,7 +120,7 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
 
     _handleTimer = Timer(const Duration(milliseconds: 1000), () async {
       try {
-        final res = await apiGateway.check.handle(normalized);
+        final res = await ref.read(chatServiceProvider).checkHandle(normalized);
         if (!mounted) return;
         setState(() {
           _handleLoading = false;
@@ -190,12 +191,14 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
 
     setState(() => _creating = true);
     try {
-      final res = await apiGateway.chat.create(
-        _type.apiValue,
-        memberUUIDs: const [],
-        name: name,
-        handle: _privacy == CreateChatPrivacy.private ? '' : handle,
-      );
+      final res = await ref
+          .read(chatServiceProvider)
+          .create(
+            type: _type.apiValue,
+            memberUUIDs: const [],
+            name: name,
+            handle: _privacy == CreateChatPrivacy.private ? '' : handle,
+          );
       if (!mounted) return;
       final success = res['success'] == true;
       final chat = res['chat'];

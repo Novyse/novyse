@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/router/navigator_keys.dart';
+import 'navigator_keys.dart';
 
-String? chatUUIDFromPath(String path) {
+/// Parsed `/chats/:chatUUID/:subID/...` location.
+typedef ChatPathLocation = ({String? chatUUID, int subID});
+
+ChatPathLocation _parseChatPath(String path) {
   final segments = Uri.parse(path).pathSegments;
-  if (segments.length >= 2 && segments.first == 'chats') {
-    return segments[1];
+  if (segments.length < 2 || segments.first != 'chats') {
+    return (chatUUID: null, subID: 0);
   }
-  return null;
+  final subID = segments.length >= 3 ? (int.tryParse(segments[2]) ?? 0) : 0;
+  return (chatUUID: segments[1], subID: subID);
 }
 
-int chatSubIDFromPath(String path) {
-  final segments = Uri.parse(path).pathSegments;
-  if (segments.length >= 3 && segments.first == 'chats') {
-    return int.tryParse(segments[2]) ?? 0;
-  }
-  return 0;
-}
+String? chatUUIDFromPath(String path) => _parseChatPath(path).chatUUID;
+
+int chatSubIDFromPath(String path) => _parseChatPath(path).subID;
 
 /// - empty subs (DM/group without subs) -> 0
 /// - requested sub exists -> requested sub
