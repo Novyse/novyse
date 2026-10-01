@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/settings/settings_base_row.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Opens [url] in the system browser (or self tab on web).
 Future<bool> openExternalUrl(String url) async {

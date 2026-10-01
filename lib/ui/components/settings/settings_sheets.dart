@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_actions.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
-
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
@@ -275,50 +272,76 @@ Future<void> showSettingsTextSheet({
   final raw = settingKey == null
       ? item.defaultValue
       : ref.read(settingsControllerProvider)[settingKey];
-  final controller = TextEditingController(text: raw?.toString() ?? '');
 
   return _showSettingsSheet(
     context: context,
-    child: Column(
+    child: _SettingsTextFieldBody(
+      title: title,
+      initialText: raw?.toString() ?? '',
+      onSave: (text) async {
+        if (settingKey != null) {
+          await ref
+              .read(settingsControllerProvider.notifier)
+              .set(settingKey, text);
+        }
+        if (context.mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+      },
+    ),
+  );
+}
+
+class _SettingsTextFieldBody extends StatefulWidget {
+  const _SettingsTextFieldBody({
+    required this.title,
+    required this.initialText,
+    required this.onSave,
+  });
+
+  final String title;
+  final String initialText;
+  final Future<void> Function(String text) onSave;
+
+  @override
+  State<_SettingsTextFieldBody> createState() => _SettingsTextFieldBodyState();
+}
+
+class _SettingsTextFieldBodyState extends State<_SettingsTextFieldBody> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.initialText,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _sheetTitle(context, title),
+        _sheetTitle(context, widget.title),
         TextField(
-          controller: controller,
+          controller: _controller,
           autofocus: true,
           decoration: InputDecoration(
-            hintText: title,
+            hintText: widget.title,
             border: const OutlineInputBorder(),
           ),
-          onSubmitted: (_) async {
-            if (settingKey != null) {
-              await ref
-                  .read(settingsControllerProvider.notifier)
-                  .set(settingKey, controller.text);
-            }
-            if (context.mounted) {
-              Navigator.of(context, rootNavigator: true).pop();
-            }
-          },
+          onSubmitted: (_) => widget.onSave(_controller.text),
         ),
         const SizedBox(height: 16),
         AppButton(
           label: context.l10n.settingsCommonSave,
-          onPressed: () async {
-            if (settingKey != null) {
-              await ref
-                  .read(settingsControllerProvider.notifier)
-                  .set(settingKey, controller.text);
-            }
-            if (context.mounted) {
-              Navigator.of(context, rootNavigator: true).pop();
-            }
-          },
+          onPressed: () => widget.onSave(_controller.text),
         ),
       ],
-    ),
-  );
+    );
+  }
 }
 
 Future<void> showSettingsColorSheet({
