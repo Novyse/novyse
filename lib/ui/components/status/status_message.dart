@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 import '../huge_icon.dart';
 
@@ -104,37 +106,29 @@ class _StatusMessageState extends State<StatusMessage>
   }
 
   ({List<List<dynamic>> icon, Color text, Color bg, Color border})
-  _getColors() {
+  _getColors(AppStatusColors status) {
+    final Color accent;
+    final List<List<dynamic>> icon;
     switch (widget.type) {
       case StatusMessageType.success:
-        return (
-          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-          text: const Color(0xFF1B5E20),
-          bg: const Color(0xFFE8F5E9),
-          border: const Color(0xFFA5D6A7),
-        );
+        accent = status.success;
+        icon = HugeIcons.strokeRoundedCheckmarkCircle02;
       case StatusMessageType.danger:
-        return (
-          icon: HugeIcons.strokeRoundedAlertCircle,
-          text: const Color(0xFFB71C1C),
-          bg: const Color(0xFFFFEBEE),
-          border: const Color(0xFFEF9A9A),
-        );
+        accent = status.danger;
+        icon = HugeIcons.strokeRoundedAlertCircle;
       case StatusMessageType.warning:
-        return (
-          icon: HugeIcons.strokeRoundedAlert02,
-          text: const Color(0xFFE65100),
-          bg: const Color(0xFFFFF3E0),
-          border: const Color(0xFFFFCC80),
-        );
+        accent = status.warning;
+        icon = HugeIcons.strokeRoundedAlert02;
       case StatusMessageType.info:
-        return (
-          icon: HugeIcons.strokeRoundedInformationCircle,
-          text: const Color(0xFF0D47A1),
-          bg: const Color(0xFFE3F2FD),
-          border: const Color(0xFF90CAF9),
-        );
+        accent = status.info;
+        icon = HugeIcons.strokeRoundedInformationCircle;
     }
+    return (
+      icon: icon,
+      text: accent,
+      bg: accent.withValues(alpha: 0.2),
+      border: accent.withValues(alpha: 0.45),
+    );
   }
 
   @override
@@ -157,16 +151,13 @@ class _StatusMessageState extends State<StatusMessage>
       return const SizedBox.shrink();
     }
 
-    final colors = _getColors();
+    final colors = _getColors(context.statusColors);
 
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 8),
-      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: colors.bg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.border, width: 1),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -175,7 +166,17 @@ class _StatusMessageState extends State<StatusMessage>
           ),
         ],
       ),
-      child: Column(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: colors.bg,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: colors.border, width: 1),
+            ),
+            child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
@@ -264,7 +265,7 @@ class _StatusMessageState extends State<StatusMessage>
           if (widget.progress != null)
             LinearProgressIndicator(
               value: widget.progress! >= 0 ? widget.progress : null,
-              backgroundColor: colors.border.withValues(alpha: 0.3),
+              backgroundColor: colors.bg,
               valueColor: AlwaysStoppedAnimation<Color>(colors.text),
               minHeight: 3,
             )
@@ -274,13 +275,16 @@ class _StatusMessageState extends State<StatusMessage>
               builder: (context, child) {
                 return LinearProgressIndicator(
                   value: 1.0 - _progressController!.value,
-                  backgroundColor: colors.border.withValues(alpha: 0.3),
+                  backgroundColor: colors.bg,
                   valueColor: AlwaysStoppedAnimation<Color>(colors.text),
                   minHeight: 3,
                 );
               },
             ),
         ],
+            ),
+          ),
+        ),
       ),
     );
   }

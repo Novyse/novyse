@@ -90,18 +90,18 @@ void main() {
     expect(find.text('Confirm'), findsNothing);
   });
 
-  testWidgets('Theme select is WIP-disabled: tap opens no picker',
-      (tester) async {
+  testWidgets('Theme palette select opens the option picker', (tester) async {
     await tester.pumpWidget(_wrap(const SettingsGroupPage(
       categoryId: 'customization',
       pageId: 'customization_themes',
     )));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Theme'));
+    await tester.tap(find.text('Color palette'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Midnight OLED'), findsNothing);
+    expect(find.text('Forest'), findsOneWidget);
+    expect(find.text('Iris'), findsOneWidget);
   });
 
   testWidgets('Enabled select item still opens the option picker sheet',

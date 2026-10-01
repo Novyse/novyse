@@ -391,28 +391,37 @@ class _FloatingTabBar extends StatelessWidget {
     final barWidth = (paneWidth * 0.64).clamp(220.0, 420.0);
     final scheme = Theme.of(context).colorScheme;
 
+    const barRadius = BorderRadius.all(Radius.circular(100));
     return Center(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(100),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: Container(
-            width: barWidth,
-            height: 68,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            decoration: BoxDecoration(
-              color: scheme.surface.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: scheme.outline.withValues(alpha: 0.25)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 100,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+      child: Container(
+        width: barWidth,
+        height: 68,
+        decoration: BoxDecoration(
+          borderRadius: barRadius,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 100,
+              offset: const Offset(0, 10),
             ),
-            child: AnimatedBuilder(
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: barRadius,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: scheme.surface.withValues(alpha: 0.6),
+                borderRadius: barRadius,
+                border: Border.all(
+                  color: scheme.outline.withValues(alpha: 0.25),
+                  strokeAlign: BorderSide.strokeAlignInside,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: AnimatedBuilder(
               animation: controller.animation!,
               builder: (context, child) {
                 return LayoutBuilder(
@@ -477,6 +486,8 @@ class _FloatingTabBar extends StatelessWidget {
                   },
                 );
               },
+                ),
+              ),
             ),
           ),
         ),
