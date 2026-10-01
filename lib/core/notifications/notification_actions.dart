@@ -44,7 +44,11 @@ class NotificationActions {
     final content = text.trim();
     if (content.isEmpty || chatUUID.isEmpty) return;
 
-    final userUUID = await onboardingManager.getUserUUID() as String;
+    final userUUID = await onboardingManager.getUserUUID();
+    if (userUUID == null || userUUID.isEmpty) {
+      debugPrint('[NotificationActions] No local user, dropping quick reply');
+      return;
+    }
     if (!AppDatabase.instance.isOpenForUser(userUUID)) {
       await AppDatabase.instance.openForUser(userUUID);
     }

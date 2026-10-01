@@ -23,7 +23,12 @@ class OnboardingManager extends StateNotifier<bool> {
     final loggedIn = await isLoggedIn();
     state = loggedIn;
     if (loggedIn) {
-      final userUUID = await getUserUUID() as String;
+      final userUUID = await getUserUUID();
+      if (userUUID == null || userUUID.isEmpty) {
+        debugPrint('[Onboarding] Session present but userUUID missing');
+        state = false;
+        return false;
+      }
       FileStorage.instance.setCurrentUser(userUUID);
       await AppDatabase.instance.openForUser(userUUID);
     }
