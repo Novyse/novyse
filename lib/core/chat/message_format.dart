@@ -229,26 +229,29 @@ String formatActivity(
 
   for (final a in activeActivities) {
     final item = Map<String, dynamic>.from(a as Map);
-    final action = item['action'] as String;
-    if (!actionsMap.containsKey(action)) {
-      actionsMap[action] = [];
+    final action = item['action'];
+    if (action is! String) continue;
+    final list = actionsMap.putIfAbsent(action, () {
       actionOrder.add(action);
-    }
-    actionsMap[action]!.add(item);
+      return <Map<String, dynamic>>[];
+    });
+    list.add(item);
   }
 
+  if (actionOrder.isEmpty) return '';
+
   var majorityAction = actionOrder.first;
-  var maxCount = actionsMap[majorityAction]!.length;
+  var maxCount = actionsMap[majorityAction]?.length ?? 0;
 
   for (final action in actionOrder) {
-    final count = actionsMap[action]!.length;
+    final count = actionsMap[action]?.length ?? 0;
     if (count > maxCount) {
       maxCount = count;
       majorityAction = action;
     }
   }
 
-  final participants = actionsMap[majorityAction]!;
+  final participants = actionsMap[majorityAction] ?? const [];
   final count = participants.length;
   final names = participants.map((p) {
     final uuid = (p['userUUID'] ?? '') as String;
