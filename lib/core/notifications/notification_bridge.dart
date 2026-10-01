@@ -38,14 +38,20 @@ class NotificationBridge {
   static void unregister() {
     try {
       _subscription?.cancel();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[NotificationBridge] cancel failed: $e');
+    }
     _subscription = null;
     try {
       IsolateNameServer.removePortNameMapping(portName);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[NotificationBridge] removePort failed: $e');
+    }
     try {
       _port?.close();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[NotificationBridge] port close failed: $e');
+    }
     _port = null;
   }
 

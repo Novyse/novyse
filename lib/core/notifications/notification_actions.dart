@@ -1,12 +1,11 @@
 import 'package:flutter/foundation.dart';
-
 import 'package:novyse/core/auth/onboarding_manager.dart';
 import 'package:novyse/core/chat/message_read_service.dart';
 import 'package:novyse/core/chat/queue/queue_manager.dart';
-import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/notifications/local_notification_service.dart';
 import 'package:novyse/core/notifications/notification_bridge.dart';
+import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/storage/database/database.dart';
 
 abstract final class NotificationActionIds {

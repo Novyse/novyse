@@ -1,10 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:flutter/foundation.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/services/auth.dart' as auth_service;
 import 'package:novyse/core/utils/platform.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const _kFcmTokenKey = 'fcm_push_token';
 
@@ -94,7 +93,9 @@ class FcmService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_kFcmTokenKey);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[FcmService] token pref clear failed: $e');
+    }
     if (!isSupported) return;
     try {
       await FirebaseMessaging.instance.deleteToken();
@@ -103,6 +104,8 @@ class FcmService {
     }
     try {
       await Gateway.instance.notification.deleteFCMToken();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[FcmService] server token delete failed: $e');
+    }
   }
 }

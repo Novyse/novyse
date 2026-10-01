@@ -119,7 +119,9 @@ class NotificationManager {
     if (rawMessage is String && rawMessage.isNotEmpty) {
       try {
         messageData = Map<String, dynamic>.from(jsonDecode(rawMessage) as Map);
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[Notifications] Remote message decode failed: $e');
+      }
     } else if (rawMessage is Map) {
       messageData = Map<String, dynamic>.from(rawMessage);
     }

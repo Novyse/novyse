@@ -240,7 +240,9 @@ class LocalNotificationService {
     try {
       final container = ProviderScope.containerOf(context, listen: false);
       container.read(routerProvider).go('/chats/$chatUUID/$subID');
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[Notifications] navigate to chat failed: $e');
+    }
   }
 
   int _notificationIdForChat(String chatUUID) {
@@ -258,7 +260,9 @@ class LocalNotificationService {
     _meta.clear();
     try {
       await _plugin.cancelAll();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[Notifications] cancelAll failed: $e');
+    }
   }
 
   /// Append the user's quick-reply to the MessagingStyle thread and refresh.
@@ -408,7 +412,7 @@ class LocalNotificationService {
       ],
     );
 
-    final darwinDetails = DarwinNotificationDetails(
+    const darwinDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
