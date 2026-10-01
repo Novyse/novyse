@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
-
 import 'dart:io' as io;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// The operating system the app is running on.
 enum AppOS { android, ios, macos, linux, windows, fuchsia, web }
