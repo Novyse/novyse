@@ -75,28 +75,29 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
   }
 
   Future<void> _initController() async {
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.transparent)
-      ..addJavaScriptChannel(
-        'TurnstileBridge',
-        onMessageReceived: _handleJavaScriptMessage,
-      )
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onWebResourceError: (error) {
-            widget.onError?.call(error.description);
-          },
-        ),
-      );
+    _controller = WebViewController();
+    await _controller.setJavaScriptMode(JavaScriptMode.unrestricted);
+    await _controller.setBackgroundColor(Colors.transparent);
+    await _controller.addJavaScriptChannel(
+      'TurnstileBridge',
+      onMessageReceived: _handleJavaScriptMessage,
+    );
+    await _controller.setNavigationDelegate(
+      NavigationDelegate(
+        onWebResourceError: (error) {
+          widget.onError?.call(error.description);
+        },
+      ),
+    );
 
     final html = _generateHtml();
     final isWindows = currentOS == AppOS.windows;
 
     if (isWindows) {
       try {
-        _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
-        _server!.listen((HttpRequest request) {
+        final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+        _server = server;
+        server.listen((HttpRequest request) {
           request.response
             ..headers.contentType = ContentType.html
             ..headers.set('Access-Control-Allow-Origin', '*')
@@ -104,9 +105,10 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
             ..close();
         });
         await _controller.loadRequest(
-          Uri.parse('http://localhost:${_server!.port}'),
+          Uri.parse('http://localhost:${server.port}'),
         );
-      } catch (_) {
+      } catch (e) {
+        debugPrint('[Turnstile] Loopback server failed: $e');
         await _controller.loadHtmlString(html, baseUrl: widget.baseUrl);
       }
     } else {
@@ -144,11 +146,13 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
   }
 
   String _generateHtml() {
+    final siteKey = jsonEncode(widget.siteKey);
+    final theme = jsonEncode(widget.theme);
     final actionParam = widget.action != null
-        ? "action: '${widget.action}',"
+        ? 'action: ${jsonEncode(widget.action)},'
         : '';
     final langParam = widget.language != null
-        ? "language: '${widget.language}',"
+        ? 'language: ${jsonEncode(widget.language)},'
         : '';
 
     return '''<!DOCTYPE html>
@@ -188,8 +192,8 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
       if (window.turnstile && typeof window.turnstile.render === 'function') {
         rendered = true;
         window.turnstile.render('#cf-turnstile-container', {
-          sitekey: '${widget.siteKey}',
-          theme: '${widget.theme}',
+          sitekey: $siteKey,
+          theme: $theme,
           $actionParam
           $langParam
           callback: function(token) {
