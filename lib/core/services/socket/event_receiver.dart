@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart' show debugPrint;
-import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 /// Handles receiving events from the Socket.IO server and passing them
 /// to the [GlobalEventEmitter].

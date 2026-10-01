@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show debugPrint;
@@ -123,7 +124,8 @@ class ProfilePictureService {
       try {
         return await downloadFuture;
       } finally {
-        _inFlightDownloads.remove(uuid);
+        final inFlight = _inFlightDownloads.remove(uuid);
+        if (inFlight != null) unawaited(inFlight);
       }
     } catch (error) {
       debugPrint(

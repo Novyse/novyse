@@ -240,7 +240,9 @@ class SyncService {
       // Sync FCM token once session + network are ready
       try {
         await NotificationManager.instance.syncPushToken();
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[SyncService] Push token sync failed: $e');
+      }
 
       _isSyncing = false;
       return true;
@@ -543,7 +545,7 @@ class SyncService {
       await _ref.read(chatListProvider.notifier).init();
 
       _status.dismissStatus('sync_status');
-      _socket.open();
+      unawaited(_socket.open());
 
       _isSyncing = false;
       return true;

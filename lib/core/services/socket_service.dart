@@ -2,17 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:socket_io_client/socket_io_client.dart' as io;
-
 import 'package:novyse/core/config/global.dart' as config;
-import 'package:novyse/core/services/auth.dart';
-import 'package:novyse/core/stores/network_store.dart';
-import 'package:novyse/core/stores/status_store.dart';
 import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
+import 'package:novyse/core/services/auth.dart';
 import 'package:novyse/core/services/socket/event_receiver.dart';
 import 'package:novyse/core/services/socket/event_sender.dart';
+import 'package:novyse/core/stores/network_store.dart';
+import 'package:novyse/core/stores/status_store.dart';
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 /// Default transports for Socket.IO connection.
 const _transports = ['websocket', 'polling'];

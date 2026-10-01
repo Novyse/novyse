@@ -254,7 +254,8 @@ class UserSettingsModule {
         );
       }
       return (success: false, userEventID: null);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Gateway] updateSetting $key failed: $e');
       return (success: false, userEventID: null);
     }
   }
@@ -1123,7 +1124,8 @@ class NotificationModule {
     try {
       final res = await _dio.delete('/notification/push-token');
       return _ok(res);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Gateway] deleteFCMToken failed: $e');
       return false;
     }
   }

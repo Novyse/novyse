@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -55,7 +56,8 @@ class FileDownloadService {
     try {
       return await downloadFuture;
     } finally {
-      _inFlightDownloads.remove(fileUUID);
+      final inFlight = _inFlightDownloads.remove(fileUUID);
+      if (inFlight != null) unawaited(inFlight);
     }
   }
 
@@ -175,7 +177,9 @@ class FileDownloadService {
             return existingUri;
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[FileDownload] Local ref lookup failed: $e');
+      }
     }
 
     // 3. If missing and autoDownload is requested, download it

@@ -1,10 +1,8 @@
-import 'package:novyse_auth/novyse_auth.dart';
-
 import 'package:novyse/core/config/global.dart' as config;
-import 'package:novyse/core/utils/platform.dart';
-
 import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
+import 'package:novyse/core/utils/platform.dart';
+import 'package:novyse_auth/novyse_auth.dart';
 
 /// Maps the config string to the SDK [Branch] enum.
 final Branch _branch = switch (config.branch) {
