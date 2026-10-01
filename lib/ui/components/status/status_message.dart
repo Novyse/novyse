@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/status_message_type.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 import '../huge_icon.dart';
 
@@ -102,38 +104,31 @@ class _StatusMessageState extends State<StatusMessage>
     super.dispose();
   }
 
-  ({List<List<dynamic>> icon, Color text, Color bg, Color border})
-  _getColors() {
+  ({List<List<dynamic>> icon, Color text, Color bg, Color border}) _getColors(
+    AppStatusColors status,
+  ) {
+    final Color accent;
+    final List<List<dynamic>> icon;
     switch (widget.type) {
       case StatusMessageType.success:
-        return (
-          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-          text: const Color(0xFF1B5E20),
-          bg: const Color(0xFFE8F5E9),
-          border: const Color(0xFFA5D6A7),
-        );
+        accent = status.success;
+        icon = HugeIcons.strokeRoundedCheckmarkCircle02;
       case StatusMessageType.danger:
-        return (
-          icon: HugeIcons.strokeRoundedAlertCircle,
-          text: const Color(0xFFB71C1C),
-          bg: const Color(0xFFFFEBEE),
-          border: const Color(0xFFEF9A9A),
-        );
+        accent = status.danger;
+        icon = HugeIcons.strokeRoundedAlertCircle;
       case StatusMessageType.warning:
-        return (
-          icon: HugeIcons.strokeRoundedAlert02,
-          text: const Color(0xFFE65100),
-          bg: const Color(0xFFFFF3E0),
-          border: const Color(0xFFFFCC80),
-        );
+        accent = status.warning;
+        icon = HugeIcons.strokeRoundedAlert02;
       case StatusMessageType.info:
-        return (
-          icon: HugeIcons.strokeRoundedInformationCircle,
-          text: const Color(0xFF0D47A1),
-          bg: const Color(0xFFE3F2FD),
-          border: const Color(0xFF90CAF9),
-        );
+        accent = status.info;
+        icon = HugeIcons.strokeRoundedInformationCircle;
     }
+    return (
+      icon: icon,
+      text: accent,
+      bg: accent.withValues(alpha: 0.2),
+      border: accent.withValues(alpha: 0.45),
+    );
   }
 
   @override
@@ -156,16 +151,13 @@ class _StatusMessageState extends State<StatusMessage>
       return const SizedBox.shrink();
     }
 
-    final colors = _getColors();
+    final colors = _getColors(context.statusColors);
 
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 8),
-      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: colors.bg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.border, width: 1),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -174,112 +166,129 @@ class _StatusMessageState extends State<StatusMessage>
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: colors.bg,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: colors.border, width: 1),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: 2, right: 12),
-                  child: AppHugeIcon(
-                    icon: colors.icon,
-                    color: colors.text,
-                    size: 20,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
                   ),
-                ),
-                Expanded(
-                  child: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (resolvedTitle != null && resolvedTitle.isNotEmpty)
-                        Text(
-                          resolvedTitle,
-                          style: TextStyle(
-                            color: colors.text,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ...resolvedContent.map(
-                        (item) => Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Text(
-                            resolvedContent.length > 1 ? '• $item' : item,
-                            style: TextStyle(
-                              color: colors.text,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2, right: 12),
+                        child: AppHugeIcon(
+                          icon: colors.icon,
+                          color: colors.text,
+                          size: 20,
                         ),
                       ),
-                      if (widget.onAction != null &&
-                          resolvedActionLabel != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: InkWell(
-                            onTap: widget.onAction,
-                            borderRadius: BorderRadius.circular(8),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              child: Text(
-                                resolvedActionLabel,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (resolvedTitle != null &&
+                                resolvedTitle.isNotEmpty)
+                              Text(
+                                resolvedTitle,
                                 style: TextStyle(
                                   color: colors.text,
-                                  fontSize: 13,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  decoration: TextDecoration.underline,
                                 ),
                               ),
+                            ...resolvedContent.map(
+                              (item) => Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Text(
+                                  resolvedContent.length > 1 ? '• $item' : item,
+                                  style: TextStyle(
+                                    color: colors.text,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (widget.onAction != null &&
+                                resolvedActionLabel != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 6),
+                                child: InkWell(
+                                  onTap: widget.onAction,
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    child: Text(
+                                      resolvedActionLabel,
+                                      style: TextStyle(
+                                        color: colors.text,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      if (widget.closable)
+                        InkWell(
+                          onTap: _handleClose,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: AppHugeIcon(
+                              icon: HugeIcons.strokeRoundedCancel01,
+                              color: colors.text,
+                              size: 16,
                             ),
                           ),
                         ),
                     ],
                   ),
                 ),
-                if (widget.closable)
-                  InkWell(
-                    onTap: _handleClose,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: AppHugeIcon(
-                        icon: HugeIcons.strokeRoundedCancel01,
-                        color: colors.text,
-                        size: 16,
-                      ),
-                    ),
+                if (widget.progress != null)
+                  LinearProgressIndicator(
+                    value: widget.progress! >= 0 ? widget.progress : null,
+                    backgroundColor: colors.bg,
+                    valueColor: AlwaysStoppedAnimation<Color>(colors.text),
+                    minHeight: 3,
+                  )
+                else if (_progressController != null)
+                  AnimatedBuilder(
+                    animation: _progressController!,
+                    builder: (context, child) {
+                      return LinearProgressIndicator(
+                        value: 1.0 - _progressController!.value,
+                        backgroundColor: colors.bg,
+                        valueColor: AlwaysStoppedAnimation<Color>(colors.text),
+                        minHeight: 3,
+                      );
+                    },
                   ),
               ],
             ),
           ),
-          if (widget.progress != null)
-            LinearProgressIndicator(
-              value: widget.progress! >= 0 ? widget.progress : null,
-              backgroundColor: colors.border.withValues(alpha: 0.3),
-              valueColor: AlwaysStoppedAnimation<Color>(colors.text),
-              minHeight: 3,
-            )
-          else if (_progressController != null)
-            AnimatedBuilder(
-              animation: _progressController!,
-              builder: (context, child) {
-                return LinearProgressIndicator(
-                  value: 1.0 - _progressController!.value,
-                  backgroundColor: colors.border.withValues(alpha: 0.3),
-                  valueColor: AlwaysStoppedAnimation<Color>(colors.text),
-                  minHeight: 3,
-                );
-              },
-            ),
-        ],
+        ),
       ),
     );
   }

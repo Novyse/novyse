@@ -21,6 +21,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/auth/onboarding_manager.dart';
 import 'core/router/router.dart';
+import 'core/settings/settings_controller.dart';
 import 'core/themes/themes.dart';
 
 Future<void> _initDesktopWindow() async {
@@ -65,15 +66,26 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsControllerProvider);
+    final palette = paletteFromSettings(settings);
+    final surface = surfaceFromSetting(settings['appearance.surfaceMode']);
     return MaterialApp.router(
       title: appName,
       localizationsDelegates: localizationsDelegates,
       supportedLocales: supportedLocales,
       localeResolutionCallback: resolveLocale,
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.dark,
+      theme: AppTheme.build(
+        brightness: Brightness.light,
+        palette: palette,
+        surface: surface,
+      ),
+      darkTheme: AppTheme.build(
+        brightness: Brightness.dark,
+        palette: palette,
+        surface: surface,
+      ),
+      themeMode: themeModeFromSetting(settings['appearance.themeMode']),
       routerConfig: ref.watch(routerProvider),
       builder: (context, child) => GlobalEventReceiver(
         child: NotificationBinder(

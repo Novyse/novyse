@@ -13,7 +13,7 @@ class ProgressiveOpacityBackground extends StatelessWidget {
   const ProgressiveOpacityBackground({
     super.key,
     required this.child,
-    this.fadeHeight = 0,
+    this.fadeHeight = 4,
     this.direction = ProgressiveOpacityDirection.topToBottom,
     this.padding,
     this.applySafeArea = true,

@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
@@ -205,10 +204,10 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.screen_share_rounded,
                           size: 56,
-                          color: AppColors.primary,
+                          color: colorScheme.primary,
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -255,7 +254,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: isSelected
-                                ? AppColors.primary
+                                ? colorScheme.primary
                                 : colorScheme.outline.withValues(alpha: 0.3),
                             width: isSelected ? 2.5 : 1,
                           ),
@@ -304,7 +303,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
                                       ? FontWeight.w700
                                       : FontWeight.w500,
                                   color: isSelected
-                                      ? AppColors.primary
+                                      ? colorScheme.primary
                                       : colorScheme.onSurface,
                                 ),
                               ),

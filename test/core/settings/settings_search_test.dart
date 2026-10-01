@@ -64,8 +64,8 @@ void main() {
     });
 
     testWidgets('does not match option labels', (tester) async {
-      // 'Midnight OLED' is only an option label of the theme selector.
-      expect(await _search(tester, 'oled'), isEmpty);
+      // 'Cyberpunk' is only a leftover option label, not a row title.
+      expect(await _search(tester, 'cyberpunk'), isEmpty);
     });
 
     testWidgets('does not match category names', (tester) async {

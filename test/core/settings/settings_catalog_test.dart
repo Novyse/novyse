@@ -45,7 +45,7 @@ void main() {
 
     test('disabled defaults to false but WIP items are force-disabled', () {
       // Only startup/tray items currently under implementation stay enabled,
-      // plus informational legal/licence rows
+      // plus informational legal/licence rows, plus the working appearance rows
       const enabledIds = {
         'open_startup',
         'open_background',
@@ -54,6 +54,9 @@ void main() {
         'terms_of_service',
         'app_license',
         'open_source_licenses',
+        'theme_selector',
+        'theme_mode',
+        'surface_mode',
       };
       for (final item in SettingsCatalog.allItems) {
         if (enabledIds.contains(item.id)) {

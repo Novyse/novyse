@@ -195,7 +195,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                                       ? HugeIcons.strokeRoundedPinOff
                                       : HugeIcons.strokeRoundedPin,
                                   color: widget.isPinned
-                                      ? AppColors.primary
+                                      ? colorScheme.primary
                                       : Colors.white,
                                   size: 18,
                                 ),

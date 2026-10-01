@@ -23,36 +23,73 @@ final List<SettingCategory> customizationCategory = [
                 title: (l) => l.settingsItemThemeSelectorTitle,
                 subtitle: (l) => l.settingsItemThemeSelectorSubtitle,
                 component: SettingComponent.select,
-                settingKey: 'appearance.theme',
+                settingKey: 'appearance.palette',
                 scope: SettingScope.synchronized,
-                defaultValue: 'dark_slate',
+                defaultValue: 'novyse',
                 options: [
                   SettingOption(
-                    'dark_slate',
-                    (l) => l.settingsOptionThemeSelectorDarkSlateLabel,
-                  ),
-                  SettingOption(
-                    'midnight_oled',
-                    (l) => l.settingsOptionThemeSelectorMidnightOledLabel,
-                  ),
-                  SettingOption(
-                    'clean_light',
-                    (l) => l.settingsOptionThemeSelectorCleanLightLabel,
-                  ),
-                  SettingOption(
-                    'cyberpunk_neon',
-                    (l) => l.settingsOptionThemeSelectorCyberpunkNeonLabel,
+                    'novyse',
+                    (l) => l.settingsOptionPaletteNovyseLabel,
                   ),
                   SettingOption(
                     'forest',
-                    (l) => l.settingsOptionThemeSelectorForestLabel,
+                    (l) => l.settingsOptionPaletteForestLabel,
                   ),
                   SettingOption(
                     'sunset',
-                    (l) => l.settingsOptionThemeSelectorSunsetLabel,
+                    (l) => l.settingsOptionPaletteSunsetLabel,
+                  ),
+                  SettingOption(
+                    'iris',
+                    (l) => l.settingsOptionPaletteIrisLabel,
                   ),
                 ],
-                disabled: true,
+              ),
+              SettingItem(
+                id: 'theme_mode',
+                title: (l) => l.settingsItemThemeModeTitle,
+                subtitle: (l) => l.settingsItemThemeModeSubtitle,
+                component: SettingComponent.select,
+                settingKey: 'appearance.themeMode',
+                scope: SettingScope.synchronized,
+                defaultValue: 'system',
+                options: [
+                  SettingOption(
+                    'system',
+                    (l) => l.settingsOptionThemeModeSystemLabel,
+                  ),
+                  SettingOption(
+                    'light',
+                    (l) => l.settingsOptionThemeModeLightLabel,
+                  ),
+                  SettingOption(
+                    'dark',
+                    (l) => l.settingsOptionThemeModeDarkLabel,
+                  ),
+                ],
+              ),
+              SettingItem(
+                id: 'surface_mode',
+                title: (l) => l.settingsItemSurfaceModeTitle,
+                subtitle: (l) => l.settingsItemSurfaceModeSubtitle,
+                component: SettingComponent.select,
+                settingKey: 'appearance.surfaceMode',
+                scope: SettingScope.synchronized,
+                defaultValue: 'standard',
+                options: [
+                  SettingOption(
+                    'standard',
+                    (l) => l.settingsOptionSurfaceStandardLabel,
+                  ),
+                  SettingOption(
+                    'amoled',
+                    (l) => l.settingsOptionSurfaceAmoledLabel,
+                  ),
+                  SettingOption(
+                    'amoled_extreme',
+                    (l) => l.settingsOptionSurfaceAmoledExtremeLabel,
+                  ),
+                ],
               ),
               SettingItem(
                 id: 'theme_studio',

@@ -16,6 +16,7 @@ class ChatListAppBar extends StatelessWidget {
     required this.onOpenSearch,
     required this.onCloseSearch,
     required this.onNewChat,
+    this.footer,
   });
 
   final bool searching;
@@ -25,6 +26,7 @@ class ChatListAppBar extends StatelessWidget {
   final VoidCallback onOpenSearch;
   final VoidCallback onCloseSearch;
   final VoidCallback onNewChat;
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -113,6 +115,12 @@ class ChatListAppBar extends StatelessWidget {
       );
     }
 
-    return ProgressiveOpacityBackground(child: content);
+    return ProgressiveOpacityBackground(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [content, ?footer],
+      ),
+    );
   }
 }

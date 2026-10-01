@@ -193,7 +193,7 @@ class CommsBottomBar extends ConsumerWidget {
                     ? l10n.commsTurnOffCamera
                     : l10n.commsTurnOnCamera,
                 backgroundColor: commsState.isVideoEnabled
-                    ? AppColors.primary
+                    ? Theme.of(context).colorScheme.primary
                     : Colors.white.withValues(alpha: 0.12),
                 iconColor: Colors.white,
                 onPressed: controller.toggleVideo,

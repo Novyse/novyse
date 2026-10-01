@@ -391,92 +391,105 @@ class _FloatingTabBar extends StatelessWidget {
     final barWidth = (paneWidth * 0.64).clamp(220.0, 420.0);
     final scheme = Theme.of(context).colorScheme;
 
+    const barRadius = BorderRadius.all(Radius.circular(100));
     return Center(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(100),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: Container(
-            width: barWidth,
-            height: 68,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            decoration: BoxDecoration(
-              color: scheme.surface.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: scheme.outline.withValues(alpha: 0.25)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 100,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+      child: Container(
+        width: barWidth,
+        height: 68,
+        decoration: BoxDecoration(
+          borderRadius: barRadius,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 100,
+              offset: const Offset(0, 10),
             ),
-            child: AnimatedBuilder(
-              animation: controller.animation!,
-              builder: (context, child) {
-                return LayoutBuilder(
-                  builder: (context, constraints) {
-                    final slotWidth = constraints.maxWidth / _items.length;
-                    final animValue = controller.animation!.value;
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: barRadius,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: scheme.surface.withValues(alpha: 0.6),
+                borderRadius: barRadius,
+                border: Border.all(
+                  color: scheme.outline.withValues(alpha: 0.25),
+                  strokeAlign: BorderSide.strokeAlignInside,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: AnimatedBuilder(
+                  animation: controller.animation!,
+                  builder: (context, child) {
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        final slotWidth = constraints.maxWidth / _items.length;
+                        final animValue = controller.animation!.value;
 
-                    return Stack(
-                      children: [
-                        Positioned(
-                          left: animValue * slotWidth,
-                          top: 0,
-                          bottom: 0,
-                          width: slotWidth,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: scheme.primary.withValues(alpha: 0.14),
-                              borderRadius: BorderRadius.circular(100),
+                        return Stack(
+                          children: [
+                            Positioned(
+                              left: animValue * slotWidth,
+                              top: 0,
+                              bottom: 0,
+                              width: slotWidth,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: scheme.primary.withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(100),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        Row(
-                          children: List.generate(_items.length, (index) {
-                            final item = _items[index];
-                            final selectedAmount =
-                                (1.0 - (animValue - index).abs()).clamp(
-                                  0.0,
-                                  1.0,
+                            Row(
+                              children: List.generate(_items.length, (index) {
+                                final item = _items[index];
+                                final selectedAmount =
+                                    (1.0 - (animValue - index).abs()).clamp(
+                                      0.0,
+                                      1.0,
+                                    );
+                                final iconColor = Color.lerp(
+                                  scheme.onSurfaceVariant,
+                                  scheme.primary,
+                                  selectedAmount,
                                 );
-                            final iconColor = Color.lerp(
-                              scheme.onSurfaceVariant,
-                              scheme.primary,
-                              selectedAmount,
-                            );
-                            final scale = 0.92 + (0.08 * selectedAmount);
+                                final scale = 0.92 + (0.08 * selectedAmount);
 
-                            return Expanded(
-                              child: Transform.scale(
-                                scale: scale,
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(100),
-                                    onTap: () => onTabPressed(index),
-                                    child: Center(
-                                      child: AppHugeIcon(
-                                        icon: selectedAmount > 0.5
-                                            ? item.activeIcon
-                                            : item.icon,
-                                        color: iconColor,
-                                        size: 28,
+                                return Expanded(
+                                  child: Transform.scale(
+                                    scale: scale,
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(
+                                          100,
+                                        ),
+                                        onTap: () => onTabPressed(index),
+                                        child: Center(
+                                          child: AppHugeIcon(
+                                            icon: selectedAmount > 0.5
+                                                ? item.activeIcon
+                                                : item.icon,
+                                            color: iconColor,
+                                            size: 28,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ),
-                            );
-                          }),
-                        ),
-                      ],
+                                );
+                              }),
+                            ),
+                          ],
+                        );
+                      },
                     );
                   },
-                );
-              },
+                ),
+              ),
             ),
           ),
         ),
