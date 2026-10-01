@@ -48,6 +48,7 @@ app.*.map.json
 .widget_preview/
 
 lib/core/l10n/app_localizations*.dart
+lib/core/settings/oss_licenses.dart
 build/
 
 google-services.json
