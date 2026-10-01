@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:novyse/core/chat/queue/queue_job.dart';
 import 'package:novyse/core/chat/queue/queue_manager.dart';
+import 'package:novyse/core/chat/queue/queue_media.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/notifications/notification_bridge.dart';
 import 'package:novyse/core/services/api_gateway.dart';
@@ -325,44 +326,11 @@ class ChatQueueProcessor {
         : Map<String, dynamic>.from(job.payload);
 
     final rawFiles = (message['files'] ?? job.payload['files']) as List?;
-    final files = rawFiles != null
-        ? rawFiles
-              .map(
-                (f) => f is Map
-                    ? Map<String, dynamic>.from(f)
-                    : <String, dynamic>{},
-              )
-              .toList()
-        : <Map<String, dynamic>>[];
+    final files = normalizeQueueFiles(rawFiles);
 
     // === PHASE 1: LOCAL (Runs even when OFFLINE) ===
     // 1. Process local media metadata (waveforms, durations) and store local copies
-    for (final file in files) {
-      final uri = file['uri'] as String?;
-      final bytes = file['bytes'] as Uint8List?;
-
-      if (file['duration'] == null && (uri != null || bytes != null)) {
-        try {
-          final fileBytes =
-              bytes ??
-              (uri != null ? await FileStorage.instance.getBytes(uri) : null);
-          if (fileBytes != null) {
-            final mime = (file['mimeType'] ?? '') as String;
-            if (mime.contains('wav')) {
-              file['duration'] = extractAudioDurationFromWav(fileBytes);
-            } else if (mime.contains('mp4')) {
-              file['duration'] = extractVideoDurationFromMp4(fileBytes);
-            }
-            if (file['waveform'] == null &&
-                (mime.contains('audio') || mime.contains('wav'))) {
-              file['waveform'] = processWaveform(fileBytes);
-            }
-          }
-        } catch (e) {
-          debugPrint('[ChatQueue] Local media metadata failed: $e');
-        }
-      }
-    }
+    await enrichLocalMediaMetadata(files);
 
     // 2. Persist local message in DB in pending/sending status and emit global event
     if (_disposed || !AppDatabase.instance.isOpen) return;
@@ -567,44 +535,9 @@ class ChatQueueProcessor {
     final messageID = job.payload['messageID'].toString();
     final newContent = (job.payload['content'] ?? '') as String;
     final filesChanged = job.payload['filesChanged'] == true;
-    final rawFiles = job.payload['files'] as List?;
-    final files = rawFiles != null
-        ? rawFiles
-              .map(
-                (f) => f is Map
-                    ? Map<String, dynamic>.from(f)
-                    : <String, dynamic>{},
-              )
-              .toList()
-        : <Map<String, dynamic>>[];
+    final files = normalizeQueueFiles(job.payload['files'] as List?);
 
-    for (final file in files) {
-      if (file['uuid'] == null) {
-        final uri = file['uri'] as String?;
-        final bytes = file['bytes'] as Uint8List?;
-        if (file['duration'] == null && (uri != null || bytes != null)) {
-          try {
-            final fileBytes =
-                bytes ??
-                (uri != null ? await FileStorage.instance.getBytes(uri) : null);
-            if (fileBytes != null) {
-              final mime = (file['mimeType'] ?? '') as String;
-              if (mime.contains('wav')) {
-                file['duration'] = extractAudioDurationFromWav(fileBytes);
-              } else if (mime.contains('mp4')) {
-                file['duration'] = extractVideoDurationFromMp4(fileBytes);
-              }
-              if (file['waveform'] == null &&
-                  (mime.contains('audio') || mime.contains('wav'))) {
-                file['waveform'] = processWaveform(fileBytes);
-              }
-            }
-          } catch (e) {
-            debugPrint('[ChatQueue] Edit media metadata failed: $e');
-          }
-        }
-      }
-    }
+    await enrichLocalMediaMetadata(files, onlyNewUploads: true);
 
     // (Requires Internet)
     if (_disposed) return;
@@ -664,8 +597,7 @@ class ChatQueueProcessor {
             .where((sf) => sf is Map && sf['uploadURL'] != null)
             .toList();
         if (filesToUpload.isNotEmpty) {
-          final localNewFiles =
-              files.where((f) => f['uuid'] == null).toList();
+          final localNewFiles = files.where((f) => f['uuid'] == null).toList();
 
           if (localNewFiles.length < filesToUpload.length) {
             throw Exception(
@@ -698,9 +630,7 @@ class ChatQueueProcessor {
 
             final fileBytes =
                 bytes ??
-                (uri != null
-                    ? await FileStorage.instance.getBytes(uri)
-                    : null);
+                (uri != null ? await FileStorage.instance.getBytes(uri) : null);
             if (fileBytes == null) {
               throw Exception(
                 'Cannot upload edited file: failed to read bytes '
