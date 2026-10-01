@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/auth/onboarding_manager.dart';
-import '../../core/l10n/l10n.dart';
 import '../../core/auth/use_qr_code.dart';
+import '../../core/l10n/l10n.dart';
 import '../../ui/components/onboarding/onboarding_primary_button.dart';
 import '../../ui/components/onboarding/onboarding_secondary_button.dart';
 import '../../ui/components/onboarding/styled_qr_code.dart';
@@ -205,15 +205,15 @@ class _QrContent extends ConsumerStatefulWidget {
 }
 
 class _QrContentState extends ConsumerState<_QrContent> {
-  QrCodeController? _controller;
-
-  QrCodeController get _qrController => _controller ??= _createController();
+  late final QrCodeController _qrController = _createController();
 
   QrCodeController _createController() {
     return QrCodeController(
       onAuthorized: (data) async {
+        final userUUID = data['userUUID']?.toString();
+        if (userUUID == null || userUUID.isEmpty) return;
         await onboardingManager.setLogin(
-          userUUID: data['userUUID'] as String,
+          userUUID: userUUID,
           sessionID: data['sessionID']?.toString(),
           sessionId: data['session_id']?.toString(),
         );
@@ -225,14 +225,8 @@ class _QrContentState extends ConsumerState<_QrContent> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _controller = _createController();
-  }
-
-  @override
   void dispose() {
-    _controller?.dispose();
+    _qrController.dispose();
     super.dispose();
   }
 

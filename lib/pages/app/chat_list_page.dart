@@ -122,40 +122,52 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     });
 
     if (searchMessages) {
-      searchMessagesByQuery(q)
-          .then((results) {
-            if (!mounted || token != _searchToken || _query.trim() != q) return;
-            setState(() {
-              _matchedMessages = results;
-              _messagesLoading = false;
-            });
-          })
-          .catchError((_) {
-            if (!mounted || token != _searchToken || _query.trim() != q) return;
-            setState(() {
-              _messagesLoading = false;
-            });
-          });
+      unawaited(
+        searchMessagesByQuery(q)
+            .then((results) {
+              if (!mounted || token != _searchToken || _query.trim() != q) {
+                return;
+              }
+              setState(() {
+                _matchedMessages = results;
+                _messagesLoading = false;
+              });
+            })
+            .catchError((_) {
+              if (!mounted || token != _searchToken || _query.trim() != q) {
+                return;
+              }
+              setState(() {
+                _messagesLoading = false;
+              });
+            }),
+      );
     }
 
     if (canSearchRemote) {
-      searchRemoteChats(q)
-          .then((remoteResults) {
-            if (!mounted || token != _searchToken || _query.trim() != q) return;
-            setState(() {
-              _remoteChats = filterRemoteChats(
-                local: localMatches,
-                remote: remoteResults,
-              );
-              _remoteLoading = false;
-            });
-          })
-          .catchError((_) {
-            if (!mounted || token != _searchToken || _query.trim() != q) return;
-            setState(() {
-              _remoteLoading = false;
-            });
-          });
+      unawaited(
+        searchRemoteChats(q)
+            .then((remoteResults) {
+              if (!mounted || token != _searchToken || _query.trim() != q) {
+                return;
+              }
+              setState(() {
+                _remoteChats = filterRemoteChats(
+                  local: localMatches,
+                  remote: remoteResults,
+                );
+                _remoteLoading = false;
+              });
+            })
+            .catchError((_) {
+              if (!mounted || token != _searchToken || _query.trim() != q) {
+                return;
+              }
+              setState(() {
+                _remoteLoading = false;
+              });
+            }),
+      );
     }
   }
 

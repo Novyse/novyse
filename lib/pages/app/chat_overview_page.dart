@@ -4,26 +4,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import 'package:novyse/core/chat/message_format.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/core/stores/favorite_messages_store.dart';
-import 'package:novyse/pages/app/chat_routes.dart';
 import 'package:novyse/core/storage/file/file_type.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
+import 'package:novyse/core/stores/favorite_messages_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/pages/app/chat_routes.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
+import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/chat/chat_list_item.dart';
 import 'package:novyse/ui/components/chat/chat_overview/chat_overview_app_bar.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
-import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
 import 'package:novyse/ui/components/settings/settings_value_row.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 enum _OverviewTab { members, media, files, links, music, voice, gifs }
 
@@ -235,7 +234,9 @@ class _ChatOverviewPageState extends ConsumerState<ChatOverviewPage> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Text(
-                      l10n.overviewSharedInSub(_subName(chat, effectiveSub)),
+                      l10n.overviewSharedInSub(
+                        _subName(chat, effectiveSub, l10n.subFallback(effectiveSub)),
+                      ),
                       style: TextStyle(
                         fontSize: 12,
                         color: colorScheme.onSurfaceVariant,
@@ -293,15 +294,15 @@ class _ChatOverviewPageState extends ConsumerState<ChatOverviewPage> {
     };
   }
 
-  String _subName(ChatModel chat, int subID) {
+  String _subName(ChatModel chat, int subID, String fallback) {
     for (final s in chat.subs) {
       if ((s['id'] as num).toInt() == subID) {
         final name = s['name']?.toString().trim();
         if (name != null && name.isNotEmpty) return name;
-        return 'Sub $subID';
+        return fallback;
       }
     }
-    return 'Sub $subID';
+    return fallback;
   }
 }
 

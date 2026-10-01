@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hugeicons/hugeicons.dart';
-
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/chat/message_action_methods.dart';
 import 'package:novyse/core/chat/message_format.dart';
 import 'package:novyse/core/l10n/l10n.dart';
@@ -47,7 +46,6 @@ class _ChatFavoritesPageState extends ConsumerState<ChatFavoritesPage> {
   Future<void> _toggleFavorite(MessageModel message) async {
     final methods = MessageActionMethods(
       ref: ref,
-      context: context,
       chatUUID: message.chatUUID,
       subID: message.subID,
     );

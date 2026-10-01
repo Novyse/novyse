@@ -4,18 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
+import '../../core/l10n/l10n.dart';
+import '../../core/router/navigator_keys.dart';
+import '../../core/services/sync_service.dart';
+import '../../core/stores/active_chat_store.dart';
 import 'adaptive.dart';
 import 'chat_list_page.dart';
 import 'chat_routes.dart';
 import 'profile_page.dart';
 import 'settings/settings_page.dart';
-import '../../core/l10n/l10n.dart';
-import '../../core/router/navigator_keys.dart';
-import '../../core/services/sync_service.dart';
-import '../../core/stores/active_chat_store.dart';
 
 class HomeTabControllerScope extends InheritedWidget {
   const HomeTabControllerScope({

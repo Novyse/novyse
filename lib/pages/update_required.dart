@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import 'package:novyse/ui/components/button/app_button.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/config/global.dart' as config;
 import '../core/l10n/l10n.dart';
