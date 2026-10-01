@@ -73,8 +73,10 @@ class QrCodeController extends ChangeNotifier {
       if (_isDisposed) return;
 
       if (res.success && res.data != null) {
-        final token = res.data!['token'] as String?;
-        final expiresAt = res.data!['expiresAt'];
+        final data = res.data;
+        if (data == null) return;
+        final token = data['token'] as String?;
+        final expiresAt = data['expiresAt'];
         var remaining = 0;
 
         if (expiresAt is int) {
@@ -123,20 +125,25 @@ class QrCodeController extends ChangeNotifier {
     final token = _state.qrToken;
     if (token != null && token.isNotEmpty) {
       _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
-        if (_isDisposed || _state.qrToken == null) return;
+        final pollingToken = _state.qrToken;
+        if (_isDisposed || pollingToken == null) return;
         try {
-          final res = await auth.qrcode.status(_state.qrToken!);
+          final res = await auth.qrcode.status(pollingToken);
           if (_isDisposed) return;
           if (res.success && res.data != null) {
-            if (res.data!['status'] == 'AUTHORIZED') {
+            final statusData = res.data;
+            if (statusData == null) return;
+            if (statusData['status'] == 'AUTHORIZED') {
               _stopTimers();
-              onAuthorized?.call(res.data!);
+              onAuthorized?.call(statusData);
             }
           } else if (!res.success) {
             _stopTimers();
-            fetchQrToken();
+            unawaited(fetchQrToken());
           }
-        } catch (_) {}
+        } catch (e) {
+          debugPrint('QrCode polling failed: $e');
+        }
       });
     }
 

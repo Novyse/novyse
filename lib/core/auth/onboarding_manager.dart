@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:novyse_auth/novyse_auth.dart' show NovyseAuth;
@@ -38,7 +39,8 @@ class OnboardingManager extends StateNotifier<bool> {
       final sessionId = await _storage.read(key: 'sessionId');
       final userUUID = await _storage.read(key: 'userUUID');
       return sessionId != null || userUUID != null;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Onboarding] isLoggedIn check failed: $e');
       return false;
     }
   }
@@ -47,14 +49,16 @@ class OnboardingManager extends StateNotifier<bool> {
   Future<String?> getUserUUID() async {
     try {
       return await _storage.read(key: 'userUUID');
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Onboarding] getUserUUID failed: $e');
       return null;
     }
   }
 
   /// Check whether the initial account sync has been completed.
   Future<bool> isInitialized() async {
-    final userUUID = await getUserUUID() as String;
+    final userUUID = await getUserUUID();
+    if (userUUID == null) return false;
     final initVal = await _storage.read(key: 'init_$userUUID');
     return initVal == 'true';
   }
@@ -106,7 +110,8 @@ class OnboardingManager extends StateNotifier<bool> {
   ) async {
     try {
       return await apiGateway.check.handle(handle);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Onboarding] handle check failed: $e');
       return (success: false, available: null);
     }
   }

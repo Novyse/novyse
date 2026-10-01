@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -21,59 +24,63 @@ import 'package:novyse/core/stores/user_store.dart';
 
 /// Wipes all per-user state (in-memory + on-disk) on logout.
 Future<void> runLogoutCleanup(WidgetRef ref) async {
+  Future<void> step(String name, FutureOr<void> Function() fn) async {
+    try {
+      await fn();
+    } catch (e) {
+      debugPrint('[logout-cleanup] $name failed: $e');
+    }
+  }
+
   // 1. Stop anything that would hit the API with an invalid token.
-  try {
+  await step('cancel-sync-retry', () async {
     ref.read(syncServiceProvider).cancelRetry();
-  } catch (_) {}
-  try {
+  });
+  await step('close-socket', () async {
     ref.read(socketServiceProvider).close();
-  } catch (_) {}
+  });
 
   // 2. Notifications + push token.
-  try {
-    await NotificationManager.instance.reset();
-  } catch (_) {}
-  try {
-    await FcmService.instance.unregister();
-  } catch (_) {}
+  await step('reset-notifications', NotificationManager.instance.reset);
+  await step('unregister-fcm', FcmService.instance.unregister);
 
   // 3. In-memory Riverpod state.
-  try {
+  await step('clear-chat-list', () async {
     ref.read(chatListProvider.notifier).clear();
-  } catch (_) {}
-  try {
+  });
+  await step('clear-users', () async {
     ref.read(userStoreProvider.notifier).clear();
-  } catch (_) {}
-  try {
+  });
+  await step('clear-active-chat', () async {
     ref.read(activeChatProvider.notifier).clear();
-  } catch (_) {}
-  try {
+  });
+  await step('clear-status', () async {
     ref.read(statusProvider.notifier).clearAll();
-  } catch (_) {}
-  try {
+  });
+  await step('reset-forward', () async {
     ref.read(forwardProvider.notifier).resetForwarding();
-  } catch (_) {}
-  try {
+  });
+  await step('reset-network', () async {
     ref.read(networkProvider.notifier).setSynced(false);
-  } catch (_) {}
-  try {
+  });
+  await step('invalidate-messages', () async {
     ref.invalidate(chatMessagesProvider);
-  } catch (_) {}
-  try {
+  });
+  await step('invalidate-drafts', () async {
     ref.invalidate(chatDraftProvider);
-  } catch (_) {}
-  try {
+  });
+  await step('invalidate-controllers', () async {
     ref.invalidate(chatTextControllerProvider);
-  } catch (_) {}
-  try {
+  });
+  await step('invalidate-favorites', () async {
     ref.invalidate(favoriteMessagesProvider);
-  } catch (_) {}
-  try {
+  });
+  await step('invalidate-settings', () async {
     ref.invalidate(settingsControllerProvider);
-  } catch (_) {}
+  });
 
   // 4. Persistent storage (SQLite + downloaded files).
-  try {
+  await step('delete-user-data', () async {
     final userUUID =
         AppDatabase.instance.currentUserUUID ??
         await const FlutterSecureStorage().read(key: 'userUUID');
@@ -83,10 +90,10 @@ Future<void> runLogoutCleanup(WidgetRef ref) async {
     } else {
       await ref.read(databaseProvider).close();
     }
-  } catch (_) {}
-  try {
+  });
+  await step('clear-file-user', () async {
     ref.read(fileStorageProvider).setCurrentUser(null);
-  } catch (_) {}
+  });
 }
 
 Future<void> performLogout(WidgetRef ref) async {
