@@ -28,11 +28,15 @@ export 'package:novyse/core/storage/database/repositories/queue_job_repository.d
 export 'package:novyse/core/storage/database/repositories/settings_repository.dart';
 
 /// Main SQLite database service for Novyse.
+/// One SQLite file per user (`novyse_<userUUID>.db`). Call [openForUser]
+/// after login / on startup. Logout wipes the account file via [deleteDatabaseForUser].
 class AppDatabase {
   AppDatabase._();
   static final AppDatabase instance = AppDatabase._();
 
   Database? _db;
+  String? _currentUserUUID;
+  String? _dbPath;
 
   late final UserRepository user = UserRepository();
   late final HandleRepository handle = HandleRepository();
@@ -47,17 +51,53 @@ class AppDatabase {
   Database? get rawDb => _db;
   bool get isOpen => _db != null && _db!.isOpen;
 
-  /// Initializes the SQLite database.
-  Future<void> initialize({
-    String? path,
-    Database? customDb,
-    bool inMemory = false,
-  }) async {
-    if (customDb != null) {
-      _setDatabase(customDb);
-      return;
-    }
+  String? get currentUserUUID => _currentUserUUID;
+  String? get currentDbPath => _dbPath;
 
+  bool isOpenForUser(String userUUID) =>
+      isOpen && _currentUserUUID == userUUID;
+
+  static String fileNameForUser(String userUUID) => 'novyse_$userUUID.db';
+
+  Future<String> _resolveDbPath(String userUUID) async {
+    final fileName = fileNameForUser(userUUID);
+    if (kIsWeb) return fileName;
+    if (io.Platform.isLinux ||
+        io.Platform.isWindows ||
+        io.Platform.isMacOS) {
+      final appSupportDir = await getApplicationSupportDirectory();
+      return p.join(appSupportDir.path, fileName);
+    } else {
+      final databasesPath = await getDatabasesPath();
+      return p.join(databasesPath, fileName);
+    }
+  }
+
+  /// Opens (creating if needed) the database file belonging to [userUUID],
+  /// closing any previously open database for another user.
+  Future<void> openForUser(String userUUID) async {
+    if (isOpenForUser(userUUID)) return;
+    await initialize(userUUID: userUUID);
+  }
+
+  /// Deletes the database file belonging to [userUUID].
+  Future<void> deleteDatabaseForUser(String userUUID) async {
+    if (isOpenForUser(userUUID)) {
+      await close();
+    }
+    final dbPath = await _resolveDbPath(userUUID);
+    if (kIsWeb) {
+      await databaseFactory.deleteDatabase(dbPath);
+    } else {
+      final file = io.File(dbPath);
+      if (await file.exists()) await file.delete();
+    }
+    debugPrint('AppDatabase deleted database for user.');
+  }
+
+  /// Initializes the SQLite database for [userUUID] (`novyse_<userUUID>.db`).
+  /// [inMemory] is test-only and skips the uuid requirement.
+  Future<void> initialize({String? userUUID, bool inMemory = false}) async {
     // Initialize databaseFactory across Web, Desktop (Linux, Windows, macOS) and Mobile
     if (kIsWeb) {
       databaseFactory = databaseFactoryFfiWeb;
@@ -71,18 +111,21 @@ class AppDatabase {
     String dbPath;
     if (inMemory) {
       dbPath = inMemoryDatabasePath;
-    } else if (path != null) {
-      dbPath = path;
-    } else if (kIsWeb) {
-      dbPath = 'novyse.db';
-    } else if (io.Platform.isLinux ||
-        io.Platform.isWindows ||
-        io.Platform.isMacOS) {
-      final appSupportDir = await getApplicationSupportDirectory();
-      dbPath = p.join(appSupportDir.path, 'novyse.db');
     } else {
-      final databasesPath = await getDatabasesPath();
-      dbPath = p.join(databasesPath, 'novyse.db');
+      if (userUUID == null) {
+        throw StateError('AppDatabase.initialize: userUUID required');
+      }
+      dbPath = await _resolveDbPath(userUUID);
+    }
+
+    // Already open for the same user/path, reuse instead of reopening.
+    if (isOpen && _dbPath == dbPath) {
+      await executeInitSql(_db!);
+      return;
+    }
+    // Switching user: close previous first.
+    if (isOpen) {
+      await close();
     }
 
     final db = await openDatabase(
@@ -96,6 +139,8 @@ class AppDatabase {
     // Verify and ensure tables exist even if DB file already existed
     await executeInitSql(db);
 
+    _currentUserUUID = userUUID;
+    _dbPath = dbPath;
     _setDatabase(db);
     debugPrint('AppDatabase initialized at: $dbPath');
   }
@@ -152,6 +197,8 @@ class AppDatabase {
       await db.close();
       _db = null;
     }
+    _currentUserUUID = null;
+    _dbPath = null;
   }
 }
 

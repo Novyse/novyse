@@ -4,7 +4,6 @@ import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/services/api_gateway.dart';
-import 'package:novyse/core/storage/database/database.dart';
 
 /// Sends read receipts as watermarks: one API call per visible batch.
 ///
@@ -59,9 +58,6 @@ class MessageReadService {
   }) async {
     if (chatUUID.isEmpty || messageID.isEmpty) return false;
     try {
-      final db = AppDatabase.instance;
-      if (!db.isOpen) await db.initialize();
-
       final res = await apiGateway.message.read(chatUUID, subID, messageID);
       if (!res.success) return false;
 

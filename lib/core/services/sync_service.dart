@@ -74,6 +74,9 @@ class SyncService {
   /// Public hook to stop a pending retry loop (e.g. on logout).
   void cancelRetry() => _cancelRetry();
 
+  /// UUID of the account being synced
+  String get _uuid => _db.currentUserUUID as String;
+
   Gateway get _gateway => apiGateway;
   AppDatabase get _db => _ref.read(databaseProvider);
   StatusNotifier get _status => _ref.read(statusProvider.notifier);
@@ -96,10 +99,12 @@ class SyncService {
 
     try {
       if (!_db.isOpen) {
-        await _db.initialize();
+        await _db.initialize(
+          userUUID: await _storage.read(key: 'userUUID') as String,
+        );
       }
 
-      final initVal = await _storage.read(key: 'init');
+      final initVal = await _storage.read(key: 'init_$_uuid');
       if (initVal == 'true') {
         debugPrint(
           '[SyncService] Already initialized. Performing delta sync...',
@@ -128,10 +133,6 @@ class SyncService {
     _cancelRetry();
 
     try {
-      if (!_db.isOpen) {
-        await _db.initialize();
-      }
-
       _status.setSyncProgress(
         titleBuilder: (l10n) => l10n.syncInitTitle,
         messageBuilder: (l10n) => l10n.syncInitMessage,
@@ -157,7 +158,7 @@ class SyncService {
 
       // Re-initialize SQLite database
       await _db.clear();
-      await _db.initialize();
+      await _db.initialize(userUUID: _uuid);
 
       // 1. Local user info
       final localUser = local['user'];
@@ -165,7 +166,7 @@ class SyncService {
         await _db.user.add(localUser);
         final eventId = localUser['eventID'] ?? localUser['eventId'] ?? 0;
         await _storage.write(
-          key: 'localUserEventID',
+          key: 'localUserEventID_$_uuid',
           value: eventId.toString(),
         );
       }
@@ -224,7 +225,7 @@ class SyncService {
       );
 
       // 6. Mark initialized and synced
-      await _storage.write(key: 'init', value: 'true');
+      await _storage.write(key: 'init_$_uuid', value: 'true');
       _network.setSynced(true);
 
       // 7. Hydrate in-memory stores (loads local cache & fetches presence).
@@ -271,12 +272,11 @@ class SyncService {
     _cancelRetry();
 
     try {
-      if (!_db.isOpen) {
-        await _db.initialize();
-      }
-
-      final userEventIdStr = await _storage.read(key: 'localUserEventID');
-      final userEventId = int.tryParse(userEventIdStr ?? '0') ?? 0;
+      final userEventId =
+          int.tryParse(
+            await _storage.read(key: 'localUserEventID_$_uuid') ?? '0',
+          ) ??
+          0;
       final gatewayLocal = {'eventID': userEventId};
 
       final allEvents = await _db.user.update.getAllEventsIDs();
@@ -530,8 +530,8 @@ class SyncService {
       }
       if (maxLocalEventID > userEventId) {
         await _storage.write(
-          key: 'localUserEventID',
-          value: maxLocalEventID.toString(),
+          key: 'localUserEventID_$_uuid',
+          value: '$maxLocalEventID',
         );
       }
 

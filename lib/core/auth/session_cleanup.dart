@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:novyse/core/auth/onboarding_manager.dart';
 import 'package:novyse/core/notifications/fcm_service.dart';
@@ -73,10 +74,18 @@ Future<void> runLogoutCleanup(WidgetRef ref) async {
 
   // 4. Persistent storage (SQLite + downloaded files).
   try {
-    await ref.read(databaseProvider).clear();
+    final userUUID =
+        AppDatabase.instance.currentUserUUID ??
+        await const FlutterSecureStorage().read(key: 'userUUID');
+    if (userUUID != null) {
+      await ref.read(databaseProvider).deleteDatabaseForUser(userUUID);
+      await ref.read(fileStorageProvider).clearForUser(userUUID);
+    } else {
+      await ref.read(databaseProvider).close();
+    }
   } catch (_) {}
   try {
-    await ref.read(fileStorageProvider).clearAll();
+    ref.read(fileStorageProvider).setCurrentUser(null);
   } catch (_) {}
 }
 

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/pages/app/profile_page.dart';
+import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
 void main() {
   testWidgets('ProfilePage renders user details and handles logout', (
@@ -56,7 +57,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify confirmation dialog opens
-    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.byType(OverlayConfirmContent), findsOneWidget);
     expect(
       find.text('Are you sure you want to log out from your account?'),
       findsOneWidget,
@@ -65,6 +66,6 @@ void main() {
     // Cancel dialog
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
-    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(OverlayConfirmContent), findsNothing);
   });
 }

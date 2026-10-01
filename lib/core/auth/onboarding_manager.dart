@@ -4,6 +4,8 @@ import 'package:novyse_auth/novyse_auth.dart' show NovyseAuth;
 
 import '../services/api_gateway.dart';
 import '../services/auth.dart' as auth_service;
+import '../storage/database/database.dart';
+import '../storage/file/file_storage.dart';
 
 /// Onboarding and session lifecycle manager.
 /// Extends [StateNotifier<bool>] to be the single source of truth for auth state (true = logged in).
@@ -14,9 +16,16 @@ class OnboardingManager extends StateNotifier<bool> {
   NovyseAuth get _auth => auth_service.auth;
 
   /// Check saved credentials on app startup and initialize state.
+  /// Opens the per-user database/file storage so the cached account
+  /// is available immediately.
   Future<bool> checkInitialSession() async {
     final loggedIn = await isLoggedIn();
     state = loggedIn;
+    if (loggedIn) {
+      final userUUID = await getUserUUID() as String;
+      FileStorage.instance.setCurrentUser(userUUID);
+      await AppDatabase.instance.openForUser(userUUID);
+    }
     return loggedIn;
   }
 
@@ -45,50 +54,48 @@ class OnboardingManager extends StateNotifier<bool> {
 
   /// Check whether the initial account sync has been completed.
   Future<bool> isInitialized() async {
-    try {
-      final initVal = await _storage.read(key: 'init');
-      return initVal == 'true';
-    } catch (_) {
-      return false;
-    }
+    final userUUID = await getUserUUID() as String;
+    final initVal = await _storage.read(key: 'init_$userUUID');
+    return initVal == 'true';
   }
 
   /// Store session identifiers and mark user as logged in.
+  /// The per-user database is opened by the sync flow with the same uuid.
   Future<void> setLogin({
-    String? userUUID,
+    required String userUUID,
     String? sessionID,
     String? sessionId,
   }) async {
-    try {
-      await _storage.write(key: 'init', value: 'false');
-      if (userUUID != null) {
-        await _storage.write(key: 'userUUID', value: userUUID);
-      }
-      if (sessionID != null) {
-        await _storage.write(key: 'sessionID', value: sessionID);
-      }
-      final resolvedSessionId = sessionId ?? sessionID;
-      if (resolvedSessionId != null) {
-        await _storage.write(key: 'sessionId', value: resolvedSessionId);
-      }
-      state = true;
-    } catch (_) {}
+    await _storage.write(key: 'userUUID', value: userUUID);
+    await _storage.write(key: 'init_$userUUID', value: 'false');
+    if (sessionID != null) {
+      await _storage.write(key: 'sessionID', value: sessionID);
+    }
+    final resolvedSessionId = sessionId ?? sessionID;
+    if (resolvedSessionId != null) {
+      await _storage.write(key: 'sessionId', value: resolvedSessionId);
+    }
+    state = true;
+    FileStorage.instance.setCurrentUser(userUUID);
   }
 
   bool _isLoggingOut = false;
 
-  /// Clear all stored session markers and log out.
+  /// Clear session markers and drop the open database handle.
   Future<void> logout() async {
     if (_isLoggingOut) return;
     _isLoggingOut = true;
-    try {
-      await _auth.logout();
-      await _storage.delete(key: 'userUUID');
-      await _storage.delete(key: 'sessionID');
-      await _storage.delete(key: 'sessionId');
-      await _storage.delete(key: 'init');
-      await _storage.delete(key: 'localUserEventID');
-    } catch (_) {}
+    final userUUID = await getUserUUID();
+    await _auth.logout();
+    if (userUUID != null) {
+      await _storage.delete(key: 'init_$userUUID');
+      await _storage.delete(key: 'localUserEventID_$userUUID');
+    }
+    await _storage.delete(key: 'userUUID');
+    await _storage.delete(key: 'sessionID');
+    await _storage.delete(key: 'sessionId');
+    await AppDatabase.instance.close();
+    FileStorage.instance.setCurrentUser(null);
     state = false;
     _isLoggingOut = false;
   }
@@ -121,14 +128,10 @@ class OnboardingManager extends StateNotifier<bool> {
       if (res.success) {
         final data = res.data;
         if (data != null) {
-          final userUUID = data['userUUID']?.toString();
-          final sessionID = data['sessionID']?.toString();
-          final sessionId = data['session_id']?.toString();
-
           await setLogin(
-            userUUID: userUUID,
-            sessionID: sessionID,
-            sessionId: sessionId,
+            userUUID: data['userUUID'] as String,
+            sessionID: data['sessionID']?.toString(),
+            sessionId: data['session_id']?.toString(),
           );
         } else {
           state = true;

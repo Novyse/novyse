@@ -227,9 +227,6 @@ class MessageListNotifier
 
     try {
       final db = AppDatabase.instance;
-      if (!db.isOpen) {
-        await db.initialize();
-      }
       final rawMessages = await db.message.get.by.sub(
         arg.chatUUID,
         arg.subID,

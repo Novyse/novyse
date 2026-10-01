@@ -36,7 +36,6 @@ class SettingsController extends StateNotifier<Map<String, Object?>> {
 
   Future<void> _load() async {
     try {
-      if (!_db.isOpen) await _db.initialize();
       final stored = await _db.settings.getAllSettings();
       if (!mounted) return;
       state = {...SettingsCatalog.defaults, ...stored};

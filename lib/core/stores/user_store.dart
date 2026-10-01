@@ -215,9 +215,6 @@ class UserNotifier extends Notifier<UserStoreState> {
 
     try {
       final db = AppDatabase.instance;
-      if (!db.isOpen) {
-        await db.initialize();
-      }
       final rawUsers = await db.user.get.all();
 
       final usersMap = <String, UserModel>{};
@@ -226,12 +223,8 @@ class UserNotifier extends Notifier<UserStoreState> {
         usersMap[user.uuid] = user;
       }
 
-      String localUUID = '';
-      try {
-        localUUID = (await onboardingManager.getUserUUID()) ?? '';
-      } catch (_) {}
-
-      if (localUUID.isNotEmpty && usersMap.containsKey(localUUID)) {
+      final localUUID = await onboardingManager.getUserUUID() ?? '';
+      if (usersMap.containsKey(localUUID)) {
         usersMap[localUUID] = usersMap[localUUID]!.copyWith(status: 'ONLINE');
       }
 

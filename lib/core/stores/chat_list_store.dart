@@ -248,9 +248,6 @@ class ChatListNotifier extends Notifier<ChatListState> {
 
     try {
       final db = AppDatabase.instance;
-      if (!db.isOpen) {
-        await db.initialize();
-      }
       final localUserUUID = ref.read(userStoreProvider).localUserUUID;
       final rawChats = await db.chat.get.all(localUserUUID);
 

@@ -20,6 +20,9 @@ class FileSaveResult {
 }
 
 /// Cross-platform local file storage manager.
+///
+/// Files are isolated per user under `novyse_files/<userUUID>/`. Logout wipes
+/// the account folder via [clearForUser]`.
 class FileStorage {
   FileStorage._();
   static final FileStorage instance = FileStorage._();
@@ -27,34 +30,46 @@ class FileStorage {
   // In-memory fallback for web or testing
   final Map<String, Uint8List> _webMemoryStore = {};
   String? _customStoragePath;
+  String? _currentUserUUID;
+
+  String? get currentUserUUID => _currentUserUUID;
 
   void setCustomStoragePath(String? path) {
     _customStoragePath = path;
+  }
+
+  /// Sets the active user for file isolation. Null while logged out.
+  void setCurrentUser(String? userUUID) {
+    _currentUserUUID = userUUID;
   }
 
   late final FileSaveService save = FileSaveService(this);
 
   Future<String> _getStorageDirectoryPath() async {
     if (_customStoragePath != null && _customStoragePath!.isNotEmpty) {
-      final customDir = io.Directory(_customStoragePath!);
-      if (!await customDir.exists()) {
-        await customDir.create(recursive: true);
+      final base = io.Directory(_customStoragePath!);
+      final target = _currentUserUUID != null
+          ? io.Directory(p.join(base.path, _currentUserUUID!))
+          : base;
+      if (!await target.exists()) {
+        await target.create(recursive: true);
       }
-      return customDir.path;
+      return target.path;
     }
 
     if (kIsWeb) return '';
+    String basePath;
     try {
       final dir = await getApplicationDocumentsDirectory();
       final storageDir = io.Directory(p.join(dir.path, 'novyse_files'));
       if (!await storageDir.exists()) {
         await storageDir.create(recursive: true);
       }
-      return storageDir.path;
+      basePath = storageDir.path;
     } catch (_) {
       try {
         final temp = await getTemporaryDirectory();
-        return temp.path;
+        basePath = temp.path;
       } catch (_) {
         // Fallback for tests or environments without platform channels
         final sysTemp = io.Directory.systemTemp;
@@ -64,9 +79,18 @@ class FileStorage {
         if (!storageDir.existsSync()) {
           storageDir.createSync(recursive: true);
         }
-        return storageDir.path;
+        basePath = storageDir.path;
       }
     }
+
+    if (_currentUserUUID != null) {
+      final userDir = io.Directory(p.join(basePath, _currentUserUUID!));
+      if (!await userDir.exists()) {
+        await userDir.create(recursive: true);
+      }
+      return userDir.path;
+    }
+    return basePath;
   }
 
   /// Retrieves the file URI for a given reference key.
@@ -211,7 +235,36 @@ class FileStorage {
     }
   }
 
-  /// Clears all files in local storage.
+  /// Clears files of the currently active user only.
+  Future<void> clearCurrentUser() async {
+    if (kIsWeb) {
+      _webMemoryStore.clear();
+      return;
+    }
+    try {
+      final dirPath = await _getStorageDirectoryPath();
+      final dir = io.Directory(dirPath);
+      if (await dir.exists()) {
+        await dir.delete(recursive: true);
+        await dir.create(recursive: true);
+      }
+    } catch (e) {
+      debugPrint('FileStorage clearCurrentUser error: $e');
+    }
+  }
+
+  /// Clears files of a specific user without switching the active user.
+  Future<void> clearForUser(String userUUID) async {
+    final previous = _currentUserUUID;
+    try {
+      setCurrentUser(userUUID);
+      await clearCurrentUser();
+    } finally {
+      _currentUserUUID = previous;
+    }
+  }
+
+  /// Clears all files in local storage (all users, explicit full wipe).
   Future<void> clearAll() async {
     if (kIsWeb) {
       _webMemoryStore.clear();

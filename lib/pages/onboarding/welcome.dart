@@ -213,7 +213,7 @@ class _QrContentState extends ConsumerState<_QrContent> {
     return QrCodeController(
       onAuthorized: (data) async {
         await onboardingManager.setLogin(
-          userUUID: data['userUUID']?.toString(),
+          userUUID: data['userUUID'] as String,
           sessionID: data['sessionID']?.toString(),
           sessionId: data['session_id']?.toString(),
         );

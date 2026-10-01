@@ -45,10 +45,10 @@ class NotificationActions {
     final content = text.trim();
     if (content.isEmpty || chatUUID.isEmpty) return;
 
-    if (!AppDatabase.instance.isOpen) {
-      await AppDatabase.instance.initialize();
+    final userUUID = await onboardingManager.getUserUUID() as String;
+    if (!AppDatabase.instance.isOpenForUser(userUUID)) {
+      await AppDatabase.instance.openForUser(userUUID);
     }
-    final userUUID = await onboardingManager.getUserUUID() ?? '';
     var sent = false;
 
     try {

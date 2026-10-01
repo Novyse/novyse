@@ -81,7 +81,6 @@ mixin MessageReadTracker<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     if (localUserUUID.isEmpty) return;
     _anchoring = true;
     final db = AppDatabase.instance;
-    if (!db.isOpen) await db.initialize();
     final anchor = await db.message.read.getUnreadAnchor(
       chatUUID,
       subID,

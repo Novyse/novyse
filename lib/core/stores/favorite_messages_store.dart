@@ -78,7 +78,6 @@ class FavoriteMessagesNotifier
     state = state.copyWith(loading: true);
     try {
       final db = AppDatabase.instance;
-      if (!db.isOpen) await db.initialize();
       final raw = await db.message.favorite.list(chatUUID: arg);
       final models = raw.map(MessageModel.fromMap).toList();
       state = state.copyWith(favorites: models, loading: false);
@@ -95,7 +94,6 @@ class FavoriteMessagesNotifier
 
   Future<void> reload() async {    try {
       final db = AppDatabase.instance;
-      if (!db.isOpen) await db.initialize();
       final raw = await db.message.favorite.list(chatUUID: arg);
       state = state.copyWith(
         favorites: raw.map(MessageModel.fromMap).toList(),
