@@ -4,9 +4,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:novyse/core/storage/file/web_blob_url_stub.dart'
-    if (dart.library.html) 'package:novyse/core/storage/file/web_blob_url_web.dart'
-    as web_blob;
+import 'package:novyse/core/storage/file/web_blob_url.dart' as web_blob;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 

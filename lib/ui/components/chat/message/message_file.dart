@@ -6,9 +6,7 @@ import 'package:novyse/core/services/file_download_service.dart';
 import 'package:novyse/core/storage/file/file_type.dart';
 import 'package:novyse/core/storage/file/file_utils.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
-import 'package:novyse/core/storage/file/web_blob_url_stub.dart'
-    if (dart.library.html) 'package:novyse/core/storage/file/web_blob_url_web.dart'
-    as web_file;
+import 'package:novyse/core/storage/file/web_blob_url.dart' as web_file;
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:open_file/open_file.dart';
 import 'package:url_launcher/url_launcher.dart';

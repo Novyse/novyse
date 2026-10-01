@@ -4,9 +4,7 @@ import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/services/file_download_service.dart';
 import 'package:novyse/core/storage/file/file_storage.dart';
 
-import 'web_blob_url_stub.dart'
-    if (dart.library.html) 'web_blob_url_web.dart'
-    as web_blob;
+import 'web_blob_url.dart' as web_blob;
 
 /// Resolves a local file reference (storage key, file path, URL, or fileUUID) into a
 /// playable URI that media widgets (Image, VideoPlayer, AudioPlayer) can use.
