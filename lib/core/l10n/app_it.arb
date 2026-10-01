@@ -116,6 +116,7 @@
     }
   },
   "retry": "Riprova",
+  "messageActionFailed": "Azione non completata. Riprova.",
   "savedMessages": "Messaggi salvati",
   "chatDraft": "Bozza",
   "chatYou": "Tu",
@@ -629,6 +630,7 @@
   "overviewMusic": "Musica",
   "overviewVoice": "Vocali",
   "overviewGifs": "GIF",
+  "subFallback": "Sub {id}",
   "overviewNoMembers": "Nessun membro trovato",
   "overviewNoFiles": "Nessun file condiviso",
   "overviewNoMedia": "Nessun media condiviso",
