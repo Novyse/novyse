@@ -103,9 +103,9 @@ class AppTheme {
           side: BorderSide(color: lightScheme.outline),
         ),
       ),
-      scrollbarTheme: ScrollbarThemeData(
-        thickness: const WidgetStatePropertyAll(AppScrollbarTokens.thickness),
-        trackVisibility: const WidgetStatePropertyAll(false),
+      scrollbarTheme: const ScrollbarThemeData(
+        thickness: WidgetStatePropertyAll(AppScrollbarTokens.thickness),
+        trackVisibility: WidgetStatePropertyAll(false),
         interactive: true,
         radius: AppScrollbarTokens.radius,
         minThumbLength: AppScrollbarTokens.minThumbLength,
@@ -188,9 +188,9 @@ class AppTheme {
           side: BorderSide(color: darkScheme.outline),
         ),
       ),
-      scrollbarTheme: ScrollbarThemeData(
-        thickness: const WidgetStatePropertyAll(AppScrollbarTokens.thickness),
-        trackVisibility: const WidgetStatePropertyAll(false),
+      scrollbarTheme: const ScrollbarThemeData(
+        thickness: WidgetStatePropertyAll(AppScrollbarTokens.thickness),
+        trackVisibility: WidgetStatePropertyAll(false),
         interactive: true,
         radius: AppScrollbarTokens.radius,
         minThumbLength: AppScrollbarTokens.minThumbLength,
