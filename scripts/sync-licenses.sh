@@ -26,10 +26,4 @@ fi
 
 # Run the generator targeting lib/core/settings/oss_licenses.dart
 dart run dart_pubspec_licenses:generate -o "$OUTPUT_FILE" -p "$ROOT_DIR"
-
-if git diff --name-only "$OUTPUT_FILE" 2>/dev/null | grep -q .; then
-  git add "$OUTPUT_FILE"
-  echo "🔄 [SYNC-LICENSES] Updated and staged $OUTPUT_FILE"
-else
-  echo "✅ [SYNC-LICENSES] OSS licenses are up to date ($OUTPUT_FILE)"
-fi
+echo "✅ [SYNC-LICENSES] Generated $OUTPUT_FILE (gitignored, not tracked)"

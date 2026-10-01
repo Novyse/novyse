@@ -24,6 +24,9 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
+      - name: Generate OSS licenses
+        run: ./scripts/sync-licenses.sh
+
       - name: Analyze Code
         run: flutter analyze
 

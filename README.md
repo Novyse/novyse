@@ -102,6 +102,7 @@ Prerequisites: Flutter SDK 3.35+ (Dart `^3.13.2`).
 
 ```bash
 flutter pub get
+./scripts/sync-licenses.sh
 flutter test
 ```
 
