@@ -288,36 +288,32 @@ String formatActivity(
 }
 
 /// Formats relative time for user "last seen" status.
-String formatLastSeen(
-  dynamic lastAccessAt, {
-  required AppLocalizations l10n,
-}) {
-
+String formatLastSeen(dynamic lastAccessAt, {required AppLocalizations l10n}) {
   DateTime date = formatDateTime(lastAccessAt);
 
-    final now = DateTime.now();
-    final diff = now.difference(date);
+  final now = DateTime.now();
+  final diff = now.difference(date);
 
-    if (diff.inSeconds < 10) {
-      return l10n.msgFormatJustNow;
-    }
-    if (diff.inSeconds < 60) {
-      return l10n.msgFormatSecondsAgo(diff.inSeconds);
-    }
-    if (diff.inMinutes < 60) {
-      return l10n.msgFormatMinutesAgo(diff.inMinutes);
-    }
-    if (diff.inHours < 24) {
-      return l10n.msgFormatHoursAgo(diff.inHours);
-    }
-    if (diff.inDays == 1) {
-      return l10n.msgFormatYesterday;
-    }
-    if (diff.inDays < 7) {
-      return l10n.msgFormatDaysAgo(diff.inDays);
-    }
+  if (diff.inSeconds < 10) {
+    return l10n.msgFormatJustNow;
+  }
+  if (diff.inSeconds < 60) {
+    return l10n.msgFormatSecondsAgo(diff.inSeconds);
+  }
+  if (diff.inMinutes < 60) {
+    return l10n.msgFormatMinutesAgo(diff.inMinutes);
+  }
+  if (diff.inHours < 24) {
+    return l10n.msgFormatHoursAgo(diff.inHours);
+  }
+  if (diff.inDays == 1) {
+    return l10n.msgFormatYesterday;
+  }
+  if (diff.inDays < 7) {
+    return l10n.msgFormatDaysAgo(diff.inDays);
+  }
 
-    return DateFormat.yMd(l10n.localeName).format(date);
+  return DateFormat.yMd(l10n.localeName).format(date);
 }
 
 /// Formats a message timestamp into a human-readable localized date and time string.
@@ -325,47 +321,43 @@ String formatMessageDateTime(
   dynamic timestamp, {
   required AppLocalizations l10n,
 }) {
+  DateTime date = formatDateTime(timestamp);
 
-    DateTime date = formatDateTime(timestamp);
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final messageDate = DateTime(date.year, date.month, date.day);
+  final timeStr = DateFormat('HH:mm').format(date);
 
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final messageDate = DateTime(date.year, date.month, date.day);
-    final timeStr = DateFormat('HH:mm').format(date);
-
-    if (messageDate == today) {
-      return timeStr;
-    } else if (messageDate == today.subtract(const Duration(days: 1))) {
-      return '${l10n.msgFormatYesterday}, $timeStr';
-    } else if (now.difference(date).inDays < 7 &&
-        messageDate.isAfter(today.subtract(const Duration(days: 7)))) {
-      final dayStr = DateFormat.E(l10n.localeName).format(date);
-      return '$dayStr $timeStr';
-    } else if (date.year == now.year) {
-      final dateStr = DateFormat.MMMd(l10n.localeName).format(date);
-      return '$dateStr, $timeStr';
-    } else {
-      final dateStr = DateFormat.yMMMd(l10n.localeName).format(date);
-      return '$dateStr, $timeStr';
-    }
-
+  if (messageDate == today) {
+    return timeStr;
+  } else if (messageDate == today.subtract(const Duration(days: 1))) {
+    return '${l10n.msgFormatYesterday}, $timeStr';
+  } else if (now.difference(date).inDays < 7 &&
+      messageDate.isAfter(today.subtract(const Duration(days: 7)))) {
+    final dayStr = DateFormat.E(l10n.localeName).format(date);
+    return '$dayStr $timeStr';
+  } else if (date.year == now.year) {
+    final dateStr = DateFormat.MMMd(l10n.localeName).format(date);
+    return '$dateStr, $timeStr';
+  } else {
+    final dateStr = DateFormat.yMMMd(l10n.localeName).format(date);
+    return '$dateStr, $timeStr';
+  }
 }
 
-DateTime formatDateTime(dynamic timestamp){
-    if (timestamp == null) return DateTime.now();
+DateTime formatDateTime(dynamic timestamp) {
+  if (timestamp == null) return DateTime.now();
 
- 
-    DateTime date;
-    if (timestamp is DateTime) {
-      date = timestamp.toLocal();
-    } else if (timestamp is String) {
-      date = DateTime.parse(timestamp).toLocal();
-    } else if (timestamp is int) {
-      date = DateTime.fromMillisecondsSinceEpoch(timestamp).toLocal();
-    } else {
-      return DateTime.now();
-    }
+  DateTime date;
+  if (timestamp is DateTime) {
+    date = timestamp.toLocal();
+  } else if (timestamp is String) {
+    date = DateTime.parse(timestamp).toLocal();
+  } else if (timestamp is int) {
+    date = DateTime.fromMillisecondsSinceEpoch(timestamp).toLocal();
+  } else {
+    return DateTime.now();
+  }
 
-    return date;
+  return date;
 }
-
