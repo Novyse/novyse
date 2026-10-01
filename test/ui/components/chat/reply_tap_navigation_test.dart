@@ -47,12 +47,12 @@ void main() {
       'MessageText renders quoted text highlight when quoteHighlightRange is active',
       (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: MessageText(
                 content: 'Hello beautiful world',
                 isCurrentMatch: true,
-                quoteHighlightRange: const TextRange(start: 6, end: 15),
+                quoteHighlightRange: TextRange(start: 6, end: 15),
               ),
             ),
           ),

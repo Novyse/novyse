@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/core/settings/settings_sync.dart';
 import 'package:novyse/core/storage/database/database.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
   setUpAll(() {

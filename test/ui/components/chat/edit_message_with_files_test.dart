@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/chat/message_action_methods.dart';
-import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/core/storage/database/database.dart';
-import 'package:novyse/core/stores/chat_draft_store.dart';
-import 'package:novyse/core/stores/message_store.dart';
-import 'package:novyse/core/storage/file/file_validators.dart';
 import 'package:novyse/core/chat/queue/queue_job.dart';
 import 'package:novyse/core/chat/queue/queue_manager.dart';
+import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/storage/database/database.dart';
+import 'package:novyse/core/storage/file/file_validators.dart';
+import 'package:novyse/core/stores/chat_draft_store.dart';
+import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/edit_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/files_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/chat_bottom_bar.dart';
@@ -57,7 +57,6 @@ void main() {
       );
 
       late WidgetRef testRef;
-      late BuildContext testContext;
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
@@ -65,7 +64,6 @@ void main() {
             home: Consumer(
               builder: (ctx, ref, _) {
                 testRef = ref;
-                testContext = ctx;
                 return const SizedBox();
               },
             ),
@@ -73,11 +71,7 @@ void main() {
         ),
       );
 
-      final methods = MessageActionMethods(
-        ref: testRef,
-        context: testContext,
-        chatUUID: chatUUID,
-      );
+      final methods = MessageActionMethods(ref: testRef, chatUUID: chatUUID);
       methods.edit(message);
 
       final draftState = container.read(chatDraftProvider(chatUUID));

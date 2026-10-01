@@ -11,7 +11,7 @@ void main() {
   testWidgets('ProfilePage renders user details and handles logout', (
     tester,
   ) async {
-    final mockUser = UserModel(
+    const mockUser = UserModel(
       uuid: 'user-123',
       name: 'Mario',
       surname: 'Rossi',

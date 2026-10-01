@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:novyse/core/sounds/sounds.dart';
 import 'package:novyse/core/sounds/sound_player.dart';
+import 'package:novyse/core/sounds/sounds.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

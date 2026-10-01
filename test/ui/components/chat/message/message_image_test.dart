@@ -49,13 +49,13 @@ void main() {
       'renders media grid with isSingle: false without box.dart assertion',
       (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
-                    children: const [
+                    children: [
                       Expanded(
                         child: MessageImage(
                           fileRef: null,

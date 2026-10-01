@@ -294,7 +294,7 @@ void main() {
           localContainer.read(chatProvider('chat-8'))?.unreadCount ?? -1;
 
       bus.emit(
-        MessageNewEvent({
+        const MessageNewEvent({
           'id': 31,
           'chatUUID': 'chat-8',
           'subID': 0,

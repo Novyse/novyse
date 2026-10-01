@@ -83,7 +83,7 @@ void main() {
         final container = ProviderContainer(
           overrides: [
             chatProvider('group-1').overrideWithValue(
-              ChatModel(
+              const ChatModel(
                 uuid: 'group-1',
                 type: 'GROUP',
                 name: 'Test Group',
@@ -106,7 +106,7 @@ void main() {
             ),
             userStoreProvider.overrideWith(
               () => _TestUserNotifier(
-                UserStoreState(
+                const UserStoreState(
                   localUserUUID: 'me',
                   users: {'user-1': user1, 'user-2': user2},
                 ),
@@ -184,7 +184,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           chatProvider('dm-1').overrideWithValue(
-            ChatModel(
+            const ChatModel(
               uuid: 'dm-1',
               type: 'DM',
               name: 'Direct Chat',
@@ -196,7 +196,7 @@ void main() {
           ),
           userStoreProvider.overrideWith(
             () => _TestUserNotifier(
-              UserStoreState(localUserUUID: 'me', users: {'user-1': user1}),
+              const UserStoreState(localUserUUID: 'me', users: {'user-1': user1}),
             ),
           ),
         ],

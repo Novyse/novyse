@@ -86,7 +86,7 @@ void main() {
       UncontrolledProviderScope(
         container: container,
         child: _wrapWithRouter(
-          Scaffold(
+          const Scaffold(
             body: SubList(
               chat: chat,
               selectedSub: 0,
@@ -140,7 +140,7 @@ void main() {
       UncontrolledProviderScope(
         container: container,
         child: _wrapWithRouter(
-          Scaffold(
+          const Scaffold(
             body: SubList(
               chat: chat,
               selectedSub: 0,

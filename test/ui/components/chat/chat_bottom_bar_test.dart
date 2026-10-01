@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 import 'package:novyse/core/chat/queue/queue_manager.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/storage/database/database.dart';
@@ -20,6 +19,7 @@ import 'package:novyse/ui/components/chat/bottom_bar/recording/voice_recorder_co
 import 'package:novyse/ui/components/chat/chat_drop_zone.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 
 void main() {
   setUpAll(() async {

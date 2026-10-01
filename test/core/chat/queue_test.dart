@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:novyse/core/chat/chat.dart';
 import 'package:novyse/core/storage/database/database.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
   setUpAll(() {
