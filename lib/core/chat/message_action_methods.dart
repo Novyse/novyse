@@ -7,22 +7,39 @@ import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/forward_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
+import 'package:novyse/core/stores/status_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
+import 'package:novyse/ui/components/status/status_message.dart';
 
 /// Encapsulates action handlers for messages (reply, quote, copy, select, forward, delete, pin, edit, download).
 class MessageActionMethods {
   final WidgetRef ref;
-  final BuildContext context;
   final String chatUUID;
   final int subID;
 
   const MessageActionMethods({
     required this.ref,
-    required this.context,
     required this.chatUUID,
     this.subID = 0,
   });
+
+  void _fail(String op, Object e) {
+    debugPrint('[MessageAction] $op failed: $e');
+    try {
+      ref.read(statusProvider.notifier).showStatus(
+            StatusItem(
+              id: 'message_action_$op',
+              source: StatusSource.general,
+              type: StatusMessageType.danger,
+              titleBuilder: (l10n) => l10n.statusError,
+              contentBuilders: [(l10n) => l10n.messageActionFailed],
+              closable: true,
+              timeout: const Duration(seconds: 4),
+            ),
+          );
+    } catch (_) {}
+  }
 
   /// Adds message to the draft replying list.
   void reply(MessageModel message) {
@@ -111,7 +128,7 @@ class MessageActionMethods {
           );
         }
       } catch (e) {
-        debugPrint('Error removing favorite: $e');
+        _fail('favorite_remove', e);
       }
     } else {
       try {
@@ -131,7 +148,7 @@ class MessageActionMethods {
           );
         }
       } catch (e) {
-        debugPrint('Error adding favorite: $e');
+        _fail('favorite_add', e);
       }
     }
   }
@@ -160,7 +177,7 @@ class MessageActionMethods {
           );
         }
       } catch (e) {
-        debugPrint('Error unpinning message: $e');
+        _fail('pin_remove', e);
       }
     } else {
       try {
@@ -183,18 +200,18 @@ class MessageActionMethods {
           );
         }
       } catch (e) {
-        debugPrint('Error pinning message: $e');
+        _fail('pin_add', e);
       }
     }
   }
 
-  /// Downloads message attachments (placeholder).
-  Future<void> download(MessageModel message) async {
-    // Placeholder for download
+  /// Downloads message attachments (not implemented yet).
+  Future<void> download(MessageModel message) {
+    throw UnimplementedError('Message download is not implemented yet');
   }
 
   /// Prompts for confirmation and deletes the message.
-  Future<void> delete(MessageModel message) async {
+  Future<void> delete(BuildContext context, MessageModel message) async {
     final l10n = AppLocalizations.of(context)!;
 
     final confirmed = await showOverlayConfirm(
@@ -205,21 +222,30 @@ class MessageActionMethods {
       cancelLabel: l10n.cancel,
       isDanger: true,
     );
+    if (!context.mounted) return;
 
-    if (confirmed == true) {
-      try {
-        await apiGateway.message.delete(chatUUID, subID, message.id.toString());
-      } catch (e) {
-        debugPrint('Error deleting message on server: $e');
+    if (confirmed != true) return;
+
+    try {
+      final res = await apiGateway.message.delete(
+        chatUUID,
+        subID,
+        message.id.toString(),
+      );
+      if (!res.success) {
+        _fail('delete', 'server rejected the request');
+        return;
       }
       await GlobalEventEmitter.instance.message.update(
         chatUUID,
         subID,
         message.id.toString(),
         'delete',
-        null,
+        res.chatEventID,
         {},
       );
+    } catch (e) {
+      _fail('delete', e);
     }
   }
 
@@ -257,7 +283,7 @@ class MessageActionMethods {
           );
         }
       } catch (e) {
-        debugPrint('Error removing reaction: $e');
+        _fail('reaction_remove', e);
       }
     } else {
       try {
@@ -282,7 +308,7 @@ class MessageActionMethods {
           );
         }
       } catch (e) {
-        debugPrint('Error adding reaction: $e');
+        _fail('reaction_add', e);
       }
     }
   }
