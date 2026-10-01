@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:nativeapi/nativeapi.dart';
 import 'package:novyse/core/config/global.dart';
 import 'package:novyse/core/l10n/l10n.dart';
@@ -80,38 +81,39 @@ abstract final class DesktopTrayController {
       _menu = menu;
       _openItem = openItem;
       _closeItem = closeItem;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Tray] init failed: $e');
       await dispose();
     }
   }
 
   static void refreshLabels() {
-    try {
+    _guard('refreshLabels', () {
       final l10n = lookupAppL10n();
       _openItem?.label = l10n.trayOpen;
       _closeItem?.label = l10n.trayClose;
       _trayIcon?.setTooltip(appName);
-    } catch (_) {}
+    });
+  }
+
+  static void _guard(String op, void Function() fn) {
+    try {
+      fn();
+    } catch (e) {
+      debugPrint('[Tray] $op failed: $e');
+    }
   }
 
   static Future<void> dispose() async {
-    try {
+    _guard('removeListener', () {
       if (_listenerId != null && _trayIcon != null) {
         _trayIcon!.removeListener(_listenerId!);
       }
-    } catch (_) {}
-    try {
-      _openItem?.dispose();
-    } catch (_) {}
-    try {
-      _closeItem?.dispose();
-    } catch (_) {}
-    try {
-      _menu?.dispose();
-    } catch (_) {}
-    try {
-      _trayIcon?.dispose();
-    } catch (_) {}
+    });
+    _guard('disposeOpenItem', () => _openItem?.dispose());
+    _guard('disposeCloseItem', () => _closeItem?.dispose());
+    _guard('disposeMenu', () => _menu?.dispose());
+    _guard('disposeTray', () => _trayIcon?.dispose());
     _listenerId = null;
     _openItem = null;
     _closeItem = null;
