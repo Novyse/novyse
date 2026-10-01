@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -48,7 +50,7 @@ void main() async {
   await _initDesktopWindow();
   await _initFirebase();
   if (kIsWeb) {
-    BrowserContextMenu.disableContextMenu();
+    unawaited(BrowserContextMenu.disableContextMenu());
   }
   await onboardingManager.checkInitialSession();
   final prefs = await SharedPreferences.getInstance();
