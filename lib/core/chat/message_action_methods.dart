@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/chat/message_actions_service.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/forward_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/core/stores/status_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
-import 'package:novyse/ui/components/status/status_message.dart';
 
 /// Encapsulates action handlers for messages (reply, quote, copy, select, forward, delete, pin, edit, download).
 class MessageActionMethods {
@@ -230,27 +231,14 @@ class MessageActionMethods {
 
     if (confirmed != true) return;
 
-    try {
-      final res = await apiGateway.message.delete(
-        chatUUID,
-        subID,
-        message.id.toString(),
-      );
-      if (!res.success) {
-        _fail('delete', 'server rejected the request');
-        return;
-      }
-      await GlobalEventEmitter.instance.message.update(
-        chatUUID,
-        subID,
-        message.id.toString(),
-        'delete',
-        res.chatEventID,
-        {},
-      );
-    } catch (e) {
-      _fail('delete', e);
-    }
+    final deleted = await ref
+        .read(messageActionsServiceProvider)
+        .delete(
+          chatUUID: chatUUID,
+          subID: subID,
+          messageID: message.id.toString(),
+        );
+    if (!deleted) _fail('delete', 'server did not confirm the delete');
   }
 
   /// Adds or removes a reaction from a message.

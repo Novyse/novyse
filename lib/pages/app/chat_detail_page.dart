@@ -3,19 +3,20 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/chat/message_actions_service.dart';
 import 'package:novyse/core/chat/permissions.dart';
-import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/core/services/api_gateway.dart';
+import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/forward_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
+import 'package:novyse/core/stores/status_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/pages/app/adaptive.dart';
 import 'package:novyse/pages/app/chat_call_page.dart';
-import 'package:novyse/pages/app/chat_routes.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/chat_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_detail_app_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_detail_search_app_bar.dart';
@@ -387,24 +388,30 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
               .clearSelectedMessages();
         },
         onDelete: () async {
+          final actions = ref.read(messageActionsServiceProvider);
+          var deleted = 0;
           for (final m in selectedMessages) {
-            try {
-              await apiGateway.message.delete(
-                chatUUID,
-                m.subID,
-                m.id.toString(),
-              );
-            } catch (e) {
-              debugPrint('Error deleting message: $e');
-            }
-            await GlobalEventEmitter.instance.message.update(
-              chatUUID,
-              m.subID,
-              m.id.toString(),
-              'delete',
-              null,
-              {},
+            final ok = await actions.delete(
+              chatUUID: chatUUID,
+              subID: m.subID,
+              messageID: m.id.toString(),
             );
+            if (ok) deleted++;
+          }
+          if (deleted == 0 && selectedMessages.isNotEmpty) {
+            ref
+                .read(statusProvider.notifier)
+                .showStatus(
+                  StatusItem(
+                    id: 'bulk_delete_failed',
+                    source: StatusSource.general,
+                    type: StatusMessageType.danger,
+                    titleBuilder: (l10n) => l10n.statusError,
+                    contentBuilders: [(l10n) => l10n.messageActionFailed],
+                    closable: true,
+                    timeout: const Duration(seconds: 4),
+                  ),
+                );
           }
           ref
               .read(chatDraftProvider(chatUUID).notifier)
