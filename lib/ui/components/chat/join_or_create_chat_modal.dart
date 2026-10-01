@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/chat/chat_service.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
@@ -72,10 +73,9 @@ class _JoinOrCreateChatModalState extends ConsumerState<JoinOrCreateChatModal> {
         final targetUUID = widget.chat.uuid;
         if (targetUUID.isEmpty) throw Exception('User UUID missing');
 
-        final res = await apiGateway.chat.create(
-          'DM',
-          memberUUIDs: [targetUUID],
-        );
+        final res = await ref
+            .read(chatServiceProvider)
+            .create(type: 'DM', memberUUIDs: [targetUUID]);
         if (!mounted) return;
 
         final success = res['success'] == true;
@@ -101,7 +101,7 @@ class _JoinOrCreateChatModalState extends ConsumerState<JoinOrCreateChatModal> {
           throw Exception('Chat handle missing');
         }
 
-        final res = await apiGateway.chat.join(handle);
+        final res = await ref.read(chatServiceProvider).join(handle);
         if (!mounted) return;
 
         final success = res['success'] == true;

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/ui/components/status/status_message.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
 
 /// Defines source domains for status notifications, ordered by priority.
 enum StatusSource {

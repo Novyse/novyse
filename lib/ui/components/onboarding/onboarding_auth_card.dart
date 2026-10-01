@@ -2,13 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/chat/chat_service.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/auth/validator.dart';
 import '../../../core/config/global.dart';
 import '../../../core/l10n/l10n.dart';
-import '../../../core/services/api_gateway.dart';
 import '../huge_icon.dart';
 import '../status/status_message.dart';
 import '../turnstile/turnstile_widget.dart';
@@ -28,7 +30,7 @@ typedef OnboardingSubmitCallback = FutureOr<void> Function({
   bool? isOldEnough,
 });
 
-class OnboardingAuthCard extends StatefulWidget {
+class OnboardingAuthCard extends ConsumerStatefulWidget {
   const OnboardingAuthCard({
     super.key,
     this.onSubmit,
@@ -57,10 +59,10 @@ class OnboardingAuthCard extends StatefulWidget {
   final bool showLegalCheckboxes;
 
   @override
-  State<OnboardingAuthCard> createState() => _OnboardingAuthCardState();
+  ConsumerState<OnboardingAuthCard> createState() => _OnboardingAuthCardState();
 }
 
-class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
+class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
   late OnboardingAuthMode _mode = widget.initialMode;
   String? _turnstileToken;
   int _turnstileKey = 0;
@@ -187,7 +189,7 @@ class _OnboardingAuthCardState extends State<OnboardingAuthCard> {
 
     _handleDebounceTimer = Timer(const Duration(milliseconds: 600), () async {
       try {
-        final res = await apiGateway.check.handle(trimmed);
+        final res = await ref.read(chatServiceProvider).checkHandle(trimmed);
         if (mounted) {
           setState(() {
             _isCheckingHandle = false;

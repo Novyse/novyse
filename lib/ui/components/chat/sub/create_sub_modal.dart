@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/chat/chat_service.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/core/services/api_gateway.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/onboarding/onboarding_text_field.dart';
@@ -73,11 +74,9 @@ class _CreateSubModalState extends ConsumerState<CreateSubModal> {
     });
 
     try {
-      final result = await apiGateway.chat.sub.create(
-        widget.chatUUID,
-        name,
-        _type,
-      );
+      final result = await ref
+          .read(chatServiceProvider)
+          .createSub(chatUUID: widget.chatUUID, name: name, type: _type);
       if (!mounted) return;
 
       if (result.success && result.sub != null) {

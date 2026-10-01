@@ -4,10 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
 
 import '../huge_icon.dart';
-
-enum StatusMessageType { success, danger, warning, info }
 
 class StatusMessage extends StatefulWidget {
   const StatusMessage({
