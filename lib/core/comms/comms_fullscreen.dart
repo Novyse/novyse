@@ -2,10 +2,10 @@ import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/services.dart';
 
-import 'comms_fullscreen_stub.dart'
-    if (dart.library.html) 'comms_fullscreen_web.dart' as webimpl;
 import 'comms_fullscreen_io_stub.dart'
     if (dart.library.io) 'comms_fullscreen_io.dart' as ioimpl;
+import 'comms_fullscreen_stub.dart'
+    if (dart.library.html) 'comms_fullscreen_web.dart' as webimpl;
 
 /// Platform-native fullscreen handling for a single comms tile.
 abstract final class CommsFullscreen {
