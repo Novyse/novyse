@@ -75,7 +75,7 @@ class QueueManager {
           setConnected(next.isConnected && next.isSynced);
         }, fireImmediately: true);
       } else {
-        _checkInitialConnectivity();
+        unawaited(_checkInitialConnectivity());
         _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
           (results) {
             final connected = results.any((r) => r != ConnectivityResult.none);
@@ -326,7 +326,8 @@ class QueueManager {
     try {
       final results = await Connectivity().checkConnectivity();
       _isConnected = results.any((r) => r != ConnectivityResult.none);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[QueueManager] Connectivity check failed: $e');
       _isConnected = true;
     }
   }

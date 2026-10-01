@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 /// Status states for queue jobs.
 enum JobStatus {
@@ -117,7 +118,9 @@ class QueueJob {
     if (rawPayload is String) {
       try {
         parsedPayload = jsonDecode(rawPayload) as Map<String, dynamic>;
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[QueueJob] Payload decode failed: $e');
+      }
     } else if (rawPayload is Map) {
       parsedPayload = Map<String, dynamic>.from(rawPayload);
     }

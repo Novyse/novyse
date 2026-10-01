@@ -141,11 +141,10 @@ class ChatQueueProcessor {
   }
 
   QueueJob? _findJob(String jobId) {
-    try {
-      return _jobs.firstWhere((j) => j.id == jobId);
-    } catch (_) {
-      return null;
+    for (final j in _jobs) {
+      if (j.id == jobId) return j;
     }
+    return null;
   }
 
   void _sortJobs() {
@@ -284,7 +283,7 @@ class ChatQueueProcessor {
       if (!_disposed &&
           isConnected &&
           _jobs.any((j) => j.status == JobStatus.pending)) {
-        Future.microtask(_processNext);
+        unawaited(Future.microtask(_processNext));
       }
     }
   }
@@ -359,7 +358,9 @@ class ChatQueueProcessor {
               file['waveform'] = processWaveform(fileBytes);
             }
           }
-        } catch (_) {}
+        } catch (e) {
+          debugPrint('[ChatQueue] Local media metadata failed: $e');
+        }
       }
     }
 
@@ -598,7 +599,9 @@ class ChatQueueProcessor {
                 file['waveform'] = processWaveform(fileBytes);
               }
             }
-          } catch (_) {}
+          } catch (e) {
+            debugPrint('[ChatQueue] Edit media metadata failed: $e');
+          }
         }
       }
     }
