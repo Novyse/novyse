@@ -202,7 +202,7 @@ class NotificationManager {
       timestamp = DateTime.tryParse(at.toString())?.toLocal();
     }
 
-    final subID = messageData?['subID'];
+    final subID = (messageData?['subID'] as num?)?.toInt() ?? 0;
 
     await LocalNotificationService.instance.showChatMessage(
       chatUUID: chatUUID,
