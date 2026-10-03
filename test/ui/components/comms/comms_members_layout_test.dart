@@ -6,6 +6,7 @@ import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/comms/comms_state.dart';
 import 'package:novyse/core/l10n/app_localizations_en.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/services/profile_picture_service.dart';
 import 'package:novyse/ui/components/comms/comms_members_layout.dart';
 import 'package:novyse/ui/components/comms/comms_user_card.dart';
 
@@ -54,6 +55,13 @@ void main() {
 
   late _StubCommsNotifier notifier;
 
+  // Every `CommsUserCard` renders an `Avatar` with a non-null uuid, which would
+  // then hit SQLite. Overriding the provider keeps the avatar on its no-picture
+  // path deterministically.
+  final avatarOverrides = <Override>[
+    profilePictureUriProvider.overrideWith((ref, uuid) async => null),
+  ];
+
   /// A tile; a screen share is always local, since only the sharer can stop it.
   CommsTileItem tile(String id, {String? trackSid, bool isLocal = true}) =>
       CommsTileItem(
@@ -74,7 +82,10 @@ void main() {
     notifier = _StubCommsNotifier(state ?? const CommsState());
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [commsProvider.overrideWith(() => notifier)],
+        overrides: [
+          ...avatarOverrides,
+          commsProvider.overrideWith(() => notifier),
+        ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/services/profile_picture_service.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/comms/comms_user_card.dart';
 
@@ -16,6 +17,13 @@ List<Override> userOverrides(Map<String, UserModel> users) => [
 ];
 
 void main() {
+  // `CommsUserCard` always hands a non-null uuid to `Avatar`, which would then
+  // hit SQLite through `profilePictureUriProvider`. Overriding the provider
+  // keeps the avatar on its no-picture path deterministically.
+  final avatarOverrides = <Override>[
+    profilePictureUriProvider.overrideWith((ref, uuid) async => null),
+  ];
+
   /// A participant tile; [videoTrack] stays null so the avatar fallback renders.
   CommsTileItem tile({
     String id = 't1',
@@ -45,7 +53,7 @@ void main() {
   }) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: userOverrides(users),
+        overrides: [...avatarOverrides, ...userOverrides(users)],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -318,7 +326,7 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: const [],
+          overrides: avatarOverrides,
           child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
