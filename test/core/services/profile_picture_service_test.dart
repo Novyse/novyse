@@ -7,6 +7,11 @@ import 'package:novyse/core/storage/file/file_storage.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
+  // The only file this suite writes. `FileStorage` is a singleton rooted at a
+  // real directory shared by every test file, so wiping it wholesale (as
+  // `clearAll` does) races with suites that are still reading their own files.
+  const fileUUID = '00000000-0000-0000-0000-000000000000';
+
   setUpAll(() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
@@ -22,14 +27,14 @@ void main() {
     await db.clear();
 
     storage = FileStorage.instance;
-    await storage.clearAll();
+    await storage.delete(fileUUID);
 
     service = ProfilePictureService.instance;
   });
 
   tearDown(() async {
     await db.close();
-    await storage.clearAll();
+    await storage.delete(fileUUID);
   });
 
   group('ProfilePictureService Tests', () {
@@ -49,7 +54,6 @@ void main() {
     test(
       'returns existing storage URI when file and DB record are present',
       () async {
-        const fileUUID = '00000000-0000-0000-0000-000000000000';
         final bytes = Uint8List.fromList([1, 2, 3, 4, 5]);
 
         // Save file locally in storage
