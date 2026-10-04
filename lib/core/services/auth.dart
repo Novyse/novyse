@@ -25,7 +25,7 @@ final auth = NovyseAuth(
 
 /// Bootstrap hook — call once at app startup with the [EventBus].
 void initAuth(EventBus eventBus) {
-  auth.token.onInvalidSession(() {
-    eventBus.emit(const InvalidSessionEvent());
+  auth.token.onInvalidSession((reason) {
+    eventBus.emit(InvalidSessionEvent(reason: reason));
   });
 }

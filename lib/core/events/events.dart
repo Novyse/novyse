@@ -8,7 +8,8 @@ library;
 // Global / App-level events
 
 class InvalidSessionEvent {
-  const InvalidSessionEvent();
+  final String? reason;
+  const InvalidSessionEvent({this.reason});
 }
 
 class ClientUpdateRequiredEvent {

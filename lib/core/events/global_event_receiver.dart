@@ -43,7 +43,7 @@ class _GlobalEventReceiverState extends ConsumerState<GlobalEventReceiver> {
 
     // invalidSession event
     _subscriptions.add(
-      bus.on<InvalidSessionEvent>().listen((_) async {
+      bus.on<InvalidSessionEvent>().listen((event) async {
         final now = DateTime.now();
         if (_handlingInvalidSession) {
           debugPrint(
@@ -64,24 +64,9 @@ class _GlobalEventReceiverState extends ConsumerState<GlobalEventReceiver> {
         _handlingInvalidSession = true;
         _lastInvalidSessionAt = now;
         debugPrint(
-          'User session became invalid. Logging out and redirecting... 🍹',
+          'User session became invalid. Logging out and redirecting... 🍹'
+          '${event.reason != null ? ' (reason: ${event.reason})' : ''}',
         );
-        // Try to refresh the token first, in case the invalidation was a false positive (e.g. network hiccup). If refresh fails, proceed to logout.
-        try {
-          final recovered = await auth.token.get(forceRefresh: true);
-          if (recovered != null && recovered.isNotEmpty) {
-            debugPrint(
-              '[auth] InvalidSession aborted: refresh retry recovered a token',
-            );
-            _handlingInvalidSession = false;
-            return;
-          }
-          debugPrint('[auth] InvalidSession confirmed: refresh retry empty');
-        } catch (e) {
-          debugPrint(
-            '[auth] InvalidSession refresh retry error, proceeding: $e',
-          );
-        }
         try {
           await performLogout(ref);
         } catch (_) {}
