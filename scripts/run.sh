@@ -32,6 +32,11 @@ shift # Remove OS from arguments so subsequent arguments can be passed to flutte
 
 cd "$ROOT_DIR"
 
+if [ ! -f "$ROOT_DIR/lib/core/settings/oss_licenses.dart" ]; then
+  echo "🔄 [run.sh] OSS licenses file missing, generating..."
+  bash "$ROOT_DIR/scripts/sync-licenses.sh"
+fi
+
 case "$OS_TARGET" in
   web)
     echo "🚀 Launching on Web (Chrome, port 8081)..."
