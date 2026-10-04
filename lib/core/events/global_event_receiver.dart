@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/auth/onboarding_manager.dart';
 import 'package:novyse/core/auth/session_cleanup.dart';
 import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
@@ -23,6 +24,11 @@ class GlobalEventReceiver extends ConsumerStatefulWidget {
 class _GlobalEventReceiverState extends ConsumerState<GlobalEventReceiver> {
   final List<StreamSubscription> _subscriptions = [];
 
+  /// Guards against logout loops when multiple invalidSession events fire in quick succession.
+  bool _handlingInvalidSession = false;
+  DateTime? _lastInvalidSessionAt;
+  static const _invalidSessionDebounce = Duration(seconds: 5);
+
   @override
   void initState() {
     super.initState();
@@ -38,12 +44,48 @@ class _GlobalEventReceiverState extends ConsumerState<GlobalEventReceiver> {
     // invalidSession event
     _subscriptions.add(
       bus.on<InvalidSessionEvent>().listen((_) async {
+        final now = DateTime.now();
+        if (_handlingInvalidSession) {
+          debugPrint(
+            '[auth] InvalidSession ignored: logout already in progress',
+          );
+          return;
+        }
+        if (_lastInvalidSessionAt != null &&
+            now.difference(_lastInvalidSessionAt!) < _invalidSessionDebounce) {
+          debugPrint('[auth] InvalidSession ignored: debounced duplicate');
+          return;
+        }
+        // Already logged out
+        if (!ref.read(authProvider)) {
+          debugPrint('[auth] InvalidSession ignored: already logged out');
+          return;
+        }
+        _handlingInvalidSession = true;
+        _lastInvalidSessionAt = now;
         debugPrint(
           'User session became invalid. Logging out and redirecting... 🍹',
         );
+        // Try to refresh the token first, in case the invalidation was a false positive (e.g. network hiccup). If refresh fails, proceed to logout.
+        try {
+          final recovered = await auth.token.get(forceRefresh: true);
+          if (recovered != null && recovered.isNotEmpty) {
+            debugPrint(
+              '[auth] InvalidSession aborted: refresh retry recovered a token',
+            );
+            _handlingInvalidSession = false;
+            return;
+          }
+          debugPrint('[auth] InvalidSession confirmed: refresh retry empty');
+        } catch (e) {
+          debugPrint(
+            '[auth] InvalidSession refresh retry error, proceeding: $e',
+          );
+        }
         try {
           await performLogout(ref);
         } catch (_) {}
+        _handlingInvalidSession = false;
         if (mounted) {
           ref.read(routerProvider).go('/welcome');
         }
