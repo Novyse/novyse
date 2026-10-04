@@ -5,31 +5,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Persists recently used GIFs across restarts (per-device).
-///
-/// Mirrors the legacy `novyse-recent-gifs` AsyncStorage key (max 24).
-/// Emoji recents live in the sibling `EmojiRecentsStore` (custom single
-/// list, no picker library).
+/// Persists most-used GIFs across restarts (per-device).
+/// Ordered by number of uses (most used first).
 class GifRecentsStore extends Notifier<List<GifItem>> {
   static const storageKey = 'novyse-recent-gifs';
   static const maxRecents = 24;
+
+  final _gifs = <String, GifItem>{};
+  final _uses = <String, int>{};
 
   SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
 
   @override
   List<GifItem> build() {
+    _gifs.clear();
+    _uses.clear();
     final raw = _prefs.getString(storageKey);
     if (raw == null || raw.isEmpty) return const [];
     try {
-      final decoded = jsonDecode(raw);
-      if (decoded is List) {
-        return decoded
-            .whereType<Map>()
-            .map((e) => GifItem.fromJson(Map<String, dynamic>.from(e)))
-            .where((g) => g.url.isNotEmpty)
-            .take(maxRecents)
-            .toList();
+      final decoded = jsonDecode(raw) as Map;
+      for (final e in decoded.entries) {
+        final id = e.key.toString();
+        final m = Map<String, dynamic>.from(e.value as Map);
+        final gif = GifItem.fromJson(Map<String, dynamic>.from(m['gif']));
+        if (gif.url.isEmpty) continue;
+        _gifs[id] = gif;
+        _uses[id] = (m['uses'] as num).toInt();
       }
+      final ids = _uses.keys.toList()
+        ..sort((a, b) => _uses[b]!.compareTo(_uses[a]!));
+      return [for (final id in ids.take(maxRecents)) _gifs[id]!];
     } catch (e) {
       debugPrint('[GifRecents] Ignoring corrupt storage: $e');
     }
@@ -37,15 +42,18 @@ class GifRecentsStore extends Notifier<List<GifItem>> {
   }
 
   Future<void> push(GifItem gif) async {
-    final updated = [
-      gif,
-      ...state.where((g) => g.id != gif.id),
-    ].take(maxRecents).toList();
-    state = updated;
+    _gifs[gif.id] = gif;
+    _uses[gif.id] = (_uses[gif.id] ?? 0) + 1;
+    final ids = _uses.keys.toList()
+      ..sort((a, b) => _uses[b]!.compareTo(_uses[a]!));
+    state = [for (final id in ids.take(maxRecents)) _gifs[id]!];
     try {
       await _prefs.setString(
         storageKey,
-        jsonEncode(updated.map((g) => g.toJson()).toList()),
+        jsonEncode({
+          for (final id in _uses.keys)
+            id: {'gif': _gifs[id]!.toJson(), 'uses': _uses[id]},
+        }),
       );
     } catch (e) {
       debugPrint('[GifRecents] Persist failed: $e');
@@ -53,6 +61,8 @@ class GifRecentsStore extends Notifier<List<GifItem>> {
   }
 
   Future<void> clear() async {
+    _gifs.clear();
+    _uses.clear();
     state = const [];
     try {
       await _prefs.remove(storageKey);
