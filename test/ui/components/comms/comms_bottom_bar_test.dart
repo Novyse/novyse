@@ -40,6 +40,18 @@ class _StubCommsNotifier extends CommsNotifier {
   Future<void> leave() async => calls.add('leave');
 
   @override
+  Future<void> setAudioInputDevice(String deviceId) async =>
+      calls.add('setAudioInput($deviceId)');
+
+  @override
+  Future<void> setVideoInputDevice(String deviceId) async =>
+      calls.add('setVideoInput($deviceId)');
+
+  @override
+  Future<void> setAudioOutputDevice(String deviceId) async =>
+      calls.add('setAudioOutput($deviceId)');
+
+  @override
   void clearError() => calls.add('clearError');
 }
 
@@ -232,7 +244,9 @@ void main() {
       expect(notifier.calls, ['leave']);
     });
 
-    testWidgets('the settings button is a no-op', (tester) async {
+    testWidgets('the settings button opens voice/video settings', (
+      tester,
+    ) async {
       final l10n = await pump(tester, connected);
 
       await tester.tap(find.byTooltip(l10n.settings));

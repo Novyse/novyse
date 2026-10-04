@@ -215,6 +215,10 @@ void main() {
         await expectLater(notifier.stopScreenShare(), completes);
       },
     );
+
+    test('switchCamera is a no-op without a room', () async {
+      await expectLater(notifier.switchCamera(), completion(isNull));
+    });
   });
 
   group('initial state', () {

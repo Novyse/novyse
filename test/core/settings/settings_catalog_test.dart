@@ -57,6 +57,9 @@ void main() {
         'theme_selector',
         'theme_mode',
         'surface_mode',
+        'input_device',
+        'output_device',
+        'webcam',
       };
       for (final item in SettingsCatalog.allItems) {
         if (enabledIds.contains(item.id)) {

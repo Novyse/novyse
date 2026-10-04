@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/themes/themes.dart';
+import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
@@ -291,6 +293,42 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                   ),
                 ),
               ),
+              // Bottom-right quick camera flip (mobile local video only).
+              // Top-right controls rely on hover, unavailable on touch.
+              if (tile.isLocal &&
+                  !tile.isScreenShare &&
+                  videoTrack != null &&
+                  currentPlatform == AppPlatform.mobile)
+                Positioned(
+                  right: 10,
+                  bottom: 10,
+                  child: AnimatedOpacity(
+                    opacity: widget.isFullScreen ? controlsOpacity : 1.0,
+                    duration: const Duration(milliseconds: 150),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.45),
+                          child: IconButton(
+                            icon: const AppHugeIcon(
+                              icon: HugeIcons.strokeRoundedCameraRotated01,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.all(6),
+                            tooltip: l10n.commsSwitchCamera,
+                            onPressed: () => ref
+                                .read(commsProvider.notifier)
+                                .switchCamera(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

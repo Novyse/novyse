@@ -1,4 +1,5 @@
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/comms/devices/comms_setting_options.dart';
 import 'package:novyse/core/settings/settings_models.dart';
 
 /// Comms settings.
@@ -22,23 +23,23 @@ final List<SettingCategory> commsCategory = [
                 id: 'input_device',
                 title: (l) => l.settingsItemInputDeviceTitle,
                 subtitle: (l) => l.settingsItemInputDeviceSubtitle,
-                component: SettingComponent.custom,
+                component: SettingComponent.select,
                 settingKey: 'comms.inputDevice',
                 scope: SettingScope.local,
                 defaultValue: 'default',
-                customRendererId: 'audioDevicePicker',
-                disabled: true,
+                optionsLoader: loadMicOptions,
+                onOptionPicked: saveMicOption,
               ),
               SettingItem(
                 id: 'output_device',
                 title: (l) => l.settingsItemOutputDeviceTitle,
                 subtitle: (l) => l.settingsItemOutputDeviceSubtitle,
-                component: SettingComponent.custom,
+                component: SettingComponent.select,
                 settingKey: 'comms.outputDevice',
                 scope: SettingScope.local,
                 defaultValue: 'default',
-                customRendererId: 'audioDevicePicker',
-                disabled: true,
+                optionsLoader: loadSpeakerOptions,
+                onOptionPicked: saveSpeakerOption,
               ),
               SettingItem(
                 id: 'mic_test',
@@ -138,12 +139,12 @@ final List<SettingCategory> commsCategory = [
                 id: 'webcam',
                 title: (l) => l.settingsItemWebcamTitle,
                 subtitle: (l) => l.settingsItemWebcamSubtitle,
-                component: SettingComponent.custom,
+                component: SettingComponent.select,
                 settingKey: 'comms.webcam',
                 scope: SettingScope.local,
                 defaultValue: 'default',
-                customRendererId: 'cameraPicker',
-                disabled: true,
+                optionsLoader: loadCameraOptions,
+                onOptionPicked: saveCameraOption,
               ),
               SettingItem(
                 id: 'video_quality',

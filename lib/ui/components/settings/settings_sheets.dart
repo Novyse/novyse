@@ -54,12 +54,20 @@ Widget _sheetTitle(BuildContext context, String title, [String? subtitle]) {
   );
 }
 
-/// Single-choice option picker. Persists the stable option value.
+/// Dynamic single-choice picker. When [SettingItem.optionsLoader] is set,
+/// options are loaded lazily on open (spinner meanwhile) and the tap is
+/// handled by [SettingItem.onOptionPicked] (or the standard persist).
 Future<void> showSettingsSelectSheet({
   required BuildContext context,
   required WidgetRef ref,
   required SettingItem item,
 }) {
+  if (item.optionsLoader != null) {
+    return _showSettingsSheet(
+      context: context,
+      child: _LazySelectBody(item: item),
+    );
+  }
   final title = context.settingsText(item.title);
   final settingKey = item.settingKey;
   final options = item.options ?? const [];
@@ -94,8 +102,7 @@ Future<void> showSettingsSelectSheet({
   );
 }
 
-class _SelectOptionRow extends ConsumerWidget {
-  final SettingItem item;
+class _SelectOptionRow extends ConsumerWidget {  final SettingItem item;
   final SettingOption option;
   final Future<void> Function() onPick;
 
@@ -116,6 +123,94 @@ class _SelectOptionRow extends ConsumerWidget {
       title: label.isEmpty ? option.value : label,
       selected: current == option.value,
       onTap: () => onPick(),
+    );
+  }
+}
+
+/// Lazy select body: loads options only when the sheet opens.
+/// Same visuals as the static select sheet.
+class _LazySelectBody extends ConsumerStatefulWidget {
+  final SettingItem item;
+
+  const _LazySelectBody({required this.item});
+
+  @override
+  ConsumerState<_LazySelectBody> createState() => _LazySelectBodyState();
+}
+
+class _LazySelectBodyState extends ConsumerState<_LazySelectBody> {
+  late final Future<List<SettingOption>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = widget.item.optionsLoader!(ref);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final title = context.settingsText(widget.item.title);
+    return FutureBuilder<List<SettingOption>>(
+      future: _future,
+      builder: (context, snapshot) {
+        final options = snapshot.data ?? const <SettingOption>[];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _sheetTitle(
+              context,
+              title,
+              context.l10n.settingsCommonSelectOption,
+            ),
+            if (snapshot.connectionState == ConnectionState.waiting)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else
+              SettingsSection(
+                children: [
+                  for (final option in options)
+                    _LazyOptionRow(item: widget.item, option: option),
+                ],
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _LazyOptionRow extends ConsumerWidget {
+  final SettingItem item;
+  final SettingOption option;
+
+  const _LazyOptionRow({required this.item, required this.option});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settingKey = item.settingKey;
+    final current = settingKey == null
+        ? item.defaultValue
+        : (ref.watch(settingValueProvider(settingKey)) ?? item.defaultValue);
+    final label = context.settingsText(option.label);
+    return SettingsSelectRow(
+      title: label.isEmpty ? option.value : label,
+      selected: current == option.value,
+      onTap: () async {
+        final onPicked = item.onOptionPicked;
+        if (onPicked != null) {
+          await onPicked(ref, option.value);
+        } else if (settingKey != null) {
+          await ref
+              .read(settingsControllerProvider.notifier)
+              .set(settingKey, option.value);
+        }
+        if (context.mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+      },
     );
   }
 }

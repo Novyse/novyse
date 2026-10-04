@@ -6,7 +6,6 @@ import 'package:novyse/core/settings/settings_actions.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/core/utils/platform.dart';
-
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
 import 'package:novyse/ui/components/settings/settings_external_link_row.dart';
 import 'package:novyse/ui/components/settings/settings_modal_row.dart';
@@ -68,12 +67,15 @@ class SettingsItemRenderer extends ConsumerWidget {
         final raw = settingKey == null
             ? null
             : ref.watch(settingValueProvider(settingKey));
+        final valueText = item.optionsLoader != null
+            ? null
+            : _displayValue(context, raw ?? item.defaultValue);
         return wrapDisabled(
           SettingsValueRow(
             icon: item.icon,
             title: title,
             subtitle: subtitleOrNull,
-            valueText: _displayValue(context, raw ?? item.defaultValue),
+            valueText: valueText,
             onTap: isDisabled ? null : () => _openSheet(context, ref),
           ),
         );

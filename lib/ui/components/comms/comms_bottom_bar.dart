@@ -9,6 +9,7 @@ import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/core/themes/themes.dart';
+import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
 import 'package:novyse/ui/components/comms/screen_share_selector_modal.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
@@ -240,14 +241,19 @@ class CommsBottomBar extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
 
-              // 5. Settings button (no-op for now)
+              // 5. Voice & video settings
               _buildIconButton(
                 icon: HugeIcons.strokeRoundedSettings01,
                 tooltip: l10n.settings,
                 backgroundColor: Colors.white.withValues(alpha: 0.12),
                 iconColor: Colors.white,
                 onPressed: () {
-                  // No-op for now as requested
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) =>
+                          const SettingsCategoryPage(categoryId: 'comms'),
+                    ),
+                  );
                 },
               ),
               const SizedBox(width: 12),

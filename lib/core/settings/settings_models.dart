@@ -4,6 +4,7 @@
 library;
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/utils/platform.dart';
 
@@ -11,6 +12,12 @@ extension SettingsL10nX on BuildContext {
   String settingsText(String Function(AppLocalizations) text) =>
       text(AppLocalizations.of(this)!);
 }
+
+typedef SettingOptionsLoader =
+    Future<List<SettingOption>> Function(WidgetRef ref);
+
+typedef SettingOptionPicked =
+    Future<void> Function(WidgetRef ref, String value);
 
 enum SettingScope { local, synchronized }
 
@@ -47,6 +54,12 @@ class SettingOption {
 /// - [externalUrl]: URL opened directly by the external link row
 ///   (no action needed; only for [SettingComponent.externalLink]).
 /// - [customRendererId]: renderer id for complex domain UI.
+/// - [optionsLoader]/[onOptionPicked]: optional lazy select behavior. When
+///   [optionsLoader] is present the select sheet calls it on open (spinner
+///   meanwhile) instead of using static [options]; [onOptionPicked] handles
+///   the tap, defaulting to the standard persist by [settingKey]. The
+///   catalog references top-level feature functions, so settings never
+///   imports feature code.
 /// - [valueProviderId]: provider id for read-only values (e.g. app version).
 /// - [disabled]: when true the row renders non-interactive (WIP placeholder).
 ///   Defaults to false.
@@ -64,6 +77,8 @@ class SettingItem {
   final String? actionId;
   final String? externalUrl;
   final String? customRendererId;
+  final SettingOptionsLoader? optionsLoader;
+  final SettingOptionPicked? onOptionPicked;
   final String? valueProviderId;
   final String? targetPageId;
   final List<List<dynamic>>? icon;
@@ -87,6 +102,8 @@ class SettingItem {
     this.actionId,
     this.externalUrl,
     this.customRendererId,
+    this.optionsLoader,
+    this.onOptionPicked,
     this.valueProviderId,
     this.targetPageId,
     this.icon,
