@@ -61,26 +61,29 @@ class MessageListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return KeyedSubtree(
       key: itemKey,
-      child: SwipeToReply(
-        enabled: !isSelectionMode && message.type != 'system' && canReply,
-        isSender: isSender,
-        onReply: onReply,
-        child: MessageBase(
-          message: message,
+      child: SizedBox(
+        width: double.infinity,
+        child: SwipeToReply(
+          enabled: !isSelectionMode && message.type != 'system' && canReply,
           isSender: isSender,
-          isSelected: isSelected,
-          isSelectionMode: isSelectionMode,
-          showAvatar: showAvatar,
-          showSenderName: showSenderName,
-          senderUser: senderUser,
-          searchHighlight: searchHighlight,
-          isCurrentSearchMatch: isCurrentSearchMatch,
-          quoteHighlightRange: quoteHighlightRange,
-          onReplyTap: onReplyTap,
-          onSelectionToggle: onSelectionToggle,
-          onOpenContextMenu: onOpenContextMenu,
-          getMessage: getMessage,
-          getUser: getUser,
+          onReply: onReply,
+          child: MessageBase(
+            message: message,
+            isSender: isSender,
+            isSelected: isSelected,
+            isSelectionMode: isSelectionMode,
+            showAvatar: showAvatar,
+            showSenderName: showSenderName,
+            senderUser: senderUser,
+            searchHighlight: searchHighlight,
+            isCurrentSearchMatch: isCurrentSearchMatch,
+            quoteHighlightRange: quoteHighlightRange,
+            onReplyTap: onReplyTap,
+            onSelectionToggle: onSelectionToggle,
+            onOpenContextMenu: onOpenContextMenu,
+            getMessage: getMessage,
+            getUser: getUser,
+          ),
         ),
       ),
     );
