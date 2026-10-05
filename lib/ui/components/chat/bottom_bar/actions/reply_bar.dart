@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class ReplyBar extends ConsumerWidget {
@@ -25,19 +26,14 @@ class ReplyBar extends ConsumerWidget {
           .removeReply(item.message.id);
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: replyingTo.map((item) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: FloatingAppBarConsts.bottomGap),
+      child: FloatingPill(
+        radius: FloatingAppBarConsts.centralRadius,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: replyingTo.map((item) {
           final message = item.message;
           final senderName = users[message.userUUID]?.name ?? message.userUUID;
           var content = message.content ?? '';
@@ -116,6 +112,7 @@ class ReplyBar extends ConsumerWidget {
             ],
           );
         }).toList(),
+        ),
       ),
     );
   }

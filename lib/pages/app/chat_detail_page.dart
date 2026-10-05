@@ -53,6 +53,10 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   String _searchQuery = '';
   int _searchIndex = 0;
   double _subListWidth = kSubListDefaultWidth;
+  final _bottomBarKey = GlobalKey();
+  // Stima iniziale bottombar a una riga (48 pill + 24 padding + safe + fade).
+  // Aggiornata alla misura reale via SizeChangedLayoutNotifier (altezza variabile).
+  double _bottomInset = 132;
 
   @override
   void initState() {
@@ -453,29 +457,63 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
       );
     }
 
-    final messagePane = Column(
+    // Lista full-bleed + bottombar flottante in overlay: i messaggi
+    // scorrono sotto la bottombar (ProgressiveOpacityBackground bottomToTop).
+    // bottomInset dinamico = altezza reale bottombar (testo fino a 4 righe,
+    // reply/edit/files/mention) + 12 di respiro, così l'ultimo messaggio
+    // risale sopra la pill ma resta lo scroll-under.
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
+    final effectiveBottomInset = showComposer
+        ? _bottomInset
+        : bottomPadding + 12;
+    final messagePane = Stack(
       children: [
-        Expanded(
+        Positioned.fill(
           child: ChatDropZone(
             chatUUID: chatUUID,
             child: MessageList(
               chatUUID: chatUUID,
               subID: selectedSub,
               searchQuery: _searching ? trimmedQuery : '',
+              bottomInset: effectiveBottomInset,
             ),
           ),
         ),
         if (showComposer)
-          ChatBottomBar(
-            chatUUID: chatUUID,
-            subID: selectedSub,
-            readOnly: !canSendMessage,
-            isAttachMenuOpen: _isAttachMenuOpen,
-            onToggleAttachMenu: _toggleAttachMenu,
-            onCloseAttachMenu: _closeAttachMenu,
-            isEmojiMenuOpen: _isEmojiMenuOpen,
-            onToggleEmojiMenu: _toggleEmojiMenu,
-            onCloseEmojiMenu: _closeEmojiMenu,
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: NotificationListener<SizeChangedLayoutNotification>(
+              onNotification: (_) {
+                final size = _bottomBarKey.currentContext?.size;
+                if (size != null) {
+                  final next = size.height + 12;
+                  if ((next - _bottomInset).abs() > 1) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) setState(() => _bottomInset = next);
+                    });
+                  }
+                }
+                return true;
+              },
+              child: SizeChangedLayoutNotifier(
+                child: Container(
+                  key: _bottomBarKey,
+                  child: ChatBottomBar(
+                    chatUUID: chatUUID,
+                    subID: selectedSub,
+                    readOnly: !canSendMessage,
+                    isAttachMenuOpen: _isAttachMenuOpen,
+                    onToggleAttachMenu: _toggleAttachMenu,
+                    onCloseAttachMenu: _closeAttachMenu,
+                    isEmojiMenuOpen: _isEmojiMenuOpen,
+                    onToggleEmojiMenu: _toggleEmojiMenu,
+                    onCloseEmojiMenu: _closeEmojiMenu,
+                  ),
+                ),
+              ),
+            ),
           ),
       ],
     );

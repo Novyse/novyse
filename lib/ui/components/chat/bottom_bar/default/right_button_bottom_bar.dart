@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class RightButtonBottomBar extends StatelessWidget {
@@ -37,56 +38,79 @@ class RightButtonBottomBar extends StatelessWidget {
         ? l10n.sendMessageTooltip
         : l10n.recordVoiceTooltip;
 
+    final icon = isSending
+        ? SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: colorScheme.onPrimary,
+            ),
+          )
+        : AppHugeIcon(
+            icon: shouldShowSend
+                ? HugeIcons.strokeRoundedSent
+                : HugeIcons.strokeRoundedMic02,
+            size: 20,
+            color: shouldShowSend
+                ? colorScheme.onPrimary
+                : colorScheme.onSurface,
+          );
+
+    final VoidCallback? onTap = isSending
+        ? null
+        : () {
+            if (isRecording) {
+              onStopAndSend();
+            } else if (shouldShowSend) {
+              onSendMessage();
+            } else {
+              onStartRecording();
+            }
+          };
+
+    if (shouldShowSend) {
+      return Tooltip(
+        message: tooltip,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(
+              FloatingAppBarConsts.pillRadius,
+            ),
+            child: Container(
+              width: FloatingAppBarConsts.iconPillOuterSize,
+              height: FloatingAppBarConsts.iconPillOuterSize,
+              decoration: BoxDecoration(
+                color: colorScheme.primary,
+                shape: BoxShape.circle,
+                border: Border.all(color: colorScheme.primary),
+              ),
+              alignment: Alignment.center,
+              child: icon,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Tooltip(
       message: tooltip,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: isSending
-              ? null
-              : () {
-                  if (isRecording) {
-                    onStopAndSend();
-                  } else if (shouldShowSend) {
-                    onSendMessage();
-                  } else {
-                    onStartRecording();
-                  }
-                },
-          borderRadius: BorderRadius.circular(24),
-          child: Container(
-            width: 45,
-            height: 45,
-            decoration: BoxDecoration(
-              color: shouldShowSend
-                  ? colorScheme.primary
-                  : colorScheme.surfaceContainerHighest.withValues(alpha: 0.65),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: shouldShowSend
-                    ? colorScheme.primary
-                    : colorScheme.outlineVariant.withValues(alpha: 0.5),
-              ),
+      child: FloatingPill(
+        padding: FloatingAppBarConsts.iconPillPadding,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(
+              FloatingAppBarConsts.pillRadius,
             ),
-            alignment: Alignment.center,
-            child: isSending
-                ? SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: colorScheme.onPrimary,
-                    ),
-                  )
-                : AppHugeIcon(
-                    icon: shouldShowSend
-                        ? HugeIcons.strokeRoundedSent
-                        : HugeIcons.strokeRoundedMic02,
-                    size: 20,
-                    color: shouldShowSend
-                        ? colorScheme.onPrimary
-                        : colorScheme.onSurface,
-                  ),
+            child: SizedBox(
+              width: FloatingAppBarConsts.iconButtonSize,
+              height: FloatingAppBarConsts.iconButtonSize,
+              child: Center(child: icon),
+            ),
           ),
         ),
       ),

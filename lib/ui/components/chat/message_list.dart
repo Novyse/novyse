@@ -21,6 +21,7 @@ class MessageList extends ConsumerStatefulWidget {
     this.scrollController,
     this.searchQuery = '',
     this.highlightedMessageId,
+    this.bottomInset = 12,
   });
 
   final String chatUUID;
@@ -28,6 +29,12 @@ class MessageList extends ConsumerStatefulWidget {
   final ScrollController? scrollController;
   final String searchQuery;
   final dynamic highlightedMessageId;
+
+  /// Spazio interno in basso alla lista (dentro lo scrollable) così
+  /// l'ultimo messaggio può risalire sopra la bottombar flottante,
+  /// ma scorrendo i messaggi passano comunque sotto (overlay, non push).
+  /// Aggiornato dalla pagina via misura della bottombar (altezza variabile).
+  final double bottomInset;
 
   @override
   ConsumerState<MessageList> createState() => _MessageListState();
@@ -215,7 +222,7 @@ class _MessageListState extends ConsumerState<MessageList>
         key: listKey,
         controller: effectiveController,
         reverse: true,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: EdgeInsets.fromLTRB(16, 12, 16, widget.bottomInset),
         itemCount: messages.length + (dividerAt >= 0 ? 1 : 0),
         itemBuilder: (context, index) {
           if (dividerAt >= 0 && index == dividerAt) {
