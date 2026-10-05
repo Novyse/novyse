@@ -22,6 +22,11 @@ void main() {
       ]);
     });
 
+    test('system category is hidden outside desktop platforms', () {
+      final system = SettingsCatalog.findCategory('system')!;
+      expect(system.hidden, currentPlatform != AppPlatform.desktop);
+    });
+
     test('every category has pages and/or loose items', () {
       for (final category in SettingsCatalog.categories) {
         expect(

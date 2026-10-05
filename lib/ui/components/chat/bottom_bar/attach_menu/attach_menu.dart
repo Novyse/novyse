@@ -26,13 +26,15 @@ class AttachMenuPopover extends ConsumerWidget {
   ];
 
   Future<void> _handleAction(WidgetRef ref, AttachMenuAction action) async {
+    final container = ProviderScope.containerOf(ref.context, listen: false);
+
     switch (action) {
       case AttachMenuAction.media:
         onClose();
-        await AttachMenuHandler.pickMedia(ref, chatUUID);
+        await AttachMenuHandler.pickMedia(container, chatUUID);
       case AttachMenuAction.file:
         onClose();
-        await AttachMenuHandler.pickFile(ref, chatUUID);
+        await AttachMenuHandler.pickFile(container, chatUUID);
       case AttachMenuAction.camera:
       case AttachMenuAction.recording:
       case AttachMenuAction.location:

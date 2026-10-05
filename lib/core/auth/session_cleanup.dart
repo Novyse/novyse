@@ -16,7 +16,6 @@ import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/favorite_messages_store.dart';
-import 'package:novyse/core/stores/forward_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/network_store.dart';
 import 'package:novyse/core/stores/status_store.dart';
@@ -56,9 +55,6 @@ Future<void> runLogoutCleanup(WidgetRef ref) async {
   });
   await step('clear-status', () async {
     ref.read(statusProvider.notifier).clearAll();
-  });
-  await step('reset-forward', () async {
-    ref.read(forwardProvider.notifier).resetForwarding();
   });
   await step('reset-network', () async {
     ref.read(networkProvider.notifier).setSynced(false);

@@ -337,6 +337,22 @@
   "cancelEdit": "Annulla Modifica",
   "edit": "Modifica",
   "forward": "Inoltra",
+  "share": "Condividi",
+  "shareFailed": "Condivisione non riuscita. Riprova.",
+  "shareFilesNotAvailable": "I file non sono ancora disponibili per la condivisione. Riprova quando il download è completo.",
+  "shareLinuxFilesUnsupported": "La condivisione file non è supportata su Linux. È stato condiviso solo il testo.",
+  "incomingShareTitle": "Contenuto ricevuto",
+  "incomingShareHint": "Scegli una chat per continuare",
+  "incomingShareFiles": "{count, plural, =1{1 file} other{{count} file}}",
+  "@incomingShareFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "incomingShareDiscard": "Scarta contenuto",
+  "incomingShareTooBig": "Alcuni file ricevuti superano i limiti di 50 MB / 100 MB e sono stati ignorati.",
   "unreadMessages": "Messaggi non letti",
   "select": "Seleziona",
   "delete": "Elimina",

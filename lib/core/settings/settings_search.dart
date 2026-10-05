@@ -28,6 +28,7 @@ Map<SettingCategory, List<SettingItem>> searchSettings({
 
   final hits = <SettingCategory, List<SettingItem>>{};
   for (final category in SettingsCatalog.categories) {
+    if (category.hidden) continue;
     final matched = <SettingItem>[];
     for (final page in category.pages) {
       for (final group in page.groups) {

@@ -4,13 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/chat/message_actions_service.dart';
+import 'package:novyse/core/chat/message_share_service.dart';
 import 'package:novyse/core/chat/permissions.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/router/chat_routes.dart';
+import 'package:novyse/core/share/incoming_share_service.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
-import 'package:novyse/core/stores/forward_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/core/stores/status_store.dart';
@@ -67,8 +68,30 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         ref
             .read(activeChatProvider.notifier)
             .setSelectedChatUUID(widget.chatUUID, subOverride: widget.subID);
+        _consumeIncomingShare();
       }
     });
+  }
+
+  /// Consume-once: the first opened chat absorbs the pending incoming share.
+  void _consumeIncomingShare() {
+    final pending = IncomingShareService.consumePending(ref);
+    if (pending.isEmpty) return;
+    final draft = ref.read(chatDraftProvider(widget.chatUUID).notifier);
+    if (pending.text.trim().isNotEmpty) {
+      draft.setText(pending.text.trim());
+      try {
+        final controller = ref.read(
+          chatTextControllerProvider(widget.chatUUID),
+        );
+        if (controller.text != pending.text.trim()) {
+          controller.text = pending.text.trim();
+        }
+      } catch (_) {}
+    }
+    if (pending.files.isNotEmpty) {
+      draft.setFiles(IncomingShareService.toDraftFiles(pending.files));
+    }
   }
 
   @override
@@ -383,13 +406,10 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
               .read(chatDraftProvider(chatUUID).notifier)
               .clearSelectedMessages();
         },
-        onForward: () {
-          ref
-              .read(forwardProvider.notifier)
-              .setForwardMessages(selectedMessages);
-          ref
-              .read(chatDraftProvider(chatUUID).notifier)
-              .clearSelectedMessages();
+        onShare: () {
+          final toShare = List<MessageModel>.from(selectedMessages);
+          ref.read(chatDraftProvider(chatUUID).notifier).clearSelectedMessages();
+          MessageShareService.shareMessages(context, ref, toShare);
         },
         onDelete: () async {
           final actions = ref.read(messageActionsServiceProvider);
