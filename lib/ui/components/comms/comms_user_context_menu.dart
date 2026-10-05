@@ -156,7 +156,7 @@ class _CommsUserMenuContent extends ConsumerWidget {
       children: [
         // Header: member name (profile route is a placeholder, no navigation).
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
             children: [
               const AppHugeIcon(
@@ -164,7 +164,7 @@ class _CommsUserMenuContent extends ConsumerWidget {
                 size: 20,
                 color: Colors.white,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   displayName,
@@ -181,6 +181,8 @@ class _CommsUserMenuContent extends ConsumerWidget {
         if (!tile.isLocal) ...[
           ListTile(
             dense: true,
+            minLeadingWidth: 20,
+            horizontalTitleGap: 8,
             leading: AppHugeIcon(
               icon: isMuted
                   ? HugeIcons.strokeRoundedMicOff02
@@ -204,6 +206,8 @@ class _CommsUserMenuContent extends ConsumerWidget {
         if (!isFullScreen)
           ListTile(
             dense: true,
+            minLeadingWidth: 20,
+            horizontalTitleGap: 8,
             leading: AppHugeIcon(
               icon: isPinned
                   ? HugeIcons.strokeRoundedPinOff
@@ -219,6 +223,8 @@ class _CommsUserMenuContent extends ConsumerWidget {
           ),
         ListTile(
           dense: true,
+          minLeadingWidth: 20,
+          horizontalTitleGap: 8,
           leading: AppHugeIcon(
             icon: isFullScreen
                 ? HugeIcons.strokeRoundedArrowShrink01

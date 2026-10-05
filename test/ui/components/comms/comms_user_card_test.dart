@@ -444,7 +444,7 @@ void main() {
     });
 
     testWidgets('menu row icons are left-aligned', (tester) async {
-      await pump(tester, item: muteTile());
+      final l10n = await pump(tester, item: muteTile());
 
       await tester.tap(
         find.byType(CommsUserCard),
@@ -462,7 +462,19 @@ void main() {
 
       final muteDx = leftEdge(HugeIcons.strokeRoundedMic02);
       final volumeDx = leftEdge(HugeIcons.strokeRoundedVolumeHigh);
+      final headerDx = leftEdge(HugeIcons.strokeRoundedUser);
       expect((muteDx - volumeDx).abs(), lessThanOrEqualTo(1.0));
+      expect((muteDx - headerDx).abs(), lessThanOrEqualTo(1.0));
+
+      double textLeft(String text) {
+        final finder = find.text(text);
+        expect(finder, findsOneWidget);
+        return tester.getTopLeft(finder).dx;
+      }
+
+      final muteTextDx = textLeft(l10n.commsMuteUser);
+      final volumeTextDx = textLeft(l10n.commsVolume);
+      expect((muteTextDx - volumeTextDx).abs(), lessThanOrEqualTo(1.0));
     });
 
     testWidgets('pin from the menu calls onPin and closes it', (tester) async {
