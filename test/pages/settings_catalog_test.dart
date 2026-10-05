@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:novyse/core/config/global.dart' as config;
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
 import 'package:novyse/pages/app/settings/settings_page.dart';
+import 'package:novyse/ui/components/settings/settings_external_link_row.dart';
 import 'package:novyse/ui/components/settings/settings_item_renderer.dart';
+import 'package:novyse/ui/components/settings/settings_value_row.dart';
 
 Widget _wrap(Widget child) {
   return ProviderScope(
@@ -160,6 +163,73 @@ void main() {
       find.text('System'),
       currentPlatform == AppPlatform.desktop ? findsOneWidget : findsNothing,
     );
+  });
+
+  testWidgets('version and update channel are informational values', (
+    tester,
+  ) async {
+    final info = SettingsCatalog.findCategory('info')!;
+    final version = info.items.firstWhere((item) => item.id == 'version');
+    final channel = info.items.firstWhere(
+      (item) => item.id == 'release_channel',
+    );
+
+    await tester.pumpWidget(
+      _wrap(
+        Scaffold(
+          body: Column(
+            children: [
+              SettingsItemRenderer(item: version),
+              SettingsItemRenderer(item: channel),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final versionRow = tester.widget<SettingsValueRow>(
+      find.ancestor(
+        of: find.text('Version'),
+        matching: find.byType(SettingsValueRow),
+      ),
+    );
+    final channelRow = tester.widget<SettingsValueRow>(
+      find.ancestor(
+        of: find.text('Update Channel'),
+        matching: find.byType(SettingsValueRow),
+      ),
+    );
+    expect(versionRow.onTap, isNull);
+    expect(channelRow.onTap, isNull);
+    expect(find.text('Version'), findsOneWidget);
+    expect(find.text(config.appVersion), findsOneWidget);
+    expect(find.text(config.updateChannel), findsOneWidget);
+  });
+
+  testWidgets('official resources page exposes all four external links', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(const SettingsGroupPage(categoryId: 'info', pageId: 'resources')),
+    );
+    await tester.pumpAndSettle();
+
+    final links = tester.widgetList<SettingsExternalLinkRow>(
+      find.byType(SettingsExternalLinkRow),
+    );
+    expect(links.map((link) => link.url).toList(), [
+      '${config.landingPageUrl}/roadmap',
+      '${config.landingPageUrl}/patchnotes',
+      '${config.landingPageUrl}/news',
+      config.statusPageUrl,
+    ]);
+    expect(find.text('Roadmap'), findsOneWidget);
+    expect(find.text('Patch Notes'), findsOneWidget);
+    expect(find.text('News'), findsOneWidget);
+    expect(find.text('Service Status'), findsOneWidget);
+    expect(find.text('Official Links & Resources'), findsOneWidget);
+    expect(find.text('Discover Novyse'), findsOneWidget);
   });
 
   testWidgets('Delete profile opens the username-confirmed sheet', (

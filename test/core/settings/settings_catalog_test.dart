@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:novyse/core/config/global.dart' as config;
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/utils/platform.dart';
@@ -59,6 +60,14 @@ void main() {
         'terms_of_service',
         'app_license',
         'open_source_licenses',
+        'app_language',
+        'version',
+        'release_channel',
+        'resource_links',
+        'roadmap',
+        'patchnotes',
+        'news',
+        'status',
         'theme_selector',
         'theme_mode',
         'surface_mode',
@@ -89,10 +98,7 @@ void main() {
         expect(item.scope, isNotNull, reason: item.id);
         expect(item.defaultValue, isNotNull, reason: item.id);
       }
-      expect(
-        hiddenItems.map((i) => i.id),
-        contains('volumes_list'),
-      );
+      expect(hiddenItems.map((i) => i.id), contains('volumes_list'));
     });
 
     test('system items are desktop-only (linux/windows/macos)', () {
@@ -149,14 +155,64 @@ void main() {
       ]);
 
       final info = SettingsCatalog.findCategory('info')!;
-      expect(info.pages.map((p) => p.id).toList(), ['legal']);
+      expect(info.pages.map((p) => p.id).toList(), ['legal', 'resources']);
       expect(info.items.map((i) => i.id).toList(), [
         'version',
         'release_channel',
         'check_updates',
-        'resource_links',
         'export_logs',
       ]);
+    });
+
+    test(
+      'update channel is read-only and resource links use official URLs',
+      () {
+        final info = SettingsCatalog.findCategory('info')!;
+        final version = info.items.firstWhere((i) => i.id == 'version');
+        final channel = info.items.firstWhere((i) => i.id == 'release_channel');
+        expect(version.component, SettingComponent.value);
+        expect(version.valueProviderId, 'appVersion');
+        expect(version.settingKey, isNull);
+        expect(version.disabled, isFalse);
+        expect(channel.component, SettingComponent.value);
+        expect(channel.valueProviderId, 'updateChannel');
+        expect(channel.settingKey, isNull);
+        expect(channel.disabled, isFalse);
+        expect(info.pages.map((page) => page.id), contains('resources'));
+
+        final links = info.pages
+            .firstWhere((page) => page.id == 'resources')
+            .groups
+            .single
+            .items;
+        expect(
+          {for (final item in links) item.id: item.externalUrl},
+          {
+            'roadmap': '${config.landingPageUrl}/roadmap',
+            'patchnotes': '${config.landingPageUrl}/patchnotes',
+            'news': '${config.landingPageUrl}/news',
+            'status': config.statusPageUrl,
+          },
+        );
+        expect(config.statusPageUrl, 'https://status.novyse.com');
+        expect(
+          config.updateChannel,
+          config.branch == 'development' ? 'dev' : config.branch,
+        );
+      },
+    );
+
+    test('info and diagnostics entries all have icons', () {
+      final info = SettingsCatalog.findCategory('info')!;
+      final items = [
+        ...info.items,
+        for (final page in info.pages)
+          for (final group in page.groups) ...group.items,
+      ];
+
+      for (final item in items) {
+        expect(item.icon, isNotNull, reason: item.id);
+      }
     });
 
     test('blocked users live in the privacy page, after call routing', () {

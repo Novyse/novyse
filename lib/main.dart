@@ -74,6 +74,13 @@ class MyApp extends ConsumerWidget {
       title: appName,
       localizationsDelegates: localizationsDelegates,
       supportedLocales: supportedLocales,
+      locale: Locale(
+        supportedLocales.any(
+              (locale) => locale.languageCode == settings['locale.appLanguage'],
+            )
+            ? settings['locale.appLanguage']! as String
+            : 'en',
+      ),
       localeResolutionCallback: resolveLocale,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.build(

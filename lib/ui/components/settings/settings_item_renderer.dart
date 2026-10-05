@@ -110,6 +110,8 @@ class SettingsItemRenderer extends ConsumerWidget {
             subtitle: subtitleOrNull,
             valueText: item.valueProviderId == 'appVersion'
                 ? config.appVersion
+                : item.valueProviderId == 'updateChannel'
+                ? config.updateChannel
                 : null,
           ),
         );

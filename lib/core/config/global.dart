@@ -26,6 +26,9 @@ const String webDescription = branch == 'production'
 
 const String appVersion = '1.2.0-20260831.0';
 
+/// Human-readable update channel for the active deployment branch.
+const String updateChannel = branch == 'development' ? 'dev' : branch;
+
 // Domain helpers
 
 /// Returns the full domain for [subdomain] based on the current [branch].
@@ -58,6 +61,7 @@ final String appUrl = switch (branch) {
 
 const String tinyAppUrl = 'https://vyse.me';
 const String landingPageUrl = 'https://www.novyse.com';
+const String statusPageUrl = 'https://status.novyse.com';
 const String privacyPolicyUrl = '$landingPageUrl/legal/privacy-policy';
 const String tosUrl = '$landingPageUrl/legal/terms-of-service';
 

@@ -20,13 +20,7 @@ final List<SettingCategory> languagesTimeFlatEntriesCategory = [
         options: [
           SettingOption('en', (l) => l.settingsOptionAppLanguageEnLabel),
           SettingOption('it', (l) => l.settingsOptionAppLanguageItLabel),
-          SettingOption('es', (l) => l.settingsOptionAppLanguageEsLabel),
-          SettingOption('fr', (l) => l.settingsOptionAppLanguageFrLabel),
-          SettingOption('de', (l) => l.settingsOptionAppLanguageDeLabel),
-          SettingOption('ja', (l) => l.settingsOptionAppLanguageJaLabel),
-          SettingOption('zh', (l) => l.settingsOptionAppLanguageZhLabel),
         ],
-        disabled: true,
       ),
       SettingItem(
         id: 'hour_format',
