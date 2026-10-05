@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/chat/message_actions_service.dart';
+import 'package:novyse/core/chat/message_share_service.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
-import 'package:novyse/core/stores/forward_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/core/stores/status_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
-/// Encapsulates action handlers for messages (reply, quote, copy, select, forward, delete, pin, edit, download).
+/// Encapsulates action handlers for messages (reply, quote, copy, select, delete, pin, edit, download).
 class MessageActionMethods {
   final WidgetRef ref;
   final BuildContext context;
@@ -82,9 +82,9 @@ class MessageActionMethods {
     ref.read(chatDraftProvider(chatUUID).notifier).toggleSelectMessage(message);
   }
 
-  /// Queues message for forwarding.
-  void forward(MessageModel message) {
-    ref.read(forwardProvider.notifier).setForwardMessages([message]);
+  /// Shares a single message through the OS share sheet.
+  Future<void> share(BuildContext context, MessageModel message) {
+    return MessageShareService.shareMessage(context, ref, message);
   }
 
   /// Initiates editing of a message.

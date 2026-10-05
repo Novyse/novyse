@@ -16,6 +16,7 @@ import 'package:novyse/ui/components/chat/chat_list/chat_list_empty_view.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_list_view.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_search.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_search_results.dart';
+import 'package:novyse/ui/components/chat/chat_list/incoming_share_banner.dart';
 import 'package:novyse/ui/components/chat/create_chat_modal.dart';
 import 'package:novyse/ui/components/chat/join_or_create_chat_modal.dart';
 import 'package:novyse/ui/components/status/global_status_bar.dart';
@@ -270,26 +271,31 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
                 hasScrollBody: false,
                 child: Center(child: CircularProgressIndicator()),
               )
-            else if (!isFiltering && chats.isEmpty)
-              const ChatListEmptyView()
-            else if (isFiltering)
-              ChatSearchResults(
-                localChats: _localChats,
-                remoteChats: _remoteChats,
-                matchedMessages: _matchedMessages,
-                messagesLoading: _messagesLoading,
-                remoteLoading: _remoteLoading,
-                query: _query.trim(),
-                selectedChatUUID: selectedChatUUID,
-                onOpenChat: _onChatSelected,
-                onOpenMessage: _openMessageResult,
-              )
-            else
-              ChatListView(
-                chats: chats,
-                selectedChatUUID: selectedChatUUID,
-                onOpenChat: _openChat,
-              ),
+            else if (!isFiltering && chats.isEmpty) ...[
+              const SliverToBoxAdapter(child: IncomingShareBanner()),
+              const ChatListEmptyView(),
+            ] else ...[
+              if (!isFiltering)
+                const SliverToBoxAdapter(child: IncomingShareBanner()),
+              if (isFiltering)
+                ChatSearchResults(
+                  localChats: _localChats,
+                  remoteChats: _remoteChats,
+                  matchedMessages: _matchedMessages,
+                  messagesLoading: _messagesLoading,
+                  remoteLoading: _remoteLoading,
+                  query: _query.trim(),
+                  selectedChatUUID: selectedChatUUID,
+                  onOpenChat: _onChatSelected,
+                  onOpenMessage: _openMessageResult,
+                )
+              else
+                ChatListView(
+                  chats: chats,
+                  selectedChatUUID: selectedChatUUID,
+                  onOpenChat: _openChat,
+                ),
+            ],
           ],
         ),
       ),

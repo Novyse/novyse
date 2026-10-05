@@ -17,14 +17,16 @@ import 'package:novyse/ui/components/huge_icon.dart';
 class MessageActionMenuItem {
   final String label;
   final List<List<dynamic>> icon;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final bool isDanger;
+  final bool enabled;
 
   const MessageActionMenuItem({
     required this.label,
     required this.icon,
     required this.onTap,
     this.isDanger = false,
+    this.enabled = true,
   });
 }
 
@@ -291,13 +293,21 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
                 },
               ),
 
-            // Forward
+            // Forward (visible greyed-out placeholder, no action)
             MessageActionMenuItem(
               label: l10n.forward,
               icon: HugeIcons.strokeRoundedLinkForward,
+              onTap: null,
+              enabled: false,
+            ),
+
+            // Share (system share sheet: text and/or downloaded files)
+            MessageActionMenuItem(
+              label: l10n.share,
+              icon: HugeIcons.strokeRoundedShare08,
               onTap: () {
                 Navigator.of(context).pop();
-                methods.forward(message);
+                methods.share(context, message);
               },
             ),
 
@@ -487,12 +497,17 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
                                           children: items.map((item) {
-                                            final itemColor = item.isDanger
+                                            final itemColor = !item.enabled
+                                                ? colorScheme.onSurfaceVariant
+                                                    .withValues(alpha: 0.4)
+                                                : item.isDanger
                                                 ? colorScheme.error
                                                 : colorScheme.onSurface;
 
                                             return InkWell(
-                                              onTap: item.onTap,
+                                              onTap: item.enabled
+                                                  ? item.onTap
+                                                  : null,
                                               borderRadius:
                                                   BorderRadius.circular(14),
                                               hoverColor: item.isDanger

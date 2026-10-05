@@ -74,6 +74,7 @@ void main() {
       expect(find.text('Copy'), findsOneWidget);
       expect(find.text('Edit'), findsOneWidget);
       expect(find.text('Forward'), findsOneWidget);
+      expect(find.text('Share'), findsOneWidget);
       expect(find.text('Select'), findsOneWidget);
       expect(find.text('Delete'), findsOneWidget);
 
@@ -101,6 +102,7 @@ void main() {
         expect(find.text('Reply'), findsOneWidget);
         expect(find.text('Copy'), findsOneWidget);
         expect(find.text('Forward'), findsOneWidget);
+        expect(find.text('Share'), findsOneWidget);
         expect(find.text('Select'), findsOneWidget);
 
         expect(find.text('Delete'), findsNothing);

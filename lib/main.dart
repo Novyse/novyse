@@ -12,6 +12,7 @@ import 'package:novyse/core/events/global_event_receiver.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/notifications/notification_binder.dart';
 import 'package:novyse/core/notifications/notification_manager.dart';
+import 'package:novyse/core/share/share_intent_binder.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_recents_store.dart';
 import 'package:novyse/ui/components/window/desktop_tray_controller.dart';
@@ -89,7 +90,9 @@ class MyApp extends ConsumerWidget {
       routerConfig: ref.watch(routerProvider),
       builder: (context, child) => GlobalEventReceiver(
         child: NotificationBinder(
-          child: DesktopWindowFrame(child: child ?? const SizedBox.shrink()),
+          child: ShareIntentBinder(
+            child: DesktopWindowFrame(child: child ?? const SizedBox.shrink()),
+          ),
         ),
       ),
     );

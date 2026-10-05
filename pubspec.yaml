@@ -71,6 +71,8 @@ dependencies:
   web: ^1.1.1
   super_clipboard: ^0.10.0-dev.2
   super_drag_and_drop: ^0.10.0-dev.2
+  share_plus: ^13.3.1
+  receive_sharing_intent: ^1.9.0
   livekit_client: ^2.11.0
   flutter_webrtc: ^1.6.0
   nativeapi: ^0.3.0

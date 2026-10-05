@@ -94,7 +94,7 @@ void main() {
         selectedCount: 2,
         onClose: () {},
         onReply: () {},
-        onForward: () {},
+        onShare: () {},
         onDelete: () {},
       ),
       'selected header',

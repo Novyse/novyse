@@ -3,14 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/chat/message_action_methods.dart';
+import 'package:novyse/core/chat/message_share_service.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
-import 'package:novyse/core/stores/forward_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
 
 /// `MessageActionMethods` needs a `WidgetRef` and a `BuildContext`, so the
 /// harness harvests a real one from a `Consumer` and shares the test container
-/// with it. That reaches the draft/forward/selection state transitions and the
+/// with it. That reaches the draft/selection state transitions and the
 /// quote-range arithmetic, which are the parts with real logic.
 void main() {
   late ProviderContainer container;
@@ -221,25 +221,21 @@ void main() {
     });
   });
 
-  group('forward', () {
-    testWidgets('queues the message for forwarding', (tester) async {
-      final methods = await build(tester);
+  group('share text join', () {
+    testWidgets('joinTexts concatenates pure texts with blank lines', (
+      tester,
+    ) async {
+      await build(tester);
 
-      methods.forward(message(id: 3));
-
-      final forward = container.read(forwardProvider);
-      expect(forward.forwardMessages.map((m) => m.id), [3]);
-    });
-
-    testWidgets('replaces a previous forward selection', (tester) async {
-      final methods = await build(tester);
-
-      methods.forward(message(id: 3));
-      methods.forward(message(id: 4));
-
-      expect(container.read(forwardProvider).forwardMessages.map((m) => m.id), [
-        4,
-      ]);
+      expect(
+        MessageShareService.joinTexts([
+          message(id: 1, content: '  hello  '),
+          message(id: 2, content: ''),
+          message(id: 3, content: null),
+          message(id: 4, content: 'world'),
+        ]),
+        'hello\n\nworld',
+      );
     });
   });
 

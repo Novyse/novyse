@@ -8,7 +8,7 @@ void main() {
     required int selectedCount,
     VoidCallback? onClose,
     VoidCallback? onReply,
-    VoidCallback? onForward,
+    VoidCallback? onShare,
     VoidCallback? onDelete,
     Widget? bottom,
   }) {
@@ -21,7 +21,7 @@ void main() {
           selectedCount: selectedCount,
           onClose: onClose ?? () {},
           onReply: onReply,
-          onForward: onForward,
+          onShare: onShare,
           onDelete: onDelete,
           bottom: bottom,
         ),
@@ -35,7 +35,7 @@ void main() {
         buildTestHeader(
           selectedCount: 2,
           onReply: () {},
-          onForward: () {},
+          onShare: () {},
           onDelete: () {},
         ),
       );
@@ -45,6 +45,7 @@ void main() {
       // Reply should be visible for count 2
       expect(find.byTooltip('Reply'), findsOneWidget);
       expect(find.byTooltip('Forward'), findsOneWidget);
+      expect(find.byTooltip('Share'), findsOneWidget);
       expect(find.byTooltip('Delete'), findsOneWidget);
     });
 
@@ -53,7 +54,7 @@ void main() {
         buildTestHeader(
           selectedCount: 4,
           onReply: () {},
-          onForward: () {},
+          onShare: () {},
           onDelete: () {},
         ),
       );
@@ -63,7 +64,27 @@ void main() {
       // Reply icon should NOT be visible when count > 3
       expect(find.byTooltip('Reply'), findsNothing);
       expect(find.byTooltip('Forward'), findsOneWidget);
+      expect(find.byTooltip('Share'), findsOneWidget);
       expect(find.byTooltip('Delete'), findsOneWidget);
+    });
+
+    testWidgets('forward icon is disabled and not tappable', (tester) async {
+      var shared = 0;
+      await tester.pumpWidget(
+        buildTestHeader(selectedCount: 1, onShare: () => shared++),
+      );
+      await tester.pumpAndSettle();
+
+      final forwardButton = tester.widget<IconButton>(
+        find.ancestor(
+          of: find.byTooltip('Forward'),
+          matching: find.byType(IconButton),
+        ),
+      );
+      expect(forwardButton.onPressed, isNull);
+      await tester.tap(find.byTooltip('Forward'));
+      await tester.pumpAndSettle();
+      expect(shared, 0);
     });
 
     testWidgets('tapping Close calls onClose callback', (tester) async {

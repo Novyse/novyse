@@ -12,15 +12,16 @@ class ChatSelectedHeader extends StatelessWidget {
     required this.selectedCount,
     required this.onClose,
     this.onReply,
-    this.onForward,
+    this.onShare,
     this.onDelete,
     this.bottom,
+    VoidCallback? onForward,
   });
 
   final int selectedCount;
   final VoidCallback onClose;
   final VoidCallback? onReply;
-  final VoidCallback? onForward;
+  final VoidCallback? onShare;
   final VoidCallback? onDelete;
   final Widget? bottom;
 
@@ -31,14 +32,17 @@ class ChatSelectedHeader extends StatelessWidget {
     final canReply = selectedCount > 0 && selectedCount <= 3;
 
     final hasActions =
-        (canReply && onReply != null) || onForward != null || onDelete != null;
+        (canReply && onReply != null) || onShare != null || onDelete != null;
 
     final content = Row(
       children: [
         FloatingPill(
           padding: FloatingAppBarConsts.iconPillPadding,
           child: FloatingIconButton(
-            icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
+            icon: AppHugeIcon(
+              icon: HugeIcons.strokeRoundedCancel01,
+              color: colorScheme.onSurfaceVariant,
+            ),
             tooltip: l10n.cancel,
             onPressed: onClose,
           ),
@@ -84,14 +88,23 @@ class ChatSelectedHeader extends StatelessWidget {
                     tooltip: l10n.reply,
                     onPressed: onReply,
                   ),
-                if (onForward != null)
+                // Forward (always visible but greyed out and non-interactive.)
+                FloatingIconButton(
+                  icon: AppHugeIcon(
+                    icon: HugeIcons.strokeRoundedLinkForward,
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  ),
+                  tooltip: l10n.forward,
+                  onPressed: null,
+                ),
+                if (onShare != null)
                   FloatingIconButton(
                     icon: AppHugeIcon(
-                      icon: HugeIcons.strokeRoundedLinkForward,
+                      icon: HugeIcons.strokeRoundedShare08,
                       color: colorScheme.onSurface,
                     ),
-                    tooltip: l10n.forward,
-                    onPressed: onForward,
+                    tooltip: l10n.share,
+                    onPressed: onShare,
                   ),
                 if (onDelete != null)
                   FloatingIconButton(

@@ -337,6 +337,22 @@
   "cancelEdit": "Cancel Edit",
   "edit": "Edit",
   "forward": "Forward",
+  "share": "Share",
+  "shareFailed": "Couldn't share. Please try again.",
+  "shareFilesNotAvailable": "Files aren't available for sharing yet. Try again once they finish downloading.",
+  "shareLinuxFilesUnsupported": "File sharing isn't supported on Linux. Text was shared instead.",
+  "incomingShareTitle": "Incoming share",
+  "incomingShareHint": "Pick a chat to continue",
+  "incomingShareFiles": "{count, plural, =1{1 file} other{{count} files}}",
+  "@incomingShareFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "incomingShareDiscard": "Discard share",
+  "incomingShareTooBig": "Some shared files exceed the 50 MB / 100 MB limits and were skipped.",
   "unreadMessages": "Unread messages",
   "select": "Select",
   "delete": "Delete",
