@@ -41,9 +41,8 @@ void main() {
     });
 
     testWidgets('matches item subtitles only', (tester) async {
-      // 'Zero-knowledge password change' is the password subtitle;
-      // 'zero-knowledge' appears in no item title.
-      final results = await _search(tester, 'zero-knowledge');
+      // 'account password' appears in the password subtitle, not its title.
+      final results = await _search(tester, 'account password');
       final ids = results.values
           .expand((items) => items.map((i) => i.id))
           .toList();
@@ -82,12 +81,12 @@ void main() {
       expect(await _search(tester, 'diagnostics'), isEmpty);
     });
 
-    testWidgets('includes disabled (WIP) items', (tester) async {
+    testWidgets('password settings are enabled', (tester) async {
       final results = await _search(tester, 'password');
       final item = results.values
           .expand((items) => items)
           .firstWhere((i) => i.id == 'password');
-      expect(item.disabled, isTrue);
+      expect(item.disabled, isFalse);
     });
 
     testWidgets('groups hits by category in catalog order', (tester) async {

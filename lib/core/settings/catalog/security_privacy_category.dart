@@ -25,7 +25,6 @@ final List<SettingCategory> securityPrivacyCategory = [
                 component: SettingComponent.custom,
                 scope: SettingScope.synchronized,
                 customRendererId: 'passwordManager',
-                disabled: true,
               ),
               SettingItem(
                 id: 'mfa',
@@ -43,7 +42,6 @@ final List<SettingCategory> securityPrivacyCategory = [
                 component: SettingComponent.custom,
                 scope: SettingScope.synchronized,
                 customRendererId: 'sessionAuditor',
-                disabled: true,
               ),
               SettingItem(
                 id: 'api_keys',
@@ -52,7 +50,6 @@ final List<SettingCategory> securityPrivacyCategory = [
                 component: SettingComponent.custom,
                 scope: SettingScope.synchronized,
                 customRendererId: 'apiKeys',
-                disabled: true,
               ),
               SettingItem(
                 id: 'biometric_lock',

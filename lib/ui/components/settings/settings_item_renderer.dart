@@ -6,6 +6,9 @@ import 'package:novyse/core/settings/settings_actions.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/core/utils/platform.dart';
+import 'package:novyse/pages/app/settings/active_devices_page.dart';
+import 'package:novyse/pages/app/settings/api_keys_page.dart';
+import 'package:novyse/pages/app/settings/password_page.dart';
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
 import 'package:novyse/ui/components/settings/settings_external_link_row.dart';
 import 'package:novyse/ui/components/settings/settings_modal_row.dart';
@@ -86,6 +89,38 @@ class SettingsItemRenderer extends ConsumerWidget {
 
       case SettingComponent.hotkey:
       case SettingComponent.custom:
+        if (!isDisabled && item.customRendererId == 'passwordManager') {
+          return SettingsNavigationRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const PasswordPage()),
+            ),
+          );
+        }
+        if (!isDisabled && item.customRendererId == 'sessionAuditor') {
+          return SettingsNavigationRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const ActiveDevicesPage(),
+              ),
+            ),
+          );
+        }
+        if (!isDisabled && item.customRendererId == 'apiKeys') {
+          return SettingsNavigationRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const ApiKeysPage()),
+            ),
+          );
+        }
         final raw = settingKey == null
             ? null
             : ref.watch(settingValueProvider(settingKey));

@@ -76,6 +76,9 @@ void main() {
         'webcam',
         'logout',
         'delete_profile',
+        'password',
+        'auth_sessions',
+        'api_keys',
       };
       for (final item in SettingsCatalog.allItems) {
         // Hidden items are storage-only and exempt from the WIP rule.
