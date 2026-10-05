@@ -114,17 +114,18 @@ class _SettingsPageState extends State<SettingsPage> {
             SettingsSection(
               children: [
                 for (final category in SettingsCatalog.categories)
-                  SettingsNavigationRow(
-                    icon: category.icon,
-                    title: context.settingsText(category.title),
-                    subtitle: context.settingsText(category.subtitle),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) =>
-                            SettingsCategoryPage(categoryId: category.id),
+                  if (!category.hidden)
+                    SettingsNavigationRow(
+                      icon: category.icon,
+                      title: context.settingsText(category.title),
+                      subtitle: context.settingsText(category.subtitle),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) =>
+                              SettingsCategoryPage(categoryId: category.id),
+                        ),
                       ),
                     ),
-                  ),
               ],
             ),
         ],

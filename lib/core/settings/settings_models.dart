@@ -157,6 +157,7 @@ class SettingCategory {
   final String Function(AppLocalizations) subtitle;
   final List<SettingPage> pages;
   final List<SettingItem> items;
+  final bool hidden;
 
   const SettingCategory({
     required this.id,
@@ -165,5 +166,6 @@ class SettingCategory {
     required this.subtitle,
     this.pages = const [],
     this.items = const [],
+    this.hidden = false,
   });
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
+import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
 import 'package:novyse/pages/app/settings/settings_page.dart';
 import 'package:novyse/ui/components/settings/settings_item_renderer.dart';
@@ -135,7 +136,9 @@ void main() {
     expect(find.text('Forest'), findsOneWidget);
   });
 
-  testWidgets('Root settings page lists all ten categories', (tester) async {
+  testWidgets('Root settings page hides System outside desktop', (
+    tester,
+  ) async {
     await tester.pumpWidget(_wrap(const SettingsPage()));
     await tester.pumpAndSettle();
 
@@ -147,11 +150,14 @@ void main() {
       'Security & Privacy',
       'Notifications',
       'Voice & Video',
-      'System',
       'Language & Time',
       'Info & Diagnostics',
     ]) {
       expect(find.text(title), findsOneWidget, reason: title);
     }
+    expect(
+      find.text('System'),
+      currentPlatform == AppPlatform.desktop ? findsOneWidget : findsNothing,
+    );
   });
 }

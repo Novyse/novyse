@@ -9,6 +9,7 @@ final List<SettingCategory> systemCategory = [
     title: (l) => l.settingsCategorySystemTitle,
     subtitle: (l) => l.settingsCategorySystemSubtitle,
     icon: HugeIcons.strokeRoundedSettings01,
+    hidden: currentPlatform != AppPlatform.desktop,
     pages: [
       SettingPage(
         id: 'system_general',
