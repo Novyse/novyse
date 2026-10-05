@@ -9,7 +9,7 @@ class AttachMenuHandler {
   AttachMenuHandler._();
 
   /// Picks media (images and videos) and appends them to the chat draft.
-  static Future<void> pickMedia(WidgetRef ref, String chatUUID) async {
+  static Future<void> pickMedia(ProviderContainer ref, String chatUUID) async {
     try {
       final assets = await FileHandler.pickMedia();
       if (assets.isEmpty) return;
@@ -24,7 +24,7 @@ class AttachMenuHandler {
   }
 
   /// Picks generic files (no type filter) and appends them to the chat draft.
-  static Future<void> pickFile(WidgetRef ref, String chatUUID) async {
+  static Future<void> pickFile(ProviderContainer ref, String chatUUID) async {
     try {
       final assets = await FileHandler.pickFile();
       if (assets.isEmpty) return;
