@@ -297,7 +297,6 @@
   "commsMuteUser": "Mute for me",
   "commsUnmuteUser": "Unmute for me",
   "commsVolume": "Volume",
-  "commsUserOptions": "Member options",
   "commsTokenError": "Unable to obtain token for voice room.",
   "commsConnectionError": "LiveKit connection error: {error}",
   "@commsConnectionError": {

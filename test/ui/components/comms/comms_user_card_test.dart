@@ -405,10 +405,64 @@ void main() {
       expect(find.byTooltip(l10n.commsUnmuteUser), findsOneWidget);
     });
 
-    testWidgets('options entry point is always reachable', (tester) async {
+    testWidgets('no menu buttons on the card', (tester) async {
+      await pump(tester, item: muteTile());
+
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is AppHugeIcon &&
+              identical(w.icon, HugeIcons.strokeRoundedMoreVertical),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('right-click opens the anchored menu', (tester) async {
       final l10n = await pump(tester, item: muteTile());
 
-      expect(find.byTooltip(l10n.commsUserOptions), findsWidgets);
+      await tester.tap(
+        find.byType(CommsUserCard),
+        buttons: kSecondaryButton,
+      );
+      await tester.pump();
+
+      expect(find.text(l10n.commsMuteUser), findsOneWidget);
+      expect(find.byType(Slider), findsOneWidget);
+    });
+
+    testWidgets('double-tap opens the anchored menu', (tester) async {
+      final l10n = await pump(tester, item: muteTile());
+
+      final card = find.byType(CommsUserCard);
+      await tester.tap(card);
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(card);
+      await tester.pump();
+
+      expect(find.text(l10n.commsMuteUser), findsOneWidget);
+    });
+
+    testWidgets('pin from the menu calls onPin and closes it', (tester) async {
+      var pinned = 0;
+      final l10n = await pump(
+        tester,
+        item: muteTile(),
+        onPin: () => pinned++,
+      );
+
+      await tester.tap(
+        find.byType(CommsUserCard),
+        buttons: kSecondaryButton,
+      );
+      await tester.pump();
+      expect(find.text(l10n.commsMuteUser), findsOneWidget);
+
+      await tester.tap(find.text(l10n.commsPin));
+      await tester.pump();
+
+      expect(pinned, 1);
+      expect(find.text(l10n.commsMuteUser), findsNothing);
     });
   });
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -139,13 +140,14 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
         ? (_overlayUiVisible ? 1.0 : 0.0)
         : ((_isHovered || widget.isPinned) ? 1.0 : 0.0);
 
-    void openMenu() {
+    void openMenu(Offset anchor) {
       showCommsUserContextMenu(
         context: context,
         tile: tile,
         displayName: labelText,
         isPinned: widget.isPinned,
         isFullScreen: widget.isFullScreen,
+        anchor: anchor,
         onPin: widget.onPin,
         onFullScreen: widget.onFullScreen,
       );
@@ -155,7 +157,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: widget.isFullScreen ? _onCardTap : null,
-      onSecondaryTapUp: (_) => openMenu(),
+      onSecondaryTapUp: (details) => openMenu(details.globalPosition),
       child: MouseRegion(
         onEnter: (_) {
           setState(() => _isHovered = true);
@@ -190,11 +192,13 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Video or Avatar Content
-              if (videoTrack != null)
-                VideoTrackRenderer(videoTrack)
-              else
-                _buildAvatarFallback(context, pfpUUID, displayName),
+              // Video or Avatar Content (double-tap opens the menu).
+              _DoubleTapBackground(
+                onDoubleTap: openMenu,
+                child: videoTrack != null
+                    ? VideoTrackRenderer(videoTrack)
+                    : _buildAvatarFallback(context, pfpUUID, displayName),
+              ),
 
               // Top-right controls (Pin, Fullscreen, Stop share)
               Positioned(
@@ -248,17 +252,6 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                                   ? l10n.commsExitFullScreen
                                   : l10n.commsFullScreen,
                               onPressed: widget.onFullScreen,
-                            ),
-                            IconButton(
-                              icon: const AppHugeIcon(
-                                icon: HugeIcons.strokeRoundedMoreVertical,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                              visualDensity: VisualDensity.compact,
-                              padding: const EdgeInsets.all(6),
-                              tooltip: l10n.commsUserOptions,
-                              onPressed: openMenu,
                             ),
                             if (tile.isScreenShare &&
                                 tile.isLocal &&
@@ -320,18 +313,6 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                                   color: Colors.white,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            InkWell(
-                              onTap: openMenu,
-                              borderRadius: BorderRadius.circular(8),
-                              child: const Padding(
-                                padding: EdgeInsets.only(left: 4),
-                                child: AppHugeIcon(
-                                  icon: HugeIcons.strokeRoundedMoreVertical,
-                                  color: Colors.white70,
-                                  size: 14,
                                 ),
                               ),
                             ),
@@ -452,6 +433,54 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
           },
         ),
       ),
+    );
+  }
+}
+
+/// Passive double-tap detector for the card background.
+class _DoubleTapBackground extends StatefulWidget {
+  final Widget child;
+  final ValueChanged<Offset> onDoubleTap;
+
+  const _DoubleTapBackground({
+    required this.child,
+    required this.onDoubleTap,
+  });
+
+  @override
+  State<_DoubleTapBackground> createState() => _DoubleTapBackgroundState();
+}
+
+class _DoubleTapBackgroundState extends State<_DoubleTapBackground> {
+  static const _timeout = Duration(milliseconds: 300);
+  static const _slop = 48.0;
+
+  DateTime? _lastDownAt;
+  Offset? _lastDownPos;
+
+  void _onPointerDown(PointerDownEvent event) {
+    if (event.buttons != kPrimaryButton) return;
+    final now = DateTime.now();
+    final prevAt = _lastDownAt;
+    final prevPos = _lastDownPos;
+    _lastDownAt = now;
+    _lastDownPos = event.position;
+    if (prevAt != null &&
+        prevPos != null &&
+        now.difference(prevAt) <= _timeout &&
+        (event.position - prevPos).distance <= _slop) {
+      _lastDownAt = null;
+      _lastDownPos = null;
+      widget.onDoubleTap(event.position);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: _onPointerDown,
+      child: widget.child,
     );
   }
 }
