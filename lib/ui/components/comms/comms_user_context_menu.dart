@@ -82,8 +82,6 @@ Future<void> showCommsUserContextMenu({
           color: Colors.black.withValues(alpha: 0.72),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
-            // Dark foreground so rows/sliders stay readable on the
-            // translucent black card regardless of the app theme.
             child: Theme(
               data: ThemeData.dark(useMaterial3: true),
               child: _CommsUserMenuContent(
@@ -117,12 +115,7 @@ Future<void> showCommsUserContextMenu({
           onSecondaryTapUp: (_) => close(),
           child: const SizedBox.expand(),
         ),
-        Positioned(
-          left: x,
-          top: y,
-          width: menuWidth,
-          child: menuCard(),
-        ),
+        Positioned(left: x, top: y, width: menuWidth, child: menuCard()),
       ],
     ),
   );
@@ -177,9 +170,8 @@ class _CommsUserMenuContent extends ConsumerWidget {
                   displayName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(color: Colors.white),
+                  style: Theme.of(context).textTheme.titleSmall
+                      ?.copyWith(color: Colors.white),
                 ),
               ),
             ],
@@ -206,10 +198,7 @@ class _CommsUserMenuContent extends ConsumerWidget {
             onTap: () =>
                 ref.read(commsProvider.notifier).toggleLocalMute(volKey),
           ),
-          CommsVolumeControl(
-            volKey: volKey,
-            persist: !tile.isScreenShare,
-          ),
+          CommsVolumeControl(volKey: volKey, persist: !tile.isScreenShare),
           const Divider(height: 1, color: Colors.white24),
         ],
         if (!isFullScreen)

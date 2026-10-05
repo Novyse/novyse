@@ -290,7 +290,7 @@
     }
   },
   "commsUnpin": "Sblocca",
-  "commsPin": "Fissa in primo piano",
+  "commsPin": "Fissa",
   "commsExitFullScreen": "Riduci",
   "commsFullScreen": "Schermo intero",
   "commsStopScreenShare": "Interrompi condivisione",

@@ -290,7 +290,7 @@
     }
   },
   "commsUnpin": "Unpin",
-  "commsPin": "Pin to spotlight",
+  "commsPin": "Pin",
   "commsExitFullScreen": "Exit full screen",
   "commsFullScreen": "Full screen",
   "commsStopScreenShare": "Stop sharing",

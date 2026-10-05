@@ -443,6 +443,28 @@ void main() {
       expect(find.text(l10n.commsMuteUser), findsOneWidget);
     });
 
+    testWidgets('menu row icons are left-aligned', (tester) async {
+      await pump(tester, item: muteTile());
+
+      await tester.tap(
+        find.byType(CommsUserCard),
+        buttons: kSecondaryButton,
+      );
+      await tester.pump();
+
+      double leftEdge(List<List<dynamic>> icon) {
+        final finder = find.byWidgetPredicate(
+          (w) => w is AppHugeIcon && identical(w.icon, icon),
+        );
+        expect(finder, findsOneWidget);
+        return tester.getTopLeft(finder).dx;
+      }
+
+      final muteDx = leftEdge(HugeIcons.strokeRoundedMic02);
+      final volumeDx = leftEdge(HugeIcons.strokeRoundedVolumeHigh);
+      expect((muteDx - volumeDx).abs(), lessThanOrEqualTo(1.0));
+    });
+
     testWidgets('pin from the menu calls onPin and closes it', (tester) async {
       var pinned = 0;
       final l10n = await pump(

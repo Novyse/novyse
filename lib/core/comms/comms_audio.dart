@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' show Helper;
 import 'package:livekit_client/livekit_client.dart';
+import 'package:novyse/core/comms/comms_web_audio.dart';
 import 'package:novyse/core/utils/platform.dart';
 
 abstract final class CommsAudio {
@@ -37,7 +38,7 @@ abstract final class CommsAudio {
     if (value.isNaN) return unityVolume;
     return value.clamp(0.0, maxVolume);
   }
-  
+
   static double platformCappedVolume(double value) {
     if (currentOS == AppOS.web) return value.clamp(0.0, 1.0);
     return value;
@@ -76,18 +77,22 @@ abstract final class CommsAudio {
 
   /// Apply [target] gain to a single remote audio track.
   ///
-  /// Uses `flutter_webrtc Helper.setVolume` (works on native via
-  /// MethodChannel and on web via `applyConstraints({volume})`).
+  /// Uses `flutter_webrtc Helper.setVolume` on native and the LiveKit
+  /// `HTMLAudioElement` volume on web.
   /// Falls back to `disable/enable` so mute always works even when the
   /// platform ignores the gain value.
   static Future<void> applyToTrack(Track? track, double target) async {
     if (track == null) return;
     final volume = clampVolume(target);
-    try {
-      final mediaTrack = track.mediaStreamTrack;
-      await Helper.setVolume(platformCappedVolume(volume), mediaTrack);
-    } catch (e) {
-      debugPrint('[CommsAudio] setVolume failed: $e');
+    if (currentOS == AppOS.web && track is RemoteAudioTrack) {
+      applyWebAudioVolume(track.getCid(), platformCappedVolume(volume));
+    } else {
+      try {
+        final mediaTrack = track.mediaStreamTrack;
+        await Helper.setVolume(platformCappedVolume(volume), mediaTrack);
+      } catch (e) {
+        debugPrint('[CommsAudio] setVolume failed: $e');
+      }
     }
     try {
       if (volume <= 0.0) {

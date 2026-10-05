@@ -6,8 +6,7 @@ import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
-/// Linear per-user volume slider (0..200%), mirroring the RN `VolumeControl`
-/// but on a linear scale instead of dB.
+/// Linear per-user volume slider
 class CommsVolumeControl extends ConsumerStatefulWidget {
   final String volKey;
 
@@ -39,7 +38,7 @@ class _CommsVolumeControlState extends ConsumerState<CommsVolumeControl> {
     final percent = (CommsAudio.clampVolume(value) * 100).round();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/comms/comms_audio.dart';
+import 'package:novyse/core/comms/comms_web_audio.dart';
 
 void main() {
   group('volKeyForTile', () {
@@ -41,6 +42,16 @@ void main() {
       // platformCappedVolume is OS-dependent; document the contract here.
       expect(CommsAudio.maxVolume, 2.0);
       expect(CommsAudio.unityVolume, 1.0);
+    });
+  });
+
+  group('webAudioElementId', () {
+    test('matches the LiveKit audio element naming', () {
+      expect(webAudioElementId('abc123'), 'livekit_audio_abc123');
+    });
+
+    test('stub setter reports not applied off web', () {
+      expect(setWebAudioVolume('abc123', 0.5), isFalse);
     });
   });
 
