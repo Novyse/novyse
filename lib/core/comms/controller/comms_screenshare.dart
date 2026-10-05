@@ -2,7 +2,7 @@ part of '../comms_controller.dart';
 
 /// Local screen-share publish / unpublish.
 mixin CommsScreenshareMixin on Notifier<CommsState> {
-  /// Starts screen sharing. Supports multiple concurrent shares
+  /// Starts screen sharing. Supports multiple concurrent shares.
   Future<void> startScreenShare({
     String? sourceId,
     bool captureScreenAudio = true,
@@ -11,20 +11,36 @@ mixin CommsScreenshareMixin on Notifier<CommsState> {
     if (room?.localParticipant == null) return;
 
     try {
-      // Using createScreenShareTrack allows publishing multiple screen shares
-      final track = await LocalVideoTrack.createScreenShareTrack(
+      // Using createScreenShareTracksWithAudio allows publishing multiple
+      // screen shares.
+      final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(
         ScreenShareCaptureOptions(
           sourceId: sourceId,
           captureScreenAudio: captureScreenAudio,
         ),
       );
 
-      final pub = await room!.localParticipant!.publishVideoTrack(track);
+      String? videoSid;
+      String? audioSid;
+      for (final track in tracks) {
+        if (track is LocalVideoTrack) {
+          final pub = await room!.localParticipant!.publishVideoTrack(track);
+          videoSid = pub.sid;
+        } else if (track is LocalAudioTrack && captureScreenAudio) {
+          final pub = await room!.localParticipant!.publishAudioTrack(track);
+          audioSid = pub.sid;
+        }
+      }
+      if (videoSid == null) return;
+
       state = state.copyWith(
         activeScreenShareTrackSids: {
           ...state.activeScreenShareTrackSids,
-          pub.sid,
+          videoSid,
         },
+        screenShareAudioSids: audioSid == null
+            ? state.screenShareAudioSids
+            : {...state.screenShareAudioSids, videoSid: audioSid},
       );
     } catch (e) {
       debugPrint('[CommsController] Screen share failed or cancelled: $e');
@@ -54,9 +70,29 @@ mixin CommsScreenshareMixin on Notifier<CommsState> {
         await localParticipant.setScreenShareEnabled(false);
       }
 
+      // Stop and unpublish the audio track paired with this share, if any.
+      final audioSid = state.screenShareAudioSids[targetSid];
+      if (audioSid != null) {
+        try {
+          final audioPub = localParticipant.audioTrackPublications
+              .where((p) => p.sid == audioSid)
+              .firstOrNull;
+          await audioPub?.track?.stop();
+          await localParticipant.removePublishedTrack(audioSid);
+        } catch (e) {
+          debugPrint('[CommsController] Error stopping share audio: $e');
+        }
+      }
+
       final updatedSids = Set<String>.from(state.activeScreenShareTrackSids)
         ..remove(targetSid);
-      state = state.copyWith(activeScreenShareTrackSids: updatedSids);
+      final updatedAudioSids = Map<String, String>.from(
+        state.screenShareAudioSids,
+      )..remove(targetSid);
+      state = state.copyWith(
+        activeScreenShareTrackSids: updatedSids,
+        screenShareAudioSids: updatedAudioSids,
+      );
 
       if (state.pinnedStreamId == targetSid) {
         state = state.copyWith(pinnedStreamId: () => null);

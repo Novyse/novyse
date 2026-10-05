@@ -162,6 +162,24 @@ void main() {
       expect(sharingState.isScreenSharing, true);
     });
 
+    test('screen share audio SIDs pair audio pubs to video pubs', () {
+      const state = CommsState();
+      expect(state.screenShareAudioSids, isEmpty);
+
+      final sharingState = state.copyWith(
+        activeScreenShareTrackSids: {'TR_video'},
+        screenShareAudioSids: {'TR_video': 'TR_audio'},
+      );
+      expect(sharingState.screenShareAudioSids['TR_video'], 'TR_audio');
+
+      final stoppedState = sharingState.copyWith(
+        activeScreenShareTrackSids: {},
+        screenShareAudioSids: {},
+      );
+      expect(stoppedState.screenShareAudioSids, isEmpty);
+      expect(stoppedState.isScreenSharing, isFalse);
+    });
+
     test(
       'errorMessageBuilder is properly updated and cleared in CommsState',
       () {

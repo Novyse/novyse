@@ -23,6 +23,10 @@ class CommsState {
   /// Active local screen share track SIDs
   final Set<String> activeScreenShareTrackSids;
 
+  /// Screen-share audio publication SID by video publication SID.
+  /// Screen audio is published as a separate track;
+  final Map<String, String> screenShareAudioSids;
+
   /// Identities/UUIDs of currently speaking participants
   final Set<String> speakingParticipants;
 
@@ -49,6 +53,7 @@ class CommsState {
     this.pinnedStreamId,
     this.fullscreenStreamId,
     this.activeScreenShareTrackSids = const {},
+    this.screenShareAudioSids = const {},
     this.speakingParticipants = const {},
     this.remoteVolumes = const {},
     this.localMuted = const {},
@@ -74,6 +79,7 @@ class CommsState {
     String? Function()? pinnedStreamId,
     String? Function()? fullscreenStreamId,
     Set<String>? activeScreenShareTrackSids,
+    Map<String, String>? screenShareAudioSids,
     Set<String>? speakingParticipants,
     Map<String, double>? remoteVolumes,
     Map<String, bool>? localMuted,
@@ -99,6 +105,7 @@ class CommsState {
           : this.fullscreenStreamId,
       activeScreenShareTrackSids:
           activeScreenShareTrackSids ?? this.activeScreenShareTrackSids,
+      screenShareAudioSids: screenShareAudioSids ?? this.screenShareAudioSids,
       speakingParticipants: speakingParticipants ?? this.speakingParticipants,
       remoteVolumes: remoteVolumes ?? this.remoteVolumes,
       localMuted: localMuted ?? this.localMuted,
