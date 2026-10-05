@@ -5,8 +5,10 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_actions.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
+import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
+import 'package:novyse/ui/components/settings/settings_external_link_row.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
 import 'package:novyse/ui/components/settings/settings_select_row.dart';
 
@@ -686,4 +688,142 @@ Future<bool> showSettingsConfirmSheet({
   );
 
   return confirmed;
+}
+
+/// On backend failure the sheet stays open with an
+/// error; on success [runSettingsAction] navigates to `/welcome` on its own.
+Future<void> showDeleteProfileSheet({
+  required BuildContext context,
+  required WidgetRef ref,
+}) {
+  return _showSettingsSheet(
+    context: context,
+    child: _DeleteProfileBody(ref: ref),
+  );
+}
+
+/// Guide linked from the delete-profile sheet.
+const _deleteAccountGuideUrl =
+    'https://www.novyse.com/help/guides/account/delete';
+
+class _DeleteProfileBody extends ConsumerStatefulWidget {
+  const _DeleteProfileBody({required this.ref});
+
+  final WidgetRef ref;
+
+  @override
+  ConsumerState<_DeleteProfileBody> createState() => _DeleteProfileBodyState();
+}
+
+class _DeleteProfileBodyState extends ConsumerState<_DeleteProfileBody> {
+  late final TextEditingController _controller = TextEditingController();
+  bool _busy = false;
+  bool _failed = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _confirm() async {
+    setState(() {
+      _busy = true;
+      _failed = false;
+    });
+    final handled = await runSettingsAction(
+      widget.ref,
+      context,
+      'deleteProfile',
+    );
+    if (!context.mounted) return;
+    if (!handled) {
+      setState(() {
+        _busy = false;
+        _failed = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final username = ref.watch(localUserProvider)?.handle ?? '';
+    final matches = username.isNotEmpty && _controller.text == username;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _sheetTitle(
+          context,
+          l10n.deleteProfileConfirmTitle,
+          l10n.deleteProfileConfirmWarning,
+        ),
+        Text(
+          l10n.deleteProfileConfirmInstruction(username),
+          style: theme.textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _controller,
+          autofocus: true,
+          autocorrect: false,
+          textCapitalization: TextCapitalization.none,
+          decoration: InputDecoration(
+            hintText: username,
+            border: const OutlineInputBorder(),
+          ),
+          onChanged: (_) => setState(() {
+            _failed = false;
+          }),
+        ),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            onPressed: () => openExternalUrl(_deleteAccountGuideUrl),
+            child: Text(l10n.deleteProfileLearnMore),
+          ),
+        ),
+        if (_failed) ...[
+          const SizedBox(height: 8),
+          Text(
+            l10n.deleteProfileError,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+          ),
+        ],
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: AppButton(
+                label: l10n.settingsCommonCancel,
+                onPressed: _busy
+                    ? null
+                    : () => Navigator.of(context, rootNavigator: true).pop(),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: AppButton(
+                label: l10n.delete,
+                variant: AppButtonVariant.danger,
+                isLoading: _busy,
+                onPressed: matches && !_busy ? _confirm : null,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }

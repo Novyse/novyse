@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:novyse/core/auth/session_cleanup.dart';
 import 'package:novyse/core/router/router.dart';
+import 'package:novyse/core/services/auth.dart' as auth_service;
 import 'package:novyse/pages/app/settings/app_license_page.dart';
 import 'package:novyse/pages/app/settings/oss_licenses_page.dart';
 
@@ -28,6 +29,17 @@ Future<bool> runSettingsAction(
 ) async {
   switch (actionId) {
     case 'logout':
+      await performLogout(ref);
+      if (context.mounted) {
+        ref.read(routerProvider).go('/welcome');
+      }
+      return true;
+    case 'deleteProfile':
+      final result = await auth_service.auth.account.delete();
+      if (!result.success) {
+        debugPrint('[settings-action] deleteProfile failed: ${result.error}');
+        return false;
+      }
       await performLogout(ref);
       if (context.mounted) {
         ref.read(routerProvider).go('/welcome');

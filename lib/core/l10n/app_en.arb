@@ -171,6 +171,19 @@
   "logout": "Log out",
   "logoutConfirmTitle": "Log out",
   "logoutConfirmMessage": "Are you sure you want to log out from your account?",
+  "deleteProfileConfirmTitle": "Delete Account",
+  "deleteProfileConfirmWarning": "This action cannot be undone. All your data will be permanently deleted.",
+  "deleteProfileConfirmInstruction": "Type your username {username} to confirm.",
+  "@deleteProfileConfirmInstruction": {
+    "description": "Delete profile confirmation prompt showing the current username",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteProfileError": "Could not delete your profile. Please try again.",
+  "deleteProfileLearnMore": "Learn More",
   "dropFilesHint": "Drop files here to add to draft",
   "channelReadOnlyHint": "You do not have permission to send messages in this channel.",
   "muteNotifications": "Mute notifications",
@@ -705,7 +718,7 @@
   "windowClose": "Close",
   "trayOpen": "Open",
   "trayClose": "Close",
-  "settingsCategoryAccountSubtitle": "Profile, identity and sessions",
+  "settingsCategoryAccountSubtitle": "Profile and identity",
   "settingsCategoryAccountTitle": "Account",
   "settingsCategoryChatSubtitle": "Media, sounds and input",
   "settingsCategoryChatTitle": "Chat",
@@ -839,7 +852,7 @@
   "settingsItemLastSeenTitle": "Last Seen & Online Status",
   "settingsItemLinkedContactsSubtitle": "Verified emails and recovery",
   "settingsItemLinkedContactsTitle": "Linked Contacts",
-  "settingsItemLogoutSubtitle": "Clear tokens on this device",
+  "settingsItemLogoutSubtitle": "Sign out from your account on this device",
   "settingsItemLogoutTitle": "Log Out",
   "settingsItemMarkdownToolbarSubtitle": "Inline formatting tools",
   "settingsItemMarkdownToolbarTitle": "Markdown & Code Block Toolbar",

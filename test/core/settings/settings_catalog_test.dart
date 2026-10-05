@@ -65,6 +65,8 @@ void main() {
         'input_device',
         'output_device',
         'webcam',
+        'logout',
+        'delete_profile',
       };
       for (final item in SettingsCatalog.allItems) {
         // Hidden items are storage-only and exempt from the WIP rule.
@@ -120,7 +122,6 @@ void main() {
       final account = SettingsCatalog.findCategory('account')!;
       expect(account.pages.map((p) => p.id).toList(), ['account_profile']);
       expect(account.items.map((i) => i.id).toList(), [
-        'active_sessions',
         'logout',
         'delete_profile',
       ]);
@@ -156,6 +157,24 @@ void main() {
         'resource_links',
         'export_logs',
       ]);
+    });
+
+    test('blocked users live in the privacy page, after call routing', () {
+      final security = SettingsCatalog.findCategory('security')!;
+      final authPage = security.pages.firstWhere(
+        (p) => p.id == 'security_auth',
+      );
+      final privacyPage = security.pages.firstWhere(
+        (p) => p.id == 'security_privacy',
+      );
+      expect(
+        authPage.groups.expand((g) => g.items).map((i) => i.id),
+        isNot(contains('blocked_users')),
+      );
+      final visibility = privacyPage.groups.firstWhere(
+        (g) => g.id == 'visibility',
+      );
+      expect(visibility.items.map((i) => i.id).last, 'blocked_users');
     });
 
     test('open source licences live in the legal group, after app licence', () {

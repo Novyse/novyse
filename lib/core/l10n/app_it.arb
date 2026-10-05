@@ -171,6 +171,19 @@
   "logout": "Disconnettiti",
   "logoutConfirmTitle": "Disconnessione",
   "logoutConfirmMessage": "Sei sicuro di voler effettuare il logout dal tuo account?",
+  "deleteProfileConfirmTitle": "Elimina Account",
+  "deleteProfileConfirmWarning": "Questa azione non può essere annullata. Tutti i tuoi dati verranno eliminati permanentemente.",
+  "deleteProfileConfirmInstruction": "Digita il tuo nome utente {username} per confermare.",
+  "@deleteProfileConfirmInstruction": {
+    "description": "Richiesta di conferma eliminazione profilo con il nome utente corrente",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteProfileError": "Impossibile eliminare il profilo. Riprova.",
+  "deleteProfileLearnMore": "Scopri di più",
   "dropFilesHint": "Rilascia i file qui per aggiungerli alla bozza",
   "channelReadOnlyHint": "Non hai i permessi per inviare messaggi in questo canale.",
   "muteNotifications": "Disattiva notifiche",
@@ -705,7 +718,7 @@
   "windowClose": "Chiudi",
   "trayOpen": "Apri",
   "trayClose": "Chiudi",
-  "settingsCategoryAccountSubtitle": "Profilo, identità e sessioni",
+  "settingsCategoryAccountSubtitle": "Profilo e identità",
   "settingsCategoryAccountTitle": "Account",
   "settingsCategoryChatSubtitle": "Media, suoni e input",
   "settingsCategoryChatTitle": "Chat",
@@ -839,7 +852,7 @@
   "settingsItemLastSeenTitle": "Ultimo Accesso e Stato Online",
   "settingsItemLinkedContactsSubtitle": "Email verificate e recupero",
   "settingsItemLinkedContactsTitle": "Contatti Collegati",
-  "settingsItemLogoutSubtitle": "Cancella i token su questo dispositivo",
+  "settingsItemLogoutSubtitle": "Esci dal tuo account su questo dispositivo",
   "settingsItemLogoutTitle": "Esci",
   "settingsItemMarkdownToolbarSubtitle": "Strumenti di formattazione",
   "settingsItemMarkdownToolbarTitle": "Barra Markdown e Codice",

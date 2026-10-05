@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
+import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
 import 'package:novyse/pages/app/settings/settings_page.dart';
@@ -29,27 +30,22 @@ void main() {
     await tester.pumpAndSettle();
 
     final editProfile = find.text('Edit Profile');
-    final sessions = find.text('Active Sessions');
     final logout = find.text('Log Out');
     final delete = find.text('Delete Profile');
     expect(editProfile, findsOneWidget);
-    expect(sessions, findsOneWidget);
     expect(logout, findsOneWidget);
     expect(delete, findsOneWidget);
+    expect(find.text('Active Sessions'), findsNothing);
 
-    // Wiki order: profile page, sessions, logout, delete.
+    // Wiki order: profile page, logout, delete.
     expect(
-      tester.getTopLeft(editProfile).dy < tester.getTopLeft(sessions).dy,
-      isTrue,
-    );
-    expect(
-      tester.getTopLeft(sessions).dy < tester.getTopLeft(logout).dy,
+      tester.getTopLeft(editProfile).dy < tester.getTopLeft(logout).dy,
       isTrue,
     );
     expect(tester.getTopLeft(logout).dy < tester.getTopLeft(delete).dy, isTrue);
   });
 
-  testWidgets('Logout action is WIP-disabled: tap opens no sheet', (
+  testWidgets('Logout action is enabled: tap opens a confirm sheet', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -60,7 +56,12 @@ void main() {
     await tester.tap(find.text('Log Out'));
     await tester.pumpAndSettle();
 
-    // Disabled placeholder: no confirm sheet must appear.
+    // Enabled action: confirm sheet must appear.
+    expect(find.text('Cancel').hitTestable(), findsOneWidget);
+    expect(find.text('Confirm').hitTestable(), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
     expect(find.text('Confirm'), findsNothing);
   });
 
@@ -159,5 +160,47 @@ void main() {
       find.text('System'),
       currentPlatform == AppPlatform.desktop ? findsOneWidget : findsNothing,
     );
+  });
+
+  testWidgets('Delete profile opens the username-confirmed sheet', (
+    tester,
+  ) async {
+    const localUser = UserModel(uuid: 'u1', name: 'Test', handle: 'testuser');
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [localUserProvider.overrideWithValue(localUser)],
+        child: const MaterialApp(
+          localizationsDelegates: localizationsDelegates,
+          supportedLocales: supportedLocales,
+          locale: Locale('en'),
+          home: SettingsCategoryPage(categoryId: 'account'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Delete Profile'));
+    await tester.pumpAndSettle();
+
+    // Dedicated sheet ported from the development DeleteAccount modal.
+    expect(find.text('Delete Account'), findsOneWidget);
+    expect(
+      find.text('Type your username testuser to confirm.'),
+      findsOneWidget,
+    );
+    expect(find.text('Learn More'), findsOneWidget);
+
+    // Danger action stays disabled until the handle matches.
+    TextButton deleteButton() =>
+        tester.widget<TextButton>(find.widgetWithText(TextButton, 'Delete'));
+    expect(deleteButton().onPressed, isNull);
+
+    await tester.enterText(find.byType(TextField), 'someone_else');
+    await tester.pumpAndSettle();
+    expect(deleteButton().onPressed, isNull);
+
+    await tester.enterText(find.byType(TextField), 'testuser');
+    await tester.pumpAndSettle();
+    expect(deleteButton().onPressed, isNotNull);
   });
 }

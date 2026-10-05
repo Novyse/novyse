@@ -71,22 +71,12 @@ final List<SettingCategory> accountCategory = [
     ],
     items: [
       SettingItem(
-        id: 'active_sessions',
-        title: (l) => l.settingsItemActiveSessionsTitle,
-        subtitle: (l) => l.settingsItemActiveSessionsSubtitle,
-        component: SettingComponent.custom,
-        scope: SettingScope.synchronized,
-        customRendererId: 'sessionAuditor',
-        disabled: true,
-      ),
-      SettingItem(
         id: 'logout',
         title: (l) => l.settingsItemLogoutTitle,
         subtitle: (l) => l.settingsItemLogoutSubtitle,
         component: SettingComponent.action,
         scope: SettingScope.local,
         actionId: 'logout',
-        disabled: true,
       ),
       SettingItem(
         id: 'delete_profile',
@@ -96,7 +86,6 @@ final List<SettingCategory> accountCategory = [
         scope: SettingScope.synchronized,
         actionId: 'deleteProfile',
         danger: true,
-        disabled: true,
       ),
     ],
   ),

@@ -150,6 +150,7 @@ class SettingsItemRenderer extends ConsumerWidget {
             ),
           );
         }
+        final isDeleteProfile = item.actionId == 'deleteProfile';
         return wrapDisabled(
           SettingsNavigationRow(
             icon: item.icon,
@@ -158,11 +159,13 @@ class SettingsItemRenderer extends ConsumerWidget {
             danger: item.danger,
             onTap: isDisabled
                 ? null
-                : () => showSettingsConfirmSheet(
-                    context: context,
-                    ref: ref,
-                    item: item,
-                  ),
+                : () => isDeleteProfile
+                      ? showDeleteProfileSheet(context: context, ref: ref)
+                      : showSettingsConfirmSheet(
+                          context: context,
+                          ref: ref,
+                          item: item,
+                        ),
           ),
         );
 
