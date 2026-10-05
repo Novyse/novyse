@@ -1,11 +1,11 @@
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 
 /// Floating mention bar that displays a list of group/channel members
@@ -174,39 +174,25 @@ class _MentionBarState extends ConsumerState<MentionBar> {
     final colorScheme = theme.colorScheme;
     final listHeight = math.min(220.0, displayMembers.length * 52.0 + 8.0);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      constraints: const BoxConstraints(maxHeight: 220),
-      height: listHeight,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            itemCount: displayMembers.length,
-            separatorBuilder: (context, index) => Divider(
-              height: 1,
-              thickness: 1,
-              indent: 12,
-              endIndent: 12,
-              color: colorScheme.outlineVariant.withValues(alpha: 0.15),
-            ),
-            itemBuilder: (context, index) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: FloatingAppBarConsts.bottomGap),
+      child: FloatingPill(
+        radius: FloatingAppBarConsts.centralRadius,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 220),
+          child: SizedBox(
+            height: listHeight,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              itemCount: displayMembers.length,
+              separatorBuilder: (context, index) => Divider(
+                height: 1,
+                thickness: 1,
+                indent: 12,
+                endIndent: 12,
+                color: colorScheme.outlineVariant.withValues(alpha: 0.15),
+              ),
+              itemBuilder: (context, index) {
               final member = displayMembers[index];
               return InkWell(
                 onTap: () {
@@ -254,6 +240,7 @@ class _MentionBarState extends ConsumerState<MentionBar> {
                 ),
               );
             },
+            ),
           ),
         ),
       ),

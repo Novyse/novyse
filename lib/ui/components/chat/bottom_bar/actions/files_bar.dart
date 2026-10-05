@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart';
@@ -13,6 +14,7 @@ import 'package:novyse/core/storage/file/file_utils.dart';
 import 'package:novyse/core/storage/file/file_validators.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/themes/themes.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/draft_audio_seek_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/draft_file_chip.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
@@ -137,22 +139,38 @@ class _FilesBarState extends ConsumerState<FilesBar> {
       }
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isNearLimit
-              ? AppColors.danger.withValues(alpha: 0.6)
-              : colorScheme.outlineVariant.withValues(alpha: 0.4),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: FloatingAppBarConsts.bottomGap),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(
+          FloatingAppBarConsts.centralRadius,
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: FloatingAppBarConsts.blurSigma,
+            sigmaY: FloatingAppBarConsts.blurSigma,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: colorScheme.surface.withValues(
+                alpha: FloatingAppBarConsts.surfaceOpacity,
+              ),
+              borderRadius: BorderRadius.circular(
+                FloatingAppBarConsts.centralRadius,
+              ),
+              border: Border.all(
+                color: isNearLimit
+                    ? AppColors.danger.withValues(alpha: 0.6)
+                    : colorScheme.outline.withValues(
+                        alpha: FloatingAppBarConsts.borderOpacity,
+                      ),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
           // Header Row
           Row(
             children: [
@@ -315,6 +333,9 @@ class _FilesBarState extends ConsumerState<FilesBar> {
           ],
         ],
       ),
-    );
+    ),
+  ),
+  ),
+);
   }
 }

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class LeftButtonBottomBar extends StatefulWidget {
@@ -85,36 +86,33 @@ class _LeftButtonBottomBarState extends State<LeftButtonBottomBar>
 
     return Tooltip(
       message: tooltip,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _handlePress,
-          borderRadius: BorderRadius.circular(24),
-          child: Container(
-            width: 45,
-            height: 45,
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.65,
-              ),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-              ),
+      child: FloatingPill(
+        padding: FloatingAppBarConsts.iconPillPadding,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _handlePress,
+            borderRadius: BorderRadius.circular(
+              FloatingAppBarConsts.pillRadius,
             ),
-            alignment: Alignment.center,
-            child: AnimatedBuilder(
-              animation: _rotationAnim,
-              builder: (context, child) {
-                return Transform.rotate(
-                  angle: _rotationAnim.value,
-                  child: child,
-                );
-              },
-              child: AppHugeIcon(
-                icon: HugeIcons.strokeRoundedAdd01,
-                size: 22,
-                color: colorScheme.onSurface,
+            child: SizedBox(
+              width: FloatingAppBarConsts.iconButtonSize,
+              height: FloatingAppBarConsts.iconButtonSize,
+              child: Center(
+                child: AnimatedBuilder(
+                  animation: _rotationAnim,
+                  builder: (context, child) {
+                    return Transform.rotate(
+                      angle: _rotationAnim.value,
+                      child: child,
+                    );
+                  },
+                  child: AppHugeIcon(
+                    icon: HugeIcons.strokeRoundedAdd01,
+                    size: 22,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
               ),
             ),
           ),

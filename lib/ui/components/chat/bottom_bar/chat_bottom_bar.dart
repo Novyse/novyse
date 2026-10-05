@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/default_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/no_write_bottom_bar.dart';
+import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
 
 class ChatBottomBar extends ConsumerWidget {
   const ChatBottomBar({
@@ -29,23 +30,23 @@ class ChatBottomBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-        child: readOnly
-            ? const NoWriteBottomBar()
-            : DefaultBottomBar(
-                chatUUID: chatUUID,
-                subID: subID,
-                isAttachMenuOpen: isAttachMenuOpen,
-                onToggleAttachMenu: onToggleAttachMenu,
-                onCloseAttachMenu: onCloseAttachMenu,
-                isEmojiMenuOpen: isEmojiMenuOpen,
-                onToggleEmojiMenu: onToggleEmojiMenu,
-                onCloseEmojiMenu: onCloseEmojiMenu,
-              ),
-      ),
+    // Stesse misure/insets delle appbar flottanti: SafeArea + padding
+    // Il contenuto è a misura variabile (il testo cresce fino a 4 righe),
+    // quindi niente altezza fissa: FloatingPill shrink-wrap dentro.
+    return ProgressiveOpacityBackground(
+      direction: ProgressiveOpacityDirection.bottomToTop,
+      child: readOnly
+          ? const NoWriteBottomBar()
+          : DefaultBottomBar(
+              chatUUID: chatUUID,
+              subID: subID,
+              isAttachMenuOpen: isAttachMenuOpen,
+              onToggleAttachMenu: onToggleAttachMenu,
+              onCloseAttachMenu: onCloseAttachMenu,
+              isEmojiMenuOpen: isEmojiMenuOpen,
+              onToggleEmojiMenu: onToggleEmojiMenu,
+              onCloseEmojiMenu: onCloseEmojiMenu,
+            ),
     );
   }
 }

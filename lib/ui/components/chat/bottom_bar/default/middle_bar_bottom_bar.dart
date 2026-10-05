@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:markdown_editor_live/markdown_editor_live.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/context_menu.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/recording/recording_dot.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/recording/speech_indicator.dart';
@@ -112,169 +113,161 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
     final colorScheme = theme.colorScheme;
 
     if (!widget.isRecording) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.65),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-              width: 1.0,
+      // Padding orizzontale 0: gli inset 16/4 restano nel contentPadding
+      // del TextField; verticale 2px => 2 + ~42 + 2 = 46 + border = 48
+      return FloatingPill(
+        radius: FloatingAppBarConsts.centralRadius,
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Actions(
+          actions: {
+            PasteTextIntent: CallbackAction<PasteTextIntent>(
+              onInvoke: (intent) async {
+                return await _handlePaste();
+              },
             ),
-          ),
-          child: Actions(
-            actions: {
-              PasteTextIntent: CallbackAction<PasteTextIntent>(
-                onInvoke: (intent) async {
-                  return await _handlePaste();
-                },
-              ),
-            },
-            child: TextField(
-              controller: widget.textController,
-              focusNode: widget.focusNode,
-              textCapitalization: TextCapitalization.sentences,
-              maxLines: 4,
-              minLines: 1,
-              style: TextStyle(color: colorScheme.onSurface, fontSize: 15),
-              contentInsertionConfiguration: ContentInsertionConfiguration(
-                allowedMimeTypes: const <String>[
-                  'image/png',
-                  'image/jpeg',
-                  'image/gif',
-                  'image/webp',
-                  'image/heic',
-                  'image/svg+xml',
-                ],
-                onContentInserted: (KeyboardInsertedContent data) async {
-                  await ChatPasteHelper.handleKeyboardInserted(
-                    ref,
-                    widget.chatUUID,
-                    data,
-                    subID: widget.subID,
-                  );
-                },
-              ),
-              contextMenuBuilder: (context, editableTextState) {
-                return ChatContextMenu(
-                  editableTextState: editableTextState,
-                  controller: widget.textController,
-                  onPaste: () async {
-                    await _handlePaste();
-                  },
+          },
+          child: TextField(
+            controller: widget.textController,
+            focusNode: widget.focusNode,
+            textCapitalization: TextCapitalization.sentences,
+            maxLines: 4,
+            minLines: 1,
+            style: TextStyle(color: colorScheme.onSurface, fontSize: 15),
+            contentInsertionConfiguration: ContentInsertionConfiguration(
+              allowedMimeTypes: const <String>[
+                'image/png',
+                'image/jpeg',
+                'image/gif',
+                'image/webp',
+                'image/heic',
+                'image/svg+xml',
+              ],
+              onContentInserted: (KeyboardInsertedContent data) async {
+                await ChatPasteHelper.handleKeyboardInserted(
+                  ref,
+                  widget.chatUUID,
+                  data,
+                  subID: widget.subID,
                 );
               },
-              decoration: InputDecoration(
-                filled: false,
-                hintText: l10n.typeMessageHint,
-                hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: const EdgeInsets.fromLTRB(16, 11, 4, 11),
-                suffixIcon: IconButton(
-                  icon: AppHugeIcon(
-                    icon: widget.isEmojiMenuOpen
-                        ? HugeIcons.strokeRoundedKeyboard
-                        : HugeIcons.strokeRoundedSmile,
-                    size: 20,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  onPressed: widget.onToggleEmoji,
-                  tooltip: l10n.emojiTooltip,
-                  splashRadius: 20,
-                ),
-              ),
-              onChanged: (text) {
-                ref
-                    .read(chatDraftProvider(widget.chatUUID).notifier)
-                    .setText(text);
-              },
-              onSubmitted: (_) => widget.onSendMessage(),
             ),
+            contextMenuBuilder: (context, editableTextState) {
+              return ChatContextMenu(
+                editableTextState: editableTextState,
+                controller: widget.textController,
+                onPaste: () async {
+                  await _handlePaste();
+                },
+              );
+            },
+            decoration: InputDecoration(
+              filled: false,
+              hintText: l10n.typeMessageHint,
+              hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: const EdgeInsets.fromLTRB(16, 11, 4, 11),
+              suffixIcon: IconButton(
+                icon: AppHugeIcon(
+                  icon: widget.isEmojiMenuOpen
+                      ? HugeIcons.strokeRoundedKeyboard
+                      : HugeIcons.strokeRoundedSmile,
+                  size: 20,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                onPressed: widget.onToggleEmoji,
+                tooltip: l10n.emojiTooltip,
+                splashRadius: 20,
+              ),
+            ),
+            onChanged: (text) {
+              ref
+                  .read(chatDraftProvider(widget.chatUUID).notifier)
+                  .setText(text);
+            },
+            onSubmitted: (_) => widget.onSendMessage(),
           ),
         ),
       );
     }
 
-    // Recording Mode
-    return Container(
-      height: 45,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+    // Recording Mode: stessa pill centrale, altezza adattiva con
+    // min 42 di contenuto (=> 48 outer come le appbar).
+    return FloatingPill(
+      radius: FloatingAppBarConsts.centralRadius,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minHeight: FloatingAppBarConsts.centralMinHeight,
         ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Row(
-        children: [
-          // Recording Dot + Duration
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              RecordingDot(isRecording: !widget.recorderState.isPaused),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 72,
-                child: Text(
-                  _formatDuration(widget.recorderState.duration),
-                  style: TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+        child: Row(
+          children: [
+            // Recording Dot + Duration
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RecordingDot(isRecording: !widget.recorderState.isPaused),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 72,
+                  child: Text(
+                    _formatDuration(widget.recorderState.duration),
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
 
-          // Speech Indicator Visualizer
-          Expanded(
-            child: Center(
-              child: SpeechIndicator(
-                audioLevel: widget.recorderState.amplitude,
-                color: colorScheme.primary,
-                barWidth: 3.0,
-                maxHeight: 22.0,
+            // Speech Indicator Visualizer
+            Expanded(
+              child: Center(
+                child: SpeechIndicator(
+                  audioLevel: widget.recorderState.amplitude,
+                  color: colorScheme.primary,
+                  barWidth: 3.0,
+                  maxHeight: 22.0,
+                ),
               ),
             ),
-          ),
 
-          // Actions Container: Add to draft (+) & Pause/Resume
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: AppHugeIcon(
-                  icon: HugeIcons.strokeRoundedAdd01,
-                  size: 20,
-                  color: colorScheme.onSurface,
+            // Actions Container: Add to draft (+) & Pause/Resume
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: AppHugeIcon(
+                    icon: HugeIcons.strokeRoundedAdd01,
+                    size: 20,
+                    color: colorScheme.onSurface,
+                  ),
+                  onPressed: widget.onStopAndDraft,
+                  tooltip: l10n.addToDraftTooltip,
+                  splashRadius: 20,
                 ),
-                onPressed: widget.onStopAndDraft,
-                tooltip: l10n.addToDraftTooltip,
-                splashRadius: 20,
-              ),
-              IconButton(
-                icon: AppHugeIcon(
-                  icon: widget.recorderState.isPaused
-                      ? HugeIcons.strokeRoundedPlay
-                      : HugeIcons.strokeRoundedPause,
-                  size: 20,
-                  color: colorScheme.onSurface,
+                IconButton(
+                  icon: AppHugeIcon(
+                    icon: widget.recorderState.isPaused
+                        ? HugeIcons.strokeRoundedPlay
+                        : HugeIcons.strokeRoundedPause,
+                    size: 20,
+                    color: colorScheme.onSurface,
+                  ),
+                  onPressed: widget.onTogglePause,
+                  tooltip: widget.recorderState.isPaused
+                      ? l10n.resumeTooltip
+                      : l10n.pauseTooltip,
+                  splashRadius: 20,
                 ),
-                onPressed: widget.onTogglePause,
-                tooltip: widget.recorderState.isPaused
-                    ? l10n.resumeTooltip
-                    : l10n.pauseTooltip,
-                splashRadius: 20,
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
