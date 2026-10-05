@@ -11,7 +11,15 @@ import 'package:novyse/ui/components/huge_icon.dart';
 class CommsVolumeControl extends ConsumerStatefulWidget {
   final String volKey;
 
-  const CommsVolumeControl({super.key, required this.volKey});
+  /// Whether changes are saved to local settings. Pass false for ephemeral
+  /// keys such as screen-share track SIDs.
+  final bool persist;
+
+  const CommsVolumeControl({
+    super.key,
+    required this.volKey,
+    this.persist = true,
+  });
 
   @override
   ConsumerState<CommsVolumeControl> createState() =>
@@ -66,11 +74,15 @@ class _CommsVolumeControlState extends ConsumerState<CommsVolumeControl> {
             onChanged: (v) {
               setState(() => _dragValue = v);
               // Live apply while dragging, without awaiting (fire-and-forget).
-              ref.read(commsProvider.notifier).setRemoteVolume(widget.volKey, v);
+              ref
+                  .read(commsProvider.notifier)
+                  .setRemoteVolume(widget.volKey, v, persist: widget.persist);
             },
             onChangeEnd: (v) {
               setState(() => _dragValue = null);
-              ref.read(commsProvider.notifier).setRemoteVolume(widget.volKey, v);
+              ref
+                  .read(commsProvider.notifier)
+                  .setRemoteVolume(widget.volKey, v, persist: widget.persist);
             },
           ),
         ],

@@ -62,12 +62,30 @@ void main() {
         'webcam',
       };
       for (final item in SettingsCatalog.allItems) {
+        // Hidden items are storage-only and exempt from the WIP rule.
+        if (item.hidden) continue;
         if (enabledIds.contains(item.id)) {
           expect(item.disabled, isFalse, reason: item.id);
         } else {
           expect(item.disabled, isTrue, reason: item.id);
         }
       }
+    });
+
+    test('hidden items are storage-only and never shown', () {
+      final hiddenItems = SettingsCatalog.allItems
+          .where((i) => i.hidden)
+          .toList();
+      expect(hiddenItems, isNotEmpty, reason: 'expected hidden items');
+      for (final item in hiddenItems) {
+        expect(item.settingKey, isNotNull, reason: item.id);
+        expect(item.scope, isNotNull, reason: item.id);
+        expect(item.defaultValue, isNotNull, reason: item.id);
+      }
+      expect(
+        hiddenItems.map((i) => i.id),
+        contains('volumes_list'),
+      );
     });
 
     test('system items are desktop-only (linux/windows/macos)', () {

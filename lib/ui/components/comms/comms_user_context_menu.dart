@@ -110,7 +110,10 @@ class _CommsUserMenuContent extends ConsumerWidget {
             onTap: () =>
                 ref.read(commsProvider.notifier).toggleLocalMute(volKey),
           ),
-          CommsVolumeControl(volKey: volKey),
+          CommsVolumeControl(
+            volKey: volKey,
+            persist: !tile.isScreenShare,
+          ),
           const Divider(height: 1),
         ],
 

@@ -71,4 +71,39 @@ void main() {
       );
     });
   });
+
+  group('parsePersistedVolumes', () {
+    test('parses a decoded map', () {
+      expect(
+        CommsAudio.parsePersistedVolumes({'u1_s1': 0.5, 'u2_s9': 1.0}),
+        {'u1_s1': 0.5, 'u2_s9': 1.0},
+      );
+    });
+
+    test('parses a raw JSON string', () {
+      expect(
+        CommsAudio.parsePersistedVolumes('{"u1_s1":0.25}'),
+        {'u1_s1': 0.25},
+      );
+    });
+
+    test('drops malformed entries and clamps the rest', () {
+      expect(
+        CommsAudio.parsePersistedVolumes({
+          'u1_s1': 1.5,
+          'bad': 'nope',
+          '': 0.5,
+          'u2_s9': -3,
+        }),
+        {'u1_s1': 1.0, 'u2_s9': 0.0},
+      );
+    });
+
+    test('returns empty for null, empty and garbage', () {
+      expect(CommsAudio.parsePersistedVolumes(null), isEmpty);
+      expect(CommsAudio.parsePersistedVolumes({}), isEmpty);
+      expect(CommsAudio.parsePersistedVolumes('not json'), isEmpty);
+      expect(CommsAudio.parsePersistedVolumes(42), isEmpty);
+    });
+  });
 }

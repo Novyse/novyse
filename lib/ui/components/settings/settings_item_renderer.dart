@@ -22,6 +22,10 @@ class SettingsItemRenderer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Hidden items are storage-only and never render.
+    if (item.hidden) {
+      return const SizedBox.shrink();
+    }
     // Hide items not supported on this OS (e.g. tray/startup on mobile/web).
     if (!item.supportedOS.contains(currentOS)) {
       return const SizedBox.shrink();

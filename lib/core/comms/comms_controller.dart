@@ -21,15 +21,45 @@ class CommsNotifier extends Notifier<CommsState> {
   bool _isDisposed = false;
   Timer? _speakingDebounce;
   Set<String>? _pendingSpeakers;
+  Timer? _volumesPersistDebounce;
+  bool _volumesHydrated = false;
+
+  /// Settings key holding the persisted per-member linear volumes.
+  static const volumesSettingsKey = 'comms.remoteVolumes';
+  static const maxPersistedVolumes = 200;
+  static const volumesPersistDebounce = Duration(milliseconds: 500);
 
   @override
   CommsState build() {
     _isDisposed = false;
     ref.onDispose(() {
       _isDisposed = true;
+      _volumesPersistDebounce?.cancel();
+      _volumesPersistDebounce = null;
       unawaited(leave());
     });
+    ref.listen<Map<String, Object?>>(settingsControllerProvider, (_, next) {
+      _hydrateVolumes(next);
+    });
+    Future.microtask(() {
+      if (_isDisposed) return;
+      try {
+        _hydrateVolumes(ref.read(settingsControllerProvider));
+      } catch (_) {}
+    });
     return const CommsState();
+  }
+
+  void _hydrateVolumes(Map<String, Object?> settings) {
+    if (_isDisposed || _volumesHydrated || state.remoteVolumes.isNotEmpty) {
+      return;
+    }
+    final saved = CommsAudio.parsePersistedVolumes(
+      settings[volumesSettingsKey],
+    );
+    if (saved.isEmpty) return;
+    _volumesHydrated = true;
+    state = state.copyWith(remoteVolumes: saved);
   }
 
   String _savedDeviceId(String key) {
@@ -306,6 +336,10 @@ class CommsNotifier extends Notifier<CommsState> {
     _speakingDebounce = null;
     _pendingSpeakers = null;
 
+    // Flush pending volume writes, then keep saved volumes across rooms.
+    await _persistVolumesNow();
+    final savedVolumes = state.remoteVolumes;
+
     final room = state.room;
     final listener = _roomListener;
     _roomListener = null;
@@ -318,7 +352,7 @@ class CommsNotifier extends Notifier<CommsState> {
       }
     }
 
-    state = const CommsState();
+    state = CommsState(remoteVolumes: savedVolumes);
     if (room != null) {
       final local = room.localParticipant;
       if (local != null) {
@@ -676,11 +710,19 @@ class CommsNotifier extends Notifier<CommsState> {
 
   /// Set linear volume (0.0..1.0) for a remote participant or track.
   /// The value is applied immediately to matching LiveKit audio tracks.
-  Future<void> setRemoteVolume(String id, double volume) async {
+  /// When [persist] is true (default) it is also saved to local settings
+  /// with a short debounce; pass false for ephemeral keys such as
+  /// screen-share track SIDs.
+  Future<void> setRemoteVolume(
+    String id,
+    double volume, {
+    bool persist = true,
+  }) async {
     final clamped = CommsAudio.clamp01(volume);
     final updated = Map<String, double>.from(state.remoteVolumes)
       ..[id] = clamped;
     state = state.copyWith(remoteVolumes: updated);
+    if (persist) _scheduleVolumesPersist();
     await CommsAudio.applyToRoom(
       room: state.room,
       volKey: id,
@@ -688,6 +730,60 @@ class CommsNotifier extends Notifier<CommsState> {
       muted: state.localMuted,
       outputEnabled: state.isAudioOutputEnabled,
     );
+  }
+
+  /// Remove the saved volume for [id] (reset to default 1.0).
+  Future<void> clearRemoteVolume(String id) async {
+    if (!state.remoteVolumes.containsKey(id)) return;
+    final updated = Map<String, double>.from(state.remoteVolumes)..remove(id);
+    state = state.copyWith(remoteVolumes: updated);
+    await _persistVolumesNow();
+    await CommsAudio.applyToRoom(
+      room: state.room,
+      volKey: id,
+      volumes: state.remoteVolumes,
+      muted: state.localMuted,
+      outputEnabled: state.isAudioOutputEnabled,
+    );
+  }
+
+  /// Remove all saved volumes.
+  Future<void> clearAllRemoteVolumes() async {
+    if (state.remoteVolumes.isEmpty) return;
+    state = state.copyWith(remoteVolumes: {});
+    await _persistVolumesNow();
+    await CommsAudio.applyAll(
+      room: state.room,
+      volumes: state.remoteVolumes,
+      muted: state.localMuted,
+      outputEnabled: state.isAudioOutputEnabled,
+    );
+  }
+
+  void _scheduleVolumesPersist() {
+    if (_isDisposed) return;
+    _volumesPersistDebounce?.cancel();
+    _volumesPersistDebounce = Timer(volumesPersistDebounce, () {
+      _volumesPersistDebounce = null;
+      unawaited(_persistVolumesNow());
+    });
+  }
+
+  Future<void> _persistVolumesNow() async {
+    _volumesPersistDebounce?.cancel();
+    _volumesPersistDebounce = null;
+    if (_isDisposed) return;
+    var entries = state.remoteVolumes.entries.toList();
+    if (entries.length > maxPersistedVolumes) {
+      entries = entries.sublist(entries.length - maxPersistedVolumes);
+    }
+    try {
+      await ref
+          .read(settingsControllerProvider.notifier)
+          .set(volumesSettingsKey, Map<String, double>.fromEntries(entries));
+    } catch (e) {
+      debugPrint('[CommsController] persist volumes failed: $e');
+    }
   }
 
   /// Toggle local-only mute for a remote participant or track.

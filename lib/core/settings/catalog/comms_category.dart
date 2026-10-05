@@ -283,6 +283,29 @@ final List<SettingCategory> commsCategory = [
           ),
         ],
       ),
+      SettingPage(
+        id: 'comms_volumes',
+        title: (l) => l.settingsPageCommsVolumesTitle,
+        subtitle: (l) => l.settingsPageCommsVolumesSubtitle,
+        groups: [
+          SettingGroup(
+            id: 'volumes',
+            title: (l) => l.settingsGroupVolumesTitle,
+            items: [
+              SettingItem(
+                id: 'volumes_list',
+                title: (l) => l.settingsItemVolumesListTitle,
+                subtitle: (l) => l.settingsItemVolumesListSubtitle,
+                component: SettingComponent.custom,
+                settingKey: 'comms.remoteVolumes',
+                scope: SettingScope.local,
+                defaultValue: const {},
+                hidden: true,
+              ),
+            ],
+          ),
+        ],
+      ),
     ],
   ),
 ];

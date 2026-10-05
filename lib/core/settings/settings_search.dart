@@ -12,6 +12,7 @@ import 'package:novyse/core/utils/platform.dart';
 /// Items unsupported on the current OS are excluded (like the category
 /// pages do); `disabled` (WIP) items are kept so the search indexes the
 /// whole catalog — [SettingsItemRenderer] already renders them dimmed.
+/// Hidden (storage-only) items are always excluded.
 Map<SettingCategory, List<SettingItem>> searchSettings({
   required BuildContext context,
   required String query,
@@ -31,12 +32,14 @@ Map<SettingCategory, List<SettingItem>> searchSettings({
     for (final page in category.pages) {
       for (final group in page.groups) {
         for (final item in group.items) {
+          if (item.hidden) continue;
           if (!item.supportedOS.contains(currentOS)) continue;
           if (matches(item)) matched.add(item);
         }
       }
     }
     for (final item in category.items) {
+      if (item.hidden) continue;
       if (!item.supportedOS.contains(currentOS)) continue;
       if (matches(item)) matched.add(item);
     }

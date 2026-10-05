@@ -22,7 +22,16 @@ class SettingsCategoryPage extends ConsumerWidget {
       return const SettingsPageTemplate(title: '', children: []);
     }
     final visibleItems = category.items
-        .where((i) => i.supportedOS.contains(currentOS))
+        .where((i) => i.isVisible && i.supportedOS.contains(currentOS))
+        .toList();
+    final visiblePages = category.pages
+        .where(
+          (p) => p.groups.any(
+            (g) => g.items.any(
+              (i) => i.isVisible && i.supportedOS.contains(currentOS),
+            ),
+          ),
+        )
         .toList();
 
     return SettingsPageTemplate(
@@ -30,7 +39,7 @@ class SettingsCategoryPage extends ConsumerWidget {
       children: [
         SettingsSection(
           children: [
-            for (final page in category.pages)
+            for (final page in visiblePages)
               SettingsNavigationRow(
                 icon: category.icon,
                 title: context.settingsText(page.title),
@@ -75,7 +84,7 @@ class SettingsGroupPage extends ConsumerWidget {
         (
           group: group,
           items: group.items
-              .where((i) => i.supportedOS.contains(currentOS))
+              .where((i) => i.isVisible && i.supportedOS.contains(currentOS))
               .toList(),
         ),
     ].where((e) => e.items.isNotEmpty).toList();

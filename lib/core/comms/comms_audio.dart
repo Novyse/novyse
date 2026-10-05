@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' show Helper;
 import 'package:livekit_client/livekit_client.dart';
@@ -31,6 +33,27 @@ abstract final class CommsAudio {
   static double clamp01(double value) {
     if (value.isNaN) return 1.0;
     return value.clamp(0.0, 1.0);
+  }
+
+  /// Parse the persisted `comms.remoteVolumes` settings value back into a
+  /// linear volume map.
+  static Map<String, double> parsePersistedVolumes(Object? raw) {
+    try {
+      final decoded = raw is String ? jsonDecode(raw) : raw;
+      if (decoded is! Map) return {};
+      final result = <String, double>{};
+      decoded.forEach((key, value) {
+        if (key is! String || key.isEmpty) return;
+        final numeric = value is num
+            ? value.toDouble()
+            : double.tryParse(value.toString());
+        if (numeric == null || numeric.isNaN) return;
+        result[key] = numeric.clamp(0.0, 1.0);
+      });
+      return result;
+    } catch (_) {
+      return {};
+    }
   }
 
   /// Effective audible gain: local mute and global deafen force silence.

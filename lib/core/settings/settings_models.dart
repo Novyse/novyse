@@ -63,6 +63,8 @@ class SettingOption {
 /// - [valueProviderId]: provider id for read-only values (e.g. app version).
 /// - [disabled]: when true the row renders non-interactive (WIP placeholder).
 ///   Defaults to false.
+/// - [hidden]: when true the item is never shown in settings UI (pages,
+///   groups, search and renderer all skip it). Defaults to false.
 /// - [supportedOS]: OS list where the item is visible. Defaults to all
 ///   [AppOS.values]; e.g. tray/startup items use only desktop OS.
 class SettingItem {
@@ -86,6 +88,7 @@ class SettingItem {
   final String Function(AppLocalizations) subtitle;
   final bool danger;
   final bool disabled;
+  final bool hidden;
   final List<AppOS> supportedOS;
 
   const SettingItem({
@@ -109,6 +112,7 @@ class SettingItem {
     this.icon,
     this.danger = false,
     this.disabled = false,
+    this.hidden = false,
     this.supportedOS = AppOS.values,
   });
 
@@ -117,6 +121,9 @@ class SettingItem {
 
   /// Whether the row must render as non-interactive.
   bool get isEffectivelyDisabled => disabled || !isSupportedOnCurrentOS;
+
+  /// Whether the item may appear anywhere in settings UI.
+  bool get isVisible => !hidden;
 }
 
 class SettingGroup {

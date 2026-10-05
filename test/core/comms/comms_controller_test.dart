@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/comms/comms_state.dart';
+import 'package:novyse/core/settings/settings_controller.dart';
 
 /// The hardware/view state transitions on [CommsNotifier] are pure `copyWith`
 /// arithmetic that does not need a LiveKit room, so they can be driven through
@@ -262,4 +263,120 @@ void main() {
       expect(read().isScreenSharing, isTrue);
     });
   });
+
+  group('volume persistence', () {
+    ProviderContainer containerWithSettings(Map<String, Object?> preset) {
+      final c = ProviderContainer(
+        overrides: [
+          settingsControllerProvider.overrideWith(
+            () => _StubSettingsController(preset),
+          ),
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    Map<String, Object?> writtenOf(ProviderContainer c) =>
+        (c.read(settingsControllerProvider.notifier)
+                as _StubSettingsController)
+            .written;
+
+    test('hydrates saved volumes from settings', () async {
+      final c = containerWithSettings({
+        CommsNotifier.volumesSettingsKey: {'u1_s1': 0.5},
+      });
+      c.read(commsProvider.notifier);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(c.read(commsProvider).remoteVolumes, {'u1_s1': 0.5});
+    });
+
+    test('starts empty without saved volumes', () {
+      final c = containerWithSettings({});
+
+      expect(c.read(commsProvider).remoteVolumes, isEmpty);
+    });
+
+    test('setRemoteVolume persists with debounce', () async {
+      final c = containerWithSettings({});
+      final n = c.read(commsProvider.notifier);
+
+      await n.setRemoteVolume('u1_s1', 0.4);
+      // Debounced: not written yet.
+      expect(writtenOf(c), isEmpty);
+
+      await Future<void>.delayed(
+        CommsNotifier.volumesPersistDebounce + const Duration(milliseconds: 100),
+      );
+      expect(writtenOf(c)[CommsNotifier.volumesSettingsKey], {'u1_s1': 0.4});
+    });
+
+    test('setRemoteVolume with persist false skips settings', () async {
+      final c = containerWithSettings({});
+      final n = c.read(commsProvider.notifier);
+
+      await n.setRemoteVolume('TR_ephemeral', 0.4, persist: false);
+      expect(c.read(commsProvider).remoteVolumes, {'TR_ephemeral': 0.4});
+
+      await Future<void>.delayed(
+        CommsNotifier.volumesPersistDebounce + const Duration(milliseconds: 100),
+      );
+      expect(writtenOf(c), isEmpty);
+    });
+
+    test('clearRemoteVolume removes and persists immediately', () async {
+      final c = containerWithSettings({
+        CommsNotifier.volumesSettingsKey: {'u1_s1': 0.5, 'u2_s9': 0.7},
+      });
+      final n = c.read(commsProvider.notifier);
+      await Future<void>.delayed(Duration.zero);
+
+      await n.clearRemoteVolume('u1_s1');
+
+      expect(c.read(commsProvider).remoteVolumes, {'u2_s9': 0.7});
+      expect(writtenOf(c)[CommsNotifier.volumesSettingsKey], {'u2_s9': 0.7});
+    });
+
+    test('clearAllRemoteVolumes empties and persists immediately', () async {
+      final c = containerWithSettings({
+        CommsNotifier.volumesSettingsKey: {'u1_s1': 0.5},
+      });
+      final n = c.read(commsProvider.notifier);
+      await Future<void>.delayed(Duration.zero);
+
+      await n.clearAllRemoteVolumes();
+
+      expect(c.read(commsProvider).remoteVolumes, isEmpty);
+      expect(writtenOf(c)[CommsNotifier.volumesSettingsKey], isEmpty);
+    });
+
+    test('leave keeps saved volumes', () async {
+      final c = containerWithSettings({});
+      final n = c.read(commsProvider.notifier);
+
+      await n.setRemoteVolume('u1_s1', 0.3);
+      await n.leave();
+
+      expect(c.read(commsProvider).remoteVolumes, {'u1_s1': 0.3});
+    });
+  });
+}
+
+/// In-memory settings stub recording writes instead of touching SQLite.
+class _StubSettingsController extends SettingsController {
+  _StubSettingsController(this.preset);
+
+  final Map<String, Object?> preset;
+  final Map<String, Object?> written = {};
+
+  @override
+  Map<String, Object?> build() => Map<String, Object?>.of(preset);
+
+  @override
+  Future<bool> set(String settingKey, Object? value) async {
+    written[settingKey] = value;
+    state = {...state, settingKey: value};
+    return true;
+  }
 }

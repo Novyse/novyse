@@ -68,6 +68,15 @@ void main() {
       expect(await _search(tester, 'cyberpunk'), isEmpty);
     });
 
+    testWidgets('excludes hidden (storage-only) items', (tester) async {
+      // 'Member volumes' is the hidden volumes list title.
+      final results = await _search(tester, 'member volumes');
+      final ids = results.values
+          .expand((items) => items.map((i) => i.id))
+          .toList();
+      expect(ids, isNot(contains('volumes_list')));
+    });
+
     testWidgets('does not match category names', (tester) async {
       // 'Diagnostics' only appears in the 'Info & Diagnostics' category title.
       expect(await _search(tester, 'diagnostics'), isEmpty);
