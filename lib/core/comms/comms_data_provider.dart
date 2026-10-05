@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:novyse/core/comms/comms_audio.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/services/api_gateway.dart';
@@ -73,6 +74,9 @@ class CommsDataNotifier
       return _buildTilesFromLiveRoom(
         commsState.room!,
         commsState.speakingParticipants,
+        remoteVolumes: commsState.remoteVolumes,
+        localMuted: commsState.localMuted,
+        outputEnabled: commsState.isAudioOutputEnabled,
       );
     } else {
       _startPolling();
@@ -126,7 +130,7 @@ class CommsDataNotifier
             isLocal: uuid == localUserUUID,
             videoTrack: null,
             isSpeaking: false,
-            isMuted: false,
+            isRemoteMuted: false,
           ),
         for (final share in remoteData.screenShares)
           CommsTileItem(
@@ -137,7 +141,7 @@ class CommsDataNotifier
             videoTrack: null,
             trackSid: share.trackSid,
             isSpeaking: false,
-            isMuted: false,
+            isRemoteMuted: false,
           ),
       ];
 
@@ -154,8 +158,11 @@ class CommsDataNotifier
 
   CommsRoomViewData _buildTilesFromLiveRoom(
     Room room,
-    Set<String> speakingParticipants,
-  ) {
+    Set<String> speakingParticipants, {
+    Map<String, double> remoteVolumes = const {},
+    Map<String, bool> localMuted = const {},
+    bool outputEnabled = true,
+  }) {
     final tiles = <CommsTileItem>[];
 
     final participants = <Participant>[
@@ -178,6 +185,21 @@ class CommsDataNotifier
           speakingParticipants.contains(userUUID) ||
           participant.isSpeaking;
 
+      // Remote mic mute as broadcast by LiveKit (visible to everyone).
+      final micPub = participant.audioTrackPublications
+          .where((p) => p.source == TrackSource.microphone)
+          .firstOrNull;
+      final remoteSelfMuted =
+          !isLocal && ((micPub?.muted ?? false) || !participant.isMicrophoneEnabled());
+
+      final volKey = identity;
+      final locallyMuted = !isLocal && (localMuted[volKey] ?? false);
+      final effectiveVolume = CommsAudio.effectiveVolume(
+        volume: remoteVolumes[volKey] ?? 1.0,
+        locallyMuted: localMuted[volKey] ?? false,
+        outputEnabled: outputEnabled,
+      );
+
       tiles.add(
         CommsTileItem(
           id: identity,
@@ -186,7 +208,9 @@ class CommsDataNotifier
           isLocal: isLocal,
           videoTrack: cameraPub?.track as VideoTrack?,
           isSpeaking: isSpeaking,
-          isMuted: cameraPub?.muted ?? false,
+          isRemoteMuted: remoteSelfMuted,
+          isLocallyMuted: locallyMuted,
+          effectiveVolume: effectiveVolume,
         ),
       );
 
@@ -196,6 +220,7 @@ class CommsDataNotifier
       );
 
       for (final screenPub in screenPubs) {
+        final shareVolKey = screenPub.sid;
         tiles.add(
           CommsTileItem(
             id: screenPub.sid,
@@ -205,7 +230,13 @@ class CommsDataNotifier
             videoTrack: screenPub.track as VideoTrack?,
             trackSid: screenPub.sid,
             isSpeaking: false,
-            isMuted: screenPub.muted,
+            isRemoteMuted: screenPub.muted,
+            isLocallyMuted: !isLocal && (localMuted[shareVolKey] ?? false),
+            effectiveVolume: CommsAudio.effectiveVolume(
+              volume: remoteVolumes[shareVolKey] ?? 1.0,
+              locallyMuted: localMuted[shareVolKey] ?? false,
+              outputEnabled: outputEnabled,
+            ),
           ),
         );
       }

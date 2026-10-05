@@ -12,6 +12,7 @@ import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
+import 'package:novyse/ui/components/comms/comms_user_context_menu.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Renders an individual participant card or screen share tile in the vocal room.
@@ -123,13 +124,38 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
     final videoTrack = tile.hasActiveVideo ? tile.videoTrack : null;
     final isSpeaking = tile.isSpeaking && !tile.isScreenShare;
 
+    // Mute badges (bottom-right):
+    // - mic-with-lock: local-only mute from this client's context menu.
+    // - plain mic-off: remote self-mute broadcast by LiveKit (bottombar),
+    //   or own mic state for the local tile.
+    final ownMicOff = tile.isLocal && !tile.isScreenShare
+        ? !ref.watch(commsProvider.select((s) => s.isAudioEnabled))
+        : false;
+    final showLocalLock = tile.isLocallyMuted && !tile.isLocal;
+    final showRemoteSimple =
+        !showLocalLock && (tile.isRemoteMuted || ownMicOff);
+
     final controlsOpacity = widget.isFullScreen
         ? (_overlayUiVisible ? 1.0 : 0.0)
         : ((_isHovered || widget.isPinned) ? 1.0 : 0.0);
 
+    void openMenu() {
+      showCommsUserContextMenu(
+        context: context,
+        tile: tile,
+        displayName: labelText,
+        isPinned: widget.isPinned,
+        isFullScreen: widget.isFullScreen,
+        onPin: widget.onPin,
+        onFullScreen: widget.onFullScreen,
+      );
+      if (widget.isFullScreen) _showOverlayUi();
+    }
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: widget.isFullScreen ? _onCardTap : null,
+      onSecondaryTapUp: (_) => openMenu(),
       child: MouseRegion(
         onEnter: (_) {
           setState(() => _isHovered = true);
@@ -223,6 +249,17 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                                   : l10n.commsFullScreen,
                               onPressed: widget.onFullScreen,
                             ),
+                            IconButton(
+                              icon: const AppHugeIcon(
+                                icon: HugeIcons.strokeRoundedMoreVertical,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                              visualDensity: VisualDensity.compact,
+                              padding: const EdgeInsets.all(6),
+                              tooltip: l10n.commsUserOptions,
+                              onPressed: openMenu,
+                            ),
                             if (tile.isScreenShare &&
                                 tile.isLocal &&
                                 widget.onStopShare != null)
@@ -286,6 +323,18 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                                 ),
                               ),
                             ),
+                            InkWell(
+                              onTap: openMenu,
+                              borderRadius: BorderRadius.circular(8),
+                              child: const Padding(
+                                padding: EdgeInsets.only(left: 4),
+                                child: AppHugeIcon(
+                                  icon: HugeIcons.strokeRoundedMoreVertical,
+                                  color: Colors.white70,
+                                  size: 14,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -293,12 +342,15 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                   ),
                 ),
               ),
-              // Bottom-right quick camera flip (mobile local video only).
-              // Top-right controls rely on hover, unavailable on touch.
-              if (tile.isLocal &&
-                  !tile.isScreenShare &&
-                  videoTrack != null &&
-                  currentPlatform == AppPlatform.mobile)
+              // Bottom-right cluster: mute badges + quick camera flip.
+              // The flip button stays mobile-local-video-only; mute badges
+              // show on every platform. No long-press is used anywhere.
+              if (showLocalLock ||
+                  showRemoteSimple ||
+                  (tile.isLocal &&
+                      !tile.isScreenShare &&
+                      videoTrack != null &&
+                      currentPlatform == AppPlatform.mobile))
                 Positioned(
                   right: 10,
                   bottom: 10,
@@ -311,18 +363,53 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
                           color: Colors.black.withValues(alpha: 0.45),
-                          child: IconButton(
-                            icon: const AppHugeIcon(
-                              icon: HugeIcons.strokeRoundedCameraRotated01,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.all(6),
-                            tooltip: l10n.commsSwitchCamera,
-                            onPressed: () => ref
-                                .read(commsProvider.notifier)
-                                .switchCamera(),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (showLocalLock)
+                                Tooltip(
+                                  message: l10n.commsUnmuteUser,
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(6),
+                                    child: AppHugeIcon(
+                                      icon: HugeIcons.strokeRoundedMicOff02,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  ),
+                                )
+                              else if (showRemoteSimple)
+                                const Padding(
+                                  padding: EdgeInsets.all(6),
+                                  child: AppHugeIcon(
+                                    icon: HugeIcons.strokeRoundedMicOff02,
+                                    color: AppColors.danger,
+                                    size: 18,
+                                  ),
+                                ),
+                              if (tile.isLocal &&
+                                  !tile.isScreenShare &&
+                                  videoTrack != null &&
+                                  currentPlatform == AppPlatform.mobile)
+                                IconButton(
+                                  icon: const AppHugeIcon(
+                                    icon:
+                                        HugeIcons.strokeRoundedCameraRotated01,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                  visualDensity: VisualDensity.compact,
+                                  padding: const EdgeInsets.all(6),
+                                  tooltip: l10n.commsSwitchCamera,
+                                  onPressed: () => ref
+                                      .read(commsProvider.notifier)
+                                      .switchCamera(),
+                                ),
+                            ],
                           ),
                         ),
                       ),

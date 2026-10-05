@@ -2,11 +2,13 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/services/profile_picture_service.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/comms/comms_user_card.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 /// `CommsUserCard` resolves the participant name through the `userProvider`
 /// family, so the tests override individual family entries with ready-made
@@ -348,6 +350,65 @@ void main() {
 
       // Outside fullscreen the name tag is always opaque.
       expect(nameTagOpacity(tester), 1.0);
+    });
+  });
+
+  group('mute badges', () {
+    Finder iconByType(List<List<dynamic>> icon) => find.byWidgetPredicate(
+      (w) => w is AppHugeIcon && identical(w.icon, icon),
+    );
+
+    CommsTileItem muteTile({
+      bool localMute = false,
+      bool remoteMute = false,
+      bool isLocal = false,
+    }) => CommsTileItem(
+      id: 't1',
+      userUUID: 'u1',
+      isLocal: isLocal,
+      isRemoteMuted: remoteMute,
+      isLocallyMuted: localMute,
+    );
+
+    testWidgets('no badge when the participant is unmuted', (tester) async {
+      await pump(tester, item: muteTile());
+
+      expect(iconByType(HugeIcons.strokeRoundedMicOff02), findsNothing);
+    });
+
+    testWidgets('local-only mute shows a plain mic-off with tooltip', (
+      tester,
+    ) async {
+      final l10n = await pump(tester, item: muteTile(localMute: true));
+
+      expect(iconByType(HugeIcons.strokeRoundedMicOff02), findsOneWidget);
+      expect(find.byTooltip(l10n.commsUnmuteUser), findsOneWidget);
+    });
+
+    testWidgets('plain mic-off for a remote self-mute (bottombar)', (
+      tester,
+    ) async {
+      final l10n = await pump(tester, item: muteTile(remoteMute: true));
+
+      expect(iconByType(HugeIcons.strokeRoundedMicOff02), findsOneWidget);
+      expect(find.byTooltip(l10n.commsUnmuteUser), findsNothing);
+    });
+
+    testWidgets('local mute wins when both mutes are active', (tester) async {
+      final l10n = await pump(
+        tester,
+        item: muteTile(localMute: true, remoteMute: true),
+      );
+
+      // A single badge is shown, with the local-mute tooltip.
+      expect(iconByType(HugeIcons.strokeRoundedMicOff02), findsOneWidget);
+      expect(find.byTooltip(l10n.commsUnmuteUser), findsOneWidget);
+    });
+
+    testWidgets('options entry point is always reachable', (tester) async {
+      final l10n = await pump(tester, item: muteTile());
+
+      expect(find.byTooltip(l10n.commsUserOptions), findsWidgets);
     });
   });
 

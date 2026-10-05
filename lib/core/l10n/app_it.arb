@@ -294,6 +294,10 @@
   "commsExitFullScreen": "Riduci",
   "commsFullScreen": "Schermo intero",
   "commsStopScreenShare": "Interrompi condivisione",
+  "commsMuteUser": "Silenzia per me",
+  "commsUnmuteUser": "Riattiva per me",
+  "commsVolume": "Volume",
+  "commsUserOptions": "Opzioni membro",
   "commsTokenError": "Impossibile ottenere il token per la stanza vocale.",
   "commsConnectionError": "Errore di connessione a LiveKit: {error}",
   "@commsConnectionError": {

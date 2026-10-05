@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:novyse/core/comms/comms_audio.dart';
 import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/comms/comms_state.dart';
 import 'package:novyse/core/comms/devices/comms_device.dart';
@@ -237,7 +238,7 @@ class CommsNotifier extends Notifier<CommsState> {
         if (event.track.source == TrackSource.screenShareVideo) {
           SoundPlayer.instance.playSound('comms.screen_share.start');
         }
-        _applyAudioOutputTrack(event.track);
+        unawaited(_applyAudioOutputTrack(event.track));
         _notifyStateChange();
       })
       ..on<TrackUnsubscribedEvent>((event) {
@@ -550,7 +551,7 @@ class CommsNotifier extends Notifier<CommsState> {
   }
 
   /// Toggles remote audio output (deafen mode).
-  void toggleAudioOutput() {
+  Future<void> toggleAudioOutput() async {
     final next = !state.isAudioOutputEnabled;
     state = state.copyWith(isAudioOutputEnabled: next);
 
@@ -561,13 +562,13 @@ class CommsNotifier extends Notifier<CommsState> {
       for (final pub in participant.audioTrackPublications) {
         final track = pub.track;
         if (track != null) {
-          _applyAudioOutputTrack(track);
+          await _applyAudioOutputTrack(track);
         }
       }
     }
   }
 
-  void _applyAudioOutputTrack(Track track) {
+  Future<void> _applyAudioOutputTrack(Track track) async {
     // Route fresh remote tracks to the saved output (web setSinkId).
     try {
       CommsDevicesPlatform.applyAudioOutputToTrack(
@@ -576,14 +577,12 @@ class CommsNotifier extends Notifier<CommsState> {
       );
     } catch (_) {}
     if (track is RemoteAudioTrack) {
-      // Deafen keeps tracks enabled; UI mutes via state. Real per-track
-      // volume/mute lands with the future audio mixer (see audio/).
-      final targetVolume = state.isAudioOutputEnabled ? 1.0 : 0.0;
-      try {
-        if (targetVolume == 0.0) {
-          track.enable(); // keep enabled but silence
-        }
-      } catch (_) {}
+      await CommsAudio.applyAll(
+        room: state.room,
+        volumes: state.remoteVolumes,
+        muted: state.localMuted,
+        outputEnabled: state.isAudioOutputEnabled,
+      );
     }
   }
 
@@ -675,18 +674,34 @@ class CommsNotifier extends Notifier<CommsState> {
     state = state.copyWith(fullscreenStreamId: () => null);
   }
 
-  /// Set volume for a remote participant or track.
-  void setRemoteVolume(String id, double volume) {
+  /// Set linear volume (0.0..1.0) for a remote participant or track.
+  /// The value is applied immediately to matching LiveKit audio tracks.
+  Future<void> setRemoteVolume(String id, double volume) async {
+    final clamped = CommsAudio.clamp01(volume);
     final updated = Map<String, double>.from(state.remoteVolumes)
-      ..[id] = volume;
+      ..[id] = clamped;
     state = state.copyWith(remoteVolumes: updated);
+    await CommsAudio.applyToRoom(
+      room: state.room,
+      volKey: id,
+      volumes: state.remoteVolumes,
+      muted: state.localMuted,
+      outputEnabled: state.isAudioOutputEnabled,
+    );
   }
 
-  /// Toggle local mute for a remote participant or track.
-  void toggleLocalMute(String id) {
+  /// Toggle local-only mute for a remote participant or track.
+  Future<void> toggleLocalMute(String id) async {
     final current = state.localMuted[id] ?? false;
     final updated = Map<String, bool>.from(state.localMuted)..[id] = !current;
     state = state.copyWith(localMuted: updated);
+    await CommsAudio.applyToRoom(
+      room: state.room,
+      volKey: id,
+      volumes: state.remoteVolumes,
+      muted: state.localMuted,
+      outputEnabled: state.isAudioOutputEnabled,
+    );
   }
 
   void clearError() {

@@ -34,7 +34,8 @@ class _StubCommsNotifier extends CommsNotifier {
   Future<void> toggleVideo() async => calls.add('toggleVideo');
 
   @override
-  void toggleAudioOutput() => calls.add('toggleAudioOutput');
+  Future<void> toggleAudioOutput() async =>
+      calls.add('toggleAudioOutput');
 
   @override
   Future<void> leave() async => calls.add('leave');

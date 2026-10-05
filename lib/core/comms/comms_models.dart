@@ -41,8 +41,14 @@ class CommsTileItem {
   /// Whether this user is currently speaking (audio activity).
   final bool isSpeaking;
 
-  /// Whether the user or track is locally or remotely muted.
-  final bool isMuted;
+  /// Whether the remote side muted its microphone.
+  final bool isRemoteMuted;
+
+  /// This is a local-only state and is not propagated to the server.
+  final bool isLocallyMuted;
+
+  /// Linear gain currently applied to this tile (0.0..1.0).
+  final double effectiveVolume;
 
   const CommsTileItem({
     required this.id,
@@ -52,7 +58,9 @@ class CommsTileItem {
     this.videoTrack,
     this.trackSid,
     this.isSpeaking = false,
-    this.isMuted = false,
+    this.isRemoteMuted = false,
+    this.isLocallyMuted = false,
+    this.effectiveVolume = 1.0,
   });
 
   bool get hasActiveVideo => videoTrack != null && !videoTrack!.muted;
@@ -65,7 +73,9 @@ class CommsTileItem {
     VideoTrack? videoTrack,
     String? trackSid,
     bool? isSpeaking,
-    bool? isMuted,
+    bool? isRemoteMuted,
+    bool? isLocallyMuted,
+    double? effectiveVolume,
   }) {
     return CommsTileItem(
       id: id ?? this.id,
@@ -75,7 +85,9 @@ class CommsTileItem {
       videoTrack: videoTrack ?? this.videoTrack,
       trackSid: trackSid ?? this.trackSid,
       isSpeaking: isSpeaking ?? this.isSpeaking,
-      isMuted: isMuted ?? this.isMuted,
+      isRemoteMuted: isRemoteMuted ?? this.isRemoteMuted,
+      isLocallyMuted: isLocallyMuted ?? this.isLocallyMuted,
+      effectiveVolume: effectiveVolume ?? this.effectiveVolume,
     );
   }
 
@@ -91,7 +103,9 @@ class CommsTileItem {
           videoTrack == other.videoTrack &&
           trackSid == other.trackSid &&
           isSpeaking == other.isSpeaking &&
-          isMuted == other.isMuted;
+          isRemoteMuted == other.isRemoteMuted &&
+          isLocallyMuted == other.isLocallyMuted &&
+          effectiveVolume == other.effectiveVolume;
 
   @override
   int get hashCode => Object.hash(
@@ -102,7 +116,9 @@ class CommsTileItem {
     videoTrack,
     trackSid,
     isSpeaking,
-    isMuted,
+    isRemoteMuted,
+    isLocallyMuted,
+    effectiveVolume,
   );
 }
 
