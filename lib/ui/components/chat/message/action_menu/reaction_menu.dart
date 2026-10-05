@@ -5,14 +5,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/emoji/emoji_content.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/emoji/emoji_recents_store.dart';
+import 'package:novyse/ui/components/context_menu/app_context_menu.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
+/// Quick reaction header shown above the message action menu
 class ReactionMenu extends ConsumerStatefulWidget {
   const ReactionMenu({
     super.key,
     required this.onSelectEmoji,
-    this.width = 190.0,
-    this.expandedHeight = 390.0,
+    this.width = 175.0,
+    this.expandedHeight = 306.0,
     this.onExpandChanged,
   });
 
@@ -45,9 +47,12 @@ class _ReactionMenuState extends ConsumerState<ReactionMenu> {
     }.take(3).toList();
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(AppMenuTokens.borderRadius),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: ImageFilter.blur(
+          sigmaX: AppMenuTokens.blurSigma,
+          sigmaY: AppMenuTokens.blurSigma,
+        ),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 240),
           curve: Curves.easeOutCubic,
@@ -56,11 +61,13 @@ class _ReactionMenuState extends ConsumerState<ReactionMenu> {
           height: _isExpanded ? widget.expandedHeight : 44,
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHighest.withValues(
-              alpha: _isExpanded ? 0.94 : 0.88,
+              alpha: _isExpanded ? 0.94 : AppMenuTokens.cardOpacity,
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppMenuTokens.borderRadius),
             border: Border.all(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+              color: colorScheme.outlineVariant.withValues(
+                alpha: AppMenuTokens.borderOpacity,
+              ),
               width: 1,
             ),
             boxShadow: [

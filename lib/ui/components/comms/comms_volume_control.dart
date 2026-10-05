@@ -21,8 +21,7 @@ class CommsVolumeControl extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<CommsVolumeControl> createState() =>
-      _CommsVolumeControlState();
+  ConsumerState<CommsVolumeControl> createState() => _CommsVolumeControlState();
 }
 
 class _CommsVolumeControlState extends ConsumerState<CommsVolumeControl> {
@@ -32,13 +31,15 @@ class _CommsVolumeControlState extends ConsumerState<CommsVolumeControl> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final stored =
-        ref.watch(commsProvider.select((s) => s.remoteVolumes[widget.volKey])) ??
+        ref.watch(
+          commsProvider.select((s) => s.remoteVolumes[widget.volKey]),
+        ) ??
         1.0;
     final value = _dragValue ?? stored;
     final percent = (CommsAudio.clampVolume(value) * 100).round();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -51,7 +52,7 @@ class _CommsVolumeControlState extends ConsumerState<CommsVolumeControl> {
                     : HugeIcons.strokeRoundedVolumeHigh,
                 size: 20,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Text(
                 l10n.commsVolume,
                 style: Theme.of(context).textTheme.bodyMedium,
