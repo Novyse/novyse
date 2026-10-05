@@ -113,10 +113,16 @@ void main() {
       expect(read().remoteVolumes, {'u1': 0.1});
     });
 
-    test('clamps values above 1.0 to the linear maximum', () {
+    test('accepts boosted values up to the maximum', () {
       notifier.setRemoteVolume('u1', 1.5);
 
-      expect(read().remoteVolumes, {'u1': 1.0});
+      expect(read().remoteVolumes, {'u1': 1.5});
+    });
+
+    test('clamps values above the maximum', () {
+      notifier.setRemoteVolume('u1', 5.0);
+
+      expect(read().remoteVolumes, {'u1': 2.0});
     });
 
     test('does not mutate the previous map', () {

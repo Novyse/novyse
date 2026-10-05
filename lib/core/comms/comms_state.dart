@@ -26,7 +26,8 @@ class CommsState {
   /// Identities/UUIDs of currently speaking participants
   final Set<String> speakingParticipants;
 
-  /// Custom volumes per participant or track (linear: 0.0 to 1.0+)
+  /// Custom volumes per participant or track
+  /// (linear gain: 0.0 muted, 1.0 unity, up to 2.0 boosted)
   final Map<String, double> remoteVolumes;
 
   /// Local mute toggles per participant or track

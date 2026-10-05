@@ -3,8 +3,11 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' show Helper;
 import 'package:livekit_client/livekit_client.dart';
+import 'package:novyse/core/utils/platform.dart';
 
 abstract final class CommsAudio {
+  static const double unityVolume = 1.0;
+  static const double maxVolume = 2.0;
   /// Linear volume key for a tile.
   static String volKeyForTile({
     required String id,
@@ -30,9 +33,14 @@ abstract final class CommsAudio {
     return participant.identity;
   }
 
-  static double clamp01(double value) {
-    if (value.isNaN) return 1.0;
-    return value.clamp(0.0, 1.0);
+  static double clampVolume(double value) {
+    if (value.isNaN) return unityVolume;
+    return value.clamp(0.0, maxVolume);
+  }
+  
+  static double platformCappedVolume(double value) {
+    if (currentOS == AppOS.web) return value.clamp(0.0, 1.0);
+    return value;
   }
 
   /// Parse the persisted `comms.remoteVolumes` settings value back into a
@@ -48,7 +56,7 @@ abstract final class CommsAudio {
             ? value.toDouble()
             : double.tryParse(value.toString());
         if (numeric == null || numeric.isNaN) return;
-        result[key] = numeric.clamp(0.0, 1.0);
+        result[key] = numeric.clamp(0.0, maxVolume);
       });
       return result;
     } catch (_) {
@@ -63,7 +71,7 @@ abstract final class CommsAudio {
     required bool outputEnabled,
   }) {
     if (locallyMuted || !outputEnabled) return 0.0;
-    return clamp01(volume);
+    return clampVolume(volume);
   }
 
   /// Apply [target] gain to a single remote audio track.
@@ -74,10 +82,10 @@ abstract final class CommsAudio {
   /// platform ignores the gain value.
   static Future<void> applyToTrack(Track? track, double target) async {
     if (track == null) return;
-    final volume = clamp01(target);
+    final volume = clampVolume(target);
     try {
       final mediaTrack = track.mediaStreamTrack;
-      await Helper.setVolume(volume, mediaTrack);
+      await Helper.setVolume(platformCappedVolume(volume), mediaTrack);
     } catch (e) {
       debugPrint('[CommsAudio] setVolume failed: $e');
     }

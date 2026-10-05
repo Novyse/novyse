@@ -26,14 +26,21 @@ void main() {
     });
   });
 
-  group('clamp01', () {
-    test('passes through in-range values', () {
-      expect(CommsAudio.clamp01(0.4), 0.4);
+  group('clampVolume', () {
+    test('passes through in-range values, including boost', () {
+      expect(CommsAudio.clampVolume(0.4), 0.4);
+      expect(CommsAudio.clampVolume(1.5), 1.5);
     });
 
-    test('clamps above 1.0 and below 0.0', () {
-      expect(CommsAudio.clamp01(1.5), 1.0);
-      expect(CommsAudio.clamp01(-0.2), 0.0);
+    test('clamps above the max and below 0.0', () {
+      expect(CommsAudio.clampVolume(2.5), CommsAudio.maxVolume);
+      expect(CommsAudio.clampVolume(-0.2), 0.0);
+    });
+
+    test('caps web at unity', () {
+      // platformCappedVolume is OS-dependent; document the contract here.
+      expect(CommsAudio.maxVolume, 2.0);
+      expect(CommsAudio.unityVolume, 1.0);
     });
   });
 
@@ -94,8 +101,9 @@ void main() {
           'bad': 'nope',
           '': 0.5,
           'u2_s9': -3,
+          'u3_s9': 5.0,
         }),
-        {'u1_s1': 1.0, 'u2_s9': 0.0},
+        {'u1_s1': 1.5, 'u2_s9': 0.0, 'u3_s9': 2.0},
       );
     });
 

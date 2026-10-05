@@ -18,7 +18,8 @@ mixin CommsVolumesMixin on Notifier<CommsState> {
     state = state.copyWith(remoteVolumes: saved);
   }
 
-  /// Set linear volume (0.0..1.0) for a remote participant or track.
+  /// Set linear volume (0.0..[CommsAudio.maxVolume], 100% = unity) for a
+  /// remote participant or track. Values above unity boost the audio.
   /// The value is applied immediately to matching LiveKit audio tracks.
   /// When [persist] is true (default) it is also saved to local settings
   /// with a short debounce; pass false for ephemeral keys such as
@@ -28,7 +29,7 @@ mixin CommsVolumesMixin on Notifier<CommsState> {
     double volume, {
     bool persist = true,
   }) async {
-    final clamped = CommsAudio.clamp01(volume);
+    final clamped = CommsAudio.clampVolume(volume);
     final updated = Map<String, double>.from(state.remoteVolumes)
       ..[id] = clamped;
     state = state.copyWith(remoteVolumes: updated);
