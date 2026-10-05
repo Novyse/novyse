@@ -30,7 +30,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final editProfile = find.text('Edit Profile');
-    final logout = find.text('Log Out');
+    final logout = find.text('Logout');
     final delete = find.text('Delete Profile');
     expect(editProfile, findsOneWidget);
     expect(logout, findsOneWidget);
@@ -53,7 +53,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Log Out'));
+    await tester.tap(find.text('Logout'));
     await tester.pumpAndSettle();
 
     // Enabled action: confirm sheet must appear.
@@ -71,7 +71,7 @@ void main() {
     final item = SettingItem(
       id: 'test_logout_enabled',
       component: SettingComponent.action,
-      title: (l) => 'Log Out',
+      title: (l) => 'Logout',
       subtitle: (l) => '',
       scope: SettingScope.local,
       actionId: 'logout',
@@ -80,7 +80,7 @@ void main() {
     await tester.pumpWidget(_wrap(SettingsItemRenderer(item: item)));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Log Out'));
+    await tester.tap(find.text('Logout'));
     await tester.pumpAndSettle();
 
     // Confirm sheet with cancel/confirm buttons.
