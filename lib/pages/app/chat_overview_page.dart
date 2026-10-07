@@ -16,6 +16,7 @@ import 'package:novyse/ui/components/chat/chat_overview/overview_header.dart';
 import 'package:novyse/ui/components/chat/chat_overview/overview_members.dart';
 import 'package:novyse/ui/components/chat/chat_overview/overview_subs.dart';
 import 'package:novyse/ui/components/chat/chat_overview/overview_tab.dart';
+import 'package:novyse/ui/components/switch/segmented_switch.dart';
 
 export 'package:novyse/ui/components/chat/chat_overview/overview_actions.dart';
 export 'package:novyse/ui/components/chat/chat_overview/overview_collectors.dart';
@@ -42,6 +43,64 @@ class ChatOverviewPage extends ConsumerStatefulWidget {
 
 class _ChatOverviewPageState extends ConsumerState<ChatOverviewPage> {
   OverviewTab? _tab;
+
+  final _pageScrollController = ScrollController();
+  final _tabsKey = GlobalKey();
+  final _barKey = GlobalKey();
+
+  /// When true, the in-flow tabs strip has scrolled under the floating app
+  /// bar: it is hidden (keeping its layout slot and state) and an identical
+  /// copy pinned below the bar is shown instead, so the tabs are never
+  /// visually cut — like the sticky tabs of Telegram profiles.
+  bool _tabsPinned = false;
+  double _barBottom = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageScrollController.addListener(_syncTabsPinned);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _syncTabsPinned();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _syncTabsPinned();
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageScrollController.removeListener(_syncTabsPinned);
+    _pageScrollController.dispose();
+    super.dispose();
+  }
+
+  void _syncTabsPinned() {
+    final tabsContext = _tabsKey.currentContext;
+    final barContext = _barKey.currentContext;
+    if (tabsContext == null || barContext == null) return;
+    final tabsBox = tabsContext.findRenderObject() as RenderBox?;
+    final barBox = barContext.findRenderObject() as RenderBox?;
+    if (tabsBox == null ||
+        barBox == null ||
+        !tabsBox.attached ||
+        !barBox.attached) {
+      return;
+    }
+    final barBottom = barBox.localToGlobal(Offset.zero).dy + barBox.size.height;
+    final tabsTop = tabsBox.localToGlobal(Offset.zero).dy;
+    final pinned = tabsTop < barBottom;
+    if (pinned != _tabsPinned || (barBottom - _barBottom).abs() > 0.5) {
+      setState(() {
+        _tabsPinned = pinned;
+        _barBottom = barBottom;
+      });
+    }
+  }
 
   OverviewTab _effectiveTab(bool isDM) {
     if (_tab != null) {
@@ -182,6 +241,7 @@ class _ChatOverviewPageState extends ConsumerState<ChatOverviewPage> {
       body: Stack(
         children: [
           SingleChildScrollView(
+            controller: _pageScrollController,
             padding: EdgeInsets.fromLTRB(16, topInset + 74 + 12, 16, 32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -213,20 +273,13 @@ class _ChatOverviewPageState extends ConsumerState<ChatOverviewPage> {
                     },
                   ),
                 const SizedBox(height: 8),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      for (final t in availableTabs)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: ChoiceChip(
-                            selected: tab == t,
-                            label: Text(_tabLabel(t, l10n)),
-                            onSelected: (_) => setState(() => _tab = t),
-                          ),
-                        ),
-                    ],
+                Offstage(
+                  offstage: _tabsPinned,
+                  child: _buildTabsSwitch(
+                    l10n,
+                    availableTabs,
+                    tab,
+                    key: _tabsKey,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -272,6 +325,7 @@ class _ChatOverviewPageState extends ConsumerState<ChatOverviewPage> {
                   ? SystemUiOverlayStyle.light
                   : SystemUiOverlayStyle.dark,
               child: ChatOverviewAppBar(
+                key: _barKey,
                 title: metadata.name,
                 subtitle: appBarSubtitle,
                 subtitleHighlighted: appBarSubtitleHighlighted,
@@ -284,8 +338,38 @@ class _ChatOverviewPageState extends ConsumerState<ChatOverviewPage> {
               ),
             ),
           ),
+          // Sticky copy of the tabs strip, shown only while the in-flow
+          // strip scrolls under the app bar above. Same widget, same state,
+          // same width (16px margins as the page content): the handoff is
+          // seamless and the tabs are never cut.
+          Positioned(
+            top: _barBottom,
+            left: 16,
+            right: 16,
+            child: Offstage(
+              offstage: !_tabsPinned,
+              child: _buildTabsSwitch(l10n, availableTabs, tab),
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  SegmentedSwitch<OverviewTab> _buildTabsSwitch(
+    AppLocalizations l10n,
+    List<OverviewTab> availableTabs,
+    OverviewTab tab, {
+    Key? key,
+  }) {
+    return SegmentedSwitch<OverviewTab>(
+      key: key,
+      options: [
+        for (final t in availableTabs)
+          SegmentedOption(value: t, label: _tabLabel(t, l10n)),
+      ],
+      value: tab,
+      onChanged: (t) => setState(() => _tab = t),
     );
   }
 
