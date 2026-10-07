@@ -71,49 +71,63 @@ class ChatDetailAppBar extends StatelessWidget {
             padding: FloatingAppBarConsts.centralAvatarPadding,
             child: Semantics(
               header: true,
-              child: InkWell(
+              child: Material(
+                type: MaterialType.transparency,
                 borderRadius: BorderRadius.circular(
                   FloatingAppBarConsts.centralRadius,
                 ),
-                onTap: onOpenOverview,
-                child: Row(
-                  children: [
-                    Avatar(
-                      uuid: avatarUuid,
-                      name: title,
-                      seedKey: seedKey,
-                      size: FloatingAppBarConsts.leadingSize,
-                      isOnline: isOnline,
-                      isSavedMessages: isSavedMessages,
-                      type: chatType,
-                      onTap: onOpenOverview,
-                    ),
-                    const SizedBox(width: FloatingAppBarConsts.leadingGap),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            title,
-                            style: FloatingAppBarConsts.titleStyle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (subtitle.isNotEmpty)
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(
+                    FloatingAppBarConsts.centralRadius,
+                  ),
+                  hoverColor: colorScheme.onSurface.withValues(alpha: 0.08),
+                  splashColor: colorScheme.onSurface.withValues(alpha: 0.12),
+                  highlightColor: colorScheme.onSurface.withValues(alpha: 0.08),
+                  focusColor: colorScheme.onSurface.withValues(alpha: 0.08),
+                  mouseCursor: onOpenOverview != null
+                      ? SystemMouseCursors.click
+                      : SystemMouseCursors.basic,
+                  onTap: onOpenOverview,
+                  child: Row(
+                    children: [
+                      Avatar(
+                        uuid: avatarUuid,
+                        name: title,
+                        seedKey: seedKey,
+                        size: FloatingAppBarConsts.leadingSize,
+                        isOnline: isOnline,
+                        isSavedMessages: isSavedMessages,
+                        type: chatType,
+                        onTap: onOpenOverview,
+                      ),
+                      const SizedBox(width: FloatingAppBarConsts.leadingGap),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                             Text(
-                              subtitle,
-                              style: FloatingAppBarConsts.subtitleStyle(
-                                colorScheme,
-                                highlighted: subtitleHighlighted,
-                              ),
+                              title,
+                              style: FloatingAppBarConsts.titleStyle,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                        ],
+                            if (subtitle.isNotEmpty)
+                              Text(
+                                subtitle,
+                                style: FloatingAppBarConsts.subtitleStyle(
+                                  colorScheme,
+                                  highlighted: subtitleHighlighted,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

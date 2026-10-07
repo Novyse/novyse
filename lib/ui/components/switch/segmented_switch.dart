@@ -156,6 +156,15 @@ class _SegmentedSwitchState<T> extends State<SegmentedSwitch<T>> {
             : math.max((viewport - insets) / count, minWidth);
         final activeIndex = _activeIndex;
 
+        // Stadium clip on the scroll viewport: a partially scrolled-out
+        // segment (and the indicator) slides behind a rounded end instead
+        // of being cut with a straight edge, so nothing ever turns
+        // rectangular while scrolling.
+        final scroll = ClipRRect(
+          borderRadius: BorderRadius.circular(_indicatorRadius),
+          child: _buildScroll(itemWidth, activeIndex),
+        );
+
         return ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
           child: ClipRRect(
@@ -175,49 +184,52 @@ class _SegmentedSwitchState<T> extends State<SegmentedSwitch<T>> {
                     width: _borderWidth,
                   ),
                 ),
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  scrollDirection: Axis.horizontal,
-                  child: Stack(
-                    children: [
-                      AnimatedPositioned(
-                        duration: widget.animationDuration,
-                        curve: Curves.easeOutCubic,
-                        left: activeIndex * itemWidth,
-                        top: 0,
-                        bottom: 0,
-                        width: itemWidth,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: scheme.primary,
-                            borderRadius: BorderRadius.circular(
-                              _indicatorRadius,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          for (var i = 0; i < count; i++)
-                            _SegmentButton<T>(
-                              key: _itemKeys[i],
-                              option: widget.options[i],
-                              width: itemWidth,
-                              isActive: i == activeIndex,
-                              enabled: widget.enabled,
-                              onTap: () => _onSelect(widget.options[i]),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                child: scroll,
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildScroll(double itemWidth, int activeIndex) {
+    final scheme = Theme.of(context).colorScheme;
+    return SingleChildScrollView(
+      controller: _scrollController,
+      scrollDirection: Axis.horizontal,
+      child: Stack(
+        children: [
+          AnimatedPositioned(
+            duration: widget.animationDuration,
+            curve: Curves.easeOutCubic,
+            left: activeIndex * itemWidth,
+            top: 0,
+            bottom: 0,
+            width: itemWidth,
+            child: Container(
+              decoration: BoxDecoration(
+                color: scheme.primary,
+                borderRadius: BorderRadius.circular(_indicatorRadius),
+              ),
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < widget.options.length; i++)
+                _SegmentButton<T>(
+                  key: _itemKeys[i],
+                  option: widget.options[i],
+                  width: itemWidth,
+                  isActive: i == activeIndex,
+                  enabled: widget.enabled,
+                  onTap: () => _onSelect(widget.options[i]),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -243,8 +255,6 @@ class _SegmentButton<T> extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final interactive = enabled && option.enabled;
-    // Active segment sits on `scheme.primary`, so it needs `onPrimary`
-    // for contrast; inactive segments sit on the glass container.
     final foreground = isActive ? scheme.onPrimary : scheme.onSurfaceVariant;
     final hasLabel = option.label?.isNotEmpty == true;
 
@@ -254,52 +264,64 @@ class _SegmentButton<T> extends StatelessWidget {
       enabled: interactive,
       child: Opacity(
         opacity: interactive ? 1 : 0.5,
-        child: InkWell(
+        child: Material(
+          type: MaterialType.transparency,
           borderRadius: BorderRadius.circular(25),
-          onTap: interactive ? onTap : null,
-          child: SizedBox(
-            width: width,
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                vertical: _segmentPaddingV,
-                horizontal: hasLabel ? _segmentPaddingH : 0,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (option.icon != null) ...[
-                    IconTheme(
-                      data: IconThemeData(
-                        color: foreground,
-                        size: _segmentIconSize,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(25),
+            hoverColor: foreground.withValues(alpha: 0.08),
+            splashColor: foreground.withValues(alpha: 0.12),
+            highlightColor: foreground.withValues(alpha: 0.08),
+            focusColor: foreground.withValues(alpha: 0.08),
+            mouseCursor: interactive
+                ? SystemMouseCursors.click
+                : SystemMouseCursors.basic,
+            onTap: interactive ? onTap : null,
+            child: SizedBox(
+              width: width,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: _segmentPaddingV,
+                  horizontal: hasLabel ? _segmentPaddingH : 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (option.icon != null) ...[
+                      IconTheme(
+                        data: IconThemeData(
+                          color: foreground,
+                          size: _segmentIconSize,
+                        ),
+                        child: DefaultTextStyle(
+                          style: TextStyle(color: foreground),
+                          child: option.icon!,
+                        ),
                       ),
-                      child: DefaultTextStyle(
-                        style: TextStyle(color: foreground),
-                        child: option.icon!,
+                      if (hasLabel) const SizedBox(width: _segmentGap),
+                    ],
+                    if (hasLabel)
+                      Flexible(
+                        child: Text(
+                          option.label!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style:
+                              theme.textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: foreground,
+                              ) ??
+                              TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: foreground,
+                              ),
+                        ),
                       ),
-                    ),
-                    if (hasLabel) const SizedBox(width: _segmentGap),
                   ],
-                  if (hasLabel)
-                    Flexible(
-                      child: Text(
-                        option.label!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style:
-                            theme.textTheme.labelLarge?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: foreground,
-                            ) ??
-                            TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: foreground,
-                            ),
-                      ),
-                    ),
-                ],
+                ),
               ),
             ),
           ),
