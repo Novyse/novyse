@@ -728,7 +728,7 @@
   "windowRestore": "Restore",
   "windowClose": "Close",
   "trayOpen": "Open",
-  "trayClose": "Close",
+  "trayQuit": "Quit",
   "settingsCategoryAccountSubtitle": "Profile and identity",
   "settingsCategoryAccountTitle": "Account",
   "settingsCategoryChatSubtitle": "Media, sounds and input",

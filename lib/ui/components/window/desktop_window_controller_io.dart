@@ -1,10 +1,10 @@
 import 'dart:async' show Future;
 import 'dart:io' show Platform, exit;
-import 'dart:ui' show AppExitResponse;
+import 'dart:ui' show AppExitResponse, AppLifecycleState;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show AppLifecycleListener;
-import 'package:nativeapi/nativeapi.dart';
+import 'package:nativeapi_flutter/nativeapi_flutter.dart';
 import 'package:novyse/ui/components/window/desktop_tray_controller.dart';
 import 'package:novyse/ui/components/window/window_style.dart';
 
@@ -46,9 +46,22 @@ abstract final class DesktopWindowController {
     }
   }
 
+  static bool _isAppFocused = false;
+  static DateTime? _lastFocusLoss;
+
   static void _setupLifecycleListener() {
     _lifecycleListener?.dispose();
     _lifecycleListener = AppLifecycleListener(
+      onStateChange: (state) {
+        if (state == AppLifecycleState.resumed) {
+          _isAppFocused = true;
+        } else if (state == AppLifecycleState.inactive ||
+            state == AppLifecycleState.hidden ||
+            state == AppLifecycleState.paused) {
+          _isAppFocused = false;
+          _lastFocusLoss = DateTime.now();
+        }
+      },
       onExitRequested: () async {
         if (_forceQuit) return AppExitResponse.exit;
         if (!isCustomChromeEnabled) return AppExitResponse.exit;
@@ -67,13 +80,17 @@ abstract final class DesktopWindowController {
       _setupLifecycleListener();
       final window = WindowManager.instance.getCurrent();
       if (window == null) return;
-      window.titleBarStyle = TitleBarStyle.hidden;
-      window.minimumSize = WindowDefaults.minimumSize;
-      window.contentSize = WindowDefaults.initialSize;
+      if (!Platform.isLinux) {
+        window.titleBarStyle = TitleBarStyle.hidden;
+      }
+      window.minimumSize = WindowDefaults.minimumSize.toNative();
+      window.contentSize = WindowDefaults.initialSize.toNative();
       window.center();
       if (startHidden) {
+        _isAppFocused = false;
         window.hide();
       } else {
+        _isAppFocused = true;
         window.show();
         window.focus();
       }
@@ -112,6 +129,7 @@ abstract final class DesktopWindowController {
       final shouldHide =
           hideToTray ?? (closeToTray && DesktopTrayController.isInitialized);
       if (shouldHide && DesktopTrayController.isInitialized) {
+        _isAppFocused = false;
         current?.hide();
         return;
       }
@@ -129,9 +147,36 @@ abstract final class DesktopWindowController {
     _guard('showWindow', () {
       final window = current;
       if (window == null) return;
-      if (!window.isVisible) window.show();
-      if (window.isMinimized) window.restore();
+      if (window.isMinimized) {
+        window.restore();
+      }
+      window.show();
       window.focus();
+      _isAppFocused = true;
+    });
+  }
+
+  static void toggleWindow() {
+    _guard('toggleWindow', () {
+      final window = current;
+      if (window == null) return;
+
+      final isVis = window.isVisible;
+      final isMin = window.isMinimized;
+      final isFoc = window.isFocused;
+
+      final wasRecentlyFocused = _isAppFocused ||
+          (_lastFocusLoss != null &&
+              DateTime.now().difference(_lastFocusLoss!).inMilliseconds < 600);
+
+      final isForeground = isVis && !isMin && (isFoc || wasRecentlyFocused);
+
+      if (isForeground) {
+        _isAppFocused = false;
+        window.hide();
+      } else {
+        showWindow();
+      }
     });
   }
 

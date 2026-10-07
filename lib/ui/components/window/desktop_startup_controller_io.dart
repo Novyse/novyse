@@ -1,7 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
-import 'package:nativeapi/nativeapi.dart';
+import 'package:nativeapi_flutter/nativeapi_flutter.dart';
 import 'package:novyse/core/config/global.dart';
 import 'package:novyse/ui/components/window/desktop_window_controller.dart';
 

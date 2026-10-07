@@ -15,6 +15,8 @@ abstract final class DesktopWindowController {
 
   static void showWindow() {}
 
+  static void toggleWindow() {}
+
   static void quitApp() {}
 
   static void resetForceQuitForTest() {}

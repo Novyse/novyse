@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nativeapi/nativeapi.dart' hide Image;
+import 'package:nativeapi_flutter/nativeapi_flutter.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/ui/components/huge_icon.dart';

@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:nativeapi/nativeapi.dart';
+import 'package:nativeapi_flutter/nativeapi_flutter.dart';
 import 'package:novyse/core/config/global.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/window/desktop_window_controller.dart';
 import 'package:novyse/ui/components/window/window_style.dart';
 
@@ -10,7 +9,7 @@ abstract final class DesktopTrayController {
   static TrayIcon? _trayIcon;
   static Menu? _menu;
   static MenuItem? _openItem;
-  static MenuItem? _closeItem;
+  static MenuItem? _quitItem;
   static int? _listenerId;
 
   static bool get isInitialized => _trayIcon != null;
@@ -25,7 +24,8 @@ abstract final class DesktopTrayController {
     }
     try {
       final l10n = lookupAppL10n();
-      final trayIcon = TrayIcon.create();
+      final trayIcon =
+          TrayIcon.createWithIdentifier('novyse');
       if (trayIcon == null) return;
       trayIcon.setTooltip(appName);
 
@@ -41,13 +41,13 @@ abstract final class DesktopTrayController {
         l10n.trayOpen,
         MenuItemType.normal,
       );
-      final closeItem = MenuItem.createWithLabelAndType(
-        l10n.trayClose,
+      final quitItem = MenuItem.createWithLabelAndType(
+        l10n.trayQuit,
         MenuItemType.normal,
       );
-      if (openItem == null || closeItem == null) {
+      if (openItem == null || quitItem == null) {
         openItem?.dispose();
-        closeItem?.dispose();
+        quitItem?.dispose();
         menu.dispose();
         trayIcon.dispose();
         return;
@@ -57,24 +57,19 @@ abstract final class DesktopTrayController {
           DesktopWindowController.showWindow();
         }
       });
-      closeItem.addListener((event) {
+      quitItem.addListener((event) {
         if (event is MenuItemClickedEvent) {
           DesktopWindowController.quitApp();
         }
       });
       menu.addItem(openItem);
-      menu.addItem(closeItem);
+      menu.addItem(quitItem);
       trayIcon.setContextMenu(menu);
-      // Temporary fix @SamueleOrazioDurante for Linux: right click is not working, so we use left click to open the menu
-      trayIcon.setContextMenuTrigger(
-        currentOS == AppOS.linux
-            ? ContextMenuTrigger.clicked
-            : ContextMenuTrigger.rightClicked,
-      );
+      trayIcon.setContextMenuTrigger(ContextMenuTrigger.rightClicked);
       _listenerId = trayIcon.addListener((event) {
         if (event is TrayIconClickedEvent ||
             event is TrayIconDoubleClickedEvent) {
-          DesktopWindowController.showWindow();
+          DesktopWindowController.toggleWindow();
         }
       });
       trayIcon.setVisible(true);
@@ -84,7 +79,7 @@ abstract final class DesktopTrayController {
       _trayIcon = trayIcon;
       _menu = menu;
       _openItem = openItem;
-      _closeItem = closeItem;
+      _quitItem = quitItem;
     } catch (e) {
       debugPrint('[Tray] init failed: $e');
       await dispose();
@@ -95,7 +90,7 @@ abstract final class DesktopTrayController {
     _guard('refreshLabels', () {
       final l10n = lookupAppL10n();
       _openItem?.label = l10n.trayOpen;
-      _closeItem?.label = l10n.trayClose;
+      _quitItem?.label = l10n.trayQuit;
       _trayIcon?.setTooltip(appName);
     });
   }
@@ -115,13 +110,14 @@ abstract final class DesktopTrayController {
       }
     });
     _guard('disposeOpenItem', () => _openItem?.dispose());
-    _guard('disposeCloseItem', () => _closeItem?.dispose());
+    _guard('disposeQuitItem', () => _quitItem?.dispose());
     _guard('disposeMenu', () => _menu?.dispose());
     _guard('disposeTray', () => _trayIcon?.dispose());
     _listenerId = null;
     _openItem = null;
-    _closeItem = null;
+    _quitItem = null;
     _menu = null;
     _trayIcon = null;
   }
 }
+
