@@ -3,12 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/comms/comms_models.dart';
+import 'package:novyse/core/comms/comms_state.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/services/profile_picture_service.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/comms/comms_user_card.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+
+class _FakeCommsNotifier extends CommsNotifier {
+  final CommsState _initialState;
+  _FakeCommsNotifier(this._initialState);
+
+  @override
+  CommsState build() => _initialState;
+}
 
 /// `CommsUserCard` resolves the participant name through the `userProvider`
 /// family, so the tests override individual family entries with ready-made
@@ -52,10 +62,15 @@ void main() {
     VoidCallback? onStopShare,
     VoidCallback? onPin,
     VoidCallback? onFullScreen,
+    List<Override> overrides = const [],
   }) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [...avatarOverrides, ...userOverrides(users)],
+        overrides: [
+          ...avatarOverrides,
+          ...userOverrides(users),
+          ...overrides,
+        ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -431,12 +446,56 @@ void main() {
       expect(find.byType(Slider), findsOneWidget);
     });
 
-    testWidgets('double-tap opens the anchored menu', (tester) async {
+    testWidgets('no badge for local participant when not in comms', (
+      tester,
+    ) async {
+      await pump(tester, item: muteTile(isLocal: true));
+
+      expect(iconByType(HugeIcons.strokeRoundedMicOff02), findsNothing);
+    });
+
+    testWidgets(
+      'shows mute badge for local participant when in comms with audio disabled',
+      (tester) async {
+        await pump(
+          tester,
+          item: muteTile(isLocal: true),
+          overrides: [
+            commsProvider.overrideWith(
+              () => _FakeCommsNotifier(
+                const CommsState(connected: true, isAudioEnabled: false),
+              ),
+            ),
+          ],
+        );
+
+        expect(iconByType(HugeIcons.strokeRoundedMicOff02), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'no badge for local participant when in comms with audio enabled',
+      (tester) async {
+        await pump(
+          tester,
+          item: muteTile(isLocal: true),
+          overrides: [
+            commsProvider.overrideWith(
+              () => _FakeCommsNotifier(
+                const CommsState(connected: true, isAudioEnabled: true),
+              ),
+            ),
+          ],
+        );
+
+        expect(iconByType(HugeIcons.strokeRoundedMicOff02), findsNothing);
+      },
+    );
+
+    testWidgets('single tap opens the anchored menu', (tester) async {
       final l10n = await pump(tester, item: muteTile());
 
       final card = find.byType(CommsUserCard);
-      await tester.tap(card);
-      await tester.pump(const Duration(milliseconds: 50));
       await tester.tap(card);
       await tester.pump();
 

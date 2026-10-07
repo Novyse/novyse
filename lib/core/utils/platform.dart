@@ -1,6 +1,6 @@
 import 'dart:io' as io;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 
 /// The operating system the app is running on.
 enum AppOS { android, ios, macos, linux, windows, fuchsia, web }
@@ -11,8 +11,12 @@ enum AppPlatform { mobile, desktop, web }
 /// Detects the current [AppOS].
 final AppOS currentOS = _detectOS();
 
+/// Override platform for testing purposes.
+@visibleForTesting
+AppPlatform? debugOverridePlatform;
+
 /// Detects the current [AppPlatform] category.
-final AppPlatform currentPlatform = _detectPlatform();
+AppPlatform get currentPlatform => debugOverridePlatform ?? _detectPlatform();
 
 AppOS _detectOS() {
   if (kIsWeb) return AppOS.web;
