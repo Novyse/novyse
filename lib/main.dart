@@ -22,6 +22,8 @@ import 'package:novyse/ui/components/window/desktop_window_frame.dart';
 import 'package:path_provider_linux/path_provider_linux.dart';
 import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_linux/shared_preferences_linux.dart';
+import 'package:shared_preferences_windows/shared_preferences_windows.dart';
 
 import 'core/auth/onboarding_manager.dart';
 import 'core/router/router.dart';
@@ -52,8 +54,10 @@ void main() async {
   if (!kIsWeb) {
     if (Platform.isLinux) {
       PathProviderLinux.registerWith();
+      SharedPreferencesLinux.registerWith();
     } else if (Platform.isWindows) {
       PathProviderWindows.registerWith();
+      SharedPreferencesWindows.registerWith();
     }
   }
   await initializeDateFormatting();
