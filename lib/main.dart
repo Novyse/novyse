@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -18,6 +19,8 @@ import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_recents_store.dart'
 import 'package:novyse/ui/components/window/desktop_tray_controller.dart';
 import 'package:novyse/ui/components/window/desktop_window_controller.dart';
 import 'package:novyse/ui/components/window/desktop_window_frame.dart';
+import 'package:path_provider_linux/path_provider_linux.dart';
+import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/auth/onboarding_manager.dart';
@@ -46,6 +49,13 @@ Future<void> _initFirebase() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (!kIsWeb) {
+    if (Platform.isLinux) {
+      PathProviderLinux.registerWith();
+    } else if (Platform.isWindows) {
+      PathProviderWindows.registerWith();
+    }
+  }
   await initializeDateFormatting();
   await _initDesktopWindow();
   await _initFirebase();
