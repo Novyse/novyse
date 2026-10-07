@@ -79,7 +79,7 @@ dependencies:
   receive_sharing_intent: ^1.9.0
   livekit_client: ^2.11.0
   flutter_webrtc: ^1.6.0
-  nativeapi: ^0.3.0
+  nativeapi: ^0.5.0
   unicode_emojis: ^0.5.1
   firebase_core: ^4.14.0
   firebase_messaging: ^16.6.0
@@ -136,3 +136,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+dependency_overrides:
+  device_info_plus: ^13.0.0
+  code_assets: ^2.1.0
