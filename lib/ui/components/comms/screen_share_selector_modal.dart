@@ -3,27 +3,53 @@ import 'dart:io' as io;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:livekit_client/livekit_client.dart';
+import 'package:novyse/core/comms/comms_share_config.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
+import 'package:novyse/ui/components/comms/screen_share_quality_fields.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
 enum ScreenShareType { screen, window }
 
-class ScreenShareSelectionResult {
+/// Result of the mandatory screen-share setup menu.
+class ScreenShareSetupResult {
+  /// Chosen source (custom-picker flow only, null on native-picker flow).
   final DesktopCapturerSource? source;
   final ScreenShareType type;
   final bool includeAudio;
+  final ScreenShareConfig config;
 
-  const ScreenShareSelectionResult({
+  /// Tracks captured in-menu for preview (native-picker flow only).
+  /// Ownership passes to the caller: publish them, or stop them on cancel.
+  final LocalVideoTrack? previewVideoTrack;
+  final List<LocalAudioTrack> previewAudioTracks;
+
+  const ScreenShareSetupResult({
     this.source,
     required this.type,
     required this.includeAudio,
+    required this.config,
+    this.previewVideoTrack,
+    this.previewAudioTracks = const [],
   });
 }
 
-/// Custom modal dialog allowing desktop users to pick a specific screen or window to share.
+/// Mandatory setup menu shown before every screen share, on all platforms.
+///
+/// - Desktop with enumerator (X11 Linux, macOS, Windows): custom section
+///   listing every screen/window, then per-share video settings (prefilled
+///   from the settings defaults) and the audio toggle.
+/// - Native-picker platforms (Wayland Linux, web, mobile): the OS picker is
+///   requested automatically on open, then a preview of the chosen source is
+///   shown with the same video settings + audio toggle below.
+///
+/// Nothing here writes to settings: the choices become the per-share
+/// [ScreenShareConfig] used for that share only.
 class ScreenShareSelectorModal extends StatefulWidget {
-  const ScreenShareSelectorModal({super.key});
+  final ScreenShareConfig initial;
+
+  const ScreenShareSelectorModal({super.key, required this.initial});
 
   static bool get hasNativePicker {
     if (kIsWeb) return false;
@@ -36,14 +62,23 @@ class ScreenShareSelectorModal extends StatefulWidget {
     return false;
   }
 
-  static Future<ScreenShareSelectionResult?> show(BuildContext context) {
-    return ResponsiveOverlay.show<ScreenShareSelectionResult>(
+  static bool get useCustomPicker {
+    if (kIsWeb) return false;
+    if (hasNativePicker) return false;
+    return io.Platform.isLinux || io.Platform.isMacOS || io.Platform.isWindows;
+  }
+
+  static Future<ScreenShareSetupResult?> show(
+    BuildContext context, {
+    required ScreenShareConfig initial,
+  }) {
+    return ResponsiveOverlay.show<ScreenShareSetupResult>(
       context: context,
       // Picker with thumbnails needs more room than the default 480px.
       mode: ResponsiveOverlayMode.modal,
       maxWidth: 620,
       maxHeightFactor: 0.9,
-      child: const ScreenShareSelectorModal(),
+      child: ScreenShareSelectorModal(initial: initial),
     );
   }
 
@@ -53,37 +88,123 @@ class ScreenShareSelectorModal extends StatefulWidget {
 }
 
 class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
+  // Per-share config draft (prefilled from settings defaults).
+  late String _mode = widget.initial.mode;
+  late String _quality = widget.initial.customQuality;
+  late String _fps = widget.initial.customFps;
+
+  // Custom-picker flow.
   ScreenShareType _selectedType = ScreenShareType.screen;
   List<DesktopCapturerSource> _sources = [];
   DesktopCapturerSource? _selectedSource;
   bool _includeAudio = false;
   bool _loading = true;
 
+  // Native-picker flow (preview captured in-menu).
+  LocalVideoTrack? _previewVideo;
+  List<LocalAudioTrack> _previewAudio = [];
+  bool _captureLoading = false;
+  bool _captureFailed = false;
+  bool _handedOff = false;
+
+  bool get _custom => ScreenShareSelectorModal.useCustomPicker;
+
   @override
   void initState() {
     super.initState();
-    _loadSources();
+    if (_custom) {
+      _loadSources();
+    } else {
+      _requestCapture();
+    }
+  }
+
+  @override
+  void dispose() {
+    if (!_handedOff) _stopPreviewTracks();
+    super.dispose();
+  }
+
+  ScreenShareConfig get _draft =>
+      ScreenShareConfig(mode: _mode, customQuality: _quality, customFps: _fps);
+
+  void _syncPreviewOptions() {
+    final video = _previewVideo;
+    if (video != null) {
+      final opts = _draft.captureOptions(captureScreenAudio: true);
+      video.currentOptions = opts;
+      try {
+        video.mediaStreamTrack.applyConstraints({
+          'width': opts.params.dimensions.width,
+          'height': opts.params.dimensions.height,
+          'frameRate': opts.maxFrameRate,
+        });
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _stopPreviewTracks() async {
+    final video = _previewVideo;
+    final audios = List<LocalAudioTrack>.from(_previewAudio);
+    _previewVideo = null;
+    _previewAudio = [];
+    if (video != null) {
+      try {
+        await video.stop();
+      } catch (_) {}
+    }
+    for (final audio in audios) {
+      try {
+        await audio.stop();
+      } catch (_) {}
+    }
+  }
+
+  /// Runs the OS picker and keeps the captured tracks for preview/publish.
+  Future<void> _requestCapture() async {
+    await _stopPreviewTracks();
+    if (!mounted) return;
+    setState(() {
+      _captureLoading = true;
+      _captureFailed = false;
+    });
+    try {
+      final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(
+        _draft.captureOptions(captureScreenAudio: true),
+      );
+      if (!mounted) {
+        for (final t in tracks) {
+          try {
+            await t.stop();
+          } catch (_) {}
+        }
+        return;
+      }
+      final videos = tracks.whereType<LocalVideoTrack>().toList();
+      final audios = tracks.whereType<LocalAudioTrack>().toList();
+      setState(() {
+        _previewVideo = videos.isNotEmpty ? videos.first : null;
+        _previewAudio = audios;
+        _captureLoading = false;
+        _captureFailed = videos.isEmpty;
+      });
+      for (final extra in videos.skip(1)) {
+        try {
+          await extra.stop();
+        } catch (_) {}
+      }
+    } catch (e) {
+      debugPrint('[ScreenShareSetup] OS capture failed or cancelled: $e');
+      if (mounted) {
+        setState(() {
+          _captureLoading = false;
+          _captureFailed = true;
+        });
+      }
+    }
   }
 
   Future<void> _loadSources() async {
-    if (ScreenShareSelectorModal.hasNativePicker) {
-      setState(() {
-        _loading = false;
-        _sources = [];
-      });
-      return;
-    }
-
-    if (kIsWeb ||
-        (!io.Platform.isLinux &&
-            !io.Platform.isMacOS &&
-            !io.Platform.isWindows)) {
-      setState(() {
-        _loading = false;
-      });
-      return;
-    }
-
     setState(() {
       _loading = true;
       _selectedSource = null;
@@ -121,9 +242,16 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
         _includeAudio = false;
       }
     });
-    if (!ScreenShareSelectorModal.hasNativePicker) {
-      _loadSources();
-    }
+    _loadSources();
+  }
+
+  void _popResult(ScreenShareSetupResult result) {
+    _handedOff = true;
+    Navigator.of(context, rootNavigator: true).pop(result);
+  }
+
+  void _cancel() {
+    Navigator.of(context, rootNavigator: true).pop();
   }
 
   @override
@@ -142,7 +270,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              l10n.screenShareModalTitle,
+              l10n.screenShareSetupTitle,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -151,79 +279,133 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
             ),
             IconButton(
               icon: const Icon(Icons.close_rounded),
-              onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+              onPressed: _cancel,
             ),
           ],
         ),
         const SizedBox(height: 16),
 
-        // Segmented switch for Screen / Window
-        if (!ScreenShareSelectorModal.hasNativePicker)
-          Center(
-            child: SegmentedButton<ScreenShareType>(
-              segments: [
-                ButtonSegment(
-                  value: ScreenShareType.screen,
-                  label: Text(l10n.screenShareEntireScreen),
-                  icon: const Icon(Icons.monitor_rounded, size: 18),
+        Flexible(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (_custom) _buildCustomPicker(context) else _buildNativeFlow(context),
+                const SizedBox(height: 16),
+
+                // Per-share video settings (defaults from settings).
+                ScreenShareQualityFields(
+                  mode: _mode,
+                  customQuality: _quality,
+                  customFps: _fps,
+                  onModeChanged: (v) {
+                    setState(() => _mode = v);
+                    _syncPreviewOptions();
+                  },
+                  onQualityChanged: (v) {
+                    setState(() => _quality = v);
+                    _syncPreviewOptions();
+                  },
+                  onFpsChanged: (v) {
+                    setState(() => _fps = v);
+                    _syncPreviewOptions();
+                  },
                 ),
-                ButtonSegment(
-                  value: ScreenShareType.window,
-                  label: Text(l10n.screenShareWindow),
-                  icon: const Icon(Icons.window_rounded, size: 18),
-                ),
+                const SizedBox(height: 12),
+
+                // Audio toggle row (only for full screens).
+                if (_custom
+                    ? _selectedType == ScreenShareType.screen
+                    : true)
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _includeAudio,
+                        onChanged: (val) =>
+                            setState(() => _includeAudio = val ?? false),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        l10n.screenShareIncludeSystemAudio,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
               ],
-              selected: {_selectedType},
-              onSelectionChanged: (set) => _onTypeChanged(set.first),
-              style: SegmentedButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-              ),
             ),
           ),
+        ),
         const SizedBox(height: 16),
 
-        // Source Grid / Native Picker Info / Loading
+        // Bottom Buttons
+        Row(
+          children: [
+            Expanded(
+              child: AppButton(label: l10n.cancel, onPressed: _cancel),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: AppButton(
+                label: l10n.screenShareStart,
+                onPressed: _canStart
+                    ? () => _popResult(
+                        ScreenShareSetupResult(
+                          source: _selectedSource,
+                          type: _selectedType,
+                          includeAudio: _includeAudio,
+                          config: _draft,
+                          previewVideoTrack: _previewVideo,
+                          previewAudioTracks: _previewAudio,
+                        ),
+                      )
+                    : null,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  bool get _canStart =>
+      _custom ? _selectedSource != null : _previewVideo != null;
+
+  Widget _buildCustomPicker(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Center(
+          child: SegmentedButton<ScreenShareType>(
+            segments: [
+              ButtonSegment(
+                value: ScreenShareType.screen,
+                label: Text(l10n.screenShareEntireScreen),
+                icon: const Icon(Icons.monitor_rounded, size: 18),
+              ),
+              ButtonSegment(
+                value: ScreenShareType.window,
+                label: Text(l10n.screenShareWindow),
+                icon: const Icon(Icons.window_rounded, size: 18),
+              ),
+            ],
+            selected: {_selectedType},
+            onSelectionChanged: (set) => _onTypeChanged(set.first),
+            style: SegmentedButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
         SizedBox(
           height: 340,
-          child: ScreenShareSelectorModal.hasNativePicker
-              ? Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 32,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest.withValues(
-                        alpha: 0.35,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: colorScheme.outline.withValues(alpha: 0.15),
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.screen_share_rounded,
-                          size: 56,
-                          color: colorScheme.primary,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          l10n.screenShareNativePickerNotice,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: colorScheme.onSurfaceVariant,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : _loading
+          child: _loading
               ? const Center(child: CircularProgressIndicator())
               : _sources.isEmpty
               ? Center(
@@ -255,7 +437,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
                           border: Border.all(
                             color: isSelected
                                 ? colorScheme.primary
-                                : colorScheme.outline.withValues(alpha: 0.3),
+                                : colorScheme.outline.withValues(alpha: 0.12),
                             width: isSelected ? 2.5 : 1,
                           ),
                           color: colorScheme.surfaceContainerHighest.withValues(
@@ -316,55 +498,81 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
                 ),
         ),
         const SizedBox(height: 12),
+      ],
+    );
+  }
 
-        // Audio toggle row (only for full screens)
-        if (_selectedType == ScreenShareType.screen ||
-            ScreenShareSelectorModal.hasNativePicker)
-          Row(
-            children: [
-              Checkbox(
-                value: _includeAudio,
-                onChanged: (val) =>
-                    setState(() => _includeAudio = val ?? false),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                l10n.screenShareIncludeSystemAudio,
-                style: TextStyle(fontSize: 14, color: colorScheme.onSurface),
-              ),
-            ],
+  Widget _buildNativeFlow(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.screenSharePreview,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurfaceVariant,
           ),
-        const SizedBox(height: 16),
-        // Bottom Buttons
-        Row(
-          children: [
-            Expanded(
-              child: AppButton(
-                label: l10n.cancel,
-                onPressed: () =>
-                    Navigator.of(context, rootNavigator: true).pop(),
-              ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 260,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.12),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: AppButton(
-                label: l10n.screenShareStart,
-                onPressed:
-                    (ScreenShareSelectorModal.hasNativePicker ||
-                        _selectedSource != null)
-                    ? () {
-                        Navigator.of(context, rootNavigator: true).pop(
-                          ScreenShareSelectionResult(
-                            source: _selectedSource,
-                            type: _selectedType,
-                            includeAudio: _includeAudio,
+            color: Colors.black,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: _captureLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _captureFailed || _previewVideo == null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.monitor_rounded,
+                          size: 36,
+                          color: Colors.white24,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          l10n.screenShareCaptureFailed,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.white70,
                           ),
-                        );
-                      }
-                    : null,
-              ),
-            ),
-          ],
+                        ),
+                        const SizedBox(height: 12),
+                        AppButton(
+                          label: l10n.screenShareRetry,
+                          onPressed: _requestCapture,
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : VideoTrackRenderer(
+                  _previewVideo!,
+                  fit: VideoViewFit.cover,
+                ),
+        ),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: _captureLoading ? null : _requestCapture,
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: Text(l10n.screenShareChangeSource),
+          ),
         ),
       ],
     );

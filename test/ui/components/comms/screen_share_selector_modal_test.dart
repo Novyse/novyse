@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:novyse/core/comms/comms_share_config.dart';
 import 'package:novyse/core/l10n/app_localizations_en.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
+import 'package:novyse/ui/components/comms/screen_share_quality_fields.dart';
 import 'package:novyse/ui/components/comms/screen_share_selector_modal.dart';
 
 /// The desktop capturer lives behind the `FlutterWebRTC.Method` channel, so
@@ -56,7 +58,9 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: SingleChildScrollView(child: ScreenShareSelectorModal()),
+          body: SingleChildScrollView(
+            child: ScreenShareSelectorModal(initial: ScreenShareConfig()),
+          ),
         ),
       ),
     );
@@ -75,7 +79,7 @@ void main() {
       mockCapturer(const []);
       await pump(tester);
 
-      expect(find.text(en.screenShareModalTitle), findsOneWidget);
+      expect(find.text(en.screenShareSetupTitle), findsOneWidget);
       expect(find.byIcon(Icons.close_rounded), findsOneWidget);
     });
 
@@ -116,42 +120,35 @@ void main() {
   });
 
   group('native picker session', () {
-    // The Wayland path renders a notice instead of a source grid and never
-    // talks to the desktop capturer.
-    testWidgets('shows the notice instead of the type switch', (tester) async {
+    // The Wayland path requests the OS picker on open and shows a preview.
+    // In tests there is no display media, so capture fails and the modal
+    // offers a retry while keeping start disabled.
+    testWidgets('shows the preview area with retry on capture failure', (
+      tester,
+    ) async {
+      if (!nativePicker) return;
       mockCapturer(const []);
       await pump(tester);
 
-      if (nativePicker) {
-        expect(find.text(en.screenShareNativePickerNotice), findsOneWidget);
-        expect(find.byIcon(Icons.screen_share_rounded), findsOneWidget);
-        expect(find.text(en.screenShareEntireScreen), findsNothing);
-        expect(find.text(en.screenShareWindow), findsNothing);
-      } else {
-        expect(find.text(en.screenShareEntireScreen), findsOneWidget);
-        expect(find.text(en.screenShareWindow), findsOneWidget);
-      }
-    });
-
-    testWidgets('never queries the desktop capturer', (tester) async {
-      mockCapturer([source('s1', 'Screen 1')]);
-      await pump(tester);
-
-      if (nativePicker) {
-        expect(requestedTypes, isEmpty);
-      } else {
-        expect(requestedTypes, isNotEmpty);
-      }
-    });
-
-    testWidgets('start is always enabled', (tester) async {
-      mockCapturer(const []);
-      await pump(tester);
-
+      expect(find.text(en.screenSharePreview), findsOneWidget);
+      expect(find.text(en.screenShareCaptureFailed), findsOneWidget);
+      expect(
+        find.widgetWithText(AppButton, en.screenShareRetry),
+        findsOneWidget,
+      );
       final start = tester.widget<AppButton>(
         find.widgetWithText(AppButton, en.screenShareStart),
       );
-      expect(start.onPressed, nativePicker ? isNotNull : isNull);
+      expect(start.onPressed, isNull);
+    });
+
+    testWidgets('offers the audio toggle below the preview', (tester) async {
+      if (!nativePicker) return;
+      mockCapturer(const []);
+      await pump(tester);
+
+      expect(find.byType(Checkbox), findsOneWidget);
+      expect(find.text(en.screenShareIncludeSystemAudio), findsOneWidget);
     });
   });
 
@@ -311,16 +308,74 @@ void main() {
     });
   });
 
-  group('ScreenShareSelectionResult', () {
-    test('carries the source, type and audio flag', () {
-      const result = ScreenShareSelectionResult(
+  group('ScreenShareSetupResult', () {
+    test('carries the source, type, audio flag and config', () {
+      const result = ScreenShareSetupResult(
         type: ScreenShareType.window,
         includeAudio: true,
+        config: ScreenShareConfig(),
       );
 
       expect(result.source, isNull);
       expect(result.type, ScreenShareType.window);
       expect(result.includeAudio, isTrue);
+      expect(result.previewVideoTrack, isNull);
+      expect(result.previewAudioTracks, isEmpty);
+    });
+  });
+
+  group('ScreenShareQualityFields', () {
+    Future<void> pumpFields(
+      WidgetTester tester, {
+      required ScreenShareConfig config,
+    }) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ScreenShareQualityFields(
+              mode: config.mode,
+              customQuality: config.customQuality,
+              customFps: config.customFps,
+              onModeChanged: (_) {},
+              onQualityChanged: (_) {},
+              onFpsChanged: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('fluid mode shows only the mode selector', (tester) async {
+      await pumpFields(tester, config: const ScreenShareConfig());
+
+      expect(find.text(en.settingsItemShareQualityTitle), findsOneWidget);
+      expect(
+        find.text(en.settingsOptionShareQualityFluid60Label),
+        findsOneWidget,
+      );
+      expect(find.text(en.settingsItemShareCustomQualityTitle), findsNothing);
+      expect(find.text(en.settingsItemShareCustomFpsTitle), findsNothing);
+    });
+
+    testWidgets('custom mode reveals quality and fps selectors', (
+      tester,
+    ) async {
+      await pumpFields(
+        tester,
+        config: const ScreenShareConfig(
+          mode: 'custom',
+          customQuality: '480p',
+          customFps: '15',
+        ),
+      );
+
+      expect(find.text(en.settingsItemShareCustomQualityTitle), findsOneWidget);
+      expect(find.text(en.settingsItemShareCustomFpsTitle), findsOneWidget);
+      expect(find.text(en.settingsOptionVideoQuality480pLabel), findsOneWidget);
+      expect(find.text('15 FPS'), findsOneWidget);
     });
   });
 }

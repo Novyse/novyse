@@ -1,24 +1,8 @@
 part of '../comms_controller.dart';
 
 /// Live device switching + audio-output routing.
-mixin CommsDevicesLiveMixin on Notifier<CommsState> {
-  String _savedDeviceId(String key) {
-    try {
-      final raw = ref.read(settingsControllerProvider)[key];
-      if (raw is String && raw.isNotEmpty) return raw;
-    } catch (_) {}
-    // Fall back to live devices state (same persisted source).
-    try {
-      final devices = ref.read(commsDevicesProvider);
-      return switch (key) {
-        CommsDevicesDefaults.kAudioInputKey => devices.selectedAudioInputId,
-        CommsDevicesDefaults.kAudioOutputKey => devices.selectedAudioOutputId,
-        CommsDevicesDefaults.kVideoInputKey => devices.selectedVideoInputId,
-        _ => CommsDevicesDefaults.kDefaultId,
-      };
-    } catch (_) {}
-    return CommsDevicesDefaults.kDefaultId;
-  }
+mixin CommsDevicesLiveMixin
+    on Notifier<CommsState>, CommsMediaSettingsMixin {
   /// Persist + immediately apply a new microphone (live switch if publishing).
   Future<void> setAudioInputDevice(String deviceId) async {
     await ref.read(commsDevicesProvider.notifier).setAudioInput(deviceId);
@@ -39,12 +23,154 @@ mixin CommsDevicesLiveMixin on Notifier<CommsState> {
           await local.setMicrophoneEnabled(false);
           await local.setMicrophoneEnabled(
             true,
-            audioCaptureOptions: const AudioCaptureOptions(),
+            audioCaptureOptions: _audioCaptureOptions(),
           );
         }
       }
     } catch (e) {
       debugPrint('[CommsController] Failed to switch microphone: $e');
+    }
+  }
+
+  /// Live-applies the persisted audio DSP switches to the active mic track
+  Future<void> applyAudioSettingsLive() => _applyAudioProcessingLive();
+
+  /// Pushes [top] bitrate/framerate caps to the live RTCRtpSender(s).
+  Future<bool> _pushVideoSenderEncoding(
+    LocalVideoTrack track,
+    VideoEncoding top, {
+    required bool simulcast,
+  }) async {
+    var updated = false;
+    try {
+      final senders = <rtc.RTCRtpSender?>{
+        track.sender,
+        for (final info in track.simulcastCodecs.values) info.sender,
+      };
+      final quality = _savedMediaString(
+        CommsMediaConstraints.videoQualityKey,
+        CommsMediaConstraints.defaultVideoQuality,
+      );
+      final layers = CommsMediaConstraints.cameraSimulcastEncodingsFor(
+        top,
+        qualityId: quality,
+      );
+      for (final sender in senders) {
+        if (sender == null) continue;
+        try {
+          final params = sender.parameters;
+          var encodings = params.encodings?.toList();
+          if (encodings == null || encodings.isEmpty) {
+            encodings = simulcast
+                ? [
+                    for (final layer in layers)
+                      rtc.RTCRtpEncoding(
+                        active: true,
+                        maxBitrate: layer.maxBitrate,
+                        maxFramerate: layer.maxFramerate,
+                      ),
+                  ]
+                : [
+                    rtc.RTCRtpEncoding(
+                      active: true,
+                      maxBitrate: top.maxBitrate,
+                      maxFramerate: top.maxFramerate,
+                    ),
+                  ];
+          } else if (encodings.length == 1 || !simulcast) {
+            encodings[0].maxBitrate = top.maxBitrate;
+            encodings[0].maxFramerate = top.maxFramerate;
+          } else {
+            for (var i = 0; i < encodings.length; i++) {
+              final layer = layers[i < 2 ? i : 2];
+              encodings[i].maxBitrate = layer.maxBitrate;
+              encodings[i].maxFramerate = layer.maxFramerate;
+            }
+          }
+          params.encodings = encodings;
+          if (await sender.setParameters(params)) updated = true;
+        } catch (e) {
+          debugPrint('[CommsController] Failed to push sender encoding: $e');
+        }
+      }
+      if (updated) {
+        final fps = top.maxFramerate;
+        track.lastPublishOptions = simulcast
+            ? VideoPublishOptions(
+                simulcast: true,
+                videoCodec: 'vp8',
+                videoEncoding: top,
+                videoSimulcastLayers:
+                    CommsMediaConstraints.cameraSimulcastLayersFor(
+                      quality,
+                      fps,
+                    ),
+                degradationPreference:
+                    DegradationPreference.maintainFramerate,
+              )
+            : VideoPublishOptions(
+                simulcast: false,
+                videoCodec: 'vp8',
+                videoEncoding: top,
+                degradationPreference:
+                    DegradationPreference.maintainFramerate,
+              );
+      }
+    } catch (e) {
+      debugPrint('[CommsController] Failed to push sender encoding: $e');
+    }
+    return updated;
+  }
+
+  /// Live-applies the persisted camera quality + fps by restarting the
+  /// active camera track. No-op when not publishing video.
+  Future<void> applyVideoSettingsLive() async {
+    final local = state.room?.localParticipant;
+    if (local == null || !state.isVideoEnabled) {
+      CommsMediaConstraints.debugCommsMedia(
+        'apply video settings: skipped (not publishing camera)',
+      );
+      return;
+    }
+    final options = _cameraCaptureOptions();
+    final params = options.params;
+    CommsMediaConstraints.debugCommsMedia(
+      'apply video settings: '
+      '${params.dimensions.width}x${params.dimensions.height} '
+      'fps=${params.encoding?.maxFramerate} '
+      'bitrate=${params.encoding?.maxBitrate}',
+    );
+    try {
+      final cameraTrack = _activeCameraTrack(local);
+      if (cameraTrack == null) {
+        await local.setCameraEnabled(false);
+        await local.setCameraEnabled(true, cameraCaptureOptions: options);
+        final fresh = _activeCameraTrack(local);
+        if (fresh != null && params.encoding != null) {
+          await _pushVideoSenderEncoding(
+            fresh,
+            params.encoding!,
+            simulcast: true,
+          );
+        }
+        return;
+      }
+      await cameraTrack.restartTrack(options);
+      await cameraTrack.replaceTrackForMultiCodecSimulcast(
+        cameraTrack.mediaStreamTrack,
+      );
+      if (params.encoding != null) {
+        await _pushVideoSenderEncoding(
+          cameraTrack,
+          params.encoding!,
+          simulcast: true,
+        );
+      }
+      CommsMediaConstraints.debugCommsMedia(
+        'apply video settings: camera track restarted',
+      );
+    } catch (e) {
+      debugPrint('[CommsController] Failed to apply video settings: $e');
     }
   }
 
@@ -57,12 +183,19 @@ mixin CommsDevicesLiveMixin on Notifier<CommsState> {
     try {
       final cameraTrack = _activeCameraTrack(local);
       if (cameraTrack == null) {
-        // No camera track yet: republish path picks the saved device.
+        // No camera track yet: republish path keeps the saved quality/fps.
         await local.setCameraEnabled(false);
         await local.setCameraEnabled(
           true,
-          cameraCaptureOptions: CameraCaptureOptions(deviceId: target),
+          cameraCaptureOptions: _cameraCaptureOptions().copyWith(
+            deviceId: target,
+          ),
         );
+        final fresh = _activeCameraTrack(local);
+        final encoding = _cameraCaptureOptions().params.encoding;
+        if (fresh != null && encoding != null) {
+          await _pushVideoSenderEncoding(fresh, encoding, simulcast: true);
+        }
         return;
       }
       await _restartCameraTrack(cameraTrack, target);
@@ -92,8 +225,20 @@ mixin CommsDevicesLiveMixin on Notifier<CommsState> {
       }
       await track.switchCamera(deviceId);
     } else {
-      await track.restartTrack(const CameraCaptureOptions());
+      final options = _cameraCaptureOptions();
+      final params = options.params;
+      CommsMediaConstraints.debugCommsMedia(
+        'restart camera track: deviceId=<default> '
+        '${params.dimensions.width}x${params.dimensions.height} '
+        'fps=${params.encoding?.maxFramerate} '
+        'bitrate=${params.encoding?.maxBitrate}',
+      );
+      await track.restartTrack(options);
       await track.replaceTrackForMultiCodecSimulcast(track.mediaStreamTrack);
+      final encoding = params.encoding;
+      if (encoding != null) {
+        await _pushVideoSenderEncoding(track, encoding, simulcast: true);
+      }
     }
   }
 

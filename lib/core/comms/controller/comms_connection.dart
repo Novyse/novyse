@@ -5,6 +5,7 @@ mixin CommsConnectionMixin
     on
         Notifier<CommsState>,
         CommsDevicesLiveMixin,
+        CommsMediaSettingsMixin,
         CommsViewStateMixin,
         CommsVolumesMixin {
   EventsListener<RoomEvent>? _roomListener;
@@ -56,19 +57,16 @@ mixin CommsConnectionMixin
         roomOptions: RoomOptions(
           adaptiveStream: true,
           dynacast: true,
-          defaultAudioPublishOptions: const AudioPublishOptions(dtx: true),
-          defaultVideoPublishOptions: const VideoPublishOptions(
-            simulcast: true,
+          defaultAudioPublishOptions: CommsMediaConstraints.maxQualityAudioPublish,
+          defaultVideoPublishOptions: CommsMediaConstraints.cameraPublishFrom(
+            ref.read(settingsControllerProvider),
           ),
-          defaultAudioCaptureOptions: AudioCaptureOptions(
-            deviceId: CommsDevicesDefaults.resolveLiveKitDeviceId(
-              _savedDeviceId(CommsDevicesDefaults.kAudioInputKey),
-            ),
-          ),
-          defaultCameraCaptureOptions: CameraCaptureOptions(
-            deviceId: CommsDevicesDefaults.resolveLiveKitDeviceId(
-              _savedDeviceId(CommsDevicesDefaults.kVideoInputKey),
-            ),
+          defaultAudioCaptureOptions: _audioCaptureOptions(),
+          defaultCameraCaptureOptions: _cameraCaptureOptions(),
+          defaultScreenShareCaptureOptions:
+              CommsMediaConstraints.screenShareCaptureFrom(
+            ref.read(settingsControllerProvider),
+            captureScreenAudio: false,
           ),
           defaultAudioOutputOptions: AudioOutputOptions(
             deviceId: CommsDevicesDefaults.resolveLiveKitDeviceId(
@@ -124,11 +122,7 @@ mixin CommsConnectionMixin
         try {
           await newRoom?.localParticipant?.setMicrophoneEnabled(
             true,
-            audioCaptureOptions: AudioCaptureOptions(
-              deviceId: CommsDevicesDefaults.resolveLiveKitDeviceId(
-                _savedDeviceId(CommsDevicesDefaults.kAudioInputKey),
-              ),
-            ),
+            audioCaptureOptions: _audioCaptureOptions(),
           );
           if (!_isDisposed) {
             state = state.copyWith(isAudioEnabled: true);

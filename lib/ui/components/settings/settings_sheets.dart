@@ -87,7 +87,10 @@ Future<void> showSettingsSelectSheet({
                 item: item,
                 option: option,
                 onPick: () async {
-                  if (settingKey != null) {
+                  final onPicked = item.onOptionPicked;
+                  if (onPicked != null) {
+                    await onPicked(ref, option.value);
+                  } else if (settingKey != null) {
                     await ref
                         .read(settingsControllerProvider.notifier)
                         .set(settingKey, option.value);
@@ -124,6 +127,7 @@ class _SelectOptionRow extends ConsumerWidget {  final SettingItem item;
     return SettingsSelectRow(
       title: label.isEmpty ? option.value : label,
       selected: current == option.value,
+      disabled: option.disabled,
       onTap: () => onPick(),
     );
   }
@@ -200,6 +204,7 @@ class _LazyOptionRow extends ConsumerWidget {
     return SettingsSelectRow(
       title: label.isEmpty ? option.value : label,
       selected: current == option.value,
+      disabled: option.disabled,
       onTap: () async {
         final onPicked = item.onOptionPicked;
         if (onPicked != null) {

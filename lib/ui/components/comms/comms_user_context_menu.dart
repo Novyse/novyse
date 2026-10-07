@@ -10,6 +10,7 @@ import 'package:novyse/ui/components/context_menu/app_context_menu_divider.dart'
 import 'package:novyse/ui/components/context_menu/app_context_menu_item.dart';
 
 import 'comms_volume_control.dart';
+import 'remote_screen_share_quality_menu.dart';
 
 /// Anchored context menu for a single vocal tile
 Future<void> showCommsUserContextMenu({
@@ -33,6 +34,7 @@ Future<void> showCommsUserContextMenu({
   var estimatedHeight = 140.0;
   if (!tile.isLocal) estimatedHeight += 56.0 + 128.0;
   if (!isFullScreen) estimatedHeight += 52.0;
+  if (!tile.isLocal && tile.isScreenShare) estimatedHeight += 44.0;
 
   return showAppMenu(
     context: context,
@@ -45,6 +47,8 @@ Future<void> showCommsUserContextMenu({
       displayName: displayName,
       isPinned: isPinned,
       isFullScreen: isFullScreen,
+      anchor: anchor,
+      onClose: close,
       onPin: () {
         close();
         onPin();
@@ -69,6 +73,8 @@ class _CommsUserMenuContent extends ConsumerWidget {
   final String displayName;
   final bool isPinned;
   final bool isFullScreen;
+  final Offset anchor;
+  final VoidCallback onClose;
   final VoidCallback onPin;
   final VoidCallback onFullScreen;
   final VoidCallback? onProfileTap;
@@ -79,6 +85,8 @@ class _CommsUserMenuContent extends ConsumerWidget {
     required this.displayName,
     required this.isPinned,
     required this.isFullScreen,
+    required this.anchor,
+    required this.onClose,
     required this.onPin,
     required this.onFullScreen,
     this.onProfileTap,
@@ -102,6 +110,22 @@ class _CommsUserMenuContent extends ConsumerWidget {
           onTap: onProfileTap,
         ),
         const AppMenuDivider(),
+        if (!tile.isLocal && tile.isScreenShare && tile.trackSid != null) ...[
+          AppMenuItem(
+            icon: HugeIcons.strokeRoundedSlidersVertical,
+            label: l10n.screenShareQualityTitle,
+            onTap: () {
+              onClose();
+              showRemoteScreenShareQualityMenu(
+                context: context,
+                ref: ref,
+                trackSid: tile.trackSid!,
+                anchor: anchor,
+              );
+            },
+          ),
+          const AppMenuDivider(),
+        ],
         if (!tile.isLocal) ...[
           AppMenuItem(
             icon: isMuted

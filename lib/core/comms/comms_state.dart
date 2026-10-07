@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:novyse/core/comms/comms_share_config.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 
 /// Immutable state representing active vocal chat session.
@@ -26,6 +27,19 @@ class CommsState {
   /// Screen-share audio publication SID by video publication SID.
   /// Screen audio is published as a separate track;
   final Map<String, String> screenShareAudioSids;
+
+  /// Desktop capture source id by screen-share video publication SID.
+  /// Used to restart an active share in place when the source or the
+  /// capture resolution changes.
+  /// Empty when the OS/native picker chose the source (web, Wayland native picker).
+  final Map<String, String> screenShareSourceIds;
+
+  /// Per-share config (quality mode + custom quality/fps) by video SID.
+  final Map<String, ScreenShareConfig> screenShareConfigs;
+
+  /// Subscribed video quality per remote screen-share video track SID.
+  /// Values: 'auto', 'high', 'medium', 'low' (defaults to 'auto').
+  final Map<String, String> remoteScreenShareQualities;
 
   /// Identities/UUIDs of currently speaking participants
   final Set<String> speakingParticipants;
@@ -54,6 +68,9 @@ class CommsState {
     this.fullscreenStreamId,
     this.activeScreenShareTrackSids = const {},
     this.screenShareAudioSids = const {},
+    this.screenShareSourceIds = const {},
+    this.screenShareConfigs = const {},
+    this.remoteScreenShareQualities = const {},
     this.speakingParticipants = const {},
     this.remoteVolumes = const {},
     this.localMuted = const {},
@@ -80,6 +97,9 @@ class CommsState {
     String? Function()? fullscreenStreamId,
     Set<String>? activeScreenShareTrackSids,
     Map<String, String>? screenShareAudioSids,
+    Map<String, String>? screenShareSourceIds,
+    Map<String, ScreenShareConfig>? screenShareConfigs,
+    Map<String, String>? remoteScreenShareQualities,
     Set<String>? speakingParticipants,
     Map<String, double>? remoteVolumes,
     Map<String, bool>? localMuted,
@@ -106,6 +126,11 @@ class CommsState {
       activeScreenShareTrackSids:
           activeScreenShareTrackSids ?? this.activeScreenShareTrackSids,
       screenShareAudioSids: screenShareAudioSids ?? this.screenShareAudioSids,
+      screenShareSourceIds:
+          screenShareSourceIds ?? this.screenShareSourceIds,
+      screenShareConfigs: screenShareConfigs ?? this.screenShareConfigs,
+      remoteScreenShareQualities:
+          remoteScreenShareQualities ?? this.remoteScreenShareQualities,
       speakingParticipants: speakingParticipants ?? this.speakingParticipants,
       remoteVolumes: remoteVolumes ?? this.remoteVolumes,
       localMuted: localMuted ?? this.localMuted,

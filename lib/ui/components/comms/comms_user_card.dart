@@ -14,6 +14,7 @@ import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/comms/comms_user_context_menu.dart';
+import 'package:novyse/ui/components/comms/remote_screen_share_quality_menu.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Renders an individual participant card or screen share tile in the vocal room.
@@ -24,6 +25,7 @@ class CommsUserCard extends ConsumerStatefulWidget {
   final VoidCallback onPin;
   final VoidCallback onFullScreen;
   final VoidCallback? onStopShare;
+  final VoidCallback? onEditShare;
 
   const CommsUserCard({
     super.key,
@@ -33,6 +35,7 @@ class CommsUserCard extends ConsumerStatefulWidget {
     required this.onPin,
     required this.onFullScreen,
     this.onStopShare,
+    this.onEditShare,
   });
 
   @override
@@ -253,6 +256,50 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                                   : l10n.commsFullScreen,
                               onPressed: widget.onFullScreen,
                             ),
+                            if (tile.isScreenShare &&
+                                !tile.isLocal &&
+                                tile.trackSid != null)
+                              Builder(
+                                builder: (btnContext) => IconButton(
+                                  icon: const AppHugeIcon(
+                                    icon:
+                                        HugeIcons.strokeRoundedSlidersVertical,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                  visualDensity: VisualDensity.compact,
+                                  padding: const EdgeInsets.all(6),
+                                  tooltip: l10n.screenShareQualityTooltip,
+                                  onPressed: () {
+                                    final box = btnContext.findRenderObject()
+                                        as RenderBox?;
+                                    final pos = box?.localToGlobal(
+                                          Offset(0, box.size.height + 4),
+                                        ) ??
+                                        Offset.zero;
+                                    showRemoteScreenShareQualityMenu(
+                                      context: context,
+                                      ref: ref,
+                                      trackSid: tile.trackSid!,
+                                      anchor: pos,
+                                    );
+                                  },
+                                ),
+                              ),
+                            if (tile.isScreenShare &&
+                                tile.isLocal &&
+                                widget.onEditShare != null)
+                              IconButton(
+                                icon: const AppHugeIcon(
+                                  icon: HugeIcons.strokeRoundedPencilEdit02,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                                visualDensity: VisualDensity.compact,
+                                padding: const EdgeInsets.all(6),
+                                tooltip: l10n.screenShareEditShare,
+                                onPressed: widget.onEditShare,
+                              ),
                             if (tile.isScreenShare &&
                                 tile.isLocal &&
                                 widget.onStopShare != null)

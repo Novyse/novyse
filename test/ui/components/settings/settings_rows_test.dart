@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/settings/settings_catalog.dart';
+import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/settings/settings_external_link_row.dart';
+import 'package:novyse/ui/components/settings/settings_item_renderer.dart';
 import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
 import 'package:novyse/ui/components/settings/settings_page_template.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
@@ -12,6 +17,32 @@ import 'package:novyse/ui/components/settings/settings_value_row.dart';
 
 Widget _wrap(Widget child) {
   return MaterialApp(home: child);
+}
+
+/// In-memory settings stub (no SQLite) for renderer visibility tests.
+class _StubSettingsController extends SettingsController {
+  _StubSettingsController(this.preset);
+
+  final Map<String, Object?> preset;
+
+  @override
+  Map<String, Object?> build() => Map<String, Object?>.of(preset);
+}
+
+Widget _rendererWithSettings(Map<String, Object?> preset, SettingItem item) {
+  return ProviderScope(
+    overrides: [
+      settingsControllerProvider.overrideWith(
+        () => _StubSettingsController(preset),
+      ),
+    ],
+    child: MaterialApp(
+      localizationsDelegates: localizationsDelegates,
+      supportedLocales: supportedLocales,
+      locale: const Locale('en'),
+      home: SettingsItemRenderer(item: item),
+    ),
+  );
 }
 
 void main() {
@@ -251,5 +282,71 @@ void main() {
     await tester.tap(find.text('Italiano'));
     await tester.pumpAndSettle();
     expect(selected, 'it');
+  });
+
+  testWidgets('SettingsSelectRow ignores taps when disabled', (tester) async {
+    var tapped = false;
+    await tester.pumpWidget(
+      _wrap(
+        SettingsSelectRow(
+          title: '4K Ultra HD',
+          selected: false,
+          disabled: true,
+          onTap: () => tapped = true,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('4K Ultra HD'), findsOneWidget);
+    // Opacity 0.5 signals the disabled state...
+    final opacity = tester.widget<Opacity>(find.byType(Opacity));
+    expect(opacity.opacity, 0.5);
+    // ...and the row's own IgnorePointer (ignoring: true) swallows taps.
+    final rowPointers = find.ancestor(
+      of: find.text('4K Ultra HD'),
+      matching: find.byType(IgnorePointer),
+    );
+    final ignoring = [
+      for (var i = 0; i < rowPointers.evaluate().length; i++)
+        tester.widget<IgnorePointer>(rowPointers.at(i)),
+    ].where((w) => w.ignoring).toList();
+    expect(ignoring, hasLength(1));
+    await tester.tap(find.text('4K Ultra HD'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(tapped, isFalse);
+  });
+
+  group('SettingsItemRenderer visibleWhen', () {
+    SettingItem customQuality() =>
+        SettingsCatalog.findBySettingKey('comms.shareCustomQuality')!;
+
+    testWidgets('shows custom rows in personalized mode', (tester) async {
+      await tester.pumpWidget(
+        _rendererWithSettings({'comms.shareQuality': 'custom'}, customQuality()),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(SettingsValueRow), findsOneWidget);
+    });
+
+    testWidgets('hides custom rows in fluid mode', (tester) async {
+      await tester.pumpWidget(
+        _rendererWithSettings(
+          {'comms.shareQuality': 'fluid_60'},
+          customQuality(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(SettingsValueRow), findsNothing);
+    });
+
+    testWidgets('falls back to the default when the mode is unset', (
+      tester,
+    ) async {
+      // No stored mode → default fluid_60 ≠ custom → hidden.
+      await tester.pumpWidget(_rendererWithSettings({}, customQuality()));
+      await tester.pumpAndSettle();
+      expect(find.byType(SettingsValueRow), findsNothing);
+    });
   });
 }

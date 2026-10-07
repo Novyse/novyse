@@ -1,7 +1,5 @@
-import 'dart:io' as io;
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -10,7 +8,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
-import 'package:novyse/ui/components/comms/screen_share_selector_modal.dart';
+import 'package:novyse/ui/components/comms/screen_share_actions.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
 
@@ -144,10 +142,6 @@ class CommsBottomBar extends ConsumerWidget {
     commsState,
     CommsNotifier controller,
   ) {
-    final isDesktop =
-        !kIsWeb &&
-        (io.Platform.isLinux || io.Platform.isMacOS || io.Platform.isWindows);
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(100),
       child: BackdropFilter(
@@ -217,27 +211,14 @@ class CommsBottomBar extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
 
-              // 4. Screen share picker
+              // 4. Screen share
               _buildIconButton(
                 icon: HugeIcons.strokeRoundedComputerScreenShare,
                 tooltip: l10n.commsShareScreen,
                 backgroundColor: Colors.white.withValues(alpha: 0.12),
                 iconColor: Colors.white,
-                onPressed: () async {
-                  if (isDesktop) {
-                    final selection = await ScreenShareSelectorModal.show(
-                      context,
-                    );
-                    if (selection != null) {
-                      await controller.startScreenShare(
-                        sourceId: selection.source?.id,
-                        captureScreenAudio: selection.includeAudio,
-                      );
-                    }
-                  } else {
-                    await controller.startScreenShare();
-                  }
-                },
+                onPressed: () =>
+                    ScreenShareActions.startShareFlow(context, ref),
               ),
               const SizedBox(width: 8),
 

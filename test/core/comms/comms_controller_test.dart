@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
+import 'package:novyse/core/comms/comms_share_config.dart';
 import 'package:novyse/core/comms/comms_state.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 
@@ -207,7 +208,10 @@ void main() {
     });
 
     test('startScreenShare is a no-op without a room', () async {
-      await expectLater(notifier.startScreenShare(), completes);
+      await expectLater(
+        notifier.startScreenShare(config: const ScreenShareConfig()),
+        completes,
+      );
       expect(read().activeScreenShareTrackSids, isEmpty);
     });
 

@@ -33,6 +33,16 @@ class SettingsItemRenderer extends ConsumerWidget {
     if (!item.supportedOS.contains(currentOS)) {
       return const SizedBox.shrink();
     }
+    // Conditional items (e.g. personalized share rows) render only when the
+    // watched setting matches. Watching here keeps page + search in sync.
+    final visibleWhen = item.visibleWhen;
+    if (visibleWhen != null) {
+      final raw = ref.watch(settingValueProvider(visibleWhen.settingKey));
+      final current = raw ?? visibleWhen.defaultValue;
+      if (current != visibleWhen.equals) {
+        return const SizedBox.shrink();
+      }
+    }
     final bool isDisabled = item.disabled;
     final title = context.settingsText(item.title);
     final subtitle = context.settingsText(item.subtitle);

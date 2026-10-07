@@ -13,11 +13,23 @@ extension SettingsL10nX on BuildContext {
       text(AppLocalizations.of(this)!);
 }
 
-typedef SettingOptionsLoader =
-    Future<List<SettingOption>> Function(WidgetRef ref);
+typedef SettingOptionsLoader = Future<List<SettingOption>> Function(
+  WidgetRef ref,
+);
 
-typedef SettingOptionPicked =
-    Future<void> Function(WidgetRef ref, String value);
+typedef SettingOptionPicked = Future<void> Function(
+  WidgetRef ref,
+  String value,
+);
+
+/// Conditional visibility: the item renders only when the persisted setting
+/// at [settingKey] equals [equals] (falls back to [defaultValue] when unset).
+class SettingVisibleWhen {
+  final String settingKey;
+  final Object? equals;
+  final Object? defaultValue;
+  const SettingVisibleWhen(this.settingKey, this.equals, {this.defaultValue});
+}
 
 enum SettingScope { local, synchronized }
 
@@ -39,10 +51,13 @@ enum SettingComponent {
 }
 
 /// A stable selectable value with a localized label ([label]).
+///
+/// When [disabled] is true the option renders non-interactive
 class SettingOption {
   final String value;
   final String Function(AppLocalizations) label;
-  const SettingOption(this.value, this.label);
+  final bool disabled;
+  const SettingOption(this.value, this.label, {this.disabled = false});
 }
 
 /// A single row/element inside a group.
@@ -90,6 +105,7 @@ class SettingItem {
   final bool disabled;
   final bool hidden;
   final List<AppOS> supportedOS;
+  final SettingVisibleWhen? visibleWhen;
 
   const SettingItem({
     required this.id,
@@ -114,6 +130,7 @@ class SettingItem {
     this.disabled = false,
     this.hidden = false,
     this.supportedOS = AppOS.values,
+    this.visibleWhen,
   });
 
   /// Whether this item should be shown on the current OS.

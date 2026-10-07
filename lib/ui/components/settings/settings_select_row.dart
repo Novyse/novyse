@@ -16,6 +16,7 @@ class SettingsSelectRow extends StatelessWidget {
     this.valueText,
     required this.selected,
     required this.onTap,
+    this.disabled = false,
   });
 
   final List<List<dynamic>>? icon;
@@ -25,41 +26,47 @@ class SettingsSelectRow extends StatelessWidget {
   final String? valueText;
   final bool selected;
   final VoidCallback onTap;
+  final bool disabled;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final text = valueText;
-    return SettingsBaseRow(
-      icon: icon,
-      leading: leading,
-      title: title,
-      subtitle: subtitle ?? text,
-      onTap: onTap,
-      trailing: Container(
-        width: 22,
-        height: 22,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: selected
-                ? colorScheme.primary
-                : colorScheme.onSurfaceVariant,
-            width: 2,
+    final content = Opacity(
+      opacity: disabled ? 0.5 : 1.0,
+      child: SettingsBaseRow(
+        icon: icon,
+        leading: leading,
+        title: title,
+        subtitle: subtitle ?? text,
+        onTap: disabled ? null : onTap,
+        trailing: Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: selected
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
+              width: 2,
+            ),
           ),
+          alignment: Alignment.center,
+          child: selected
+              ? Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: colorScheme.primary,
+                  ),
+                )
+              : null,
         ),
-        alignment: Alignment.center,
-        child: selected
-            ? Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colorScheme.primary,
-                ),
-              )
-            : null,
       ),
     );
+    if (disabled) return IgnorePointer(child: content);
+    return content;
   }
 }

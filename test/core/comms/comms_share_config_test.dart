@@ -1,0 +1,86 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:novyse/core/comms/comms_share_config.dart';
+import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
+
+void main() {
+  group('ScreenShareConfig', () {
+    test('defaults match the settings defaults', () {
+      const config = ScreenShareConfig();
+      expect(config.mode, CommsMediaConstraints.defaultShareMode);
+      expect(
+        config.customQuality,
+        CommsMediaConstraints.defaultShareCustomQuality,
+      );
+      expect(config.customFps, CommsMediaConstraints.defaultShareCustomFps);
+    });
+
+    test('fromSettings snapshots the settings map', () {
+      final config = ScreenShareConfig.fromSettings({
+        CommsMediaConstraints.shareModeKey: CommsMediaConstraints.shareCustom,
+        CommsMediaConstraints.shareCustomQualityKey:
+            CommsMediaConstraints.video240p,
+        CommsMediaConstraints.shareCustomFpsKey: CommsMediaConstraints.fps15,
+      });
+      expect(config.mode, CommsMediaConstraints.shareCustom);
+      expect(config.customQuality, CommsMediaConstraints.video240p);
+      expect(config.customFps, CommsMediaConstraints.fps15);
+    });
+
+    test('fromSettings falls back to defaults when unset', () {
+      final config = ScreenShareConfig.fromSettings({});
+      expect(config.mode, CommsMediaConstraints.defaultShareMode);
+    });
+
+    test('fluid resolves to the 1080p60 preset', () {
+      const config = ScreenShareConfig(
+        mode: CommsMediaConstraints.shareFluid,
+      );
+      final params = config.resolveParams();
+      expect(params.dimensions.width, 1920);
+      expect(params.encoding?.maxFramerate, 60);
+    });
+
+    test('clarity resolves to the 1080p5 coding preset', () {
+      const config = ScreenShareConfig(
+        mode: CommsMediaConstraints.shareClarity,
+      );
+      final params = config.resolveParams();
+      expect(params.dimensions.width, 1920);
+      expect(params.encoding?.maxFramerate, 5);
+      expect(config.resolveMaxFrameRate(), 5.0);
+    });
+
+    test('custom 240p/15fps resolves to the small preset', () {
+      const config = ScreenShareConfig(
+        mode: CommsMediaConstraints.shareCustom,
+        customQuality: CommsMediaConstraints.video240p,
+        customFps: CommsMediaConstraints.fps15,
+      );
+      final params = config.resolveParams();
+      expect(params.dimensions.width, 426);
+      expect(params.encoding?.maxFramerate, 15);
+      expect(params.encoding?.maxBitrate, 200 * 1000);
+    });
+
+    test('publish options carry top encoding and simulcast sub-layers', () {
+      const config = ScreenShareConfig(
+        mode: CommsMediaConstraints.shareCustom,
+        customQuality: CommsMediaConstraints.video480p,
+        customFps: CommsMediaConstraints.fps30,
+      );
+      final options = config.publishOptions();
+      expect(options.simulcast, isTrue);
+      expect(options.videoCodec, 'vp8');
+      expect(options.screenShareEncoding?.maxFramerate, 30);
+      expect(options.screenShareEncoding?.maxBitrate, 1200 * 1000);
+      expect(options.screenShareSimulcastLayers.length, 2);
+      // Sublayers cascade down for 480p: low is 240p, medium is 360p
+      final low = options.screenShareSimulcastLayers[0];
+      final med = options.screenShareSimulcastLayers[1];
+      expect(low.dimensions.height, 240);
+      expect(low.encoding?.maxFramerate, 30);
+      expect(med.dimensions.height, 360);
+      expect(med.encoding?.maxFramerate, 30);
+    });
+  });
+}

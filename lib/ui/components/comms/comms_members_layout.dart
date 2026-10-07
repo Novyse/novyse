@@ -9,6 +9,7 @@ import 'package:novyse/core/comms/comms_fullscreen.dart';
 import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/comms/comms_user_card.dart';
+import 'package:novyse/ui/components/comms/screen_share_actions.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Responsive grid layout displaying members and screenshares in the vocal room.
@@ -141,6 +142,13 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
                         .read(commsProvider.notifier)
                         .stopScreenShare(tile.trackSid)
                   : null,
+              onEditShare: tile.trackSid != null
+                  ? () => ScreenShareActions.editShareFlow(
+                      context,
+                      ref,
+                      tile.trackSid!,
+                    )
+                  : null,
             ),
           ),
         ),
@@ -242,6 +250,7 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
                   width: targetWidth.clamp(140.0, availableWidth),
                   height: targetHeight.clamp(100.0, availableHeight),
                   child: CommsUserCard(
+                    key: ValueKey(tile.id),
                     tile: tile,
                     isPinned: pinnedId == tile.id,
                     isFullScreen: false,
@@ -249,6 +258,13 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
                     onFullScreen: () => controller.toggleFullscreen(tile.id),
                     onStopShare: tile.trackSid != null
                         ? () => controller.stopScreenShare(tile.trackSid)
+                        : null,
+                    onEditShare: tile.trackSid != null
+                        ? () => ScreenShareActions.editShareFlow(
+                            context,
+                            ref,
+                            tile.trackSid!,
+                          )
                         : null,
                   ),
                 );

@@ -1,4 +1,5 @@
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/comms/devices/comms_quality_options.dart';
 import 'package:novyse/core/comms/devices/comms_setting_options.dart';
 import 'package:novyse/core/settings/settings_models.dart';
 
@@ -78,7 +79,6 @@ final List<SettingCategory> commsCategory = [
                 settingKey: 'comms.noiseSuppression',
                 scope: SettingScope.local,
                 defaultValue: true,
-                disabled: true,
               ),
               SettingItem(
                 id: 'expander',
@@ -120,7 +120,6 @@ final List<SettingCategory> commsCategory = [
                 settingKey: 'comms.echoCancellation',
                 scope: SettingScope.local,
                 defaultValue: true,
-                disabled: true,
               ),
             ],
           ),
@@ -154,21 +153,8 @@ final List<SettingCategory> commsCategory = [
                 settingKey: 'comms.videoQuality',
                 scope: SettingScope.local,
                 defaultValue: '1080p',
-                options: [
-                  SettingOption(
-                    '720p',
-                    (l) => l.settingsOptionVideoQuality720pLabel,
-                  ),
-                  SettingOption(
-                    '1080p',
-                    (l) => l.settingsOptionVideoQuality1080pLabel,
-                  ),
-                  SettingOption(
-                    '4k',
-                    (l) => l.settingsOptionVideoQuality4kLabel,
-                  ),
-                ],
-                disabled: true,
+                options: CommsQualityOptions.videoQualityOptions(),
+                onOptionPicked: saveVideoQualityOption,
               ),
               SettingItem(
                 id: 'video_fps',
@@ -177,12 +163,9 @@ final List<SettingCategory> commsCategory = [
                 component: SettingComponent.select,
                 settingKey: 'comms.videoFramerate',
                 scope: SettingScope.local,
-                defaultValue: '30',
-                options: [
-                  SettingOption('30', (l) => l.settingsOptionVideoFps30Label),
-                  SettingOption('60', (l) => l.settingsOptionVideoFps60Label),
-                ],
-                disabled: true,
+                defaultValue: '60',
+                options: CommsQualityOptions.fpsOptions(),
+                onOptionPicked: saveVideoFpsOption,
               ),
               SettingItem(
                 id: 'virtual_bg',
@@ -232,18 +215,41 @@ final List<SettingCategory> commsCategory = [
                 component: SettingComponent.select,
                 settingKey: 'comms.shareQuality',
                 scope: SettingScope.local,
-                defaultValue: 'clarity',
-                options: [
-                  SettingOption(
-                    'fluid_60',
-                    (l) => l.settingsOptionShareQualityFluid60Label,
-                  ),
-                  SettingOption(
-                    'clarity',
-                    (l) => l.settingsOptionShareQualityClarityLabel,
-                  ),
-                ],
-                disabled: true,
+                defaultValue: 'fluid_60',
+                options: CommsQualityOptions.shareModeOptions(),
+                onOptionPicked: saveShareModeOption,
+              ),
+              SettingItem(
+                id: 'share_custom_quality',
+                title: (l) => l.settingsItemShareCustomQualityTitle,
+                subtitle: (l) => l.settingsItemShareCustomQualitySubtitle,
+                component: SettingComponent.select,
+                settingKey: 'comms.shareCustomQuality',
+                scope: SettingScope.local,
+                defaultValue: '1080p',
+                options: CommsQualityOptions.shareCustomQualityOptions(),
+                onOptionPicked: saveShareCustomQualityOption,
+                visibleWhen: const SettingVisibleWhen(
+                  'comms.shareQuality',
+                  'custom',
+                  defaultValue: 'fluid_60',
+                ),
+              ),
+              SettingItem(
+                id: 'share_custom_fps',
+                title: (l) => l.settingsItemShareCustomFpsTitle,
+                subtitle: (l) => l.settingsItemShareCustomFpsSubtitle,
+                component: SettingComponent.select,
+                settingKey: 'comms.shareCustomFps',
+                scope: SettingScope.local,
+                defaultValue: '60',
+                options: CommsQualityOptions.fpsOptions(),
+                onOptionPicked: saveShareCustomFpsOption,
+                visibleWhen: const SettingVisibleWhen(
+                  'comms.shareQuality',
+                  'custom',
+                  defaultValue: 'fluid_60',
+                ),
               ),
               SettingItem(
                 id: 'hifi_audio',
@@ -252,8 +258,7 @@ final List<SettingCategory> commsCategory = [
                 component: SettingComponent.switchToggle,
                 settingKey: 'comms.hifiAudioPassthrough',
                 scope: SettingScope.local,
-                defaultValue: false,
-                disabled: true,
+                defaultValue: true,
               ),
             ],
           ),

@@ -3,7 +3,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/services/auth.dart' as auth_service;
-import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/settings/security/security_list_card.dart';
 import 'package:novyse/ui/components/settings/settings_base_row.dart';
