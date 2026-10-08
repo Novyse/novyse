@@ -8,9 +8,9 @@ const _green = Color(0xFF00FF00);
 const _content = Color(0xFFFF00FF);
 const _radius = 20.0;
 
-Widget child() => Stack(
+Widget child() => const Stack(
   fit: StackFit.expand,
-  children: const [ColoredBox(color: _content)],
+  children: [ColoredBox(color: _content)],
 );
 
 // A: current structure in comms_user_card.dart
@@ -25,8 +25,8 @@ Widget variantCurrent(double bw) => Container(
 
 // B: border moved to foregroundDecoration (paints on top, no child inset)
 Widget variantForeground(double bw) => Container(
-  decoration: BoxDecoration(
-    borderRadius: const BorderRadius.all(Radius.circular(_radius)),
+  decoration: const BoxDecoration(
+    borderRadius: BorderRadius.all(Radius.circular(_radius)),
   ),
   foregroundDecoration: BoxDecoration(
     borderRadius: BorderRadius.circular(_radius),
@@ -65,7 +65,7 @@ Future<void> probe(WidgetTester tester, Widget w, String label) async {
       .renderObject<RenderRepaintBoundary>(find.byKey(key))
       .toImage(pixelRatio: 1);
   final data = (await img.toByteData(format: ui.ImageByteFormat.rawRgba))!;
-  int w2 = img.width, h2 = img.height;
+  final w2 = img.width;
   Color at(int x, int y) {
     final o = (y * w2 + x) * 4;
     return Color.fromARGB(data.getUint8(o + 3), data.getUint8(o),
