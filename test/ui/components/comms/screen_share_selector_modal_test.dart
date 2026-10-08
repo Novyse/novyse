@@ -8,6 +8,7 @@ import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_quality_fields.dart';
 import 'package:novyse/ui/components/comms/screen_share_selector_modal.dart';
 import 'package:novyse/ui/components/number/number_stepper.dart';
+import 'package:novyse/ui/components/status/status_message.dart';
 import 'package:novyse/ui/components/switch/segmented_switch.dart';
 
 /// The desktop capturer lives behind the `FlutterWebRTC.Method` channel, so
@@ -492,5 +493,41 @@ void main() {
         expect(changedMode, 'smooth');
       },
     );
+
+    testWidgets('shows StatusMessage when bitrate error occurs', (
+      tester,
+    ) async {
+      await pumpFields(
+        tester,
+        config: const ScreenShareConfig(
+          mode: 'custom',
+          customQuality: '4k',
+          customFps: '60',
+          maxBitrateKbps: 9000,
+        ),
+      );
+
+      expect(find.byType(StatusMessage), findsOneWidget);
+      expect(
+        find.text(en.screenShareBitratePremiumLimitError),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('does not show StatusMessage when bitrate is valid', (
+      tester,
+    ) async {
+      await pumpFields(
+        tester,
+        config: const ScreenShareConfig(
+          mode: 'custom',
+          customQuality: '1080p',
+          customFps: '60',
+          maxBitrateKbps: 5000,
+        ),
+      );
+
+      expect(find.byType(StatusMessage), findsNothing);
+    });
   });
 }

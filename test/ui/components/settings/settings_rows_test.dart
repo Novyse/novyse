@@ -15,6 +15,7 @@ import 'package:novyse/ui/components/settings/settings_section.dart';
 import 'package:novyse/ui/components/settings/settings_select_row.dart';
 import 'package:novyse/ui/components/settings/settings_switch_row.dart';
 import 'package:novyse/ui/components/settings/settings_value_row.dart';
+import 'package:novyse/ui/components/status/status_message.dart';
 
 Widget _wrap(Widget child) {
   return MaterialApp(home: child);
@@ -407,6 +408,7 @@ void main() {
           find.text('Subscribe to Premium to unlock all features (WIP)'),
           findsOneWidget,
         );
+        expect(find.byType(StatusMessage), findsOneWidget);
       },
     );
 
@@ -434,6 +436,7 @@ void main() {
           find.text('Bitrate is below the minimum for this setting'),
           findsNothing,
         );
+        expect(find.byType(StatusMessage), findsNothing);
       },
     );
   });

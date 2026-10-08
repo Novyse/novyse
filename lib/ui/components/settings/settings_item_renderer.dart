@@ -8,6 +8,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_actions.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/pages/app/settings/active_devices_page.dart';
 import 'package:novyse/pages/app/settings/api_keys_page.dart';
@@ -21,6 +22,7 @@ import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
 import 'package:novyse/ui/components/settings/settings_sheets.dart';
 import 'package:novyse/ui/components/settings/settings_switch_row.dart';
 import 'package:novyse/ui/components/settings/settings_value_row.dart';
+import 'package:novyse/ui/components/status/status_message.dart';
 
 /// Renders a [SettingItem] with the shared settings row components.
 class SettingsItemRenderer extends ConsumerWidget {
@@ -116,33 +118,51 @@ class SettingsItemRenderer extends ConsumerWidget {
           value = defaultVal;
         }
         final errorText = _resolveStepperError(context, ref, item, value);
-        return wrapDisabled(
-          SettingsBaseRow(
-            icon: item.icon,
-            title: title,
-            subtitle: subtitleOrNull,
-            errorText: errorText,
-            trailing: NumberStepper(
-              value: value,
-              step: item.step ?? 1.0,
-              min: minVal,
-              max: maxVal,
-              hasError: errorText != null,
-              onChanged: (isDisabled || settingKey == null)
-                  ? (_) {}
-                  : (next) {
-                      final picked = item.onOptionPicked;
-                      if (picked != null) {
-                        picked(ref, next.round().toString());
-                      } else {
-                        ref
-                            .read(settingsControllerProvider.notifier)
-                            .set(settingKey, next.round());
-                      }
-                    },
-            ),
+        final row = SettingsBaseRow(
+          icon: item.icon,
+          title: title,
+          subtitle: subtitleOrNull,
+          errorText: null,
+          trailing: NumberStepper(
+            value: value,
+            step: item.step ?? 1.0,
+            min: minVal,
+            max: maxVal,
+            hasError: errorText != null,
+            onChanged: (isDisabled || settingKey == null)
+                ? (_) {}
+                : (next) {
+                    final picked = item.onOptionPicked;
+                    if (picked != null) {
+                      picked(ref, next.round().toString());
+                    } else {
+                      ref
+                          .read(settingsControllerProvider.notifier)
+                          .set(settingKey, next.round());
+                    }
+                  },
           ),
         );
+        if (errorText != null) {
+          return wrapDisabled(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                row,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: StatusMessage(
+                    type: StatusMessageType.danger,
+                    content: [errorText],
+                    closable: false,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        return wrapDisabled(row);
 
       case SettingComponent.hotkey:
       case SettingComponent.custom:

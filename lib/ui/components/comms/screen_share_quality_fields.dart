@@ -3,7 +3,9 @@ import 'package:novyse/core/comms/devices/comms_bitrate_options.dart';
 import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
 import 'package:novyse/core/comms/devices/comms_quality_options.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/ui/components/number/number_stepper.dart';
+import 'package:novyse/ui/components/status/status_message.dart';
 import 'package:novyse/ui/components/switch/segmented_switch.dart';
 
 /// Quality selectors shared by the screen-share setup menu and the
@@ -134,15 +136,16 @@ class ScreenShareQualityFields extends StatelessWidget {
               step: CommsBitrateOptions.stepKbps.toDouble(),
               min: range.minKbps.toDouble(),
               max: range.maxKbps.toDouble(),
+              hasError: errorText != null,
               onChanged: (v) => onBitrateChanged!(v.round()),
             ),
             if (errorText != null)
               Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  errorText,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: colorScheme.error),
+                padding: const EdgeInsets.only(top: 8),
+                child: StatusMessage(
+                  type: StatusMessageType.danger,
+                  content: [errorText],
+                  closable: false,
                 ),
               ),
           ],
