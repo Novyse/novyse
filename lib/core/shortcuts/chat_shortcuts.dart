@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/chat/message_action_methods.dart';
+import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
@@ -177,7 +178,8 @@ abstract final class ChatKeyboardHandler {
         return KeyEventResult.handled;
       }
 
-      return KeyEventResult.ignored;
+      popOrChats(context);
+      return KeyEventResult.handled;
     }
 
     return KeyEventResult.ignored;

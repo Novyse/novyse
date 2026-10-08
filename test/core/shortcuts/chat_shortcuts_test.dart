@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:markdown_editor_live/markdown_editor_live.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
@@ -464,6 +465,67 @@ void main() {
       await tester.pump();
 
       expect(container.read(chatDraftProvider(testChatUUID)).replyingTo, isEmpty);
+    });
+
+    testWidgets('Escape navigates away from chat route when not editing or replying', (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final controller = container.read(chatTextControllerProvider(testChatUUID));
+      final focusNode = FocusNode();
+      addTearDown(focusNode.dispose);
+
+      var atChats = false;
+      final router = GoRouter(
+        initialLocation: '/chat',
+        routes: [
+          GoRoute(
+            path: '/chats',
+            builder: (context, state) {
+              atChats = true;
+              return const Scaffold(body: Text('Chats'));
+            },
+          ),
+          GoRoute(
+            path: '/chat',
+            builder: (context, state) => Scaffold(
+              body: MiddleBarBottomBar(
+                chatUUID: testChatUUID,
+                subID: testSubID,
+                textController: controller,
+                isRecording: false,
+                recorderState: const VoiceRecorderState(),
+                onSendMessage: () {},
+                onTogglePause: () {},
+                onStopAndDraft: () {},
+                focusNode: focusNode,
+              ),
+            ),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: localizationsDelegates,
+            supportedLocales: supportedLocales,
+            locale: const Locale('en'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      focusNode.requestFocus();
+      await tester.pump();
+
+      // Press Escape
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+
+      expect(atChats, isTrue);
     });
   });
 }

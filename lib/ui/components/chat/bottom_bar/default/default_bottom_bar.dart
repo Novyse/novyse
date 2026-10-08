@@ -235,10 +235,12 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
     final hasText = textController.text.trim().isNotEmpty;
     final hasFiles = draftState.files.isNotEmpty;
 
-    // Automatically focus the input field when entering edit mode
+    // Automatically focus the input field when entering edit or reply mode
     ref.listen<ChatDraftState>(chatDraftProvider(chatUUID), (previous, next) {
-      if (previous?.editingMessage?.id != next.editingMessage?.id &&
-          next.editingMessage != null) {
+      if ((previous?.editingMessage?.id != next.editingMessage?.id &&
+              next.editingMessage != null) ||
+          (previous?.replyingTo.length != next.replyingTo.length &&
+              next.replyingTo.isNotEmpty)) {
         _focusNode.requestFocus();
       }
     });

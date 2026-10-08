@@ -9,6 +9,7 @@ import 'package:novyse/core/chat/message_share_service.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/core/share/incoming_share_service.dart';
+import 'package:novyse/core/shortcuts/chat_shortcuts.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
@@ -592,22 +593,39 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
           _closeCall();
         }
       },
-      child: Scaffold(
-        body: Stack(
-          children: [
-            chatBody,
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: AnnotatedRegion<SystemUiOverlayStyle>(
-                value: colorScheme.brightness == Brightness.dark
-                    ? SystemUiOverlayStyle.light
-                    : SystemUiOverlayStyle.dark,
-                child: floatingBar,
+      child: Focus(
+        autofocus: true,
+        onKeyEvent: (node, event) {
+          if (_searching && _searchFocusNode.hasFocus) {
+            return KeyEventResult.ignored;
+          }
+          return ChatKeyboardHandler.handleKeyEvent(
+            event: event,
+            ref: ref,
+            context: context,
+            chatUUID: chatUUID,
+            subID: selectedSub,
+            textController: ref.read(chatTextControllerProvider(chatUUID)),
+            onSendMessage: () {},
+          );
+        },
+        child: Scaffold(
+          body: Stack(
+            children: [
+              chatBody,
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: colorScheme.brightness == Brightness.dark
+                      ? SystemUiOverlayStyle.light
+                      : SystemUiOverlayStyle.dark,
+                  child: floatingBar,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
