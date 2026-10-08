@@ -30,8 +30,11 @@ extension _CreateChatTypeX on CreateChatType {
 }
 
 Future<T?> showCreateChatModal<T>(BuildContext context) {
+  final l10n = AppLocalizations.of(context)!;
   return ResponsiveOverlay.show<T>(
     context: context,
+    title: l10n.createChatTitle,
+    subtitle: l10n.createChatSubtitle,
     mode: ResponsiveOverlayMode.dynamic,
     child: const CreateChatModal(),
   );
@@ -276,35 +279,6 @@ class _CreateChatModalState extends ConsumerState<CreateChatModal> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.createChatTitle,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.createChatSubtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
-              onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
         OnboardingTextField(
           label: l10n.createChatName,
           hint: l10n.createChatNameHint,

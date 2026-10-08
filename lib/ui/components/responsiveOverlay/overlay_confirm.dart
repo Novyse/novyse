@@ -2,20 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
-/// Homogeneous confirm content used inside [ResponsiveOverlay].
-///
-/// Always shown as a modal dialog (never a bottom sheet).
 class OverlayConfirmContent extends StatelessWidget {
   const OverlayConfirmContent({
     super.key,
-    this.title,
     this.message,
     required this.confirmLabel,
     this.cancelLabel,
     this.isDanger = false,
   });
 
-  final String? title;
   final String? message;
   final String confirmLabel;
   final String? cancelLabel;
@@ -30,15 +25,7 @@ class OverlayConfirmContent extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (title != null && title!.isNotEmpty)
-          Text(
-            title!,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
         if (message != null && message!.isNotEmpty) ...[
-          if (title != null && title!.isNotEmpty) const SizedBox(height: 8),
           Text(
             message!,
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -46,8 +33,8 @@ class OverlayConfirmContent extends StatelessWidget {
               height: 1.4,
             ),
           ),
+          const SizedBox(height: 20),
         ],
-        const SizedBox(height: 20),
         Row(
           children: [
             Expanded(
@@ -75,12 +62,6 @@ class OverlayConfirmContent extends StatelessWidget {
   }
 }
 
-/// Shows a homogeneous confirm via [ResponsiveOverlay].
-/// Returns true when confirmed, false/null otherwise.
-///
-/// Confirms always use [ResponsiveOverlayMode.modal]: even on mobile a
-/// centered dialog reads better than a full-width bottom sheet for a
-/// two-button confirmation.
 Future<bool> showOverlayConfirm(
   BuildContext context, {
   String? title,
@@ -92,9 +73,9 @@ Future<bool> showOverlayConfirm(
 }) async {
   final result = await ResponsiveOverlay.show<bool>(
     context: context,
+    title: title ?? '',
     mode: mode,
     child: OverlayConfirmContent(
-      title: title,
       message: message,
       confirmLabel: confirmLabel,
       cancelLabel: cancelLabel,

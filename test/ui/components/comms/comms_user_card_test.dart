@@ -66,11 +66,7 @@ void main() {
   }) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          ...avatarOverrides,
-          ...userOverrides(users),
-          ...overrides,
-        ],
+        overrides: [...avatarOverrides, ...userOverrides(users), ...overrides],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -436,10 +432,7 @@ void main() {
     testWidgets('right-click opens the anchored menu', (tester) async {
       final l10n = await pump(tester, item: muteTile());
 
-      await tester.tap(
-        find.byType(CommsUserCard),
-        buttons: kSecondaryButton,
-      );
+      await tester.tap(find.byType(CommsUserCard), buttons: kSecondaryButton);
       await tester.pump();
 
       expect(find.text(l10n.commsMuteUser), findsOneWidget);
@@ -505,10 +498,7 @@ void main() {
     testWidgets('menu row icons are left-aligned', (tester) async {
       final l10n = await pump(tester, item: muteTile());
 
-      await tester.tap(
-        find.byType(CommsUserCard),
-        buttons: kSecondaryButton,
-      );
+      await tester.tap(find.byType(CommsUserCard), buttons: kSecondaryButton);
       await tester.pump();
 
       double leftEdge(List<List<dynamic>> icon) {
@@ -538,16 +528,9 @@ void main() {
 
     testWidgets('pin from the menu calls onPin and closes it', (tester) async {
       var pinned = 0;
-      final l10n = await pump(
-        tester,
-        item: muteTile(),
-        onPin: () => pinned++,
-      );
+      final l10n = await pump(tester, item: muteTile(), onPin: () => pinned++);
 
-      await tester.tap(
-        find.byType(CommsUserCard),
-        buttons: kSecondaryButton,
-      );
+      await tester.tap(find.byType(CommsUserCard), buttons: kSecondaryButton);
       await tester.pump();
       expect(find.text(l10n.commsMuteUser), findsOneWidget);
 
@@ -561,14 +544,37 @@ void main() {
 
   group('speaking indicator', () {
     /// Reads the border colour of the animated container.
+    ///
+    /// The border lives in `foregroundDecoration` so it is painted above the
+    /// clipped video/avatar: as a background decoration it would be drawn
+    /// under the child, and the child's clip path (which follows the outer
+    /// radius) would erase the border around the corners.
     Color borderColor(WidgetTester tester) =>
         (tester
                     .widget<AnimatedContainer>(find.byType(AnimatedContainer))
-                    .decoration!
+                    .foregroundDecoration!
                 as BoxDecoration)
             .border!
             .top
             .color;
+
+    /// Reads the border colour declared by the animated container.
+    Color borderColorFromForeground(WidgetTester tester) =>
+        (tester
+                    .widget<AnimatedContainer>(find.byType(AnimatedContainer))
+                    .foregroundDecoration!
+                as BoxDecoration)
+            .border!
+            .top
+            .color;
+
+    testWidgets('the border colour matches the foreground decoration', (
+      tester,
+    ) async {
+      await pump(tester, item: tile(isSpeaking: true));
+
+      expect(borderColorFromForeground(tester).a, 1.0);
+    });
 
     testWidgets('a silent participant uses the outline colour', (tester) async {
       await pump(tester, item: tile(isSpeaking: false));
@@ -588,6 +594,36 @@ void main() {
       await pump(tester, item: tile(isSpeaking: true, isScreenShare: true));
 
       expect(borderColor(tester).a, lessThan(1));
+    });
+
+    testWidgets('the clip and the border share one radius', (tester) async {
+      await pump(tester, item: tile(isSpeaking: true));
+
+      final container = tester.widget<AnimatedContainer>(
+        find.byType(AnimatedContainer),
+      );
+      final background = container.decoration! as BoxDecoration;
+      final foreground = container.foregroundDecoration! as BoxDecoration;
+
+      // The clip is derived from `decoration.borderRadius`, so a mismatch
+      // between the two is what let the corners lose their border.
+      expect(background.borderRadius, foreground.borderRadius);
+      expect(background.borderRadius, isNotNull);
+    });
+
+    testWidgets('full screen drops the radius on clip and border alike', (
+      tester,
+    ) async {
+      await pump(tester, item: tile(isSpeaking: true), isFullScreen: true);
+
+      final container = tester.widget<AnimatedContainer>(
+        find.byType(AnimatedContainer),
+      );
+      final background = container.decoration! as BoxDecoration;
+      final foreground = container.foregroundDecoration! as BoxDecoration;
+
+      expect(background.borderRadius, BorderRadius.zero);
+      expect(foreground.borderRadius, BorderRadius.zero);
     });
   });
 }

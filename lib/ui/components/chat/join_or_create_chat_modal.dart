@@ -17,11 +17,29 @@ Future<T?> showJoinOrCreateChatModal<T>({
   required ChatModel chat,
   required ValueChanged<String> onJoined,
 }) {
+  final l10n = AppLocalizations.of(context)!;
   return ResponsiveOverlay.show<T>(
     context: context,
+    title: joinOrCreateChatModalTitle(l10n, chat.type),
     mode: ResponsiveOverlayMode.dynamic,
     child: JoinOrCreateChatModal(chat: chat, onJoined: onJoined),
   );
+}
+
+/// Header title for [JoinOrCreateChatModal], resolved from the chat type so the
+/// overlay can own the title bar.
+String joinOrCreateChatModalTitle(AppLocalizations l10n, String type) {
+  if (type == 'DM') return l10n.joinCreateStartDm;
+  switch (type) {
+    case 'CHANNEL':
+      return l10n.joinCreateJoinChannel;
+    case 'GROUP':
+      return l10n.joinCreateJoinGroup;
+    case 'FORUM':
+      return l10n.joinCreateJoinForum;
+    default:
+      return l10n.joinCreateJoinChat;
+  }
 }
 
 class JoinOrCreateChatModal extends ConsumerStatefulWidget {
@@ -44,20 +62,6 @@ class _JoinOrCreateChatModalState extends ConsumerState<JoinOrCreateChatModal> {
   String? _error;
 
   bool get _isUser => widget.chat.type == 'DM';
-
-  String _getTitle(AppLocalizations l10n) {
-    if (_isUser) return l10n.joinCreateStartDm;
-    switch (widget.chat.type) {
-      case 'CHANNEL':
-        return l10n.joinCreateJoinChannel;
-      case 'GROUP':
-        return l10n.joinCreateJoinGroup;
-      case 'FORUM':
-        return l10n.joinCreateJoinForum;
-      default:
-        return l10n.joinCreateJoinChat;
-    }
-  }
 
   Future<void> _handleAction() async {
     final l10n = AppLocalizations.of(context);
@@ -137,31 +141,13 @@ class _JoinOrCreateChatModalState extends ConsumerState<JoinOrCreateChatModal> {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final chat = widget.chat;
-    final title = _getTitle(l10n);
+    // Same string the overlay header shows: it doubles as the CTA label.
+    final title = joinOrCreateChatModalTitle(l10n, chat.type);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Top row: Modal title & close button
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                title,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-            IconButton(
-              icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
-              onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-            ),
-          ],
-        ),
-        const SizedBox(height: 18),
-
         // User / Chat info centered
         Center(
           child: Column(

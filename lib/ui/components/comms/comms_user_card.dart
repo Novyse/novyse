@@ -44,6 +44,10 @@ class CommsUserCard extends ConsumerStatefulWidget {
 class _CommsUserCardState extends ConsumerState<CommsUserCard> {
   static const _autoHideDuration = Duration(seconds: 3);
 
+  /// Corner radius of the tile. Shared by the clip, the background and the
+  /// border so the three always describe the same shape.
+  static const _tileRadius = 20.0;
+
   bool _isHovered = false;
 
   bool _overlayUiVisible = true;
@@ -159,6 +163,10 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
       if (widget.isFullScreen) _showOverlayUi();
     }
 
+    final cardRadius = BorderRadius.circular(
+      widget.isFullScreen ? 0 : _tileRadius,
+    );
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: widget.isFullScreen ? _onCardTap : null,
@@ -178,13 +186,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(widget.isFullScreen ? 0 : 20),
-            border: Border.all(
-              color: isSpeaking
-                  ? AppColors.success
-                  : colorScheme.outline.withValues(alpha: 0.25),
-              width: isSpeaking ? 2.5 : 1,
-            ),
+            borderRadius: cardRadius,
             boxShadow: isSpeaking
                 ? [
                     BoxShadow(
@@ -195,6 +197,15 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                   ]
                 : null,
             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+          ),
+          foregroundDecoration: BoxDecoration(
+            borderRadius: cardRadius,
+            border: Border.all(
+              color: isSpeaking
+                  ? AppColors.success
+                  : colorScheme.outline.withValues(alpha: 0.25),
+              width: isSpeaking ? 2.5 : 1,
+            ),
           ),
           clipBehavior: Clip.antiAlias,
           child: Stack(

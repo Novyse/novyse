@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/chat/chat_service.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
-import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/onboarding/onboarding_text_field.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
@@ -18,8 +16,11 @@ Future<T?> showCreateSubModal<T>(
   BuildContext context, {
   required String chatUUID,
 }) {
+  final l10n = AppLocalizations.of(context)!;
   return ResponsiveOverlay.show<T>(
     context: context,
+    title: l10n.createSubTitle,
+    subtitle: l10n.createSubSubtitle,
     mode: ResponsiveOverlayMode.dynamic,
     child: CreateSubModal(chatUUID: chatUUID),
   );
@@ -109,41 +110,11 @@ class _CreateSubModalState extends ConsumerState<CreateSubModal> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.createSubTitle,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.createSubSubtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
-              onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
         OnboardingTextField(
           label: l10n.createChatName,
           hint: l10n.createChatNameHint,

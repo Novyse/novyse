@@ -60,8 +60,8 @@ void main() {
     )!;
   }
 
-  /// Scrolls the bottom of the modal into view so the action button, which is
-  /// the same text as the title, can be tapped.
+  /// Scrolls the bottom of the modal into view so the action button, whose
+  /// label is the same text as the header title, can be tapped.
   Future<void> scrollToAction(WidgetTester tester, String label) async {
     await tester.ensureVisible(find.text(label).last);
     await tester.pumpAndSettle();
@@ -71,8 +71,10 @@ void main() {
     testWidgets('a user gets the start-a-DM title', (tester) async {
       final l10n = await pump(tester, target: chat());
 
-      // The action button reuses the title as its label.
-      expect(find.text(l10n.joinCreateStartDm), findsNWidgets(2));
+      // The header title is owned by ResponsiveOverlay.show(); inside the
+      // content widget only the action button, which reuses that same title
+      // as its label, is rendered.
+      expect(find.text(l10n.joinCreateStartDm), findsOneWidget);
       expect(find.text(l10n.joinCreateUserDesc), findsOneWidget);
     });
 
@@ -82,7 +84,7 @@ void main() {
         target: chat(type: 'CHANNEL', handle: 'general'),
       );
 
-      expect(find.text(l10n.joinCreateJoinChannel), findsNWidgets(2));
+      expect(find.text(l10n.joinCreateJoinChannel), findsOneWidget);
       expect(find.text(l10n.joinCreateChatDesc), findsOneWidget);
     });
 
@@ -92,7 +94,7 @@ void main() {
         target: chat(type: 'GROUP', handle: 'squad'),
       );
 
-      expect(find.text(l10n.joinCreateJoinGroup), findsNWidgets(2));
+      expect(find.text(l10n.joinCreateJoinGroup), findsOneWidget);
     });
 
     testWidgets('a forum gets its own title', (tester) async {
@@ -101,7 +103,7 @@ void main() {
         target: chat(type: 'FORUM', handle: 'board'),
       );
 
-      expect(find.text(l10n.joinCreateJoinForum), findsNWidgets(2));
+      expect(find.text(l10n.joinCreateJoinForum), findsOneWidget);
     });
 
     testWidgets('an unknown type falls back to the generic title', (
@@ -112,7 +114,7 @@ void main() {
         target: chat(type: 'WEIRD', handle: 'weird'),
       );
 
-      expect(find.text(l10n.joinCreateJoinChat), findsNWidgets(2));
+      expect(find.text(l10n.joinCreateJoinChat), findsOneWidget);
     });
 
     testWidgets('shows the name and the handle', (tester) async {

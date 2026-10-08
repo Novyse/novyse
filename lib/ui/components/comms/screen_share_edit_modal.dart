@@ -44,9 +44,9 @@ class ScreenShareEditModal extends StatefulWidget {
   }) {
     return ResponsiveOverlay.show<ScreenShareEditResult>(
       context: context,
+      title: AppLocalizations.of(context)!.screenShareEditTitle,
       mode: ResponsiveOverlayMode.modal,
       maxWidth: 560,
-      maxHeightFactor: 0.9,
       child: ScreenShareEditModal(
         current: current,
         hasAudio: hasAudio,
@@ -96,75 +96,44 @@ class _ScreenShareEditModalState extends State<ScreenShareEditModal> {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
+    // Body only: title bar, padding and scrolling come from OverlayDialog via
+    // ResponsiveOverlay.show(), so no inner scroll view here.
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              l10n.screenShareEditTitle,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: colorScheme.onSurface,
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.close_rounded),
-              onPressed: () =>
-                  Navigator.of(context, rootNavigator: true).pop(),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Flexible(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (widget.customPicker)
-                  _buildSourceSection(context)
-                else
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      onPressed: () => Navigator.of(
-                        context,
-                        rootNavigator: true,
-                      ).pop(
-                        ScreenShareEditResult(
-                          config: widget.current,
-                          repickSource: true,
-                        ),
-                      ),
-                      icon: const Icon(Icons.refresh_rounded, size: 18),
-                      label: Text(l10n.screenShareChangeSource),
-                    ),
-                  ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _audio,
-                      onChanged: (val) =>
-                          setState(() => _audio = val ?? false),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      l10n.screenShareIncludeSystemAudio,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
+        if (widget.customPicker)
+          _buildSourceSection(context)
+        else
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () => Navigator.of(
+                context,
+                rootNavigator: true,
+              ).pop(
+                ScreenShareEditResult(
+                  config: widget.current,
+                  repickSource: true,
                 ),
-              ],
+              ),
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: Text(l10n.screenShareChangeSource),
             ),
           ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Checkbox(
+              value: _audio,
+              onChanged: (val) => setState(() => _audio = val ?? false),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              l10n.screenShareIncludeSystemAudio,
+              style: TextStyle(fontSize: 14, color: colorScheme.onSurface),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         Row(

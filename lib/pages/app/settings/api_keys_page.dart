@@ -158,6 +158,7 @@ class _ApiKeysPageState extends State<ApiKeysPage> {
   Future<void> _showCreatedSecret(String secret) async {
     await ResponsiveOverlay.show<void>(
       context: context,
+      title: AppLocalizations.of(context)!.settingsApiKeyCreatedTitle,
       mode: ResponsiveOverlayMode.modal,
       child: _CreatedApiKeyDialog(secret: secret),
     );
@@ -329,8 +330,11 @@ class _ApiKeysPageState extends State<ApiKeysPage> {
   }
 
   Future<void> _showCreateDialog() async {
+    final l10n = AppLocalizations.of(context)!;
     final name = await ResponsiveOverlay.show<String>(
       context: context,
+      title: l10n.settingsApiKeyCreateDialogTitle,
+      subtitle: l10n.settingsApiKeyCreateDialogMessage,
       mode: ResponsiveOverlayMode.modal,
       child: const _CreateApiKeyDialog(),
     );
@@ -361,13 +365,6 @@ class _CreateApiKeyDialogState extends State<_CreateApiKeyDialog> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          l10n.settingsApiKeyCreateDialogTitle,
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 8),
-        Text(l10n.settingsApiKeyCreateDialogMessage),
-        const SizedBox(height: 20),
         TextField(
           controller: _controller,
           autofocus: true,
@@ -417,7 +414,6 @@ class _CreatedApiKeyDialogState extends State<_CreatedApiKeyDialog> {
       children: [
         StatusMessage(
           type: StatusMessageType.success,
-          title: l10n.settingsApiKeyCreatedTitle,
           content: [l10n.settingsApiKeyCreatedWarning],
           closable: false,
         ),

@@ -106,16 +106,11 @@ class _ChatContextMenuState extends State<ChatContextMenu> {
 
     final url = await ResponsiveOverlay.show<String>(
       context: context,
+      title: l10n.formatLink,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            l10n.formatLink,
-            style: Theme.of(context).textTheme.titleLarge
-                ?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 12),
           TextField(
             controller: urlController,
             autofocus: true,

@@ -8,6 +8,7 @@ import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_quality_fields.dart';
 import 'package:novyse/ui/components/comms/screen_share_selector_modal.dart';
 import 'package:novyse/ui/components/number/number_stepper.dart';
+import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
 import 'package:novyse/ui/components/switch/segmented_switch.dart';
 
@@ -78,12 +79,14 @@ void main() {
   });
 
   group('header', () {
-    testWidgets('shows the title and a close button', (tester) async {
+    testWidgets('carries no header of its own', (tester) async {
       mockCapturer(const []);
       await pump(tester);
 
-      expect(find.text(en.screenShareSetupTitle), findsOneWidget);
-      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+      // The title bar belongs to ResponsiveOverlay.show() so the dialog and
+      // bottom sheet presentations stay identical; this widget is body-only.
+      expect(find.byType(OverlayHeader), findsNothing);
+      expect(find.text(en.screenShareSetupTitle), findsNothing);
     });
 
     testWidgets('offers cancel and start actions', (tester) async {
@@ -309,6 +312,60 @@ void main() {
       );
       expect(start.onPressed, isNull);
     });
+
+    testWidgets('source tile ink is contained inside the grid', (tester) async {
+      // No thumbnails on purpose: the placeholder branch renders the tile
+      // without decoding images, so the test stays hermetic.
+      mockCapturer([
+        {
+          'id': 's1',
+          'name': 'Screen 1',
+          'type': 'screen',
+          'thumbnailSize': {'width': 320, 'height': 180, 'scaleFactor': 1.0},
+        },
+        {
+          'id': 's2',
+          'name': 'Screen 2',
+          'type': 'screen',
+          'thumbnailSize': {'width': 320, 'height': 180, 'scaleFactor': 1.0},
+        },
+      ]);
+      await pump(tester);
+      if (nativePicker) return;
+
+      final tiles = find.descendant(
+        of: find.byType(GridView),
+        matching: find.byType(InkWell),
+      );
+      expect(tiles, findsNWidgets(2));
+
+      final gridElement = tester.element(find.byType(GridView));
+      for (final tile in tiles.evaluate()) {
+        // The nearest Material above the tile ink...
+        Element? material;
+        tile.visitAncestorElements((ancestor) {
+          if (ancestor.widget is Material) {
+            material = ancestor;
+            return false;
+          }
+          return true;
+        });
+        expect(material, isNotNull);
+
+        // ...must live below the grid viewport. Otherwise hover/splash paint
+        // on the dialog/sheet Material above the scroll clip and spill over
+        // the pinned header when the tile scrolls underneath it.
+        var insideGrid = false;
+        material!.visitAncestorElements((ancestor) {
+          if (identical(ancestor, gridElement)) {
+            insideGrid = true;
+            return false;
+          }
+          return true;
+        });
+        expect(insideGrid, isTrue);
+      }
+    });
   });
 
   group('bitrate control', () {
@@ -508,10 +565,7 @@ void main() {
       );
 
       expect(find.byType(StatusMessage), findsOneWidget);
-      expect(
-        find.text(en.screenShareBitratePremiumLimitError),
-        findsOneWidget,
-      );
+      expect(find.text(en.screenShareBitratePremiumLimitError), findsOneWidget);
     });
 
     testWidgets('does not show StatusMessage when bitrate is valid', (

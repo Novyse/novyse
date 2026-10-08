@@ -12,74 +12,46 @@ import 'package:novyse/ui/components/settings/settings_external_link_row.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
 import 'package:novyse/ui/components/settings/settings_select_row.dart';
 
-/// Bottom sheets backing catalog-driven settings interaction.
-///
-/// Every sheet is opened from [SettingsItemRenderer]; select/multi/slider/
-/// text/color sheets persist through [SettingsController], action sheets
-/// ask for confirmation and dispatch to [runSettingsAction].
+
 Future<T?> _showSettingsSheet<T>({
   required BuildContext context,
+  required String title,
   required Widget child,
+  String? subtitle,
 }) {
   return ResponsiveOverlay.show<T>(
     context: context,
+    title: title,
+    subtitle: subtitle,
     mode: ResponsiveOverlayMode.dynamic,
     child: child,
   );
 }
 
-Widget _sheetTitle(BuildContext context, String title, [String? subtitle]) {
-  final theme = Theme.of(context);
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        if (subtitle != null && subtitle.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ],
-    ),
-  );
-}
-
-/// Dynamic single-choice picker. When [SettingItem.optionsLoader] is set,
-/// options are loaded lazily on open (spinner meanwhile) and the tap is
-/// handled by [SettingItem.onOptionPicked] (or the standard persist).
 Future<void> showSettingsSelectSheet({
   required BuildContext context,
   required WidgetRef ref,
   required SettingItem item,
 }) {
+  final title = context.settingsText(item.title);
   if (item.optionsLoader != null) {
     return _showSettingsSheet(
       context: context,
+      title: title,
+      subtitle: context.l10n.settingsCommonSelectOption,
       child: _LazySelectBody(item: item),
     );
   }
-  final title = context.settingsText(item.title);
   final settingKey = item.settingKey;
   final options = item.options ?? const [];
   return _showSettingsSheet(
     context: context,
+    title: title,
+    subtitle: context.l10n.settingsCommonSelectOption,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _sheetTitle(context, title, context.l10n.settingsCommonSelectOption),
         SettingsSection(
           children: [
             for (final option in options)
@@ -155,7 +127,6 @@ class _LazySelectBodyState extends ConsumerState<_LazySelectBody> {
 
   @override
   Widget build(BuildContext context) {
-    final title = context.settingsText(widget.item.title);
     return FutureBuilder<List<SettingOption>>(
       future: _future,
       builder: (context, snapshot) {
@@ -164,11 +135,6 @@ class _LazySelectBodyState extends ConsumerState<_LazySelectBody> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _sheetTitle(
-              context,
-              title,
-              context.l10n.settingsCommonSelectOption,
-            ),
             if (snapshot.connectionState == ConnectionState.waiting)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
@@ -241,12 +207,12 @@ Future<void> showSettingsMultiSelectSheet({
 
   return _showSettingsSheet(
     context: context,
+    title: title,
     child: StatefulBuilder(
       builder: (sheetContext, setSheetState) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          _sheetTitle(sheetContext, title),
           SettingsSection(
             children: [
               for (final option in options)
@@ -330,15 +296,23 @@ Future<void> showSettingsSliderSheet({
 
   return _showSettingsSheet(
     context: context,
+    title: title,
     child: StatefulBuilder(
       builder: (sheetContext, setSheetState) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          _sheetTitle(
-            sheetContext,
-            '$title · ${current.toStringAsFixed(current % 1 == 0 ? 0 : 1)}',
+          // The live value lives in the body, not in the header: the header
+          // title is fixed for the whole lifetime of the overlay.
+          Center(
+            child: Text(
+              current.toStringAsFixed(current % 1 == 0 ? 0 : 1),
+              style: Theme.of(
+                sheetContext,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
           ),
+          const SizedBox(height: 8),
           Slider(
             value: current,
             min: min,
@@ -377,8 +351,9 @@ Future<void> showSettingsTextSheet({
 
   return _showSettingsSheet(
     context: context,
+    title: title,
     child: _SettingsTextFieldBody(
-      title: title,
+      hintText: title,
       initialText: raw?.toString() ?? '',
       onSave: (text) async {
         if (settingKey != null) {
@@ -396,12 +371,12 @@ Future<void> showSettingsTextSheet({
 
 class _SettingsTextFieldBody extends StatefulWidget {
   const _SettingsTextFieldBody({
-    required this.title,
+    required this.hintText,
     required this.initialText,
     required this.onSave,
   });
 
-  final String title;
+  final String hintText;
   final String initialText;
   final Future<void> Function(String text) onSave;
 
@@ -426,12 +401,11 @@ class _SettingsTextFieldBodyState extends State<_SettingsTextFieldBody> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _sheetTitle(context, widget.title),
         TextField(
           controller: _controller,
           autofocus: true,
           decoration: InputDecoration(
-            hintText: widget.title,
+            hintText: widget.hintText,
             border: const OutlineInputBorder(),
           ),
           onSubmitted: (_) => widget.onSave(_controller.text),
@@ -453,6 +427,7 @@ Future<void> showSettingsColorSheet({
 }) {
   return _showSettingsSheet(
     context: context,
+    title: context.settingsText(item.title),
     child: _SettingsColorPickerSheet(item: item, ref: ref),
   );
 }
@@ -494,7 +469,6 @@ class _SettingsColorPickerSheetState extends State<_SettingsColorPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final title = context.settingsText(widget.item.title);
     final hexString = colorToHex(
       _selectedColor,
       includeHashSign: true,
@@ -505,8 +479,6 @@ class _SettingsColorPickerSheetState extends State<_SettingsColorPickerSheet> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _sheetTitle(context, title),
-        const SizedBox(height: 8),
         Center(
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -621,15 +593,12 @@ Future<void> showSettingsComingSoonSheet({
   final title = context.settingsText(item.title);
   return _showSettingsSheet(
     context: context,
+    title: context.l10n.settingsCommonComingSoonTitle,
+    subtitle: '$title · ${context.l10n.settingsCommonComingSoonMessage}',
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _sheetTitle(
-          context,
-          context.l10n.settingsCommonComingSoonTitle,
-          '$title · ${context.l10n.settingsCommonComingSoonMessage}',
-        ),
         AppButton(
           label: context.l10n.settingsCommonDone,
           onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
@@ -653,11 +622,12 @@ Future<bool> showSettingsConfirmSheet({
 
   await _showSettingsSheet(
     context: context,
+    title: title,
+    subtitle: subtitle.isEmpty ? null : subtitle,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _sheetTitle(context, title, subtitle.isEmpty ? null : subtitle),
         Row(
           children: [
             Expanded(
@@ -703,6 +673,8 @@ Future<void> showDeleteProfileSheet({
 }) {
   return _showSettingsSheet(
     context: context,
+    title: context.l10n.deleteProfileConfirmTitle,
+    subtitle: context.l10n.deleteProfileConfirmWarning,
     child: _DeleteProfileBody(ref: ref),
   );
 }
@@ -761,11 +733,6 @@ class _DeleteProfileBodyState extends ConsumerState<_DeleteProfileBody> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _sheetTitle(
-          context,
-          l10n.deleteProfileConfirmTitle,
-          l10n.deleteProfileConfirmWarning,
-        ),
         Text(
           l10n.deleteProfileConfirmInstruction(username),
           style: theme.textTheme.bodyMedium,

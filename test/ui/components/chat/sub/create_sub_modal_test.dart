@@ -5,6 +5,7 @@ import 'package:novyse/core/chat/chat_service.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/chat/sub/create_sub_modal.dart';
 import 'package:novyse/ui/components/onboarding/onboarding_text_field.dart';
+import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
 
 import '../../../../helpers/fake_gateway.dart';
@@ -63,11 +64,18 @@ void main() {
   }
 
   group('initial state', () {
-    testWidgets('shows the title and the name field', (tester) async {
+    testWidgets('shows the name field', (tester) async {
       final l10n = await pump(tester);
 
-      expect(find.text(l10n.createSubTitle), findsOneWidget);
       expect(find.text(l10n.createChatName), findsOneWidget);
+    });
+
+    testWidgets('carries no header of its own', (tester) async {
+      await pump(tester);
+
+      // The title bar belongs to ResponsiveOverlay.show(); the content widget
+      // is body-only so dialogs and bottom sheets stay visually identical.
+      expect(find.byType(OverlayHeader), findsNothing);
     });
 
     testWidgets('defaults to the MIXED sub type', (tester) async {

@@ -172,6 +172,8 @@ class OverviewMemberRow extends StatelessWidget {
     final bio = user?.biography ?? member['biography']?.toString();
     ResponsiveOverlay.show<void>(
       context: context,
+      title: name,
+      subtitle: (handle != null && handle.isNotEmpty) ? '@$handle' : null,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -184,22 +186,8 @@ class OverviewMemberRow extends StatelessWidget {
             type: 'USER',
           ),
           const SizedBox(height: 12),
-          Text(
-            name,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-            textAlign: TextAlign.center,
-          ),
-          if (handle != null && handle.isNotEmpty)
-            Text(
-              '@$handle',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          if (bio != null && bio.trim().isNotEmpty) ...[
-            const SizedBox(height: 8),
+          if (bio != null && bio.trim().isNotEmpty)
             Text(bio.trim(), textAlign: TextAlign.center),
-          ],
           const SizedBox(height: 20),
           AppButton(
             label: l10n.cancel,

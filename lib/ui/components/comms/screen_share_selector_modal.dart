@@ -84,8 +84,9 @@ class ScreenShareSelectorModal extends StatefulWidget {
     required ScreenShareConfig initial,
     bool isPremium = false,
   }) {
-    return ResponsiveOverlay.show<ScreenShareSetupResult>(
+return ResponsiveOverlay.show<ScreenShareSetupResult>(
       context: context,
+      title: AppLocalizations.of(context)!.screenShareSetupTitle,
       // Picker with thumbnails needs more room than the default 480px.
       mode: ResponsiveOverlayMode.dynamic,
       maxWidth: 620,
@@ -332,7 +333,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Content only: chrome, padding, scrolling and min/max sizing are
+    // Body only: the title bar, padding, scrolling and min/max sizing are
     // provided by OverlayDialog / OverlayBottomSheet via
     // ResponsiveOverlay.show(), so this is a plain Column with no inner
     // scroll view (an inner Flexible/ScrollView would break inside the
@@ -341,26 +342,6 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              l10n.screenShareSetupTitle,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: colorScheme.onSurface,
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.close_rounded),
-              onPressed: _cancel,
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-
         if (_custom) _buildCustomPicker(context) else _buildNativeFlow(context),
         const SizedBox(height: 16),
 
@@ -481,20 +462,31 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
           ),
         ),
         const SizedBox(height: 16),
-        SizedBox(
-          height: 340,
-          child: _loading
-              ? const Center(child: CircularProgressIndicator())
-              : _sources.isEmpty
-              ? Center(
-                  child: Text(
-                    _selectedType == ScreenShareType.screen
-                        ? l10n.screenShareNoScreensDetected
-                        : l10n.screenShareNoWindowsDetected,
-                    style: TextStyle(color: colorScheme.onSurfaceVariant),
-                  ),
-                )
-              : GridView.builder(
+        // Altezza adattiva: la griglia si dimensiona sul contenuto e scorre
+        // insieme al resto del modal (un'unica scrollbar), senza averne una
+        // propria.
+        if (_loading)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (_sources.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: Text(
+                _selectedType == ScreenShareType.screen
+                    ? l10n.screenShareNoScreensDetected
+                    : l10n.screenShareNoWindowsDetected,
+                style: TextStyle(color: colorScheme.onSurfaceVariant),
+              ),
+            ),
+          )
+        else
+          GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  primary: false,
                   itemCount: _sources.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
@@ -506,10 +498,19 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
                     final source = _sources[index];
                     final isSelected = _selectedSource?.id == source.id;
 
-                    return InkWell(
-                      onTap: () => setState(() => _selectedSource = source),
+                    // Material locale (trasparente): senza, hover/splash
+                    // dell'InkWell verrebbero dipinti sul Material del
+                    // modal/sheet — fuori dal clip dello scroll — e
+                    // sborderebbero sopra l'header pinnato quando la tile
+                    // scorre sotto di esso.
+                    return Material(
+                      type: MaterialType.transparency,
                       borderRadius: BorderRadius.circular(14),
-                      child: Container(
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: () => setState(() => _selectedSource = source),
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
@@ -571,10 +572,10 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
                           ],
                         ),
                       ),
+                      ),
                     );
                   },
                 ),
-        ),
         const SizedBox(height: 12),
       ],
     );

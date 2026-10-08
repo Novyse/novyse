@@ -206,6 +206,7 @@ class _EmojiSectionListState extends ConsumerState<EmojiSectionList> {
     final variants = [base, ...?base.skinVariations];
     final selected = await ResponsiveOverlay.show<String>(
       context: context,
+      title: AppLocalizations.of(context)!.emojiSkinToneTitle,
       child: Wrap(
         alignment: WrapAlignment.center,
         spacing: 4,

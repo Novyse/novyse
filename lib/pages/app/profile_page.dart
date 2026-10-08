@@ -121,7 +121,11 @@ class ProfilePage extends ConsumerWidget {
           const SizedBox(height: 16),
           AppButton(
             label: 'Modifica profilo',
-            onPressed: () => ResponsiveOverlay.show(context: context),
+            onPressed: () => ResponsiveOverlay.show<void>(
+              context: context,
+              title: 'Modifica profilo',
+              child: const SizedBox.shrink(),
+            ),
           ),
           const SizedBox(height: 12),
           AppButton(

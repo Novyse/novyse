@@ -1,17 +1,15 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:novyse/ui/components/responsiveOverlay/overlay_header.dart';
 
-/// Styled modal dialog. Visual tokens live in [ThemeData.dialogTheme].
-///
-/// Plain [Dialog] has no max-width constraint (only `insetPadding`), so on
-/// wide screens it stretches to almost full width. This wrapper enforces a
-/// [minWidth]/[maxWidth] and a [maxHeightFactor] relative to screen height
-/// to keep modals compact and homogeneous.
 class OverlayDialog extends StatelessWidget {
   const OverlayDialog({
     super.key,
+    required this.title,
+    this.subtitle,
     this.child,
+    this.showCloseButton = true,
     this.minWidth = OverlayDialog.defaultMinWidth,
     this.maxWidth = OverlayDialog.defaultMaxWidth,
     this.maxHeightFactor = OverlayDialog.defaultMaxHeightFactor,
@@ -20,15 +18,22 @@ class OverlayDialog extends StatelessWidget {
   static const double defaultMinWidth = 320;
   static const double defaultMaxWidth = 480;
   static const double defaultMaxHeightFactor = 0.85;
+  static const EdgeInsets _contentPadding = EdgeInsets.fromLTRB(24, 16, 24, 24);
 
+  final String title;
+  final String? subtitle;
   final Widget? child;
+  final bool showCloseButton;
   final double minWidth;
   final double maxWidth;
   final double maxHeightFactor;
 
   static Future<T?> show<T>(
     BuildContext context, {
+    required String title,
+    String? subtitle,
     Widget? child,
+    bool showCloseButton = true,
     double minWidth = defaultMinWidth,
     double maxWidth = defaultMaxWidth,
     double maxHeightFactor = defaultMaxHeightFactor,
@@ -39,6 +44,9 @@ class OverlayDialog extends StatelessWidget {
       useRootNavigator: true,
       barrierDismissible: barrierDismissible,
       builder: (context) => OverlayDialog(
+        title: title,
+        subtitle: subtitle,
+        showCloseButton: showCloseButton,
         minWidth: minWidth,
         maxWidth: maxWidth,
         maxHeightFactor: maxHeightFactor,
@@ -49,10 +57,8 @@ class OverlayDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final size = MediaQuery.sizeOf(context);
 
-    // Keep at least 24px margin per side on small screens.
     final effectiveMaxWidth = math.min(
       maxWidth,
       math.max(0.0, size.width - 48),
@@ -68,19 +74,26 @@ class OverlayDialog extends StatelessWidget {
           minHeight: 0,
           maxHeight: effectiveMaxHeight,
         ),
-        // Scrolling lives here so callers just provide a Column(min).
-        // Wraps small content, scrolls tall content.
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child:
-                child ??
-                Text(
-                  'Empty',
-                  style: theme.textTheme.bodyLarge,
-                  textAlign: TextAlign.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+              child: OverlayHeader(
+                title: title,
+                subtitle: subtitle,
+                showCloseButton: showCloseButton,
+              ),
+            ),
+            Flexible(
+              child: Padding(
+                padding: _contentPadding,
+                child: SingleChildScrollView(
+                  child: child ?? const SizedBox.shrink(),
                 ),
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );
