@@ -89,6 +89,7 @@ void main() {
         'password',
         'auth_sessions',
         'api_keys',
+        'send_with_enter',
       };
       for (final item in SettingsCatalog.allItems) {
         // Hidden items are storage-only and exempt from the WIP rule.

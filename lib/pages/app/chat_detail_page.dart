@@ -3,9 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/chat/chat_permission_helpers.dart';
 import 'package:novyse/core/chat/message_actions_service.dart';
 import 'package:novyse/core/chat/message_share_service.dart';
-import 'package:novyse/core/chat/permissions.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/core/share/incoming_share_service.dart';
@@ -257,14 +257,6 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     popOrChats(context);
   }
 
-  List<Map<String, dynamic>> _myRoles(ChatModel chat, String localUserUUID) {
-    final myMember = chat.members
-        .where((m) => m['uuid'] == localUserUUID)
-        .firstOrNull;
-    final roleIds = (myMember?['roleIDs'] as List?) ?? const [];
-    return chat.roles.where((r) => roleIds.contains(r['id'])).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
     final chatUUID = widget.chatUUID;
@@ -362,10 +354,10 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     final subType = sub?['type'] as String?;
     final showComposer =
         subType == 'MIXED' || subType == 'TEXT' || subType == 'ANNOUNCE';
-    final canSendMessage = hasPermission(
-      _myRoles(chat, localUserUUID),
-      ChatPermissions.sendMessage,
-      subType,
+    final canSendMessage = ChatPermissionHelpers.canUserSendMessage(
+      chat,
+      localUserUUID,
+      subID: selectedSub,
     );
 
     // VOCAL -> only vocal UI. TEXT/ANNOUNCE -> only chat. MIXED -> toggle.

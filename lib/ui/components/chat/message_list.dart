@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:novyse/core/chat/permissions.dart';
+import 'package:novyse/core/chat/chat_permission_helpers.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
@@ -202,19 +202,11 @@ class _MessageListState extends ConsumerState<MessageList>
 
     final isDM = chat?.type == 'DM';
     final isGroup = chat != null && !isDM;
-    final sub = chat?.subs.where((s) => s['id'] == subID).firstOrNull;
-    final subType = sub?['type'] as String?;
-    final myMember = chat?.members
-        .where((m) => m['uuid'] == localUserUUID)
-        .firstOrNull;
-    final myRoleIDs = (myMember?['roleIDs'] as List?) ?? const [];
-    final myRoles = (chat?.roles ?? [])
-        .where((r) => myRoleIDs.contains(r['id']))
-        .toList();
-    final canReplyChat =
-        isDM ||
-        chat == null ||
-        hasPermission(myRoles, ChatPermissions.sendMessage, subType);
+    final canReplyChat = ChatPermissionHelpers.canUserSendMessage(
+      chat,
+      localUserUUID,
+      subID: subID,
+    );
 
     return NotificationListener<ScrollNotification>(
       onNotification: onScrollNotification,

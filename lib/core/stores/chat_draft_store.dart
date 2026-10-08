@@ -140,6 +140,11 @@ class ChatDraftNotifier extends FamilyNotifier<ChatDraftState, String> {
     state = state.copyWith(replyingTo: updated);
   }
 
+  /// Clears all replying items from the draft.
+  void clearReplies() {
+    state = state.copyWith(replyingTo: const []);
+  }
+
   void setEditingMessage(MessageModel? message) {
     state = state.copyWith(editingMessage: () => message);
   }
