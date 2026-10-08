@@ -41,7 +41,7 @@ void main() {
     expect(selected, 'files');
   });
 
-  testWidgets('segments share the container width equally', (tester) async {
+  testWidgets('segments size to their content', (tester) async {
     await tester.pumpWidget(
       _harness(
         SegmentedSwitch<String>(
@@ -56,11 +56,83 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Mirrors `itemWidth = containerWidth / options.length`: every segment
-    // gets the same width regardless of its content.
+    // Widths follow the intrinsic label width, so the longer option gets a
+    // wider segment instead of forcing the short one to ellipsize.
     final a = _segmentBoxOf(tester, 'A');
     final b = _segmentBoxOf(tester, 'Much longer label');
+    expect(b.width, greaterThan(a.width));
+  });
+
+  testWidgets('segmentMinWidth acts as a floor on the content width', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _harness(
+        SegmentedSwitch<String>(
+          segmentMinWidth: 75,
+          options: const [
+            SegmentedOption(value: 'a', label: 'A'),
+            SegmentedOption(value: 'b', label: 'Much longer label'),
+          ],
+          value: 'a',
+          onChanged: (_) {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final a = _segmentBoxOf(tester, 'A');
+    expect(a.width, greaterThanOrEqualTo(75));
+  });
+
+  testWidgets('leftover space is shared so no label is ellipsized', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _harness(
+        SegmentedSwitch<String>(
+          options: const [
+            SegmentedOption(value: 'a', label: 'A'),
+            SegmentedOption(value: 'b', label: 'B'),
+            SegmentedOption(value: 'c', label: 'C'),
+          ],
+          value: 'a',
+          onChanged: (_) {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final a = _segmentBoxOf(tester, 'A');
+    final b = _segmentBoxOf(tester, 'B');
+    final c = _segmentBoxOf(tester, 'C');
+
+    // Same label lengths -> equally distributed slack.
     expect(a.width, moreOrLessEquals(b.width, epsilon: 0.5));
+    expect(b.width, moreOrLessEquals(c.width, epsilon: 0.5));
+    // The strip still fills the available width.
+    final total = a.width + b.width + c.width;
+    expect(total, moreOrLessEquals(800 - 12, epsilon: 0.5));
+  });
+
+  testWidgets('labels are not truncated when they fit', (tester) async {
+    await tester.pumpWidget(
+      _harness(
+        SegmentedSwitch<String>(
+          options: const [
+            SegmentedOption(value: 'a', label: 'Media'),
+            SegmentedOption(value: 'b', label: 'Files'),
+          ],
+          value: 'a',
+          onChanged: (_) {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final segment = _segmentBoxOf(tester, 'Media');
+    final text = tester.getSize(find.text('Media'));
+    expect(text.width, lessThanOrEqualTo(segment.width));
   });
 
   testWidgets('indicator aligns exactly with the active segment', (

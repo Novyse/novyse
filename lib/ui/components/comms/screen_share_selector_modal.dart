@@ -89,8 +89,6 @@ class ScreenShareSelectorModal extends StatefulWidget {
       // Picker with thumbnails needs more room than the default 480px.
       mode: ResponsiveOverlayMode.dynamic,
       maxWidth: 620,
-      maxHeightFactor: 0.9,
-      sheetMaxHeightFactor: 0.9,
       child: ScreenShareSelectorModal(initial: initial, isPremium: isPremium),
     );
   }

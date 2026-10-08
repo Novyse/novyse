@@ -141,19 +141,15 @@ class _SegmentedSwitchState<T> extends State<SegmentedSwitch<T>> {
 
   Widget _buildSwitch(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final count = widget.options.length;
     const insets = (_containerPadding + _borderWidth) * 2;
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final iconOnly = widget.options.every((o) => o.isIconOnly);
-        final minWidth = widget.segmentMinWidth ?? (iconOnly ? 45 : 110);
-        final viewport = constraints.hasBoundedWidth
+        final viewport =
+            constraints.hasBoundedWidth && constraints.maxWidth.isFinite
             ? constraints.maxWidth
             : null;
-        final itemWidth = viewport == null || !viewport.isFinite
-            ? minWidth
-            : math.max((viewport - insets) / count, minWidth);
+        final widths = _segmentWidths(context, viewport, insets);
         final activeIndex = _activeIndex;
 
         // Stadium clip on the scroll viewport: a partially scrolled-out
@@ -162,7 +158,7 @@ class _SegmentedSwitchState<T> extends State<SegmentedSwitch<T>> {
         // rectangular while scrolling.
         final scroll = ClipRRect(
           borderRadius: BorderRadius.circular(_indicatorRadius),
-          child: _buildScroll(itemWidth, activeIndex),
+          child: _buildScroll(widths, activeIndex),
         );
 
         return ScrollConfiguration(
@@ -172,9 +168,9 @@ class _SegmentedSwitchState<T> extends State<SegmentedSwitch<T>> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: _blurSigma, sigmaY: _blurSigma),
               child: Container(
-                width: viewport?.isFinite == true
-                    ? viewport
-                    : itemWidth * count + insets,
+                width:
+                    viewport ??
+                    widths.fold<double>(0, (a, b) => a + b) + insets,
                 padding: const EdgeInsets.all(_containerPadding),
                 decoration: BoxDecoration(
                   color: scheme.surface.withValues(alpha: 0.6),
@@ -193,8 +189,76 @@ class _SegmentedSwitchState<T> extends State<SegmentedSwitch<T>> {
     );
   }
 
-  Widget _buildScroll(double itemWidth, int activeIndex) {
+  /// Natural (content sized) width of a single segment: icon + gap + label
+  /// text plus the horizontal padding the button applies.
+  double _measureContent(BuildContext context, SegmentedOption<T> option) {
+    var width = 0.0;
+    final hasLabel = option.label?.isNotEmpty == true;
+
+    if (option.icon != null) {
+      width += _segmentIconSize;
+      if (hasLabel) width += _segmentGap;
+    }
+    if (hasLabel) {
+      final theme = Theme.of(context);
+      final style =
+          theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600) ??
+          const TextStyle(fontWeight: FontWeight.w600);
+      final painter = TextPainter(
+        text: TextSpan(text: option.label, style: style),
+        maxLines: 1,
+        textDirection: Directionality.of(context),
+        textScaler: MediaQuery.textScalerOf(context),
+      )..layout();
+      width += painter.width;
+      painter.dispose();
+      width += _segmentPaddingH * 2;
+    }
+
+    return width.ceilToDouble();
+  }
+
+  /// Per segment widths derived from content, never narrower than
+  /// [SegmentedSwitch.segmentMinWidth]. When the natural widths leave room in
+  /// the available viewport the leftover space is shared evenly so the control
+  /// still fills its slot without ever shrinking (and therefore ellipsing) a
+  /// label.
+  List<double> _segmentWidths(
+    BuildContext context,
+    double? viewport,
+    double insets,
+  ) {
+    final options = widget.options;
+    if (options.isEmpty) return const [];
+    final iconOnly = options.every((o) => o.isIconOnly);
+    final minWidth = widget.segmentMinWidth ?? (iconOnly ? 45 : 0);
+    final widths = <double>[
+      for (final option in options)
+        math.max(_measureContent(context, option), minWidth),
+    ];
+
+    if (viewport == null) return widths;
+    final available = math.max(0.0, viewport - insets);
+    var total = 0.0;
+    for (final width in widths) {
+      total += width;
+    }
+    if (total >= available) return widths;
+
+    final extra = (available - total) / widths.length;
+    return [for (final width in widths) width + extra];
+  }
+
+  Widget _buildScroll(List<double> widths, int activeIndex) {
     final scheme = Theme.of(context).colorScheme;
+    var indicatorLeft = 0.0;
+    for (var i = 0; i < activeIndex && i < widths.length; i++) {
+      indicatorLeft += widths[i];
+    }
+    final indicatorWidth = widths.isEmpty
+        ? 0.0
+        : widths[math.min(activeIndex, widths.length - 1)];
+
     return SingleChildScrollView(
       controller: _scrollController,
       scrollDirection: Axis.horizontal,
@@ -203,10 +267,10 @@ class _SegmentedSwitchState<T> extends State<SegmentedSwitch<T>> {
           AnimatedPositioned(
             duration: widget.animationDuration,
             curve: Curves.easeOutCubic,
-            left: activeIndex * itemWidth,
+            left: indicatorLeft,
             top: 0,
             bottom: 0,
-            width: itemWidth,
+            width: indicatorWidth,
             child: Container(
               decoration: BoxDecoration(
                 color: scheme.primary,
@@ -221,7 +285,7 @@ class _SegmentedSwitchState<T> extends State<SegmentedSwitch<T>> {
                 _SegmentButton<T>(
                   key: _itemKeys[i],
                   option: widget.options[i],
-                  width: itemWidth,
+                  width: widths[i],
                   isActive: i == activeIndex,
                   enabled: widget.enabled,
                   onTap: () => _onSelect(widget.options[i]),
