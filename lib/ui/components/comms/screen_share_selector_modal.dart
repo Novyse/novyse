@@ -7,6 +7,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:novyse/core/comms/comms_share_config.dart';
 import 'package:novyse/core/comms/devices/comms_bitrate_options.dart';
 import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
+import 'package:novyse/core/comms/devices/comms_screenshare_android.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_quality_fields.dart';
@@ -86,9 +87,10 @@ class ScreenShareSelectorModal extends StatefulWidget {
     return ResponsiveOverlay.show<ScreenShareSetupResult>(
       context: context,
       // Picker with thumbnails needs more room than the default 480px.
-      mode: ResponsiveOverlayMode.modal,
+      mode: ResponsiveOverlayMode.dynamic,
       maxWidth: 620,
       maxHeightFactor: 0.9,
+      sheetMaxHeightFactor: 0.9,
       child: ScreenShareSelectorModal(initial: initial, isPremium: isPremium),
     );
   }
@@ -141,7 +143,10 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
 
   @override
   void dispose() {
-    if (!_handedOff) _stopPreviewTracks();
+    if (!_handedOff) {
+      _stopPreviewTracks();
+      CommsScreenshareAndroid.teardownProjectionService();
+    }
     super.dispose();
   }
 
@@ -207,6 +212,9 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   }
 
   /// Runs the OS picker and keeps the captured tracks for preview/publish.
+  /// On Android the MediaProjection permission + foreground service must be
+  /// up before any capture, otherwise getMediaProjection() throws
+  /// SecurityException and the app crashes on consent.
   Future<void> _requestCapture() async {
     await _stopPreviewTracks();
     if (!mounted) return;
@@ -214,6 +222,20 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
       _captureLoading = true;
       _captureFailed = false;
     });
+    if (CommsScreenshareAndroid.isAndroid) {
+      final ready = await CommsScreenshareAndroid.ensureProjectionReady();
+      if (!ready) {
+        if (mounted) {
+          setState(() {
+            _captureLoading = false;
+            _captureFailed = true;
+          });
+        }
+        await CommsScreenshareAndroid.teardownProjectionService();
+        return;
+      }
+      if (!mounted) return;
+    }
     try {
       final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(
         _draft.captureOptions(captureScreenAudio: true),
@@ -228,12 +250,16 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
       }
       final videos = tracks.whereType<LocalVideoTrack>().toList();
       final audios = tracks.whereType<LocalAudioTrack>().toList();
+      final failed = videos.isEmpty;
       setState(() {
         _previewVideo = videos.isNotEmpty ? videos.first : null;
         _previewAudio = audios;
         _captureLoading = false;
-        _captureFailed = videos.isEmpty;
+        _captureFailed = failed;
       });
+      if (failed && CommsScreenshareAndroid.isAndroid) {
+        await CommsScreenshareAndroid.teardownProjectionService();
+      }
       for (final extra in videos.skip(1)) {
         try {
           await extra.stop();
@@ -246,6 +272,9 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
           _captureLoading = false;
           _captureFailed = true;
         });
+      }
+      if (CommsScreenshareAndroid.isAndroid) {
+        await CommsScreenshareAndroid.teardownProjectionService();
       }
     }
   }
@@ -305,8 +334,11 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Content only: Dialog chrome, padding and min/max sizing are provided
-    // by OverlayDialog via ResponsiveOverlay.show().
+    // Content only: chrome, padding, scrolling and min/max sizing are
+    // provided by OverlayDialog / OverlayBottomSheet via
+    // ResponsiveOverlay.show(), so this is a plain Column with no inner
+    // scroll view (an inner Flexible/ScrollView would break inside the
+    // bottom sheet's unbounded height).
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -331,79 +363,63 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
         ),
         const SizedBox(height: 16),
 
-        Flexible(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (_custom)
-                  _buildCustomPicker(context)
-                else
-                  _buildNativeFlow(context),
-                const SizedBox(height: 16),
+        if (_custom) _buildCustomPicker(context) else _buildNativeFlow(context),
+        const SizedBox(height: 16),
 
-                // Per-share video settings (defaults from settings).
-                ScreenShareQualityFields(
-                  mode: _mode,
-                  customQuality: _quality,
-                  customFps: _fps,
-                  bitrateKbps: _bitrateKbps,
-                  isPremium: widget.isPremium,
-                  onModeChanged: (v) {
-                    setState(() {
-                      _mode = v;
-                      _updateBitrateForSelection(forceDefault: true);
-                    });
-                    _syncPreviewOptions();
-                  },
-                  onQualityChanged: (v) {
-                    setState(() {
-                      _quality = v;
-                      _updateBitrateForSelection(forceDefault: true);
-                    });
-                    _syncPreviewOptions();
-                  },
-                  onFpsChanged: (v) {
-                    setState(() {
-                      _fps = v;
-                      _updateBitrateForSelection(forceDefault: true);
-                    });
-                    _syncPreviewOptions();
-                  },
-                  onBitrateChanged: (v) {
-                    setState(() {
-                      _userCustomizedBitrate = true;
-                      _bitrateKbps = v;
-                    });
-                    _syncPreviewOptions();
-                  },
-                ),
-                const SizedBox(height: 12),
-
-                // Audio toggle row (only for full screens).
-                if (_custom ? _selectedType == ScreenShareType.screen : true)
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _includeAudio,
-                        onChanged: (val) =>
-                            setState(() => _includeAudio = val ?? false),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        l10n.screenShareIncludeSystemAudio,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          ),
+        // Per-share video settings (defaults from settings).
+        ScreenShareQualityFields(
+          mode: _mode,
+          customQuality: _quality,
+          customFps: _fps,
+          bitrateKbps: _bitrateKbps,
+          isPremium: widget.isPremium,
+          onModeChanged: (v) {
+            setState(() {
+              _mode = v;
+              _updateBitrateForSelection(forceDefault: true);
+            });
+            _syncPreviewOptions();
+          },
+          onQualityChanged: (v) {
+            setState(() {
+              _quality = v;
+              _updateBitrateForSelection(forceDefault: true);
+            });
+            _syncPreviewOptions();
+          },
+          onFpsChanged: (v) {
+            setState(() {
+              _fps = v;
+              _updateBitrateForSelection(forceDefault: true);
+            });
+            _syncPreviewOptions();
+          },
+          onBitrateChanged: (v) {
+            setState(() {
+              _userCustomizedBitrate = true;
+              _bitrateKbps = v;
+            });
+            _syncPreviewOptions();
+          },
         ),
+        const SizedBox(height: 12),
+
+        // Audio toggle row (only for full screens).
+        if (_custom ? _selectedType == ScreenShareType.screen : true)
+          Row(
+            children: [
+              Checkbox(
+                value: _includeAudio,
+                onChanged: (val) =>
+                    setState(() => _includeAudio = val ?? false),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                l10n.screenShareIncludeSystemAudio,
+                style: TextStyle(fontSize: 14, color: colorScheme.onSurface),
+              ),
+            ],
+          ),
         const SizedBox(height: 16),
 
         // Bottom Buttons

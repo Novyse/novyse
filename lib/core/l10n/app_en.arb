@@ -723,6 +723,8 @@
   "notifMarkAsRead": "Mark as read",
   "notifReplyPlaceholder": "Type a message...",
   "notifReplySend": "Send",
+  "notifShareTitle": "Screen sharing",
+  "notifShareText": "Novyse is sharing your screen",
   "windowMinimize": "Minimize",
   "windowMaximize": "Maximize",
   "windowRestore": "Restore",

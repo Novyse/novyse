@@ -13,6 +13,11 @@ mixin CommsScreenshareMixin
     final room = state.room;
     if (room?.localParticipant == null) return null;
 
+    if (CommsScreenshareAndroid.isAndroid) {
+      final ready = await CommsScreenshareAndroid.ensureProjectionReady();
+      if (!ready) return null;
+    }
+
     try {
       final captureOptions = config.captureOptions(
         sourceId: sourceId,
@@ -294,6 +299,7 @@ mixin CommsScreenshareMixin
       if (state.fullscreenStreamId == targetSid) {
         state = state.copyWith(fullscreenStreamId: () => null);
       }
+
     } catch (e) {
       debugPrint('[CommsController] Error stopping screen share: $e');
     }

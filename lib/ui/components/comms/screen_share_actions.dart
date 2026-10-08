@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/comms/comms_share_config.dart';
+import 'package:novyse/core/comms/devices/comms_screenshare_android.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/ui/components/comms/screen_share_edit_modal.dart';
 import 'package:novyse/ui/components/comms/screen_share_selector_modal.dart';
@@ -23,18 +24,37 @@ abstract final class ScreenShareActions {
     if (result == null || !context.mounted) return;
     final controller = ref.read(commsProvider.notifier);
     if (result.previewVideoTrack != null) {
-      await controller.publishPreviewShare(
+    
+      final sid = await controller.publishPreviewShare(
         videoTrack: result.previewVideoTrack!,
         audioTracks: result.previewAudioTracks,
         config: result.config,
         captureScreenAudio: result.includeAudio,
       );
+      if (sid == null) {
+        try {
+          await result.previewVideoTrack!.stop();
+        } catch (_) {}
+        for (final audio in result.previewAudioTracks) {
+          try {
+            await audio.stop();
+          } catch (_) {}
+        }
+        await CommsScreenshareAndroid.teardownProjectionService();
+      }
     } else {
-      await controller.startScreenShare(
+      if (CommsScreenshareAndroid.isAndroid) {
+        final ready = await CommsScreenshareAndroid.ensureProjectionReady();
+        if (!ready) return;
+      }
+      final sid = await controller.startScreenShare(
         sourceId: result.source?.id,
         config: result.config,
         captureScreenAudio: result.includeAudio,
       );
+      if (sid == null) {
+        await CommsScreenshareAndroid.teardownProjectionService();
+      }
     }
   }
 

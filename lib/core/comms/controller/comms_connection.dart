@@ -278,6 +278,7 @@ mixin CommsConnectionMixin
     }
 
     state = CommsState(remoteVolumes: savedVolumes);
+    await CommsScreenshareAndroid.teardownProjectionService();
     if (room != null) {
       final local = room.localParticipant;
       if (local != null) {
