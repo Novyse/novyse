@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/chat/chat_permission_helpers.dart';
 import 'package:novyse/core/chat/message_action_methods.dart';
 import 'package:novyse/core/chat/permissions.dart';
 import 'package:novyse/core/l10n/l10n.dart';
@@ -106,47 +107,25 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
     final isMine = message.userUUID == localUserUUID;
     final isPinned = message.pinned;
     final isFavorited = message.favorited;
-    final isDM = chat?.type == 'DM';
 
-    final sub = chat?.subs
-        .where((s) => s['id'] as int == message.subID)
-        .firstOrNull;
-    final subType = sub?['type'] as String?;
-
-    final myMember = chat?.members
-        .where((m) => m['uuid'] == localUserUUID)
-        .firstOrNull;
-    final myRoleIDs = (myMember?['roleIDs'] as List?) ?? const [];
-    final myRoles = (chat?.roles ?? [])
-        .where((r) => myRoleIDs.contains(r['id']))
-        .toList();
-    final myLevel = getEffectiveLevel(myRoles);
-
-    final canReply =
-        isDM ||
-        chat == null ||
-        hasPermission(myRoles, ChatPermissions.sendMessage, subType);
+    final canReply = ChatPermissionHelpers.canUserSendMessage(
+      chat,
+      localUserUUID,
+      subID: message.subID,
+    );
     final canQuoteAndReply = canReply && hasSelectedText;
-    final canPin =
-        isDM ||
-        chat == null ||
-        hasPermission(myRoles, ChatPermissions.pinMessage);
+    final canPin = ChatPermissionHelpers.canUserPerform(
+      chat,
+      localUserUUID,
+      ChatPermissions.pinMessage,
+    );
     final canEdit = isMine && canReply;
 
-    bool canDelete = isMine;
-    if (!canDelete && !isDM && chat != null) {
-      final targetMember = chat.members
-          .where((m) => m['uuid'] == message.userUUID)
-          .firstOrNull;
-      final targetRoleIDs = (targetMember?['roleIDs'] as List?) ?? const [];
-      final targetRoles = chat.roles
-          .where((r) => targetRoleIDs.contains(r['id']))
-          .toList();
-      final targetLevel = getEffectiveLevel(targetRoles);
-      canDelete =
-          hasPermission(myRoles, ChatPermissions.deleteMessage) &&
-          myLevel >= targetLevel;
-    }
+    final canDelete = ChatPermissionHelpers.canUserDeleteMessage(
+      chat: chat,
+      localUserUUID: localUserUUID,
+      targetUserUUID: message.userUUID,
+    );
 
     final isSystem = message.isSystem;
 
