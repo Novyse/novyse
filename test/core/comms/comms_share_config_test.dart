@@ -31,17 +31,38 @@ void main() {
       expect(config.mode, CommsMediaConstraints.defaultShareMode);
     });
 
-    test('fluid resolves to the 1080p60 preset', () {
-      const config = ScreenShareConfig(mode: CommsMediaConstraints.shareFluid);
+    test('smooth resolves to the 1080p60 preset', () {
+      const config = ScreenShareConfig(mode: CommsMediaConstraints.shareSmooth);
       final params = config.resolveParams();
       expect(params.dimensions.width, 1920);
       expect(params.encoding?.maxFramerate, 60);
     });
 
-    test('clarity resolves to the 1080p5 coding preset', () {
-      const config = ScreenShareConfig(
-        mode: CommsMediaConstraints.shareClarity,
-      );
+    test('text resolves to the 1080p5 coding preset', () {
+      const config = ScreenShareConfig(mode: CommsMediaConstraints.shareText);
+      final params = config.resolveParams();
+      expect(params.dimensions.width, 1920);
+      expect(params.encoding?.maxFramerate, 5);
+      expect(config.resolveMaxFrameRate(), 5.0);
+    });
+
+    test('gaming resolves to the 720p120 preset', () {
+      const config = ScreenShareConfig(mode: CommsMediaConstraints.shareGaming);
+      final params = config.resolveParams();
+      expect(params.dimensions.width, 1280);
+      expect(params.encoding?.maxFramerate, 120);
+      expect(config.resolveMaxFrameRate(), 120.0);
+    });
+
+    test('legacy fluid resolves to the 1080p60 preset', () {
+      const config = ScreenShareConfig(mode: 'fluid_60');
+      final params = config.resolveParams();
+      expect(params.dimensions.width, 1920);
+      expect(params.encoding?.maxFramerate, 60);
+    });
+
+    test('legacy clarity resolves to the 1080p5 coding preset', () {
+      const config = ScreenShareConfig(mode: 'clarity');
       final params = config.resolveParams();
       expect(params.dimensions.width, 1920);
       expect(params.encoding?.maxFramerate, 5);

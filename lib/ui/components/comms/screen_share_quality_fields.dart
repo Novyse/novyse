@@ -78,7 +78,7 @@ class ScreenShareQualityFields extends StatelessWidget {
         SegmentedSwitch<String>(
           label: l10n.settingsItemShareQualityTitle,
           value: CommsMediaConstraints.resolveShareMode(mode),
-          segmentMinWidth: 90,
+          segmentMinWidth: 75,
           options: [
             for (final id in CommsQualityOptions.shareModes)
               SegmentedOption<String>(

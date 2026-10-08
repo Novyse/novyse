@@ -416,12 +416,12 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('fluid mode shows only the mode selector', (tester) async {
+    testWidgets('smooth mode shows only the mode selector', (tester) async {
       await pumpFields(tester, config: const ScreenShareConfig());
 
       expect(find.text(en.settingsItemShareQualityTitle), findsOneWidget);
       expect(
-        find.text(en.settingsOptionShareQualityFluid60Label),
+        find.text(en.settingsOptionShareQualitySmoothLabel),
         findsOneWidget,
       );
       expect(find.text(en.settingsItemShareCustomQualityTitle), findsNothing);
@@ -487,9 +487,9 @@ void main() {
         await tester.pumpAndSettle();
         expect(changedFps, '60');
 
-        await tester.tap(find.text(en.settingsOptionShareQualityFluid60Label));
+        await tester.tap(find.text(en.settingsOptionShareQualitySmoothLabel));
         await tester.pumpAndSettle();
-        expect(changedMode, 'fluid_60');
+        expect(changedMode, 'smooth');
       },
     );
   });

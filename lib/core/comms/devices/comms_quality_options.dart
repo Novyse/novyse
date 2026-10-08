@@ -37,8 +37,9 @@ abstract final class CommsQualityOptions {
 
   /// Screenshare mode ids.
   static const List<String> shareModes = [
-    CommsMediaConstraints.shareFluid,
-    CommsMediaConstraints.shareClarity,
+    CommsMediaConstraints.shareSmooth,
+    CommsMediaConstraints.shareText,
+    CommsMediaConstraints.shareGaming,
     CommsMediaConstraints.shareCustom,
   ];
 
@@ -81,15 +82,7 @@ abstract final class CommsQualityOptions {
   }
 
   static String shareModeLabel(AppLocalizations l, String id) {
-    return switch (id) {
-      CommsMediaConstraints.shareFluid =>
-        l.settingsOptionShareQualityFluid60Label,
-      CommsMediaConstraints.shareClarity =>
-        l.settingsOptionShareQualityClarityLabel,
-      CommsMediaConstraints.shareCustom =>
-        l.settingsOptionShareQualityCustomLabel,
-      _ => id,
-    };
+    return ScreenSharePreset.fromId(id).label(l);
   }
 
   static List<SettingOption> videoQualityOptions() => [

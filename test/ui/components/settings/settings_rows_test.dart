@@ -335,10 +335,10 @@ void main() {
       expect(find.byType(SettingsValueRow), findsOneWidget);
     });
 
-    testWidgets('hides custom rows in fluid mode', (tester) async {
+    testWidgets('hides custom rows in smooth mode', (tester) async {
       await tester.pumpWidget(
         _rendererWithSettings(
-          {'comms.shareQuality': 'fluid_60'},
+          {'comms.shareQuality': 'smooth'},
           customQuality(),
         ),
       );
@@ -349,7 +349,7 @@ void main() {
     testWidgets('falls back to the default when the mode is unset', (
       tester,
     ) async {
-      // No stored mode → default fluid_60 ≠ custom → hidden.
+      // No stored mode → default smooth ≠ custom → hidden.
       await tester.pumpWidget(_rendererWithSettings({}, customQuality()));
       await tester.pumpAndSettle();
       expect(find.byType(SettingsValueRow), findsNothing);

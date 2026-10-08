@@ -5,7 +5,7 @@ import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
 /// Per-share screen configuration.
 @immutable
 class ScreenShareConfig {
-  /// One of `fluid_60`, `clarity`, `custom` (see [CommsMediaConstraints]).
+  /// One of `smooth`, `text`, `gaming`, `custom` (see [CommsMediaConstraints]).
   final String mode;
 
   /// Quality id for `custom` mode (`240p` … `1080p`).
@@ -69,13 +69,13 @@ class ScreenShareConfig {
 
   /// Effective quality id for this config, optionally clamped to source dimensions.
   String resolveEffectiveQuality({int? sourceWidth, int? sourceHeight}) {
-    final rawQuality = switch (CommsMediaConstraints.resolveShareMode(mode)) {
-      CommsMediaConstraints.shareClarity => CommsMediaConstraints.video1080p,
-      CommsMediaConstraints.shareCustom =>
+    final preset = ScreenSharePreset.fromId(mode);
+    final rawQuality = switch (preset) {
+      ScreenSharePreset.custom =>
         CommsMediaConstraints.resolveVideoQuality(customQuality),
-      _ => CommsMediaConstraints.video1080p,
+      _ => preset.quality,
     };
-    if (mode != CommsMediaConstraints.shareCustom &&
+    if (preset != ScreenSharePreset.custom &&
         sourceWidth != null &&
         sourceHeight != null) {
       return CommsMediaConstraints.clampQualityToResolution(
@@ -104,12 +104,11 @@ class ScreenShareConfig {
   }
 
   double resolveMaxFrameRate() {
-    final resolved = CommsMediaConstraints.resolveShareMode(mode);
-    return switch (resolved) {
-      CommsMediaConstraints.shareClarity => 5.0,
-      CommsMediaConstraints.shareCustom =>
+    final preset = ScreenSharePreset.fromId(mode);
+    return switch (preset) {
+      ScreenSharePreset.custom =>
         CommsMediaConstraints.resolveVideoFps('', customFps).toDouble(),
-      _ => 60.0,
+      _ => preset.fps.toDouble(),
     };
   }
 

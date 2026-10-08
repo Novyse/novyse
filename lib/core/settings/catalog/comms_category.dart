@@ -230,7 +230,7 @@ final List<SettingCategory> commsCategory = [
                 component: SettingComponent.select,
                 settingKey: 'comms.shareQuality',
                 scope: SettingScope.local,
-                defaultValue: 'fluid_60',
+                defaultValue: CommsMediaConstraints.defaultShareMode,
                 options: CommsQualityOptions.shareModeOptions(),
                 onOptionPicked: saveShareModeOption,
               ),
@@ -247,7 +247,7 @@ final List<SettingCategory> commsCategory = [
                 visibleWhen: const SettingVisibleWhen(
                   'comms.shareQuality',
                   'custom',
-                  defaultValue: 'fluid_60',
+                  defaultValue: CommsMediaConstraints.defaultShareMode,
                 ),
               ),
               SettingItem(
@@ -263,7 +263,7 @@ final List<SettingCategory> commsCategory = [
                 visibleWhen: const SettingVisibleWhen(
                   'comms.shareQuality',
                   'custom',
-                  defaultValue: 'fluid_60',
+                  defaultValue: CommsMediaConstraints.defaultShareMode,
                 ),
               ),
               SettingItem(
@@ -281,7 +281,7 @@ final List<SettingCategory> commsCategory = [
                 visibleWhen: const SettingVisibleWhen(
                   'comms.shareQuality',
                   'custom',
-                  defaultValue: 'fluid_60',
+                  defaultValue: CommsMediaConstraints.defaultShareMode,
                 ),
               ),
               SettingItem(

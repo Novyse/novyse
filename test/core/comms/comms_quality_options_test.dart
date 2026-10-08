@@ -39,8 +39,13 @@ void main() {
       ]);
     });
 
-    test('share modes are fluid, clarity and custom', () {
-      expect(CommsQualityOptions.shareModes, ['fluid_60', 'clarity', 'custom']);
+    test('share modes are smooth, text, gaming and custom', () {
+      expect(CommsQualityOptions.shareModes, [
+        'smooth',
+        'text',
+        'gaming',
+        'custom',
+      ]);
     });
 
     test('custom share qualities mirror the video scale', () {
@@ -80,16 +85,29 @@ void main() {
 
     test('share mode labels resolve', () {
       expect(
-        CommsQualityOptions.shareModeLabel(en, 'fluid_60'),
-        en.settingsOptionShareQualityFluid60Label,
+        CommsQualityOptions.shareModeLabel(en, 'smooth'),
+        en.settingsOptionShareQualitySmoothLabel,
       );
       expect(
-        CommsQualityOptions.shareModeLabel(en, 'clarity'),
-        en.settingsOptionShareQualityClarityLabel,
+        CommsQualityOptions.shareModeLabel(en, 'text'),
+        en.settingsOptionShareQualityTextLabel,
+      );
+      expect(
+        CommsQualityOptions.shareModeLabel(en, 'gaming'),
+        en.settingsOptionShareQualityGamingLabel,
       );
       expect(
         CommsQualityOptions.shareModeLabel(en, 'custom'),
         en.settingsOptionShareQualityCustomLabel,
+      );
+      // Legacy backward-compatibility
+      expect(
+        CommsQualityOptions.shareModeLabel(en, 'fluid_60'),
+        en.settingsOptionShareQualitySmoothLabel,
+      );
+      expect(
+        CommsQualityOptions.shareModeLabel(en, 'clarity'),
+        en.settingsOptionShareQualityTextLabel,
       );
     });
   });
@@ -124,9 +142,14 @@ void main() {
       expect(options.where((o) => o.disabled), isEmpty);
     });
 
-    test('share mode options carry the three modes', () {
+    test('share mode options carry the four modes', () {
       final options = CommsQualityOptions.shareModeOptions();
-      expect(options.map((o) => o.value), ['fluid_60', 'clarity', 'custom']);
+      expect(options.map((o) => o.value), [
+        'smooth',
+        'text',
+        'gaming',
+        'custom',
+      ]);
     });
 
     test('custom share quality options disable only 4k', () {

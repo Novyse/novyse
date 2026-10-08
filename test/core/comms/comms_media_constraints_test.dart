@@ -15,15 +15,15 @@ void main() {
       expect(CommsMediaConstraints.defaultVideoFramerate, '60');
     });
 
-    test('screen share defaults to fluid 1080p60', () {
-      expect(CommsMediaConstraints.defaultShareMode, 'fluid_60');
-      final fluid = CommsMediaConstraints.resolveShareParamsFrom({
-        'comms.shareQuality': 'fluid_60',
+    test('screen share defaults to smooth 1080p60', () {
+      expect(CommsMediaConstraints.defaultShareMode, 'smooth');
+      final smooth = CommsMediaConstraints.resolveShareParamsFrom({
+        'comms.shareQuality': 'smooth',
       });
-      expect(fluid, CommsMediaConstraints.share1080p60);
+      expect(smooth, CommsMediaConstraints.share1080p60);
       expect(
         CommsMediaConstraints.resolveShareMaxFrameRateFrom({
-          'comms.shareQuality': 'fluid_60',
+          'comms.shareQuality': 'smooth',
         }),
         60.0,
       );
@@ -133,26 +133,36 @@ void main() {
   });
 
   group('CommsMediaConstraints screen share', () {
-    test('clarity is 1080p5 coding mode, fluid is 1080p60', () {
-      final clarity = CommsMediaConstraints.resolveShareParamsFrom({
-        'comms.shareQuality': 'clarity',
+    test('text is 1080p5 coding mode, smooth is 1080p60, gaming is 720p120', () {
+      final text = CommsMediaConstraints.resolveShareParamsFrom({
+        'comms.shareQuality': 'text',
       });
-      expect(clarity, CommsMediaConstraints.share1080p5);
+      expect(text, CommsMediaConstraints.share1080p5);
       expect(
         CommsMediaConstraints.resolveShareMaxFrameRateFrom({
-          'comms.shareQuality': 'clarity',
+          'comms.shareQuality': 'text',
         }),
         5.0,
       );
-      final fluid = CommsMediaConstraints.resolveShareParamsFrom({
-        'comms.shareQuality': 'fluid_60',
+      final smooth = CommsMediaConstraints.resolveShareParamsFrom({
+        'comms.shareQuality': 'smooth',
       });
-      expect(fluid, CommsMediaConstraints.share1080p60);
+      expect(smooth, CommsMediaConstraints.share1080p60);
       expect(
         CommsMediaConstraints.resolveShareMaxFrameRateFrom({
-          'comms.shareQuality': 'fluid_60',
+          'comms.shareQuality': 'smooth',
         }),
         60.0,
+      );
+      final gaming = CommsMediaConstraints.resolveShareParamsFrom({
+        'comms.shareQuality': 'gaming',
+      });
+      expect(gaming, CommsMediaConstraints.share720p120);
+      expect(
+        CommsMediaConstraints.resolveShareMaxFrameRateFrom({
+          'comms.shareQuality': 'gaming',
+        }),
+        120.0,
       );
     });
 
@@ -173,7 +183,7 @@ void main() {
       );
     });
 
-    test('custom clamps 4k to 2k, unknown mode falls back to fluid', () {
+    test('custom clamps 4k to 2k, unknown mode falls back to smooth', () {
       final clamped = CommsMediaConstraints.resolveShareParamsFrom({
         'comms.shareQuality': 'custom',
         'comms.shareCustomQuality': '4k',
@@ -182,7 +192,7 @@ void main() {
       expect(clamped.dimensions, VideoDimensionsPresets.h1440_169);
       expect(
         CommsMediaConstraints.resolveShareMode('nope'),
-        'fluid_60',
+        'smooth',
       );
     });
 
@@ -284,13 +294,13 @@ void main() {
       expect(item('comms.virtualBackground').disabled, isTrue);
     });
 
-    test('share mode offers fluid/clarity/custom + conditional rows', () {
+    test('share mode offers smooth/text/gaming/custom + conditional rows', () {
       final share = item('comms.shareQuality');
       expect(share.disabled, isFalse);
-      expect(share.defaultValue, 'fluid_60');
+      expect(share.defaultValue, 'smooth');
       expect(
         share.options!.map((o) => o.value).toList(),
-        ['fluid_60', 'clarity', 'custom'],
+        ['smooth', 'text', 'gaming', 'custom'],
       );
       expect(share.onOptionPicked, isNotNull);
 

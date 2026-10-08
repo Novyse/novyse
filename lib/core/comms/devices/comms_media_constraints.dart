@@ -2,6 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:novyse/core/comms/devices/screen_share_preset.dart';
+
+export 'package:novyse/core/comms/devices/screen_share_preset.dart';
 
 /// Media constraints for voice / video / screen share.
 ///
@@ -42,16 +45,21 @@ abstract final class CommsMediaConstraints {
   static const fps60 = '60';
   static const fps120 = '120';
 
-  static const shareFluid = 'fluid_60';
-  static const shareClarity = 'clarity';
+  static const shareSmooth = 'smooth';
+  static const shareText = 'text';
+  static const shareGaming = 'gaming';
   static const shareCustom = 'custom';
+
+  // Legacy aliases
+  static const shareFluid = shareSmooth;
+  static const shareClarity = shareText;
 
   // Defaults (maximum free-tier quality).
   static const defaultNoiseSuppression = true;
   static const defaultEchoCancellation = true;
   static const defaultVideoQuality = video1080p;
   static const defaultVideoFramerate = fps60;
-  static const defaultShareMode = shareFluid;
+  static const defaultShareMode = shareSmooth;
   static const defaultShareCustomQuality = video1080p;
   static const defaultShareCustomFps = fps60;
 
@@ -134,6 +142,12 @@ abstract final class CommsMediaConstraints {
   static const VideoParameters share1080p5 = VideoParameters(
     dimensions: VideoDimensionsPresets.h1080_169,
     encoding: VideoEncoding(maxBitrate: 4000 * 1000, maxFramerate: 5),
+  );
+
+  /// Custom 720p120 gaming screen-share preset.
+  static const VideoParameters share720p120 = VideoParameters(
+    dimensions: VideoDimensionsPresets.h720_169,
+    encoding: VideoEncoding(maxBitrate: 10000 * 1000, maxFramerate: 120),
   );
 
   /// Normalized quality id ensuring a supported identifier.
@@ -254,15 +268,9 @@ abstract final class CommsMediaConstraints {
     );
   }
 
-  // Screen share modes: fluid (1080p60), clarity (1080p5 coding mode),
-  // custom (user quality + fps).
+  // Screen share modes: resolved via ScreenSharePreset.
   static String resolveShareMode(String stored) {
-    return switch (stored) {
-      shareFluid => shareFluid,
-      shareClarity => shareClarity,
-      shareCustom => shareCustom,
-      _ => defaultShareMode,
-    };
+    return ScreenSharePreset.fromId(stored).id;
   }
 
   /// Share preset for any quality/fps pair.
@@ -341,9 +349,12 @@ abstract final class CommsMediaConstraints {
   /// Non-custom modes ignore the custom rows; custom combines them.
   static VideoParameters resolveShareParamsFrom(Map<String, Object?> s) {
     final mode = resolveShareMode(readString(s, shareModeKey, defaultShareMode));
-    return switch (mode) {
-      shareClarity => share1080p5,
-      shareCustom => () {
+    final preset = ScreenSharePreset.fromId(mode);
+    return switch (preset) {
+      ScreenSharePreset.smooth => share1080p60,
+      ScreenSharePreset.text => share1080p5,
+      ScreenSharePreset.gaming => share720p120,
+      ScreenSharePreset.custom => () {
         final rawBitrate = s[shareCustomBitrateKey];
         final bitrateKbps = switch (rawBitrate) {
           final int v => v,
@@ -362,19 +373,18 @@ abstract final class CommsMediaConstraints {
           maxBitrateKbps: bitrateKbps,
         );
       }(),
-      _ => share1080p60,
     };
   }
 
   static double resolveShareMaxFrameRateFrom(Map<String, Object?> s) {
     final mode = resolveShareMode(readString(s, shareModeKey, defaultShareMode));
-    return switch (mode) {
-      shareClarity => 5.0,
-      shareCustom => resolveVideoFps(
+    final preset = ScreenSharePreset.fromId(mode);
+    return switch (preset) {
+      ScreenSharePreset.custom => resolveVideoFps(
         '',
         readString(s, shareCustomFpsKey, defaultShareCustomFps),
       ).toDouble(),
-      _ => 60.0,
+      _ => preset.fps.toDouble(),
     };
   }
 
