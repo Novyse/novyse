@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/comms/comms_controller.dart';
+import 'package:novyse/core/comms/comms_state.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
+import 'package:novyse/core/notifications/comms_notification_service.dart';
 import 'package:novyse/core/notifications/notification_bridge.dart';
 import 'package:novyse/core/notifications/notification_manager.dart';
 import 'package:novyse/core/router/chat_routes.dart';
@@ -38,7 +41,31 @@ class _NotificationBinderState extends ConsumerState<NotificationBinder>
     };
     GlobalEventEmitter.instance.on('message:new', _onMessageNew!);
 
+    CommsNotificationService.instance.onSetAudio = (enabled) async {
+      await ref.read(commsProvider.notifier).setAudioEnabled(enabled);
+    };
+    CommsNotificationService.instance.onToggleAudio = () async {
+      await ref.read(commsProvider.notifier).toggleAudio();
+    };
+    CommsNotificationService.instance.onSetVideo = (enabled) async {
+      await ref.read(commsProvider.notifier).setVideoEnabled(enabled);
+    };
+    CommsNotificationService.instance.onToggleVideo = () async {
+      await ref.read(commsProvider.notifier).toggleVideo();
+    };
+    CommsNotificationService.instance.onLeave = () async {
+      await ref.read(commsProvider.notifier).leave();
+    };
+
     NotificationBridge.registerReceiver((message) async {
+      final type = message['type'];
+      if (type == 'comms_action') {
+        final actionId = message['actionId'] as String?;
+        if (actionId != null) {
+          await CommsNotificationService.instance.executeAction(actionId);
+        }
+        return;
+      }
       await GlobalEventEmitter.instance.message.add(message);
     });
 
@@ -148,6 +175,7 @@ class _NotificationBinderState extends ConsumerState<NotificationBinder>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     NotificationBridge.unregister();
+    CommsNotificationService.instance.clearHandlers();
     if (_onMessageNew != null) {
       GlobalEventEmitter.instance.off('message:new', _onMessageNew!);
     }
@@ -163,6 +191,9 @@ class _NotificationBinderState extends ConsumerState<NotificationBinder>
       if (next != null && next.isNotEmpty) {
         unawaited(NotificationManager.instance.clearChat(next));
       }
+    });
+    ref.listen<CommsState>(commsProvider, (prev, next) {
+      ref.read(commsProvider.notifier).syncCommsNotification();
     });
     _wireManager();
     return widget.child;

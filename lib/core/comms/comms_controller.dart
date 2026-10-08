@@ -13,9 +13,11 @@ import 'package:novyse/core/comms/devices/comms_devices_controller.dart';
 import 'package:novyse/core/comms/devices/comms_devices_platform.dart';
 import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
 import 'package:novyse/core/comms/devices/comms_screenshare_android.dart';
+import 'package:novyse/core/notifications/comms_notification_service.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/core/sounds/sound_player.dart';
+import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/utils/platform.dart';
 
 part 'controller/comms_connection.dart';
@@ -57,6 +59,11 @@ class CommsNotifier extends Notifier<CommsState>
       _hydrateVolumes(next);
       _onAudioDspSettingsChanged(prev, next);
     });
+    ref.listen<ChatListState>(chatListProvider, (prev, next) {
+      if (state.connected) {
+        syncCommsNotification();
+      }
+    });
     Future.microtask(() {
       if (_isDisposed) return;
       try {
@@ -82,6 +89,46 @@ class CommsNotifier extends Notifier<CommsState>
     if (!noiseChanged && !echoChanged) return;
     if (state.room?.localParticipant == null) return;
     unawaited(_applyAudioProcessingLive());
+  }
+
+  /// Synchronizes the ongoing mobile notification with the current comms state.
+  void syncCommsNotification() {
+    if (!CommsNotificationService.isSupported) return;
+    if (!state.connected || state.currentChatUUID == null) {
+      unawaited(CommsNotificationService.instance.dismiss());
+      return;
+    }
+    final chatUUID = state.currentChatUUID!;
+    final sub = state.currentSub;
+    String chatName = '';
+    try {
+      final chats = ref.read(chatListProvider).chats;
+      for (final c in chats) {
+        if (c.uuid == chatUUID) {
+          if (sub > 0) {
+            final subMap = c.subs
+                .where((s) => s['id'] == sub || s['subID'] == sub)
+                .firstOrNull;
+            final subName = subMap?['name']?.toString().trim();
+            chatName = (subName != null && subName.isNotEmpty)
+                ? '${c.name} (#$subName)'
+                : c.name;
+          } else {
+            chatName = c.name;
+          }
+          break;
+        }
+      }
+    } catch (_) {}
+
+    unawaited(CommsNotificationService.instance.showOrUpdate(
+      chatUUID: chatUUID,
+      subID: sub,
+      chatName: chatName,
+      participantCount: state.participantCount,
+      isAudioEnabled: state.isAudioEnabled,
+      isVideoEnabled: state.isVideoEnabled,
+    ));
   }
 }
 

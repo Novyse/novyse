@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:novyse/core/config/global.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/notifications/comms_notification_service.dart';
 import 'package:novyse/core/notifications/notification_actions.dart';
 import 'package:novyse/core/notifications/notification_paths_stub.dart'
     if (dart.library.io) 'package:novyse/core/notifications/notification_paths_io.dart'
@@ -28,6 +29,8 @@ class LocalNotificationService {
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
+
+  FlutterLocalNotificationsPlugin get plugin => _plugin;
 
   static const _androidChannelId = 'novyse_chat_messages';
 
@@ -69,6 +72,7 @@ class LocalNotificationService {
               ),
             ],
           ),
+          ...CommsNotificationService.darwinCategories(l10n),
         ],
       );
 
@@ -116,6 +120,17 @@ class LocalNotificationService {
             importance: Importance.high,
             playSound: true,
             enableVibration: true,
+          ),
+        );
+        await androidPlugin?.createNotificationChannel(
+          AndroidNotificationChannel(
+            CommsNotificationService.androidChannelId,
+            l10n.notifChannelComms,
+            description: l10n.notifChannelCommsDesc,
+            importance: Importance.low,
+            playSound: false,
+            enableVibration: false,
+            showBadge: false,
           ),
         );
       }
@@ -225,6 +240,11 @@ class LocalNotificationService {
         );
         await instance.clearChat(chatUUID);
       }
+      return;
+    }
+
+    if (actionId != null && CommsNotificationService.isCommsAction(actionId)) {
+      await CommsNotificationService.instance.handleAction(actionId);
       return;
     }
 

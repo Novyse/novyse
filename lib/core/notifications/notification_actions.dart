@@ -11,6 +11,13 @@ import 'package:novyse/core/storage/database/database.dart';
 abstract final class NotificationActionIds {
   static const reply = 'reply';
   static const markAsRead = 'mark_read';
+  static const commsMute = 'comms_mute';
+  static const commsUnmute = 'comms_unmute';
+  static const commsToggleMic = 'comms_toggle_mic';
+  static const commsCameraOn = 'comms_camera_on';
+  static const commsCameraOff = 'comms_camera_off';
+  static const commsToggleVideo = 'comms_toggle_video';
+  static const commsLeave = 'comms_leave';
 }
 
 /// Handles notification actions

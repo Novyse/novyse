@@ -725,6 +725,23 @@
   "notifReplySend": "Send",
   "notifShareTitle": "Screen sharing",
   "notifShareText": "Novyse is sharing your screen",
+  "notifChannelComms": "Voice Call",
+  "notifChannelCommsDesc": "Ongoing voice call status and controls",
+  "notifCommsOngoingCall": "Voice Call",
+  "notifCommsParticipants": "{count, plural, =1{1 participant} other{{count} participants}}",
+  "@notifCommsParticipants": {
+    "description": "Number of participants in ongoing voice call",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notifCommsMute": "Mute",
+  "notifCommsUnmute": "Unmute",
+  "notifCommsVideoOff": "Turn off camera",
+  "notifCommsVideoOn": "Turn on camera",
+  "notifCommsLeave": "Leave",
   "windowMinimize": "Minimize",
   "windowMaximize": "Maximize",
   "windowRestore": "Restore",

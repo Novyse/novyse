@@ -96,6 +96,7 @@ mixin CommsConnectionMixin
         errorMessage: () => null,
         errorMessageBuilder: () => null,
       );
+      (this as CommsNotifier).syncCommsNotification();
 
       // Route playout to the saved output device
       try {
@@ -126,6 +127,7 @@ mixin CommsConnectionMixin
           );
           if (!_isDisposed) {
             state = state.copyWith(isAudioEnabled: true);
+            (this as CommsNotifier).syncCommsNotification();
           }
         } catch (e) {
           debugPrint('[CommsController] Error enabling default microphone: $e');
@@ -159,6 +161,7 @@ mixin CommsConnectionMixin
         );
         SoundPlayer.instance.playSound('comms.join');
         _notifyStateChange();
+        (this as CommsNotifier).syncCommsNotification();
       })
       ..on<ParticipantDisconnectedEvent>((event) {
         debugPrint(
@@ -179,6 +182,7 @@ mixin CommsConnectionMixin
         }
 
         _notifyStateChange();
+        (this as CommsNotifier).syncCommsNotification();
       })
       ..on<ActiveSpeakersChangedEvent>((event) {
         _pendingSpeakers = event.speakers.map((p) => p.identity).toSet();
@@ -278,6 +282,7 @@ mixin CommsConnectionMixin
     }
 
     state = CommsState(remoteVolumes: savedVolumes);
+    unawaited(CommsNotificationService.instance.dismiss());
     await CommsScreenshareAndroid.teardownProjectionService();
     if (room != null) {
       final local = room.localParticipant;
