@@ -11,6 +11,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_quality_fields.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
+import 'package:novyse/ui/components/switch/segmented_switch.dart';
 
 enum ScreenShareType { screen, window }
 
@@ -447,24 +448,22 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Center(
-          child: SegmentedButton<ScreenShareType>(
-            segments: [
-              ButtonSegment(
+          child: SegmentedSwitch<ScreenShareType>(
+            value: _selectedType,
+            segmentMinWidth: 140,
+            options: [
+              SegmentedOption<ScreenShareType>(
                 value: ScreenShareType.screen,
-                label: Text(l10n.screenShareEntireScreen),
+                label: l10n.screenShareEntireScreen,
                 icon: const Icon(Icons.monitor_rounded, size: 18),
               ),
-              ButtonSegment(
+              SegmentedOption<ScreenShareType>(
                 value: ScreenShareType.window,
-                label: Text(l10n.screenShareWindow),
+                label: l10n.screenShareWindow,
                 icon: const Icon(Icons.window_rounded, size: 18),
               ),
             ],
-            selected: {_selectedType},
-            onSelectionChanged: (set) => _onTypeChanged(set.first),
-            style: SegmentedButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-            ),
+            onChanged: _onTypeChanged,
           ),
         ),
         const SizedBox(height: 16),

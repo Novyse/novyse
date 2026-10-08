@@ -4,6 +4,7 @@ import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
 import 'package:novyse/core/comms/devices/comms_quality_options.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/number/number_stepper.dart';
+import 'package:novyse/ui/components/switch/segmented_switch.dart';
 
 /// Quality selectors shared by the screen-share setup menu and the
 /// per-share edit menu.
@@ -74,74 +75,49 @@ class ScreenShareQualityFields extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        DropdownButtonFormField<String>(
-          initialValue: CommsMediaConstraints.resolveShareMode(mode),
-          decoration: InputDecoration(
-            labelText: l10n.settingsItemShareQualityTitle,
-            border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 10,
-            ),
-          ),
-          items: [
+        SegmentedSwitch<String>(
+          label: l10n.settingsItemShareQualityTitle,
+          value: CommsMediaConstraints.resolveShareMode(mode),
+          segmentMinWidth: 90,
+          options: [
             for (final id in CommsQualityOptions.shareModes)
-              DropdownMenuItem(
+              SegmentedOption<String>(
                 value: id,
-                child: Text(CommsQualityOptions.shareModeLabel(l10n, id)),
+                label: CommsQualityOptions.shareModeLabel(l10n, id),
               ),
           ],
-          onChanged: (v) {
-            if (v != null) onModeChanged(v);
-          },
+          onChanged: onModeChanged,
         ),
         if (isCustom) ...[
           const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            initialValue: resolvedQuality,
-            decoration: InputDecoration(
-              labelText: l10n.settingsItemShareCustomQualityTitle,
-              border: const OutlineInputBorder(),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
-            ),
-            items: [
+          SegmentedSwitch<String>(
+            label: l10n.settingsItemShareCustomQualityTitle,
+            value: resolvedQuality,
+            segmentMinWidth: 75,
+            options: [
               for (final id in CommsQualityOptions.shareCustomQualities)
-                if (!CommsQualityOptions.disabledShareCustomQualities.contains(
-                  id,
-                ))
-                  DropdownMenuItem(
-                    value: id,
-                    child: Text(CommsQualityOptions.qualityLabel(l10n, id)),
-                  ),
-            ],
-            onChanged: (v) {
-              if (v != null) onQualityChanged(v);
-            },
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            initialValue: _fpsOrDefault(customFps),
-            decoration: InputDecoration(
-              labelText: l10n.settingsItemShareCustomFpsTitle,
-              border: const OutlineInputBorder(),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
-            ),
-            items: [
-              for (final id in CommsQualityOptions.fpsValues)
-                DropdownMenuItem(
+                SegmentedOption<String>(
                   value: id,
-                  child: Text(CommsQualityOptions.fpsLabel(l10n, id)),
+                  label: CommsQualityOptions.qualityLabel(l10n, id),
+                  enabled: !CommsQualityOptions.disabledShareCustomQualities
+                      .contains(id),
                 ),
             ],
-            onChanged: (v) {
-              if (v != null) onFpsChanged(v);
-            },
+            onChanged: onQualityChanged,
+          ),
+          const SizedBox(height: 12),
+          SegmentedSwitch<String>(
+            label: l10n.settingsItemShareCustomFpsTitle,
+            value: _fpsOrDefault(customFps),
+            segmentMinWidth: 65,
+            options: [
+              for (final id in CommsQualityOptions.fpsValues)
+                SegmentedOption<String>(
+                  value: id,
+                  label: CommsQualityOptions.fpsLabel(l10n, id),
+                ),
+            ],
+            onChanged: onFpsChanged,
           ),
           if (onBitrateChanged != null) ...[
             const SizedBox(height: 12),

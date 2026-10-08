@@ -8,6 +8,7 @@ import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_quality_fields.dart';
 import 'package:novyse/ui/components/comms/screen_share_selector_modal.dart';
 import 'package:novyse/ui/components/number/number_stepper.dart';
+import 'package:novyse/ui/components/switch/segmented_switch.dart';
 
 /// The desktop capturer lives behind the `FlutterWebRTC.Method` channel, so
 /// mocking that channel drives the custom-picker branch.
@@ -448,5 +449,48 @@ void main() {
       expect(find.text(en.screenShareBitrateLabel), findsOneWidget);
       expect(find.byType(NumberStepper), findsOneWidget);
     });
+
+    testWidgets(
+      'uses SegmentedSwitch for mode, quality, and fps in custom mode',
+      (tester) async {
+        String? changedMode;
+        String? changedQuality;
+        String? changedFps;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: ScreenShareQualityFields(
+                  mode: 'custom',
+                  customQuality: '480p',
+                  customFps: '15',
+                  onModeChanged: (v) => changedMode = v,
+                  onQualityChanged: (v) => changedQuality = v,
+                  onFpsChanged: (v) => changedFps = v,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(SegmentedSwitch<String>), findsNWidgets(3));
+
+        await tester.tap(find.text(en.settingsOptionVideoQuality1080pLabel));
+        await tester.pumpAndSettle();
+        expect(changedQuality, '1080p');
+
+        await tester.tap(find.text('60 FPS'));
+        await tester.pumpAndSettle();
+        expect(changedFps, '60');
+
+        await tester.tap(find.text(en.settingsOptionShareQualityFluid60Label));
+        await tester.pumpAndSettle();
+        expect(changedMode, 'fluid_60');
+      },
+    );
   });
 }
