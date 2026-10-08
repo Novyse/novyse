@@ -42,6 +42,9 @@ mixin CommsScreenshareMixin
             await t.stop();
           } catch (_) {}
         }
+        if (state.activeScreenShareTrackSids.isEmpty) {
+          await CommsScreenshareAndroid.teardownProjectionService();
+        }
         return null;
       }
       return await _publishShareTracks(
@@ -53,6 +56,9 @@ mixin CommsScreenshareMixin
       );
     } catch (e) {
       debugPrint('[CommsController] Screen share failed or cancelled: $e');
+      if (state.activeScreenShareTrackSids.isEmpty) {
+        await CommsScreenshareAndroid.teardownProjectionService();
+      }
       return null;
     }
   }
@@ -243,10 +249,20 @@ mixin CommsScreenshareMixin
   Future<void> stopScreenShare([String? trackSid]) async {
     final room = state.room;
     final localParticipant = room?.localParticipant;
-    if (localParticipant == null) return;
+    if (localParticipant == null) {
+      if (state.activeScreenShareTrackSids.isEmpty) {
+        await CommsScreenshareAndroid.teardownProjectionService();
+      }
+      return;
+    }
 
     final targetSid = trackSid ?? state.activeScreenShareTrackSids.firstOrNull;
-    if (targetSid == null) return;
+    if (targetSid == null) {
+      if (state.activeScreenShareTrackSids.isEmpty) {
+        await CommsScreenshareAndroid.teardownProjectionService();
+      }
+      return;
+    }
 
     try {
       final publication = localParticipant.videoTrackPublications
@@ -300,8 +316,14 @@ mixin CommsScreenshareMixin
         state = state.copyWith(fullscreenStreamId: () => null);
       }
 
+      if (updatedSids.isEmpty) {
+        await CommsScreenshareAndroid.teardownProjectionService();
+      }
     } catch (e) {
       debugPrint('[CommsController] Error stopping screen share: $e');
+      if (state.activeScreenShareTrackSids.isEmpty) {
+        await CommsScreenshareAndroid.teardownProjectionService();
+      }
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/comms/comms_share_config.dart';
 import 'package:novyse/core/comms/comms_state.dart';
+import 'package:novyse/core/comms/devices/comms_screenshare_android.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 
 /// The hardware/view state transitions on [CommsNotifier] are pure `copyWith`
@@ -21,7 +22,10 @@ void main() {
     notifier = container.read(commsProvider.notifier);
   });
 
-  tearDown(() => container.dispose());
+  tearDown(() {
+    CommsScreenshareAndroid.onTeardown = null;
+    container.dispose();
+  });
 
   group('togglePin', () {
     test('pins a stream', () {
@@ -215,15 +219,25 @@ void main() {
       expect(read().activeScreenShareTrackSids, isEmpty);
     });
 
-    test('stopScreenShare is a no-op without a room', () async {
+    test('stopScreenShare is a no-op without a room and tears down projection', () async {
+      var tornDown = false;
+      CommsScreenshareAndroid.onTeardown = () async {
+        tornDown = true;
+      };
       await expectLater(notifier.stopScreenShare('TR_1'), completes);
       expect(read().activeScreenShareTrackSids, isEmpty);
+      expect(tornDown, isTrue);
     });
 
     test(
-      'stopScreenShare without a room and without a sid is a no-op',
+      'stopScreenShare without a room and without a sid is a no-op and tears down projection',
       () async {
+        var tornDown = false;
+        CommsScreenshareAndroid.onTeardown = () async {
+          tornDown = true;
+        };
         await expectLater(notifier.stopScreenShare(), completes);
+        expect(tornDown, isTrue);
       },
     );
 

@@ -1,6 +1,7 @@
 import 'dart:io' as io;
 
-import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
+import 'package:flutter/foundation.dart'
+    show debugPrint, kIsWeb, visibleForTesting;
 import 'package:flutter_background/flutter_background.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:novyse/core/l10n/l10n.dart';
@@ -75,8 +76,14 @@ abstract final class CommsScreenshareAndroid {
     }
   }
 
+  @visibleForTesting
+  static Future<void> Function()? onTeardown;
+
   /// Best-effort teardown after stop/cancel. Never throws.
   static Future<void> teardownProjectionService() async {
+    if (onTeardown != null) {
+      await onTeardown!();
+    }
     if (!isAndroid) return;
     try {
       if (FlutterBackground.isBackgroundExecutionEnabled) {

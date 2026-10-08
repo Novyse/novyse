@@ -247,6 +247,9 @@ mixin CommsConnectionMixin
           if (state.fullscreenStreamId == event.publication.sid) {
             state = state.copyWith(fullscreenStreamId: () => null);
           }
+          if (updatedSids.isEmpty) {
+            unawaited(CommsScreenshareAndroid.teardownProjectionService());
+          }
         }
         _notifyStateChange();
       })
