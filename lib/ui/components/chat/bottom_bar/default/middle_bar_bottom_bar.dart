@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:markdown_editor_live/markdown_editor_live.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/shortcuts/chat_shortcuts.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/context_menu.dart';
@@ -47,6 +48,46 @@ class MiddleBarBottomBar extends ConsumerStatefulWidget {
 }
 
 class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
+  FocusNode? _internalFocusNode;
+
+  FocusNode get _effectiveFocusNode =>
+      widget.focusNode ?? (_internalFocusNode ??= FocusNode());
+
+  @override
+  void initState() {
+    super.initState();
+    _effectiveFocusNode.onKeyEvent = _onKeyEvent;
+  }
+
+  @override
+  void didUpdateWidget(covariant MiddleBarBottomBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      oldWidget.focusNode?.onKeyEvent = null;
+      _effectiveFocusNode.onKeyEvent = _onKeyEvent;
+    }
+  }
+
+  @override
+  void dispose() {
+    _effectiveFocusNode.onKeyEvent = null;
+    _internalFocusNode?.dispose();
+    super.dispose();
+  }
+
+  KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
+    return ChatKeyboardHandler.handleKeyEvent(
+      event: event,
+      ref: ref,
+      context: context,
+      chatUUID: widget.chatUUID,
+      subID: widget.subID,
+      textController: widget.textController,
+      focusNode: _effectiveFocusNode,
+      onSendMessage: widget.onSendMessage,
+    );
+  }
+
   String _formatDuration(Duration d) {
     final minutes = d.inMinutes;
     final seconds = d.inSeconds % 60;
@@ -128,7 +169,7 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
           },
           child: TextField(
             controller: widget.textController,
-            focusNode: widget.focusNode,
+            focusNode: _effectiveFocusNode,
             textCapitalization: TextCapitalization.sentences,
             maxLines: 4,
             minLines: 1,

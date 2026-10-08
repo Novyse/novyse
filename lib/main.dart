@@ -14,6 +14,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/notifications/notification_binder.dart';
 import 'package:novyse/core/notifications/notification_manager.dart';
 import 'package:novyse/core/share/share_intent_binder.dart';
+import 'package:novyse/core/shortcuts/app_shortcuts_wrapper.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_recents_store.dart';
 import 'package:novyse/ui/components/window/desktop_tray_controller.dart';
@@ -112,7 +113,11 @@ class MyApp extends ConsumerWidget {
       builder: (context, child) => GlobalEventReceiver(
         child: NotificationBinder(
           child: ShareIntentBinder(
-            child: DesktopWindowFrame(child: child ?? const SizedBox.shrink()),
+            child: DesktopWindowFrame(
+              child: AppShortcutsWrapper(
+                child: child ?? const SizedBox.shrink(),
+              ),
+            ),
           ),
         ),
       ),

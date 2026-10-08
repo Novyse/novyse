@@ -79,7 +79,7 @@ final List<SettingCategory> chatSettingsCategory = [
                 settingKey: 'chat.sendWithEnter',
                 scope: SettingScope.local,
                 defaultValue: true,
-                disabled: true,
+                disabled: false,
               ),
               SettingItem(
                 id: 'markdown_toolbar',
