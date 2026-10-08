@@ -14,14 +14,25 @@ class ScreenShareConfig {
   /// Fps id for `custom` mode (`5` … `120`).
   final String customFps;
 
+  /// Per-share max video bitrate in kbps. Null keeps the preset bitrate.
+  final int? maxBitrateKbps;
+
   const ScreenShareConfig({
     this.mode = CommsMediaConstraints.defaultShareMode,
     this.customQuality = CommsMediaConstraints.defaultShareCustomQuality,
     this.customFps = CommsMediaConstraints.defaultShareCustomFps,
+    this.maxBitrateKbps,
   });
 
   /// Defaults snapshot read from the settings map.
   factory ScreenShareConfig.fromSettings(Map<String, Object?> s) {
+    final rawBitrate = s[CommsMediaConstraints.shareCustomBitrateKey];
+    final bitrate = switch (rawBitrate) {
+      final int v => v,
+      final num v => v.toInt(),
+      final String v => int.tryParse(v),
+      _ => null,
+    };
     return ScreenShareConfig(
       mode: CommsMediaConstraints.readString(
         s,
@@ -38,6 +49,7 @@ class ScreenShareConfig {
         CommsMediaConstraints.shareCustomFpsKey,
         CommsMediaConstraints.defaultShareCustomFps,
       ),
+      maxBitrateKbps: bitrate,
     );
   }
 
@@ -45,11 +57,13 @@ class ScreenShareConfig {
     String? mode,
     String? customQuality,
     String? customFps,
+    int? maxBitrateKbps,
   }) {
     return ScreenShareConfig(
       mode: mode ?? this.mode,
       customQuality: customQuality ?? this.customQuality,
       customFps: customFps ?? this.customFps,
+      maxBitrateKbps: maxBitrateKbps ?? this.maxBitrateKbps,
     );
   }
 
@@ -80,7 +94,13 @@ class ScreenShareConfig {
       sourceHeight: sourceHeight,
     );
     final fps = resolveMaxFrameRate().round();
-    return CommsMediaConstraints.shareParamsFor(quality, fps);
+    final preset = CommsMediaConstraints.shareParamsFor(quality, fps);
+    final bitrate = maxBitrateKbps;
+    if (bitrate == null) return preset;
+    return VideoParameters(
+      dimensions: preset.dimensions,
+      encoding: VideoEncoding(maxBitrate: bitrate * 1000, maxFramerate: fps),
+    );
   }
 
   double resolveMaxFrameRate() {
@@ -139,8 +159,10 @@ class ScreenShareConfig {
       other is ScreenShareConfig &&
       other.mode == mode &&
       other.customQuality == customQuality &&
-      other.customFps == customFps;
+      other.customFps == customFps &&
+      other.maxBitrateKbps == maxBitrateKbps;
 
   @override
-  int get hashCode => Object.hash(mode, customQuality, customFps);
+  int get hashCode =>
+      Object.hash(mode, customQuality, customFps, maxBitrateKbps);
 }

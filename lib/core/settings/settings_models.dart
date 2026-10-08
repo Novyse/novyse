@@ -48,6 +48,7 @@ enum SettingComponent {
   action,
   custom,
   hotkey,
+  stepper,
 }
 
 /// A stable selectable value with a localized label ([label]).
@@ -91,6 +92,7 @@ class SettingItem {
   final List<SettingOption>? options;
   final double? min;
   final double? max;
+  final double? step;
   final String? actionId;
   final String? externalUrl;
   final String? customRendererId;
@@ -118,6 +120,7 @@ class SettingItem {
     this.options,
     this.min,
     this.max,
+    this.step,
     this.actionId,
     this.externalUrl,
     this.customRendererId,

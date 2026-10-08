@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
@@ -29,18 +30,23 @@ class _StubSettingsController extends SettingsController {
   Map<String, Object?> build() => Map<String, Object?>.of(preset);
 }
 
-Widget _rendererWithSettings(Map<String, Object?> preset, SettingItem item) {
+Widget _rendererWithSettings(
+  Map<String, Object?> preset,
+  SettingItem item, {
+  bool? isPremium,
+}) {
   return ProviderScope(
     overrides: [
       settingsControllerProvider.overrideWith(
         () => _StubSettingsController(preset),
       ),
+      if (isPremium != null) isPremiumProvider.overrideWithValue(isPremium),
     ],
     child: MaterialApp(
       localizationsDelegates: localizationsDelegates,
       supportedLocales: supportedLocales,
       locale: const Locale('en'),
-      home: SettingsItemRenderer(item: item),
+      home: Scaffold(body: SettingsItemRenderer(item: item)),
     ),
   );
 }
@@ -349,4 +355,87 @@ void main() {
       expect(find.byType(SettingsValueRow), findsNothing);
     });
   });
+
+  group('SettingsItemRenderer stepper error & premium check', () {
+    SettingItem videoBitrateItem() =>
+        SettingsCatalog.findBySettingKey(CommsMediaConstraints.videoBitrateKey)!;
+
+    testWidgets(
+      'locks bounds to quality min/max and disables decrement at min',
+      (tester) async {
+        await tester.pumpWidget(
+          _rendererWithSettings(
+            {
+              CommsMediaConstraints.videoQualityKey: '1080p',
+              CommsMediaConstraints.videoFramerateKey: '60',
+              CommsMediaConstraints.videoBitrateKey: 1500,
+            },
+            videoBitrateItem(),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final decButton = tester.widget<IconButton>(
+          find.byKey(const ValueKey('number_stepper_decrement')),
+        );
+        expect(decButton.onPressed, isNull);
+
+        expect(
+          find.text('Bitrate is below the minimum for this setting'),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
+      'shows premium limit error when bitrate > 8000 and isPremium is false',
+      (tester) async {
+        await tester.pumpWidget(
+          _rendererWithSettings(
+            {
+              CommsMediaConstraints.videoQualityKey: '1440p',
+              CommsMediaConstraints.videoFramerateKey: '60',
+              CommsMediaConstraints.videoBitrateKey: 10000,
+            },
+            videoBitrateItem(),
+            isPremium: false,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Subscribe to Premium to unlock all features (WIP)'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'shows no error when bitrate > 8000 and isPremium is true',
+      (tester) async {
+        await tester.pumpWidget(
+          _rendererWithSettings(
+            {
+              CommsMediaConstraints.videoQualityKey: '1440p',
+              CommsMediaConstraints.videoFramerateKey: '60',
+              CommsMediaConstraints.videoBitrateKey: 10000,
+            },
+            videoBitrateItem(),
+            isPremium: true,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Subscribe to Premium to unlock all features (WIP)'),
+          findsNothing,
+        );
+        expect(
+          find.text('Bitrate is below the minimum for this setting'),
+          findsNothing,
+        );
+      },
+    );
+  });
 }
+

@@ -983,6 +983,8 @@
   "settingsItemSaveGalleryTitle": "Save to Gallery",
   "settingsItemSendWithEnterSubtitle": "Enter sends, Shift+Enter new line",
   "settingsItemSendWithEnterTitle": "Send message with Enter",
+  "settingsItemShareCustomBitrateSubtitle": "Max bitrate (kbps) for personalized mode",
+  "settingsItemShareCustomBitrateTitle": "Custom Share Bitrate",
   "settingsItemShareCustomFpsSubtitle": "Framerate for personalized mode",
   "settingsItemShareCustomFpsTitle": "Custom Share Framerate",
   "settingsItemShareCustomQualitySubtitle": "Resolution for personalized mode",
@@ -1013,6 +1015,11 @@
   "settingsItemVersionTitle": "Version",
   "settingsItemVibrationSubtitle": "Haptic pattern for calls",
   "settingsItemVibrationTitle": "Call Vibration Pattern",
+  "settingsItemBitrateMaxError": "Bitrate is above the maximum for this setting",
+  "settingsItemBitrateMinError": "Bitrate is below the minimum for this setting",
+  "settingsItemBitratePremiumLimitError": "Subscribe to Premium to unlock all features (WIP)",
+  "settingsItemVideoBitrateSubtitle": "Transmission bitrate in kbps",
+  "settingsItemVideoBitrateTitle": "Video Bitrate",
   "settingsItemVideoFpsSubtitle": "Capture framerate",
   "settingsItemVideoFpsTitle": "Video Framerate",
   "settingsItemVideoQualitySubtitle": "Capture resolution target",
@@ -1187,5 +1194,9 @@
   "settingsItemAppLicenseSubtitle": "Novyse is GPL-3.0-or-later",
   "settingsItemAppLicenseTitle": "App Licence",
   "settingsItemOpenSourceSubtitle": "Full text of every bundled licence",
-  "settingsItemOpenSourceTitle": "Open Source Licences"
+  "settingsItemOpenSourceTitle": "Open Source Licences",
+  "screenShareBitrateLabel": "Bitrate (kbps)",
+  "screenShareBitrateMinError": "Bitrate is below the minimum for this setting",
+  "screenShareBitrateMaxError": "Bitrate is above the maximum for this setting",
+  "screenShareBitratePremiumLimitError": "Subscribe to Premium to unlock all features (WIP)"
 }

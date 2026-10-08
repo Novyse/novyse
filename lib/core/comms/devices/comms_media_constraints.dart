@@ -16,9 +16,11 @@ abstract final class CommsMediaConstraints {
   static const echoCancellationKey = 'comms.echoCancellation';
   static const videoQualityKey = 'comms.videoQuality';
   static const videoFramerateKey = 'comms.videoFramerate';
+  static const videoBitrateKey = 'comms.videoBitrate';
   static const shareModeKey = 'comms.shareQuality';
   static const shareCustomQualityKey = 'comms.shareCustomQuality';
   static const shareCustomFpsKey = 'comms.shareCustomFps';
+  static const shareCustomBitrateKey = 'comms.shareCustomBitrate';
 
   // Setting value ids (mirror the catalog option values).
   static const video240p = '240p';
@@ -211,9 +213,23 @@ abstract final class CommsMediaConstraints {
     );
   }
 
-  static VideoParameters resolveVideoParams(String qualityId, String fpsId) {
+  static VideoParameters resolveVideoParams(
+    String qualityId,
+    String fpsId, {
+    int? maxBitrateKbps,
+  }) {
     final quality = resolveVideoQuality(qualityId);
     final fps = resolveVideoFps(quality, fpsId);
+    if (maxBitrateKbps != null) {
+      final normalized = normalizeQualityId(quality);
+      return VideoParameters(
+        dimensions: dimensionsFor(normalized),
+        encoding: VideoEncoding(
+          maxBitrate: maxBitrateKbps * 1000,
+          maxFramerate: fps,
+        ),
+      );
+    }
     if (quality == video720p && fps == 60) return video720p60;
     if (quality == video1080p && fps == 60) return video1080p60;
     return videoParamsFor(quality, fps);
@@ -223,12 +239,17 @@ abstract final class CommsMediaConstraints {
     required String? deviceId,
     required String qualityId,
     required String fpsId,
+    int? maxBitrateKbps,
   }) {
     final quality = resolveVideoQuality(qualityId);
     final fps = resolveVideoFps(quality, fpsId);
     return CameraCaptureOptions(
       deviceId: deviceId,
-      params: resolveVideoParams(quality, fpsId),
+      params: resolveVideoParams(
+        quality,
+        fpsId,
+        maxBitrateKbps: maxBitrateKbps,
+      ),
       maxFrameRate: fps.toDouble(),
     );
   }
@@ -245,12 +266,19 @@ abstract final class CommsMediaConstraints {
   }
 
   /// Share preset for any quality/fps pair.
-  static VideoParameters shareParamsFor(String qualityId, int fps) {
+  static VideoParameters shareParamsFor(
+    String qualityId,
+    int fps, {
+    int? maxBitrateKbps,
+  }) {
     final normalized = normalizeQualityId(qualityId);
+    final bitrateBps = maxBitrateKbps != null
+        ? maxBitrateKbps * 1000
+        : bitrateFor(normalized, fps);
     return VideoParameters(
       dimensions: dimensionsFor(normalized),
       encoding: VideoEncoding(
-        maxBitrate: bitrateFor(normalized, fps),
+        maxBitrate: bitrateBps,
         maxFramerate: fps,
       ),
     );
@@ -315,12 +343,25 @@ abstract final class CommsMediaConstraints {
     final mode = resolveShareMode(readString(s, shareModeKey, defaultShareMode));
     return switch (mode) {
       shareClarity => share1080p5,
-      shareCustom => shareParamsFor(
-        resolveVideoQuality(
-          readString(s, shareCustomQualityKey, defaultShareCustomQuality),
-        ),
-        resolveVideoFps('', readString(s, shareCustomFpsKey, defaultShareCustomFps)),
-      ),
+      shareCustom => () {
+        final rawBitrate = s[shareCustomBitrateKey];
+        final bitrateKbps = switch (rawBitrate) {
+          final int v => v,
+          final num v => v.toInt(),
+          final String v => int.tryParse(v),
+          _ => null,
+        };
+        return shareParamsFor(
+          resolveVideoQuality(
+            readString(s, shareCustomQualityKey, defaultShareCustomQuality),
+          ),
+          resolveVideoFps(
+            '',
+            readString(s, shareCustomFpsKey, defaultShareCustomFps),
+          ),
+          maxBitrateKbps: bitrateKbps,
+        );
+      }(),
       _ => share1080p60,
     };
   }
@@ -359,7 +400,18 @@ abstract final class CommsMediaConstraints {
       quality,
       readString(s, videoFramerateKey, defaultVideoFramerate),
     );
-    final top = resolveVideoParams(quality, '$fps');
+    final rawBitrate = s[videoBitrateKey];
+    final bitrateKbps = switch (rawBitrate) {
+      final int v => v,
+      final num v => v.toInt(),
+      final String v => int.tryParse(v),
+      _ => null,
+    };
+    final top = resolveVideoParams(
+      quality,
+      '$fps',
+      maxBitrateKbps: bitrateKbps,
+    );
     final subLayers = cameraSimulcastLayersFor(quality, fps);
     debugCommsMedia(
       'camera publish opts: quality=$quality fps=$fps '

@@ -85,3 +85,9 @@ final settingValueProvider = Provider.family<Object?, String>((
 ) {
   return ref.watch(settingsControllerProvider)[settingKey];
 });
+
+/// Provider for checking whether the current user has a premium subscription.
+/// Returns false
+final isPremiumProvider = Provider<bool>((ref) {
+  return false;
+});

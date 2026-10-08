@@ -8,33 +8,29 @@ import 'package:novyse/ui/components/huge_icon.dart';
 /// like `production`), a title + optional subtitle column, and a [trailing]
 /// slot owned by each concrete row (arrow, switch, value text, radio...).
 class SettingsBaseRow extends StatelessWidget {
-  const SettingsBaseRow({
-    super.key,
-    this.icon,
-    this.leading,
-    required this.title,
-    this.subtitle,
-    this.danger = false,
-    this.onTap,
-    this.trailing,
-  });
-
-  /// HugeIcon definition (e.g. `HugeIcons.strokeRoundedSmile`).
-  /// Ignored when [leading] is provided.
   final List<List<dynamic>>? icon;
-
-  /// Custom leading widget, replaces the default icon container.
-  /// Mirrors `production` `leftElement`.
   final Widget? leading;
-
   final String title;
   final String? subtitle;
+  final String? errorText;
 
   /// Uses [ColorScheme.error] for icon and title instead of primary/onSurface.
   final bool danger;
 
   final VoidCallback? onTap;
   final Widget? trailing;
+
+  const SettingsBaseRow({
+    super.key,
+    this.icon,
+    this.leading,
+    required this.title,
+    this.subtitle,
+    this.errorText,
+    this.danger = false,
+    this.onTap,
+    this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +83,17 @@ class SettingsBaseRow extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+                if (errorText != null && errorText!.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    errorText!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: colorScheme.error,
                     ),
                   ),
                 ],

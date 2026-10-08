@@ -1,4 +1,6 @@
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/comms/devices/comms_bitrate_options.dart';
+import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
 import 'package:novyse/core/comms/devices/comms_quality_options.dart';
 import 'package:novyse/core/comms/devices/comms_setting_options.dart';
 import 'package:novyse/core/settings/settings_models.dart';
@@ -168,6 +170,19 @@ final List<SettingCategory> commsCategory = [
                 onOptionPicked: saveVideoFpsOption,
               ),
               SettingItem(
+                id: 'video_bitrate',
+                title: (l) => l.settingsItemVideoBitrateTitle,
+                subtitle: (l) => l.settingsItemVideoBitrateSubtitle,
+                component: SettingComponent.stepper,
+                settingKey: CommsMediaConstraints.videoBitrateKey,
+                scope: SettingScope.local,
+                defaultValue: CommsBitrateOptions.fhd60.defaultKbps,
+                step: CommsBitrateOptions.stepKbps.toDouble(),
+                min: CommsBitrateOptions.fhd60.minKbps.toDouble(),
+                max: CommsBitrateOptions.fhd60.maxKbps.toDouble(),
+                onOptionPicked: saveVideoBitrateOption,
+              ),
+              SettingItem(
                 id: 'virtual_bg',
                 title: (l) => l.settingsItemVirtualBgTitle,
                 subtitle: (l) => l.settingsItemVirtualBgSubtitle,
@@ -245,6 +260,24 @@ final List<SettingCategory> commsCategory = [
                 defaultValue: '60',
                 options: CommsQualityOptions.fpsOptions(),
                 onOptionPicked: saveShareCustomFpsOption,
+                visibleWhen: const SettingVisibleWhen(
+                  'comms.shareQuality',
+                  'custom',
+                  defaultValue: 'fluid_60',
+                ),
+              ),
+              SettingItem(
+                id: 'share_custom_bitrate',
+                title: (l) => l.settingsItemShareCustomBitrateTitle,
+                subtitle: (l) => l.settingsItemShareCustomBitrateSubtitle,
+                component: SettingComponent.stepper,
+                settingKey: CommsMediaConstraints.shareCustomBitrateKey,
+                scope: SettingScope.local,
+                defaultValue: CommsBitrateOptions.fhd60.defaultKbps,
+                step: CommsBitrateOptions.stepKbps.toDouble(),
+                min: CommsBitrateOptions.fhd60.minKbps.toDouble(),
+                max: CommsBitrateOptions.fhd60.maxKbps.toDouble(),
+                onOptionPicked: saveShareCustomBitrateOption,
                 visibleWhen: const SettingVisibleWhen(
                   'comms.shareQuality',
                   'custom',

@@ -32,9 +32,7 @@ void main() {
     });
 
     test('fluid resolves to the 1080p60 preset', () {
-      const config = ScreenShareConfig(
-        mode: CommsMediaConstraints.shareFluid,
-      );
+      const config = ScreenShareConfig(mode: CommsMediaConstraints.shareFluid);
       final params = config.resolveParams();
       expect(params.dimensions.width, 1920);
       expect(params.encoding?.maxFramerate, 60);
@@ -81,6 +79,38 @@ void main() {
       expect(low.encoding?.maxFramerate, 30);
       expect(med.dimensions.height, 360);
       expect(med.encoding?.maxFramerate, 30);
+    });
+
+    test('bitrate override sets the encoding max bitrate in bps', () {
+      const config = ScreenShareConfig(maxBitrateKbps: 6000);
+      final params = config.resolveParams();
+      expect(params.encoding?.maxBitrate, 6000 * 1000);
+      expect(params.encoding?.maxFramerate, 60);
+    });
+
+    test('null bitrate keeps the preset encoding', () {
+      const config = ScreenShareConfig();
+      expect(config.maxBitrateKbps, isNull);
+      expect(
+        config.resolveParams().encoding?.maxBitrate,
+        CommsMediaConstraints.shareParamsFor(
+          CommsMediaConstraints.video1080p,
+          60,
+        ).encoding?.maxBitrate,
+      );
+    });
+
+    test('equality includes the bitrate', () {
+      expect(
+        const ScreenShareConfig(maxBitrateKbps: 6000) ==
+            const ScreenShareConfig(maxBitrateKbps: 6000),
+        isTrue,
+      );
+      expect(
+        const ScreenShareConfig(maxBitrateKbps: 6000) ==
+            const ScreenShareConfig(maxBitrateKbps: 7000),
+        isFalse,
+      );
     });
   });
 }

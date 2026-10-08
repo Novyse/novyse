@@ -110,6 +110,26 @@ void main() {
       expect(opts.maxFrameRate, 60.0);
       expect(opts.params, CommsMediaConstraints.video720p60);
     });
+
+    test('camera options carry custom bitrate when specified', () {
+      final opts = CommsMediaConstraints.cameraCapture(
+        deviceId: 'cam-1',
+        qualityId: '1080p',
+        fpsId: '60',
+        maxBitrateKbps: 4500,
+      );
+      expect(opts.deviceId, 'cam-1');
+      expect(opts.maxFrameRate, 60.0);
+      expect(opts.params.encoding?.maxBitrate, 4500 * 1000);
+      expect(opts.params.encoding?.maxFramerate, 60);
+
+      final pub = CommsMediaConstraints.cameraPublishFrom({
+        'comms.videoQuality': '1080p',
+        'comms.videoFramerate': '60',
+        'comms.videoBitrate': 5500,
+      });
+      expect(pub.videoEncoding?.maxBitrate, 5500 * 1000);
+    });
   });
 
   group('CommsMediaConstraints screen share', () {
@@ -255,6 +275,11 @@ void main() {
       expect(fps.defaultValue, '60');
       expect(fps.onOptionPicked, isNotNull);
 
+      final bitrate = item('comms.videoBitrate');
+      expect(bitrate.disabled, isFalse);
+      expect(bitrate.component, SettingComponent.stepper);
+      expect(bitrate.onOptionPicked, isNotNull);
+
       // Virtual background stays WIP-disabled.
       expect(item('comms.virtualBackground').disabled, isTrue);
     });
@@ -286,6 +311,12 @@ void main() {
       );
       expect(customFps.visibleWhen?.settingKey, 'comms.shareQuality');
       expect(customFps.visibleWhen?.equals, 'custom');
+
+      final customBitrate = item('comms.shareCustomBitrate');
+      expect(customBitrate.component, SettingComponent.stepper);
+      expect(customBitrate.onOptionPicked, isNotNull);
+      expect(customBitrate.visibleWhen?.settingKey, 'comms.shareQuality');
+      expect(customBitrate.visibleWhen?.equals, 'custom');
 
       final hifi = item('comms.hifiAudioPassthrough');
       expect(hifi.disabled, isFalse);

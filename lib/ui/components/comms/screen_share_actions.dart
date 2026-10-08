@@ -18,6 +18,7 @@ abstract final class ScreenShareActions {
     final result = await ScreenShareSelectorModal.show(
       context,
       initial: defaults,
+      isPremium: ref.read(isPremiumProvider),
     );
     if (result == null || !context.mounted) return;
     final controller = ref.read(commsProvider.notifier);

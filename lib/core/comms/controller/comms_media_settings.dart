@@ -38,6 +38,17 @@ mixin CommsMediaSettingsMixin on Notifier<CommsState> {
     return fallback;
   }
 
+  /// Reads a persisted int setting or returns null when missing/invalid.
+  int? _savedMediaIntOrNull(String key) {
+    try {
+      final raw = ref.read(settingsControllerProvider)[key];
+      if (raw is int) return raw;
+      if (raw is num) return raw.toInt();
+      if (raw is String) return int.tryParse(raw);
+    } catch (_) {}
+    return null;
+  }
+
   /// Audio capture options resolved from the settings JSON
   /// (noise suppression + echo cancellation switches).
   AudioCaptureOptions _audioCaptureOptions() {
@@ -69,6 +80,9 @@ mixin CommsMediaSettingsMixin on Notifier<CommsState> {
       fpsId: _savedMediaString(
         CommsMediaConstraints.videoFramerateKey,
         CommsMediaConstraints.defaultVideoFramerate,
+      ),
+      maxBitrateKbps: _savedMediaIntOrNull(
+        CommsMediaConstraints.videoBitrateKey,
       ),
     );
   }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:novyse/core/comms/devices/comms_bitrate_options.dart';
+import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
 import 'package:novyse/core/config/global.dart' as config;
+import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_actions.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
@@ -10,6 +13,8 @@ import 'package:novyse/pages/app/settings/active_devices_page.dart';
 import 'package:novyse/pages/app/settings/api_keys_page.dart';
 import 'package:novyse/pages/app/settings/password_page.dart';
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
+import 'package:novyse/ui/components/number/number_stepper.dart';
+import 'package:novyse/ui/components/settings/settings_base_row.dart';
 import 'package:novyse/ui/components/settings/settings_external_link_row.dart';
 import 'package:novyse/ui/components/settings/settings_modal_row.dart';
 import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
@@ -94,6 +99,48 @@ class SettingsItemRenderer extends ConsumerWidget {
             subtitle: subtitleOrNull,
             valueText: valueText,
             onTap: isDisabled ? null : () => _openSheet(context, ref),
+          ),
+        );
+
+      case SettingComponent.stepper:
+        final raw = settingKey == null
+            ? null
+            : ref.watch(settingValueProvider(settingKey));
+        final (minVal, maxVal, defaultVal) = _resolveStepperBounds(ref, item);
+        final double value;
+        if (raw is num) {
+          value = raw.toDouble();
+        } else if (raw is String) {
+          value = double.tryParse(raw) ?? defaultVal;
+        } else {
+          value = defaultVal;
+        }
+        final errorText = _resolveStepperError(context, ref, item, value);
+        return wrapDisabled(
+          SettingsBaseRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            errorText: errorText,
+            trailing: NumberStepper(
+              value: value,
+              step: item.step ?? 1.0,
+              min: minVal,
+              max: maxVal,
+              hasError: errorText != null,
+              onChanged: (isDisabled || settingKey == null)
+                  ? (_) {}
+                  : (next) {
+                      final picked = item.onOptionPicked;
+                      if (picked != null) {
+                        picked(ref, next.round().toString());
+                      } else {
+                        ref
+                            .read(settingsControllerProvider.notifier)
+                            .set(settingKey, next.round());
+                      }
+                    },
+            ),
           ),
         );
 
@@ -299,5 +346,129 @@ class SettingsItemRenderer extends ConsumerWidget {
     if (text.isEmpty || text == '{}' || text == '[]') return null;
     if (text.length > 32) return null;
     return text;
+  }
+
+  (double, double, double) _resolveStepperBounds(
+    WidgetRef ref,
+    SettingItem item,
+  ) {
+    if (item.settingKey == CommsMediaConstraints.shareCustomBitrateKey) {
+      final rawQuality = ref.watch(
+        settingValueProvider(CommsMediaConstraints.shareCustomQualityKey),
+      );
+      final quality = rawQuality is String
+          ? rawQuality
+          : CommsMediaConstraints.defaultShareCustomQuality;
+      final rawFps = ref.watch(
+        settingValueProvider(CommsMediaConstraints.shareCustomFpsKey),
+      );
+      final fpsStr = rawFps is String
+          ? rawFps
+          : CommsMediaConstraints.defaultShareCustomFps;
+      final fps = CommsMediaConstraints.resolveVideoFps('', fpsStr);
+      final range = CommsBitrateOptions.rangeFor(fps, quality: quality);
+      return (
+        range.minKbps.toDouble(),
+        range.maxKbps.toDouble(),
+        range.defaultKbps.toDouble(),
+      );
+    }
+    if (item.settingKey == CommsMediaConstraints.videoBitrateKey) {
+      final rawQuality = ref.watch(
+        settingValueProvider(CommsMediaConstraints.videoQualityKey),
+      );
+      final quality = rawQuality is String
+          ? rawQuality
+          : CommsMediaConstraints.defaultVideoQuality;
+      final rawFps = ref.watch(
+        settingValueProvider(CommsMediaConstraints.videoFramerateKey),
+      );
+      final fpsStr = rawFps is String
+          ? rawFps
+          : CommsMediaConstraints.defaultVideoFramerate;
+      final fps = CommsMediaConstraints.resolveVideoFps(quality, fpsStr);
+      final range = CommsBitrateOptions.rangeFor(fps, quality: quality);
+      return (
+        range.minKbps.toDouble(),
+        range.maxKbps.toDouble(),
+        range.defaultKbps.toDouble(),
+      );
+    }
+    return (
+      item.min ?? 0.0,
+      item.max ?? 100.0,
+      (item.defaultValue as num?)?.toDouble() ?? 0.0,
+    );
+  }
+
+  String? _resolveStepperError(
+    BuildContext context,
+    WidgetRef ref,
+    SettingItem item,
+    double value,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return null;
+    final isPremium = ref.watch(isPremiumProvider);
+
+    if (item.settingKey == CommsMediaConstraints.shareCustomBitrateKey) {
+      final rawQuality = ref.watch(
+        settingValueProvider(CommsMediaConstraints.shareCustomQualityKey),
+      );
+      final quality = rawQuality is String
+          ? rawQuality
+          : CommsMediaConstraints.defaultShareCustomQuality;
+      final rawFps = ref.watch(
+        settingValueProvider(CommsMediaConstraints.shareCustomFpsKey),
+      );
+      final fpsStr = rawFps is String
+          ? rawFps
+          : CommsMediaConstraints.defaultShareCustomFps;
+      final fps = CommsMediaConstraints.resolveVideoFps('', fpsStr);
+      final err = CommsBitrateOptions.validate(
+        kbps: value.round(),
+        fps: fps,
+        quality: quality,
+        isPremium: isPremium,
+      );
+      return switch (err) {
+        CommsBitrateError.none ||
+        CommsBitrateError.belowMin ||
+        CommsBitrateError.aboveMax =>
+          null,
+        CommsBitrateError.premiumLimit =>
+          l10n.settingsItemBitratePremiumLimitError,
+      };
+    }
+    if (item.settingKey == CommsMediaConstraints.videoBitrateKey) {
+      final rawQuality = ref.watch(
+        settingValueProvider(CommsMediaConstraints.videoQualityKey),
+      );
+      final quality = rawQuality is String
+          ? rawQuality
+          : CommsMediaConstraints.defaultVideoQuality;
+      final rawFps = ref.watch(
+        settingValueProvider(CommsMediaConstraints.videoFramerateKey),
+      );
+      final fpsStr = rawFps is String
+          ? rawFps
+          : CommsMediaConstraints.defaultVideoFramerate;
+      final fps = CommsMediaConstraints.resolveVideoFps(quality, fpsStr);
+      final err = CommsBitrateOptions.validate(
+        kbps: value.round(),
+        fps: fps,
+        quality: quality,
+        isPremium: isPremium,
+      );
+      return switch (err) {
+        CommsBitrateError.none ||
+        CommsBitrateError.belowMin ||
+        CommsBitrateError.aboveMax =>
+          null,
+        CommsBitrateError.premiumLimit =>
+          l10n.settingsItemBitratePremiumLimitError,
+      };
+    }
+    return null;
   }
 }

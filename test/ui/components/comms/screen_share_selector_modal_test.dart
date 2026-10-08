@@ -7,6 +7,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_quality_fields.dart';
 import 'package:novyse/ui/components/comms/screen_share_selector_modal.dart';
+import 'package:novyse/ui/components/number/number_stepper.dart';
 
 /// The desktop capturer lives behind the `FlutterWebRTC.Method` channel, so
 /// mocking that channel drives the custom-picker branch.
@@ -308,6 +309,70 @@ void main() {
     });
   });
 
+  group('bitrate control', () {
+    testWidgets('is hidden when the mode is not custom', (tester) async {
+      mockCapturer(const []);
+      await pump(tester);
+
+      expect(find.text(en.screenShareBitrateLabel), findsNothing);
+      expect(find.byType(NumberStepper), findsNothing);
+    });
+
+    testWidgets('is shown in the custom mode too', (tester) async {
+      mockCapturer(const []);
+      await tester.pumpWidget(
+        const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: ScreenShareSelectorModal(
+                initial: ScreenShareConfig(mode: 'custom'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NumberStepper), findsOneWidget);
+    });
+
+    testWidgets('changing quality updates bitrate to adequate default', (
+      tester,
+    ) async {
+      mockCapturer(const []);
+      await tester.pumpWidget(
+        const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: ScreenShareSelectorModal(
+                initial: ScreenShareConfig(
+                  mode: 'custom',
+                  customQuality: '1080p',
+                  customFps: '60',
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('6000'), findsOneWidget);
+
+      await tester.tap(find.text(en.settingsOptionVideoQuality1080pLabel));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(en.settingsOptionVideoQuality720pLabel).last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('3500'), findsOneWidget);
+    });
+  });
+
   group('ScreenShareSetupResult', () {
     test('carries the source, type, audio flag and config', () {
       const result = ScreenShareSetupResult(
@@ -338,9 +403,11 @@ void main() {
               mode: config.mode,
               customQuality: config.customQuality,
               customFps: config.customFps,
+              bitrateKbps: config.maxBitrateKbps,
               onModeChanged: (_) {},
               onQualityChanged: (_) {},
               onFpsChanged: (_) {},
+              onBitrateChanged: (_) {},
             ),
           ),
         ),
@@ -358,9 +425,11 @@ void main() {
       );
       expect(find.text(en.settingsItemShareCustomQualityTitle), findsNothing);
       expect(find.text(en.settingsItemShareCustomFpsTitle), findsNothing);
+      expect(find.text(en.screenShareBitrateLabel), findsNothing);
+      expect(find.byType(NumberStepper), findsNothing);
     });
 
-    testWidgets('custom mode reveals quality and fps selectors', (
+    testWidgets('custom mode reveals quality, fps and bitrate selectors', (
       tester,
     ) async {
       await pumpFields(
@@ -376,6 +445,8 @@ void main() {
       expect(find.text(en.settingsItemShareCustomFpsTitle), findsOneWidget);
       expect(find.text(en.settingsOptionVideoQuality480pLabel), findsOneWidget);
       expect(find.text('15 FPS'), findsOneWidget);
+      expect(find.text(en.screenShareBitrateLabel), findsOneWidget);
+      expect(find.byType(NumberStepper), findsOneWidget);
     });
   });
 }

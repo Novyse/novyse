@@ -983,6 +983,8 @@
   "settingsItemSaveGalleryTitle": "Salva in Galleria",
   "settingsItemSendWithEnterSubtitle": "Invio invia, Shift+Invio a capo",
   "settingsItemSendWithEnterTitle": "Invia con Invio",
+  "settingsItemShareCustomBitrateSubtitle": "Bitrate massimo (kbps) per la modalità personalizzata",
+  "settingsItemShareCustomBitrateTitle": "Bitrate Condivisione Personalizzato",
   "settingsItemShareCustomFpsSubtitle": "Fotogrammi per la modalità personalizzata",
   "settingsItemShareCustomFpsTitle": "Framerate Condivisione Personalizzato",
   "settingsItemShareCustomQualitySubtitle": "Risoluzione per la modalità personalizzata",
@@ -1013,6 +1015,11 @@
   "settingsItemVersionTitle": "Versione",
   "settingsItemVibrationSubtitle": "Pattern aptico per le chiamate",
   "settingsItemVibrationTitle": "Vibrazione Chiamate",
+  "settingsItemBitrateMaxError": "Il bitrate supera il massimo per questa impostazione",
+  "settingsItemBitrateMinError": "Il bitrate è sotto il minimo per questa impostazione",
+  "settingsItemBitratePremiumLimitError": "Abbonati a Premium per sbloccare tutte le funzioni (WIP)",
+  "settingsItemVideoBitrateSubtitle": "Bitrate di trasmissione in kbps",
+  "settingsItemVideoBitrateTitle": "Bitrate Video",
   "settingsItemVideoFpsSubtitle": "Fotogrammi al secondo",
   "settingsItemVideoFpsTitle": "Framerate Video",
   "settingsItemVideoQualitySubtitle": "Risoluzione di acquisizione",
@@ -1187,5 +1194,9 @@
   "settingsItemAppLicenseSubtitle": "Novyse è GPL-3.0-or-later",
   "settingsItemAppLicenseTitle": "Licenza App",
   "settingsItemOpenSourceSubtitle": "Testo completo di ogni licenza inclusa",
-  "settingsItemOpenSourceTitle": "Licenze Open Source"
+  "settingsItemOpenSourceTitle": "Licenze Open Source",
+  "screenShareBitrateLabel": "Bitrate (kbps)",
+  "screenShareBitrateMinError": "Il bitrate è sotto il minimo per questa impostazione",
+  "screenShareBitrateMaxError": "Il bitrate supera il massimo per questa impostazione",
+  "screenShareBitratePremiumLimitError": "Abbonati a Premium per sbloccare tutte le funzioni (WIP)"
 }

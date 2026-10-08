@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:novyse/core/comms/comms_share_config.dart';
+import 'package:novyse/core/comms/devices/comms_bitrate_options.dart';
+import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_quality_fields.dart';
@@ -49,7 +51,14 @@ class ScreenShareSetupResult {
 class ScreenShareSelectorModal extends StatefulWidget {
   final ScreenShareConfig initial;
 
-  const ScreenShareSelectorModal({super.key, required this.initial});
+  /// Whether the user has Premium; lifts the free-tier bitrate cap.
+  final bool isPremium;
+
+  const ScreenShareSelectorModal({
+    super.key,
+    required this.initial,
+    this.isPremium = false,
+  });
 
   static bool get hasNativePicker {
     if (kIsWeb) return false;
@@ -71,6 +80,7 @@ class ScreenShareSelectorModal extends StatefulWidget {
   static Future<ScreenShareSetupResult?> show(
     BuildContext context, {
     required ScreenShareConfig initial,
+    bool isPremium = false,
   }) {
     return ResponsiveOverlay.show<ScreenShareSetupResult>(
       context: context,
@@ -78,7 +88,7 @@ class ScreenShareSelectorModal extends StatefulWidget {
       mode: ResponsiveOverlayMode.modal,
       maxWidth: 620,
       maxHeightFactor: 0.9,
-      child: ScreenShareSelectorModal(initial: initial),
+      child: ScreenShareSelectorModal(initial: initial, isPremium: isPremium),
     );
   }
 
@@ -92,6 +102,12 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   late String _mode = widget.initial.mode;
   late String _quality = widget.initial.customQuality;
   late String _fps = widget.initial.customFps;
+  late int _bitrateKbps = ScreenShareQualityFields.bitrateOrDefault(
+    widget.initial.maxBitrateKbps,
+    quality: widget.initial.customQuality,
+    fps: widget.initial.customFps,
+  );
+  late bool _userCustomizedBitrate = widget.initial.maxBitrateKbps != null;
 
   // Custom-picker flow.
   ScreenShareType _selectedType = ScreenShareType.screen;
@@ -108,6 +124,9 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   bool _handedOff = false;
 
   bool get _custom => ScreenShareSelectorModal.useCustomPicker;
+  bool get _isCustomMode =>
+      CommsMediaConstraints.resolveShareMode(_mode) ==
+      CommsMediaConstraints.shareCustom;
 
   @override
   void initState() {
@@ -125,8 +144,34 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
     super.dispose();
   }
 
-  ScreenShareConfig get _draft =>
-      ScreenShareConfig(mode: _mode, customQuality: _quality, customFps: _fps);
+  ScreenShareConfig get _draft => ScreenShareConfig(
+    mode: _mode,
+    customQuality: _quality,
+    customFps: _fps,
+    maxBitrateKbps: _isCustomMode ? _bitrateKbps : null,
+  );
+
+  /// Validation result for the current bitrate, checked before starting.
+  CommsBitrateError get _bitrateError {
+    if (!_isCustomMode) return CommsBitrateError.none;
+    return CommsBitrateOptions.validate(
+      kbps: _bitrateKbps,
+      fps: _draft.resolveMaxFrameRate().round(),
+      quality: _draft.resolveEffectiveQuality(),
+      isPremium: widget.isPremium,
+    );
+  }
+
+  void _updateBitrateForSelection({bool forceDefault = false}) {
+    if (forceDefault) {
+      _userCustomizedBitrate = false;
+    }
+    _bitrateKbps = ScreenShareQualityFields.bitrateOrDefault(
+      _userCustomizedBitrate ? _bitrateKbps : null,
+      quality: _quality,
+      fps: _fps,
+    );
+  }
 
   void _syncPreviewOptions() {
     final video = _previewVideo;
@@ -291,7 +336,10 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (_custom) _buildCustomPicker(context) else _buildNativeFlow(context),
+                if (_custom)
+                  _buildCustomPicker(context)
+                else
+                  _buildNativeFlow(context),
                 const SizedBox(height: 16),
 
                 // Per-share video settings (defaults from settings).
@@ -299,25 +347,41 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
                   mode: _mode,
                   customQuality: _quality,
                   customFps: _fps,
+                  bitrateKbps: _bitrateKbps,
+                  isPremium: widget.isPremium,
                   onModeChanged: (v) {
-                    setState(() => _mode = v);
+                    setState(() {
+                      _mode = v;
+                      _updateBitrateForSelection(forceDefault: true);
+                    });
                     _syncPreviewOptions();
                   },
                   onQualityChanged: (v) {
-                    setState(() => _quality = v);
+                    setState(() {
+                      _quality = v;
+                      _updateBitrateForSelection(forceDefault: true);
+                    });
                     _syncPreviewOptions();
                   },
                   onFpsChanged: (v) {
-                    setState(() => _fps = v);
+                    setState(() {
+                      _fps = v;
+                      _updateBitrateForSelection(forceDefault: true);
+                    });
+                    _syncPreviewOptions();
+                  },
+                  onBitrateChanged: (v) {
+                    setState(() {
+                      _userCustomizedBitrate = true;
+                      _bitrateKbps = v;
+                    });
                     _syncPreviewOptions();
                   },
                 ),
                 const SizedBox(height: 12),
 
                 // Audio toggle row (only for full screens).
-                if (_custom
-                    ? _selectedType == ScreenShareType.screen
-                    : true)
+                if (_custom ? _selectedType == ScreenShareType.screen : true)
                   Row(
                     children: [
                       Checkbox(
@@ -372,7 +436,8 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   }
 
   bool get _canStart =>
-      _custom ? _selectedSource != null : _previewVideo != null;
+      (_custom ? _selectedSource != null : _previewVideo != null) &&
+      (!_isCustomMode || _bitrateError == CommsBitrateError.none);
 
   Widget _buildCustomPicker(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -560,10 +625,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
                     ),
                   ),
                 )
-              : VideoTrackRenderer(
-                  _previewVideo!,
-                  fit: VideoViewFit.cover,
-                ),
+              : VideoTrackRenderer(_previewVideo!, fit: VideoViewFit.cover),
         ),
         const SizedBox(height: 8),
         Align(
