@@ -422,14 +422,28 @@ jobs:
   publish-flathub:
     needs: publish-release
     runs-on: ubuntu-latest
-    if: ${{ inputs.release_type == 'production' && secrets.FLATHUB_DEPLOY_TOKEN != '' }}
+    if: ${{ inputs.release_type == 'production' }}
     steps:
+      - name: Check Flathub Token
+        id: check-token
+        env:
+          FLATHUB_DEPLOY_TOKEN: ${{ secrets.FLATHUB_DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$FLATHUB_DEPLOY_TOKEN" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "FLATHUB_DEPLOY_TOKEN secret is not set. Skipping Flathub deployment."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout repository
+        if: steps.check-token.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.release_type }}
 
       - name: Checkout Flathub Repository
+        if: steps.check-token.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
           repository: flathub/com.novyse.desktop
@@ -437,6 +451,7 @@ jobs:
           token: ${{ secrets.FLATHUB_DEPLOY_TOKEN }}
 
       - name: Generate Manifest and Copy Metadata
+        if: steps.check-token.outputs.skip != 'true'
         run: |
           source scripts/extract-metadata.sh
 
@@ -457,6 +472,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit and Push to Flathub
+        if: steps.check-token.outputs.skip != 'true'
         run: |
           cd flathub-repo
           git config user.name "GitHub Action Bot"
