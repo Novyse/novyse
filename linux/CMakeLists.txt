@@ -43,11 +43,9 @@ function(extract_dart_meta VAR_NAME TARGET_BRANCH OUT_VAR)
 endfunction()
 
 extract_dart_meta("appName" "${CURRENT_BRANCH}" APP_NAME)
-extract_dart_meta("desktopDescription" "${CURRENT_BRANCH}" APP_DESCRIPTION)
-
-string(TOLOWER "${APP_NAME}" APP_NAME_LOWER)
-set(APPLICATION_ID "com.${APP_NAME_LOWER}")
-
+extract_dart_meta("appDescription" "${CURRENT_BRANCH}" APP_DESCRIPTION)
+extract_dart_meta("appId" "${CURRENT_BRANCH}" EXTRACTED_APP_ID)
+set(APPLICATION_ID "${EXTRACTED_APP_ID}")
 message(STATUS "Configuring ${APP_NAME} (${CURRENT_BRANCH}): ${APP_DESCRIPTION}")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
