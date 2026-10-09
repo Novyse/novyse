@@ -29,14 +29,28 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
+case "$OS_TARGET" in
+  web|linux|windows|macos|mac)
+    ;;
+  android|ios)
+    echo "❌ Error: Platform '$OS_TARGET' is not supported."
+    exit 1
+    ;;
+  *)
+    echo "❌ Error: Invalid/unrecognized OS '$RAW_OS'."
+    echo ""
+    show_usage
+    exit 1
+    ;;
+esac
+
 shift # Remove OS from arguments so subsequent arguments can be passed to flutter
 
 cd "$ROOT_DIR"
 
-if [ ! -f "$ROOT_DIR/lib/core/settings/oss_licenses.dart" ]; then
-  echo "🔄 [run.sh] OSS licenses file missing, generating..."
-  bash "$ROOT_DIR/scripts/sync-licenses.sh"
-fi
+# Run checks
+bash "$SCRIPT_DIR/check/check-dependencies.sh"
+bash "$SCRIPT_DIR/check/check-platform.sh" "$OS_TARGET"
 
 case "$OS_TARGET" in
   web)
@@ -54,15 +68,5 @@ case "$OS_TARGET" in
   macos|mac)
     echo "🚀 Launching on macOS..."
     exec flutter run -d macos "$@"
-    ;;
-  android|ios)
-    echo "❌ Error: Platform '$OS_TARGET' is not supported."
-    exit 1
-    ;;
-  *)
-    echo "❌ Error: Invalid/unrecognized OS '$RAW_OS'."
-    echo ""
-    show_usage
-    exit 1
     ;;
 esac
