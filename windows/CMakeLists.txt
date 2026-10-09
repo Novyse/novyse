@@ -43,7 +43,7 @@ function(extract_dart_meta VAR_NAME TARGET_BRANCH OUT_VAR)
 endfunction()
 
 extract_dart_meta("appName" "${CURRENT_BRANCH}" APP_NAME)
-extract_dart_meta("desktopDescription" "${CURRENT_BRANCH}" APP_DESCRIPTION)
+extract_dart_meta("appDescription" "${CURRENT_BRANCH}" APP_DESCRIPTION)
 
 message(STATUS "Configuring ${APP_NAME} (${CURRENT_BRANCH}): ${APP_DESCRIPTION}")
 

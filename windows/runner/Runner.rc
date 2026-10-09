@@ -84,6 +84,12 @@ IDI_APP_ICON            ICON                    "resources\\app_icon.ico"
 #define FILE_DESCRIPTION_STRING "A desktop client for Novyse"
 #endif
 
+#if defined(LEGAL_COPYRIGHT)
+#define LEGAL_COPYRIGHT_STRING LEGAL_COPYRIGHT
+#else
+#define LEGAL_COPYRIGHT_STRING "Copyright (C) Novyse. All rights reserved."
+#endif
+
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION VERSION_AS_NUMBER
  PRODUCTVERSION VERSION_AS_NUMBER
@@ -105,7 +111,7 @@ BEGIN
             VALUE "FileDescription", FILE_DESCRIPTION_STRING "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "novyse" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 Novyse. All rights reserved." "\0"
+            VALUE "LegalCopyright", LEGAL_COPYRIGHT_STRING "\0"
             VALUE "OriginalFilename", "novyse.exe" "\0"
             VALUE "ProductName", PRODUCT_NAME_STRING "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
