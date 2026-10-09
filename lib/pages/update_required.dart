@@ -13,11 +13,6 @@ class UpdateRequiredPage extends StatelessWidget {
 
   final String? minVersion;
 
-  static const _githubUrl = 'https://github.com/Novyse/novyse/releases';
-  static const _playStoreUrl =
-      'https://play.google.com/store/apps/details?id=com.novyse';
-  static const _appStoreUrl = 'https://apps.apple.com/app/novyse';
-
   String _getButtonLabel(AppLocalizations l10n) {
     if (kIsWeb) return l10n.refreshPage;
     return switch (currentOS) {
@@ -41,9 +36,9 @@ class UpdateRequiredPage extends StatelessWidget {
     }
 
     final url = switch (currentOS) {
-      AppOS.android => _playStoreUrl,
-      AppOS.ios => _appStoreUrl,
-      _ => _githubUrl,
+      AppOS.android => config.playStoreUrl,
+      AppOS.ios => config.appStoreUrl,
+      _ => config.releasesUrl,
     };
 
     if (url.isNotEmpty) {

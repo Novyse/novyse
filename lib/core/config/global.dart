@@ -8,26 +8,62 @@ const String appName = branch == 'production'
     ? 'Novyse'
     : (branch == 'preview' ? 'Novyse.preview' : 'Novyse.dev');
 
-const String desktopDescription = branch == 'production'
-    ? 'A desktop client for Novyse'
-    : (branch == 'preview'
-          ? 'A desktop client for Novyse (Preview)'
-          : 'A desktop client for Novyse (Development)');
-const String mobileDescription = branch == 'production'
-    ? 'A mobile client for Novyse'
-    : (branch == 'preview'
-          ? 'A mobile client for Novyse (Preview)'
-          : 'A mobile client for Novyse (Development)');
-const String webDescription = branch == 'production'
-    ? 'A web client for Novyse'
-    : (branch == 'preview'
-          ? 'A web client for Novyse (Preview)'
-          : 'A web client for Novyse (Development)');
+/// Application description used across all platforms.
+const String appDescription =
+    'Next-Gen Communications. Connect, collaborate, and communicate securely.';
 
 const String appVersion = '1.2.0-20260831.0';
 
 /// Human-readable update channel for the active deployment branch.
 const String updateChannel = branch == 'development' ? 'dev' : branch;
+
+/// Organization and author metadata.
+const String authorName = 'Novyse';
+const String authorEmail = 'contact@novyse.com';
+const String authorUrl = 'https://www.novyse.com';
+
+/// Copyright string dynamically resolved with current year.
+int get currentYear => DateTime.now().year;
+String get copyright => 'Copyright © $currentYear Novyse. All rights reserved.';
+
+/// Licensing metadata.
+const String projectLicense = 'GPL-3.0-or-later';
+const String metadataLicense = 'CC0-1.0';
+
+/// System identifiers and categories.
+const String appId = branch == 'production'
+    ? 'com.novyse'
+    : (branch == 'preview' ? 'com.novyse.preview' : 'com.novyse.dev');
+const String linuxDesktopId = appId;
+const String linuxCategories = 'Network;InstantMessaging;Chat;';
+const String linuxKeywords = 'chat;messaging;voip;call;communication;novyse;';
+const String macOSCategory = 'public.app-category.social-networking';
+const List<String> webCategories = ['social', 'productivity', 'utilities'];
+
+/// Platform schemes and identifiers.
+const String appScheme = branch == 'production'
+    ? 'novyse'
+    : (branch == 'preview' ? 'novyse.preview' : 'novyse.dev');
+
+/// Installer / setup executable base name per branch.
+const String installerName = branch == 'production'
+    ? 'Novyse-Setup'
+    : (branch == 'preview' ? 'Novyse.preview-Setup' : 'Novyse.dev-Setup');
+
+/// Package name for Linux package managers (apt/deb, pacman, etc.).
+const String packageName = branch == 'production'
+    ? 'novyse'
+    : (branch == 'preview' ? 'novyse-preview' : 'novyse-dev');
+
+/// Project repository URLs.
+const String githubRepoUrl = 'https://github.com/Novyse/novyse';
+const String issuesUrl = 'https://github.com/Novyse/novyse/issues';
+const String releasesUrl = 'https://github.com/Novyse/novyse/releases';
+
+/// Store and distribution URLs.
+String get playStoreUrl =>
+    'https://play.google.com/store/apps/details?id=$appId';
+const String appStoreUrl = 'https://apps.apple.com/app/novyse';
 
 // Domain helpers
 

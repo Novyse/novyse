@@ -88,7 +88,7 @@ class LocalNotificationService {
 
       final windows = WindowsInitializationSettings(
         appName: appName,
-        appUserModelId: 'com.novyse.novyse',
+        appUserModelId: appId,
         guid: 'de02a385-dc89-49ec-bc00-a984f4a110b1',
         iconPath: windowsIcon,
       );
