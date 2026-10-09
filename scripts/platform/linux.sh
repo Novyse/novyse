@@ -90,7 +90,7 @@ generate_flatpak_manifest() {
   cat << EOF > "$target_file"
 app-id: ${APP_ID}
 runtime: org.freedesktop.Platform
-runtime-version: "24.08"
+runtime-version: "26.08"
 sdk: org.freedesktop.Sdk
 command: novyse
 separate-locales: false
@@ -134,7 +134,7 @@ generate_flathub_manifest() {
   cat << EOF > "$target_file"
 app-id: ${APP_ID}
 runtime: org.freedesktop.Platform
-runtime-version: "24.08"
+runtime-version: "26.08"
 sdk: org.freedesktop.Sdk
 command: novyse
 separate-locales: false
