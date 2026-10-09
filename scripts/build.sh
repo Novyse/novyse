@@ -345,6 +345,13 @@ build_ios() {
 build_web() {
   echo "🌐 Building Web ($BUILD_MODE) for $APP_NAME..."
   flutter build web "--$BUILD_MODE"
+
+  # Copy public static assets (e.g., .well-known/assetlinks.json) if present
+  if [ -d "$ROOT_DIR/public" ]; then
+    echo "  📄 Copying public/ static assets into build/web/..."
+    cp -R "$ROOT_DIR/public"/* "$ROOT_DIR/build/web/" 2>/dev/null || true
+  fi
+
   if is_format_selected "zip"; then
     if [ -d "$ROOT_DIR/build/web" ]; then
       (cd "$ROOT_DIR/build/web" && zip -r -q "$DIST_DIR/${PKG_NAME}-web.zip" .)
