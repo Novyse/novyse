@@ -4,9 +4,17 @@ on:
   push:
     branches:
       - '**'
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'LICENSE'
   pull_request:
     branches:
       - '**'
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'LICENSE'
 
 jobs:
   analyze-and-test:
@@ -17,11 +25,21 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Flutter
+      - name: Cache Flutter SDK
         uses: subosito/flutter-action@v2
         with:
           channel: "stable"
           cache: true
+          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
+          cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:"
+
+      - name: Cache Pub Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
 
       - name: Install Dependencies
         run: flutter pub get
@@ -33,4 +51,4 @@ jobs:
         run: flutter analyze
 
       - name: Run Tests
-        run: flutter test
+        run: flutter test --concurrency=4
