@@ -205,10 +205,10 @@ packages:
     dependency: transitive
     description:
       name: cnativeapi
-      sha256: "1945eb2ad45e4ba4c5f41a920994eae5cd027646ec64e4464cec8385810e2c04"
+      sha256: "251fb93cd7ec205445fa512ee5ddeb0b82b3273d071cfc0784ddffbbdebbf5d3"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.0"
+    version: "0.5.2"
   code_assets:
     dependency: "direct overridden"
     description:
@@ -682,10 +682,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_webrtc
-      sha256: c1d3674f61b14cbe98b60f0cce396835b1483163e644b8cd26fd3fdd55360fb9
+      sha256: ebf5ceef2897caae425ed65a38b2961c29d9d9a626159418ed460e1a65038c00
       url: "https://pub.dev"
     source: hosted
-    version: "1.6.2+hotfix.3"
+    version: "1.6.2+hotfix.4"
   frontend_server_client:
     dependency: transitive
     description:
@@ -866,10 +866,10 @@ packages:
     dependency: "direct main"
     description:
       name: livekit_client
-      sha256: a410348effd06f4220c2d6ed9ad3935406e81fffbd1c366eba1c39fe0558f449
+      sha256: "1d2ae53abac63fdf8ac2c3f37529094b920048e5e459f29c1140b885d0cdf325"
       url: "https://pub.dev"
     source: hosted
-    version: "2.13.0"
+    version: "2.13.1"
   logger:
     dependency: transitive
     description:
@@ -1026,26 +1026,26 @@ packages:
     dependency: transitive
     description:
       name: native_toolchain_rust
-      sha256: "8469a0e32a47a5c84b7fd300de9fd0e8082aac76c37922986324f5082a58350d"
+      sha256: dc8e5f20c0cb7052372bc302f075607086d86354b37199e89ec9d3d35589e519
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.6"
+    version: "1.0.7"
   nativeapi:
     dependency: "direct main"
     description:
       name: nativeapi
-      sha256: c23bdff02c67e95ee2cd07b567628dae06320829c6d7ab34127464db161c2285
+      sha256: c4625e81f5ce2f4a9044c0ec1bdb38355119ffcf89e24eb20ae9fc5027a01e59
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.0"
+    version: "0.5.2"
   nativeapi_flutter:
     dependency: "direct main"
     description:
       name: nativeapi_flutter
-      sha256: "06ff068096f06aba441386e97c0ab3c3fb9e3ebee7c55e3453670fda28e8bf81"
+      sha256: "4feaa68cb5c4fc3b2eeaee1a25e56e2d092178e1c59516d9db5dd34940dcf36c"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.0"
+    version: "0.5.2"
   nm:
     dependency: transitive
     description:
