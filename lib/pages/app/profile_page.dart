@@ -1,137 +1,136 @@
+import 'dart:io' as io;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:novyse/core/auth/session_cleanup.dart';
-import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/services/profile_picture_service.dart';
 import 'package:novyse/core/stores/user_store.dart';
-import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
-import 'package:novyse/ui/components/button/app_button.dart';
+import 'package:novyse/ui/components/badge/badges.dart';
+import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
-import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
+import 'package:novyse/ui/components/profile/profile_qr_code_modal.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
-  Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
-    final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showOverlayConfirm(
-      context,
-      title: l10n.logoutConfirmTitle,
-      message: l10n.logoutConfirmMessage,
-      confirmLabel: l10n.logout,
-      cancelLabel: l10n.cancel,
-      isDanger: true,
-    );
-
-    if (confirmed == true && context.mounted) {
-      await performLogout(ref);
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final localUser = ref.watch(localUserProvider);
-    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
     final displayName = localUser?.displayName.isNotEmpty == true
         ? localUser!.displayName
         : (localUser?.name.isNotEmpty == true ? localUser!.name : 'User');
-    final handle = localUser?.handle?.isNotEmpty == true
-        ? '@${localUser!.handle}'
+    final rawHandle = localUser?.handle?.isNotEmpty == true
+        ? localUser!.handle!
         : '';
-    final email = localUser?.email ?? '—';
+    final handle = rawHandle.isNotEmpty ? '@$rawHandle' : '';
     final biography = localUser?.biography?.isNotEmpty == true
         ? localUser!.biography!
-        : '—';
-    final region = localUser?.region?.isNotEmpty == true
-        ? localUser!.region!
-        : '—';
+        : null;
+    final birthday = localUser?.birthday?.isNotEmpty == true
+        ? localUser!.birthday!
+        : null;
     final country = localUser?.country?.isNotEmpty == true
         ? localUser!.country!
-        : '—';
+        : null;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: [
-          IconButton(
-            icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedLogout01),
-            color: AppColors.danger,
-            tooltip: l10n.logout,
-            onPressed: () => _handleLogout(context, ref),
-          ),
-        ],
-      ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+        padding: const EdgeInsets.only(bottom: 96),
         children: [
-          Center(
-            child: Column(
-              children: [
-                Avatar(
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              _ProfileBanner(bannerUUID: localUser?.bannerPictureUUID),
+              // Bottom-to-top banner fade with the name on top of it.
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: ProgressiveOpacityBackground(
+                  direction: ProgressiveOpacityDirection.bottomToTop,
+                  padding: const EdgeInsets.fromLTRB(144, 0, 20, 6),
+                  applySafeArea: false,
+                  fadeHeight: 76,
+                  child: Text(
+                    displayName,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      shadows: const [
+                        Shadow(
+                          blurRadius: 8,
+                          color: Colors.black54,
+                        ),
+                      ],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: MediaQuery.paddingOf(context).top + 8,
+                left: 8,
+                child: _QrButton(
+                  username: rawHandle,
+                  profilePictureUUID: localUser?.profilePictureUUID,
+                ),
+              ),
+              // Avatar half outside the banner.
+              Positioned(
+                left: 20,
+                bottom: -56,
+                child: Avatar(
                   uuid: localUser?.profilePictureUUID,
                   name: displayName,
-                  size: 100,
-                  isOnline: true,
+                  size: 112,
+                  isOnline: false,
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  displayName,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                if (handle.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    handle,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w500,
+              ),
+            ],
+          ),
+
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // @username outside the image, aligned with the name.
+                if (handle.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 124),
+                    child: Text(
+                      handle,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                ],
+                const SizedBox(height: 64),
+
+                Badges(userUUID: localUser?.uuid ?? ''),
+                const SizedBox(height: 16),
+
+                if (biography != null) _ProfileAboutMe(biography: biography),
+
+                if (biography != null &&
+                    (birthday != null || country != null))
+                  const SizedBox(height: 16),
+                if (birthday != null || country != null)
+                  _ProfileBirthdayLocation(
+                    birthday: birthday,
+                    country: country,
+                  ),
               ],
             ),
-          ),
-          const SizedBox(height: 24),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Informazioni',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _ProfileInfoRow(label: 'Email', value: email),
-                  _ProfileInfoRow(label: 'Biografia', value: biography),
-                  _ProfileInfoRow(label: 'Regione', value: region),
-                  _ProfileInfoRow(label: 'Paese', value: country),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          AppButton(
-            label: 'Modifica profilo',
-            onPressed: () => ResponsiveOverlay.show<void>(
-              context: context,
-              title: 'Modifica profilo',
-              child: const SizedBox.shrink(),
-            ),
-          ),
-          const SizedBox(height: 12),
-          AppButton(
-            label: l10n.logout,
-            variant: AppButtonVariant.danger,
-            onPressed: () => _handleLogout(context, ref),
           ),
         ],
       ),
@@ -139,32 +138,201 @@ class ProfilePage extends ConsumerWidget {
   }
 }
 
-class _ProfileInfoRow extends StatelessWidget {
-  final String label;
-  final String value;
 
-  const _ProfileInfoRow({required this.label, required this.value});
+class _QrButton extends StatelessWidget {
+  const _QrButton({required this.username, this.profilePictureUUID});
+
+  final String username;
+  final String? profilePictureUUID;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
+    if (username.isEmpty) return const SizedBox.shrink();
+    return Material(
+      color: Colors.transparent,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: () => showProfileQrCodeModal(
+          context,
+          username: username,
+          profilePictureUUID: profilePictureUUID,
+        ),
+        child: const Padding(
+          padding: EdgeInsets.all(8),
+          child: AppHugeIcon(
+            icon: HugeIcons.strokeRoundedQrCode,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileBanner extends ConsumerWidget {
+  const _ProfileBanner({required this.bannerUUID});
+
+  static const defaultBannerUri =
+      'https://www.novyse.com/images/banner/default.jpg';
+
+  final String? bannerUUID;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bannerAsync = (bannerUUID != null && bannerUUID!.isNotEmpty)
+        ? ref.watch(profilePictureUriProvider(bannerUUID))
+        : null;
+    final uri = bannerAsync?.valueOrNull;
+
+    Widget? image;
+    if (uri != null && uri.isNotEmpty) {
+      if (uri.startsWith('http://') ||
+          uri.startsWith('https://') ||
+          uri.startsWith('blob:')) {
+        image = Image.network(
+          uri,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => const SizedBox.shrink(),
+        );
+      } else if (!kIsWeb) {
+        final cleanPath = uri.startsWith('file://')
+            ? uri.replaceFirst('file://', '')
+            : uri;
+        image = Image.file(
+          io.File(cleanPath),
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => const SizedBox.shrink(),
+        );
+      }
+    }
+
+    return SizedBox(
+      height: 190,
+      width: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Default banner underneath; the real one covers it when available.
+          Image.network(
+            defaultBannerUri,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => const SizedBox.shrink(),
+          ),
+          if (image != null) Positioned.fill(child: image),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileAboutMe extends StatelessWidget {
+  const _ProfileAboutMe({required this.biography});
+
+  final String biography;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Text(biography, style: theme.textTheme.bodyMedium),
+      ),
+    );
+  }
+}
+
+class _ProfileBirthdayLocation extends StatelessWidget {
+  const _ProfileBirthdayLocation({this.birthday, this.country});
+
+  final String? birthday;
+  final String? country;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isItalian =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'it';
+    final birthdayValue = birthday;
+    final countryValue = country;
+    final hasBirthday =
+        birthdayValue != null && birthdayValue.isNotEmpty;
+    final hasCountry = countryValue != null && countryValue.isNotEmpty;
+
+    if (!hasBirthday && !hasCountry) {
+      return const SizedBox.shrink();
+    }
+
+    Widget item({
+      required List<List<dynamic>> icon,
+      required String label,
+      required String value,
+    }) {
+      return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 90,
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: scheme.primary,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: AppHugeIcon(icon: icon, size: 16, color: Colors.white),
             ),
           ),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+                Text(value, style: theme.textTheme.bodyMedium),
+              ],
+            ),
           ),
         ],
+      );
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        child: Column(
+          children: [
+            if (hasBirthday)
+              item(
+                icon: HugeIcons.strokeRoundedBirthdayCake,
+                label: isItalian ? 'NATO IL' : 'BORN',
+                value: birthdayValue,
+              ),
+            if (hasBirthday && hasCountry)
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Divider(
+                  height: 17,
+                  color: scheme.outlineVariant,
+                ),
+              ),
+            if (hasCountry)
+              Padding(
+                padding: EdgeInsets.only(top: hasBirthday ? 16 : 0),
+                child: item(
+                  icon: HugeIcons.strokeRoundedLocation06,
+                  label: isItalian ? 'LUOGO' : 'LOCATION',
+                  value: countryValue,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
