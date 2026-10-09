@@ -38,9 +38,9 @@ fun getMetadataFromGlobalConfig(varName: String, branch: String): String {
 val currentBranch = getBranchFromGlobalConfig()
 val currentAppVersion = getAppVersionFromGlobalConfig()
 val currentAppName = getMetadataFromGlobalConfig("appName", currentBranch)
-val currentAppDescription = getMetadataFromGlobalConfig("mobileDescription", currentBranch)
-val currentApplicationId = "com.${currentAppName.lowercase()}"
-val currentScheme = currentAppName.lowercase()
+val currentAppDescription = getMetadataFromGlobalConfig("appDescription", currentBranch)
+val currentApplicationId = getMetadataFromGlobalConfig("appId", currentBranch).ifEmpty { "com.${currentAppName.lowercase()}" }
+val currentScheme = getMetadataFromGlobalConfig("appScheme", currentBranch).ifEmpty { currentAppName.lowercase() }
 
 val currentHostSuffix = when (currentBranch) {
     "production" -> ""
