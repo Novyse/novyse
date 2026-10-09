@@ -75,6 +75,7 @@ and forwards any extra argument to `flutter run`:
 ./scripts/run.sh web
 ./scripts/run.sh linux
 ./scripts/run.sh windows
+./scripts/run.sh macos
 ```
 
 `web` runs on Chrome with port `8081`, `linux` disables Impeller.

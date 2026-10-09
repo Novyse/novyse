@@ -14,6 +14,7 @@ show_usage() {
   echo "  - web      : flutter run -d chrome --web-port 8081"
   echo "  - linux    : flutter run -d linux --no-enable-impeller"
   echo "  - windows  : flutter run -d windows"
+  echo "  - macos    : flutter run -d macos"
   echo ""
   echo "Unsupported platforms:"
   echo "  - android  : (Not supported)"
@@ -49,6 +50,10 @@ case "$OS_TARGET" in
   windows)
     echo "🚀 Launching on Windows..."
     exec flutter run -d windows "$@"
+    ;;
+  macos|mac)
+    echo "🚀 Launching on macOS..."
+    exec flutter run -d macos "$@"
     ;;
   android|ios)
     echo "❌ Error: Platform '$OS_TARGET' is not supported."
