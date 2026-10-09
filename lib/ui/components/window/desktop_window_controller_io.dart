@@ -38,7 +38,6 @@ abstract final class DesktopWindowController {
   }
 
   static Window? get current {
-    if (kIsWeb) return null;
     try {
       return WindowManager.instance.getCurrent();
     } catch (_) {
