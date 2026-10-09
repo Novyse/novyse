@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -46,13 +47,17 @@ void main() {
         });
   }
 
+  final validThumbnail = base64Decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+  );
+
   /// One fake screen source.
   Map<String, dynamic> source(String id, String name) => {
     'id': id,
     'name': name,
     'type': 'screen',
     'thumbnailSize': {'width': 320, 'height': 180, 'scaleFactor': 1.0},
-    'thumbnail': Uint8List.fromList([1, 2, 3]),
+    'thumbnail': validThumbnail,
   };
 
   /// Pumps the modal and settles.
