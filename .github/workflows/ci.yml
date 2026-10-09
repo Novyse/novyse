@@ -1,20 +1,20 @@
 name: CI (Analyze & Tests)
-
 on:
-  push:
-    branches:
-      - '**'
-    paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - 'LICENSE'
-  pull_request:
-    branches:
-      - '**'
-    paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - 'LICENSE'
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - '**'
+  #   paths-ignore:
+  #     - '**.md'
+  #     - '.gitignore'
+  #     - 'LICENSE'
+  # pull_request:
+  #   branches:
+  #     - '**'
+  #   paths-ignore:
+  #     - '**.md'
+  #     - '.gitignore'
+  #     - 'LICENSE'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
