@@ -15,10 +15,8 @@ show_usage() {
   echo "  - linux    : flutter run -d linux --no-enable-impeller"
   echo "  - windows  : flutter run -d windows"
   echo "  - macos    : flutter run -d macos"
-  echo ""
-  echo "Unsupported platforms:"
-  echo "  - android  : (Not supported)"
-  echo "  - ios      : (Not supported)"
+  echo "  - android  : flutter run -d android"
+  echo "  - ios      : flutter run -d ios"
   echo ""
 }
 
@@ -30,11 +28,7 @@ if [ -z "$1" ]; then
 fi
 
 case "$OS_TARGET" in
-  web|linux|windows|macos|mac)
-    ;;
-  android|ios)
-    echo "❌ Error: Platform '$OS_TARGET' is not supported."
-    exit 1
+  web|linux|windows|macos|mac|android|ios)
     ;;
   *)
     echo "❌ Error: Invalid/unrecognized OS '$RAW_OS'."
@@ -46,7 +40,11 @@ esac
 
 shift # Remove OS from arguments so subsequent arguments can be passed to flutter
 
-cd "$ROOT_DIR"
+# Synchronize branch and target platform configuration
+PLATFORM_SYNC_TARGET="$OS_TARGET"
+[ "$PLATFORM_SYNC_TARGET" = "mac" ] && PLATFORM_SYNC_TARGET="macos"
+bash "$SCRIPT_DIR/sync-branch.sh"
+bash "$SCRIPT_DIR/sync-platform.sh" "$PLATFORM_SYNC_TARGET"
 
 # Run checks
 bash "$SCRIPT_DIR/check/check-dependencies.sh"
@@ -68,5 +66,13 @@ case "$OS_TARGET" in
   macos|mac)
     echo "🚀 Launching on macOS..."
     exec flutter run -d macos "$@"
+    ;;
+  android)
+    echo "🚀 Launching on Android..."
+    exec flutter run -d android "$@"
+    ;;
+  ios)
+    echo "🚀 Launching on iOS..."
+    exec flutter run -d ios "$@"
     ;;
 esac

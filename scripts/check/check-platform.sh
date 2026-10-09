@@ -76,6 +76,25 @@ case "$TARGET_PLATFORM" in
       echo "   macOS builds may fail if native pods are required. Install with 'brew install cocoapods' or 'sudo gem install cocoapods'."
     fi
     ;;
+  android)
+    if [ -z "$ANDROID_HOME" ] && [ -z "$ANDROID_SDK_ROOT" ]; then
+      if [ -d "$HOME/Android/Sdk" ]; then
+        export ANDROID_HOME="$HOME/Android/Sdk"
+      elif [ -d "$HOME/Library/Android/sdk" ]; then
+        export ANDROID_HOME="$HOME/Library/Android/sdk"
+      fi
+    fi
+    ;;
+  ios)
+    if [ "$HOST_OS" != "Darwin" ]; then
+      echo "❌ Error: Cannot build/run iOS on '$HOST_OS'. A macOS (Darwin) host machine is required."
+      exit 1
+    fi
+    if ! xcode-select -p >/dev/null 2>&1; then
+      echo "❌ Error: Xcode Command Line Tools are missing."
+      exit 1
+    fi
+    ;;
   *)
     echo "❌ Error: Unknown platform '$TARGET_PLATFORM' for platform check."
     exit 1

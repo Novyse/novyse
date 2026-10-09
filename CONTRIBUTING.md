@@ -14,11 +14,7 @@ First off, thank you for considering contributing to Novyse! It's people like yo
    - [Environment Setup](#environment-setup)
    - [Running the App](#running-the-app)
    - [Testing & Code Coverage](#testing--code-coverage)
-3. [Build Instructions](#build-instructions)
-   - [Intro & Config](#intro--config)
-   - [Web](#web)
-   - [Android](#android)
-   - [Other Platforms](#other-platforms)
+3. [Building the App](#building-the-app)
 4. [Security & Legal](#security--legal)
 
 ---
@@ -66,26 +62,28 @@ To regenerate the OSS licenses file run:
 ./scripts/sync-licenses.sh
 ```
 
-### Running the App
+### Running the App (Development)
 
-Use the `run.sh` script, it launches the app with the right flags per platform
-and forwards any extra argument to `flutter run`:
+Use the `./scripts/run.sh` script to launch the app during development. It automatically prepares the environment before launching `flutter run`:
 
 ```bash
+./scripts/run.sh <platform> [optional flutter args...]
+```
+
+**Supported platforms:** `web`, `linux`, `windows`, `macos`, `android`, `ios`.
+
+#### What `run.sh` does:
+1. **Branch Synchronization:** Runs `scripts/sync-branch.sh` to ensure `pubspec.yaml` name and description are in sync with `lib/core/config/global.dart`.
+2. **Platform Runtime Sync:** Runs `scripts/sync-platform.sh <platform>` to ensure runtime configuration files (e.g., Xcode `AppEnvironment.xcconfig` for iOS/macOS, `web/manifest.json` and `web/index.html` for Web) match the active branch.
+3. **Environment Checks:** Validates dependencies and system requirements via `scripts/check/check-dependencies.sh` and `scripts/check/check-platform.sh`.
+4. **Target Execution:** Launches `flutter run` with target-optimized flags (e.g. `--web-port 8081` on Web, `--no-enable-impeller` on Linux). Any additional arguments passed to `run.sh` are forwarded directly to `flutter run`:
+
+```bash
+# Examples:
 ./scripts/run.sh web
-./scripts/run.sh linux
-./scripts/run.sh windows
-./scripts/run.sh macos
-```
-
-`web` runs on Chrome with port `8081`, `linux` disables Impeller.
-Extra `flutter run` arguments can be appended, e.g.:
-
-```bash
 ./scripts/run.sh linux --dart-define=API_URL=http://localhost:3000
+./scripts/run.sh android -d <device_id>
 ```
-
-Without the script you can always call `flutter run -d <device>` directly.
 
 ### Testing & Code Coverage
 
@@ -110,56 +108,9 @@ flutter analyze
 
 ---
 
-## Build Instructions
+## Building the App
 
-> [!NOTE]
-> Deploy automation is not set up yet. This document only covers local builds.
-
-### Intro & Config
-
-App metadata (branch, version, build date) lives in `lib/core/config/global.dart`
-and is synced into platform files with:
-
-```bash
-./scripts/sync-version.sh
-./scripts/sync-branch.sh
-```
-
-### Web
-
-```bash
-flutter build web
-```
-
-### Android
-
-```bash
-flutter build apk
-# or for Play Store
-flutter build appbundle
-```
-
-Create `android/local.properties` with your SDK path if needed:
-
-```properties
-sdk.dir=/home/user/Android/Sdk
-```
-
-### Other Platforms
-
-#### iOS
-
-```bash
-flutter build ipa
-```
-
-#### Windows / macOS / Linux
-
-```bash
-flutter build windows
-flutter build macos
-flutter build linux
-```
+For complete release build and packaging instructions across all platforms (Linux, Windows, macOS, Android, iOS, and Web), please refer to the dedicated **[Build Documentation](BUILD.md)**.
 
 ---
 

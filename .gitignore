@@ -54,3 +54,6 @@ build/
 google-services.json
 GoogleService-Info.plist
 novyse-release.keystore
+
+# Linux packaging generated icons
+/linux/packaging/icons/

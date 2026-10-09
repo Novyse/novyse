@@ -31,3 +31,8 @@ if [ ! -f "$ROOT_DIR/lib/core/settings/oss_licenses.dart" ]; then
     exit 1
   }
 fi
+
+# Automatically sync platform metadata and version
+if [ -f "$ROOT_DIR/scripts/sync-platform.sh" ]; then
+  bash "$ROOT_DIR/scripts/sync-platform.sh" >/dev/null 2>&1 || true
+fi
