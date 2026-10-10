@@ -33,7 +33,7 @@ jobs:
       - name: Install Linux Build Dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y libgtk-3-dev libx11-dev pkg-config ninja-build libsecret-1-dev libjson-glib-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+          sudo apt-get install -y libgtk-3-dev libx11-dev pkg-config ninja-build libsecret-1-dev libjson-glib-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libglib2.0-dev libwebkit2gtk-4.1-dev libpulse-dev
 
       - name: Cache Flutter SDK
         uses: subosito/flutter-action@v2

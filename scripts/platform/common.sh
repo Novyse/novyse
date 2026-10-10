@@ -21,7 +21,7 @@ sed_inplace() {
 }
 
 # 1. Extract active deployment branch
-BRANCH=$(sed -n "s/.*const[[:space:]]\+String[[:space:]]\+branch[[:space:]]*=[[:space:]]*['\"]\([^'\"]\+\)['\"].*/\1/p" "$_GLOBAL_DART" | head -n 1)
+BRANCH=$(sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}branch[[:space:]]*=[[:space:]]*['\"]\([^'\"]\{1,\}\)['\"].*/\1/p" "$_GLOBAL_DART" | head -n 1)
 [ -z "$BRANCH" ] && BRANCH="development"
 
 # 2. Pure Bash resolver for constants in global.dart
@@ -33,13 +33,13 @@ get_dart_field() {
   # Check branch-conditional ternary expression
   case "$target_branch" in
     "production")
-      val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\+String[[:space:]]\+$var[[:space:]]*=[[:space:]]*branch[[:space:]]*==[[:space:]]*['\"]production['\"][[:space:]]*?[[:space:]]*['\"]\([^'\"]\+\)['\"].*/\1/p")
+      val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}$var[[:space:]]*=[[:space:]]*branch[[:space:]]*==[[:space:]]*['\"]production['\"][[:space:]]*?[[:space:]]*['\"]\([^'\"]\{1,\}\)['\"].*/\1/p")
       ;;
     "preview")
-      val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\+String[[:space:]]\+$var[[:space:]]*=[^;]*branch[[:space:]]*==[[:space:]]*['\"]preview['\"][[:space:]]*?[[:space:]]*['\"]\([^'\"]\+\)['\"].*/\1/p")
+      val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}$var[[:space:]]*=[^;]*branch[[:space:]]*==[[:space:]]*['\"]preview['\"][[:space:]]*?[[:space:]]*['\"]\([^'\"]\{1,\}\)['\"].*/\1/p")
       ;;
     *)
-      val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\+String[[:space:]]\+$var[[:space:]]*=[^;]*:[[:space:]]*['\"]\([^'\"]\+\)['\"][[:space:]]*)[[:space:]]*;.*/\1/p")
+      val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}$var[[:space:]]*=[^;]*:[[:space:]]*['\"]\([^'\"]\{1,\}\)['\"][[:space:]]*)[[:space:]]*;.*/\1/p")
       ;;
   esac
 
@@ -49,22 +49,22 @@ get_dart_field() {
   fi
 
   # Check simple constant: const String var = 'val';
-  val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\+String[[:space:]]\+$var[[:space:]]*=[[:space:]]*['\"]\([^'\"]\+\)['\"][[:space:]]*;.*/\1/p")
+  val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}$var[[:space:]]*=[[:space:]]*['\"]\([^'\"]\{1,\}\)['\"][[:space:]]*;.*/\1/p")
   if [ -n "$val" ]; then
     echo "$val"
     return 0
   fi
 
   # Check concatenated string literal: const String var = 'p1' 'p2';
-  val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\+String[[:space:]]\+$var[[:space:]]*=[[:space:]]*\(['\"][^;]*\);.*/\1/p")
+  val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}$var[[:space:]]*=[[:space:]]*\(['\"][^;]*\);.*/\1/p")
   if [ -n "$val" ]; then
-    echo "$val" | sed "s/['\"]//g" | sed "s/[[:space:]]\+/ /g" | sed "s/^ //;s/ $//"
+    echo "$val" | sed "s/['\"]//g" | sed "s/[[:space:]]\{1,\}/ /g" | sed "s/^ //;s/ $//"
     return 0
   fi
 
   # Check reference to another variable: const String var = otherVar;
   local ref
-  ref=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\+String[[:space:]]\+$var[[:space:]]*=[[:space:]]*\([a-zA-Z0-9_]\+\)[[:space:]]*;.*/\1/p")
+  ref=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}$var[[:space:]]*=[[:space:]]*\([a-zA-Z0-9_]\{1,\}\)[[:space:]]*;.*/\1/p")
   if [ -n "$ref" ] && [ "$ref" != "$var" ]; then
     get_dart_field "$ref" "$target_branch"
     return 0
