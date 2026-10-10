@@ -21,8 +21,7 @@ if [ ! -f "$GLOBAL_DART" ]; then
   exit 1
 fi
 
-# Extract appVersion directly from global.dart (strict, no fallback)
-APP_VERSION=$(sed -n "s/.*const[[:space:]]\+String[[:space:]]\+appVersion[[:space:]]*=[[:space:]]*['\"]\([^'\"]\+\)['\"].*/\1/p" "$GLOBAL_DART" | head -n 1)
+APP_VERSION=$(sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}appVersion[[:space:]]*=[[:space:]]*['\"]\([^'\"]\{1,\}\)['\"].*/\1/p" "$GLOBAL_DART" | head -n 1)
 
 if [ -z "$APP_VERSION" ]; then
   echo "❌ [SYNC-VERSION ERROR] 'const String appVersion' must be defined in $GLOBAL_DART" >&2
