@@ -11,8 +11,8 @@ Outputs are generated in the `dist/` directory.
   - Preview/dev: `novyse-preview.deb`, `novyse-preview.rpm`, ... / `novyse-dev.deb`, `novyse-dev.rpm`, ...
 - **Windows:**
   - **Command:** `./scripts/build.sh windows`
-  - **Formats:** `zip` (`novyse-windows.zip`), `exe` (`novyse-setup.exe`), `portable` (`novyse-portable.exe`), `msi` (`novyse-setup.msi`)
-  - Preview/dev: `novyse-preview-windows.zip`, `novyse-preview-setup.exe`, ... / `novyse-dev-windows.zip`, `novyse-dev-setup.exe`, ...
+  - **Formats:** `exe` (`novyse-setup.exe`), `portable` (`novyse-portable.exe`), `msi` (`novyse-setup.msi`)
+  - Preview/dev: `novyse-preview-setup.exe`, ... / `novyse-dev-setup.exe`, ...
 - **macOS:**
   - **Command:** `./scripts/build.sh macos`
   - **Formats:** `zip` (`novyse-macos.zip`), `dmg` (`novyse.dmg`)

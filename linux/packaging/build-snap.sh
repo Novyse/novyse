@@ -37,9 +37,9 @@ fi
 generate_snapcraft_yaml "$STAGING_DIR/snap/snapcraft.yaml" "bundle"
 
 SNAP_NAME="${PKG_NAME}.snap"
-(cd "$STAGING_DIR" && snapcraft pack --output "$DIST_DIR/$SNAP_NAME") 2>/dev/null || true
-rm -rf "$STAGING_DIR"
-
-if [ -f "$DIST_DIR/$SNAP_NAME" ]; then
+if (cd "$STAGING_DIR" && snapcraft pack --destructive-mode --output "$DIST_DIR/$SNAP_NAME"); then
   echo "✅ [SNAP] Created: $DIST_DIR/$SNAP_NAME"
+else
+  echo "⚠️  [SNAP WARNING] snapcraft pack failed (see output above). Skipping Snap package."
 fi
+rm -rf "$STAGING_DIR"

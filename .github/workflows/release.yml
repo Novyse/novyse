@@ -201,7 +201,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libx11-dev pkg-config ninja-build libsecret-1-dev libjson-glib-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good libglib2.0-dev libwebkit2gtk-4.1-dev libpulse-dev libmpv-dev libepoxy-dev dpkg-dev rpm elfutils zip unzip flatpak flatpak-builder
           flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
-          flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08 || true
+          flatpak install --user -y flathub org.freedesktop.Platform//26.08 org.freedesktop.Sdk//26.08 || true
           sudo snap install snapcraft --classic || true
 
       - name: Setup Flutter
@@ -256,7 +256,7 @@ jobs:
       - name: Upload Windows Artifacts
         shell: bash
         run: |
-          for f in dist/*.zip dist/*.exe dist/*.msi; do
+          for f in dist/*.exe dist/*.msi; do
             if [ -f "$f" ]; then
               gh release upload v${{ inputs.version }} "$f" --clobber || true
             fi
@@ -283,6 +283,13 @@ jobs:
         with:
           toolchain: stable
           targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Repair rustup default host
+        run: |
+          rustup set default-host aarch64-apple-darwin
+          rustup toolchain install stable-aarch64-apple-darwin --profile minimal || true
+          rustup default stable-aarch64-apple-darwin
+          rustup show active-toolchain
 
       - name: Build & Package macOS
         run: |
@@ -392,7 +399,6 @@ jobs:
               *.exe|*.msi) platform="Windows" ;;
               *.deb|*.rpm|*.AppImage|*.snap|*.flatpak|*.tar.gz) platform="Linux" ;;
               *.dmg) platform="macOS" ;;
-              *windows*.zip) platform="Windows" ;;
               *macos*.zip|*mac*.zip) platform="macOS" ;;
               *web*.zip) platform="Web" ;;
             esac

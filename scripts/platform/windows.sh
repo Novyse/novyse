@@ -14,7 +14,6 @@ export WIN_SETUP_NAME="${PKG_NAME}-setup"
 export WIN_SETUP_EXE="${PKG_NAME}-setup.exe"
 export WIN_PORTABLE_NAME="${PKG_NAME}-portable.exe"
 export WIN_MSI_NAME="${PKG_NAME}-setup.msi"
-export WIN_ZIP_NAME="${PKG_NAME}-windows.zip"
 
 to_win_path() {
   local p="$1"

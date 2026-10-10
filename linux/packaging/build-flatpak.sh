@@ -31,9 +31,9 @@ generate_linux_icons "$STAGING_DIR/icons"
 generate_flatpak_manifest "$STAGING_DIR/${APP_ID}.yml" "."
 
 FLATPAK_NAME="${PKG_NAME}.flatpak"
-(cd "$STAGING_DIR" && flatpak-builder --force-clean --repo="$STAGING_DIR/repo" build_dir "${APP_ID}.yml" && flatpak build-bundle "$STAGING_DIR/repo" "$DIST_DIR/$FLATPAK_NAME" "${APP_ID}") 2>/dev/null || true
-rm -rf "$STAGING_DIR"
-
-if [ -f "$DIST_DIR/$FLATPAK_NAME" ]; then
+if (cd "$STAGING_DIR" && flatpak-builder --force-clean --repo="$STAGING_DIR/repo" build_dir "${APP_ID}.yml" && flatpak build-bundle "$STAGING_DIR/repo" "$DIST_DIR/$FLATPAK_NAME" "${APP_ID}"); then
   echo "✅ [FLATPAK] Created: $DIST_DIR/$FLATPAK_NAME"
+else
+  echo "⚠️  [FLATPAK WARNING] flatpak-builder failed (see output above). Skipping Flatpak package."
 fi
+rm -rf "$STAGING_DIR"
