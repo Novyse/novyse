@@ -57,3 +57,7 @@ novyse-release.keystore
 
 # Linux packaging generated icons
 /linux/packaging/icons/
+
+# Build 
+dist/
+.cache/
