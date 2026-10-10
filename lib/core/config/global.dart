@@ -12,7 +12,7 @@ const String appName = branch == 'production'
 const String appDescription =
     'Next-Gen Communications. Connect, collaborate, and communicate securely.';
 
-const String appVersion = '1.2.0-20260831.0';
+const String appVersion = '1.3.0-20261010.0';
 
 /// Human-readable update channel for the active deployment branch.
 const String updateChannel = branch == 'development' ? 'dev' : branch;
