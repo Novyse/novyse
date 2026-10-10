@@ -284,6 +284,13 @@ jobs:
           toolchain: stable
           targets: aarch64-apple-darwin,x86_64-apple-darwin
 
+      - name: Repair rustup default host
+        run: |
+          rustup set default-host aarch64-apple-darwin
+          rustup toolchain install stable-aarch64-apple-darwin --profile minimal || true
+          rustup default stable-aarch64-apple-darwin
+          rustup show active-toolchain
+
       - name: Build & Package macOS
         run: |
           flutter pub get
