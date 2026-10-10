@@ -274,6 +274,29 @@ build_linux() {
   fi
 }
 
+package_windows_zip() {
+  local src_dir="$1"
+  local out_zip="$2"
+  rm -f "$out_zip"
+  if command -v zip >/dev/null 2>&1; then
+    (cd "$src_dir" && zip -r -q "$out_zip" .) || true
+  elif command -v 7z >/dev/null 2>&1; then
+    (cd "$src_dir" && 7z a -tzip -mx=9 "$out_zip" . >/dev/null 2>&1) || true
+  elif [ -f "/c/Program Files/7-Zip/7z.exe" ]; then
+    (cd "$src_dir" && "/c/Program Files/7-Zip/7z.exe" a -tzip -mx=9 "$out_zip" . >/dev/null 2>&1) || true
+  elif command -v powershell.exe >/dev/null 2>&1; then
+    powershell.exe -NoProfile -NonInteractive -Command "Compress-Archive -Path '$src_dir\*' -DestinationPath '$out_zip' -Force" || true
+  else
+    echo "⚠️  [WINDOWS WARNING] No zip tool found ('zip'/'7z'/PowerShell). Skipping windows.zip."
+    return 0
+  fi
+  if [ -f "$out_zip" ]; then
+    echo "✅ [WINDOWS] Created: $out_zip"
+  else
+    echo "⚠️  [WINDOWS WARNING] Failed to create $out_zip (zip tool failed)."
+  fi
+}
+
 build_windows() {
   echo "🪟 Building Windows ($BUILD_MODE) for $APP_NAME..."
   flutter build windows "--$BUILD_MODE"
@@ -283,12 +306,13 @@ build_windows() {
     if is_format_selected "zip"; then
       WIN_RELEASE_DIR="$ROOT_DIR/build/windows/x64/runner/Release"
       if [ -d "$WIN_RELEASE_DIR" ]; then
-        (cd "$WIN_RELEASE_DIR" && zip -r -q "$DIST_DIR/${PKG_NAME}-windows.zip" .) || true
-        echo "✅ [WINDOWS] Created: $DIST_DIR/${PKG_NAME}-windows.zip"
+        package_windows_zip "$WIN_RELEASE_DIR" "$DIST_DIR/${PKG_NAME}-windows.zip"
       fi
     fi
     if is_format_selected "exe"; then
-      bash "$ROOT_DIR/windows/packaging/build-inno.sh" || true
+      if ! bash "$ROOT_DIR/windows/packaging/build-inno.sh"; then
+        echo "⚠️  [WINDOWS WARNING] Inno Setup packaging failed; continuing with other formats."
+      fi
     fi
     if is_format_selected "portable"; then
       bash "$ROOT_DIR/windows/packaging/build-portable.sh" || true
@@ -309,7 +333,11 @@ build_macos() {
       APP_PATH=$(find "$ROOT_DIR/build/macos/Build/Products/Release" -maxdepth 1 -name "*.app" | head -n 1)
       if [ -n "$APP_PATH" ] && [ -d "$APP_PATH" ]; then
         (cd "$(dirname "$APP_PATH")" && zip -r -y -q "$DIST_DIR/${PKG_NAME}-macos.zip" "$(basename "$APP_PATH")") || true
-        echo "✅ [MACOS] Created: $DIST_DIR/${PKG_NAME}-macos.zip"
+        if [ -f "$DIST_DIR/${PKG_NAME}-macos.zip" ]; then
+          echo "✅ [MACOS] Created: $DIST_DIR/${PKG_NAME}-macos.zip"
+        else
+          echo "⚠️  [MACOS WARNING] Failed to create $DIST_DIR/${PKG_NAME}-macos.zip"
+        fi
       fi
     fi
     if is_format_selected "dmg"; then

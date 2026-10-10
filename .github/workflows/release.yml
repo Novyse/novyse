@@ -243,7 +243,7 @@ jobs:
       - name: Install Packaging Tools (Inno Setup & WiX Toolset)
         shell: pwsh
         run: |
-          choco install innosetup wixtoolset --no-progress
+          choco install innosetup wixtoolset zip --no-progress
           "C:\Program Files (x86)\WiX Toolset v3.11\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: Build & Package Windows
