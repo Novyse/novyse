@@ -1,7 +1,7 @@
 library;
 
 /// The active deployment branch.
-const String branch = 'development'; // 'development' | 'preview' | 'production'
+const String branch = 'production'; // 'development' | 'preview' | 'production'
 
 /// Application metadata.
 const String appName = branch == 'production'

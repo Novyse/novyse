@@ -4,11 +4,12 @@
 <dict>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:app.dev.novyse.com</string>
-		<string>applinks:web.dev.novyse.com</string>
-		<string>applinks:auth.dev.novyse.com</string>
-		<string>webcredentials:app.dev.novyse.com</string>
-		<string>webcredentials:auth.dev.novyse.com</string>
+		<string>applinks:app.novyse.com</string>
+		<string>applinks:web.novyse.com</string>
+		<string>applinks:auth.novyse.com</string>
+		<string>applinks:vyse.me</string>
+		<string>applinks:novyse.com</string>
+		<string>webcredentials:auth.novyse.com</string>
 	</array>
 </dict>
 </plist>

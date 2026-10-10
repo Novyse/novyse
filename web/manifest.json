@@ -1,6 +1,6 @@
 {
-  "name": "Novyse.dev",
-  "short_name": "Novyse.dev",
+  "name": "Novyse",
+  "short_name": "Novyse",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#071827",
