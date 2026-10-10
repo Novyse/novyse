@@ -27,9 +27,9 @@ update_web_manifest() {
        '.name = $name | .short_name = $name | .description = $desc' \
        "$manifest_file" > "$tmp_file" && mv "$tmp_file" "$manifest_file"
   else
-    sed -i "s/\"name\": \"[^\"]*\"/\"name\": \"$APP_NAME\"/" "$manifest_file"
-    sed -i "s/\"short_name\": \"[^\"]*\"/\"short_name\": \"$APP_NAME\"/" "$manifest_file"
-    sed -i "s/\"description\": \"[^\"]*\"/\"description\": \"$APP_DESCRIPTION\"/" "$manifest_file"
+    sed_inplace "s/\"name\": \"[^\"]*\"/\"name\": \"$APP_NAME\"/" "$manifest_file"
+    sed_inplace "s/\"short_name\": \"[^\"]*\"/\"short_name\": \"$APP_NAME\"/" "$manifest_file"
+    sed_inplace "s/\"description\": \"[^\"]*\"/\"description\": \"$APP_DESCRIPTION\"/" "$manifest_file"
   fi
 }
 
@@ -38,9 +38,9 @@ update_web_index() {
   local index_file="$1"
   [ ! -f "$index_file" ] && return 0
 
-  sed -i "s/<title>[^<]*<\/title>/<title>$APP_NAME<\/title>/" "$index_file"
-  sed -i "s/<meta name=\"description\" content=\"[^\"]*\"/<meta name=\"description\" content=\"$APP_DESCRIPTION\"/" "$index_file"
-  sed -i "s/<meta name=\"apple-mobile-web-app-title\" content=\"[^\"]*\"/<meta name=\"apple-mobile-web-app-title\" content=\"$APP_NAME\"/" "$index_file"
+  sed_inplace "s/<title>[^<]*<\/title>/<title>$APP_NAME<\/title>/" "$index_file"
+  sed_inplace "s/<meta name=\"description\" content=\"[^\"]*\"/<meta name=\"description\" content=\"$APP_DESCRIPTION\"/" "$index_file"
+  sed_inplace "s/<meta name=\"apple-mobile-web-app-title\" content=\"[^\"]*\"/<meta name=\"apple-mobile-web-app-title\" content=\"$APP_NAME\"/" "$index_file"
 }
 
 sync_web() {

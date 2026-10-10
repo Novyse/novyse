@@ -7,6 +7,15 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 GLOBAL_DART="$ROOT_DIR/lib/core/config/global.dart"
 PUBSPEC="$ROOT_DIR/pubspec.yaml"
 
+# Portable in-place sed (BSD/macOS sed requires `-i ''`, GNU sed bare `-i`).
+sed_inplace() {
+  if [ "$(uname -s)" = "Darwin" ]; then
+    sed -i '' "$@"
+  else
+    sed -i "$@"
+  fi
+}
+
 if [ ! -f "$GLOBAL_DART" ]; then
   echo "❌ [SYNC-VERSION ERROR] Configuration file not found: $GLOBAL_DART" >&2
   exit 1
@@ -35,7 +44,7 @@ NEW_VERSION="version: ${APP_VERSION}${BUILD_SUFFIX}"
 CURRENT_VERSION=$(grep "^version:" "$PUBSPEC" | head -n 1)
 
 if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
-  sed -i "s/^version:.*/${NEW_VERSION}/" "$PUBSPEC"
+  sed_inplace "s/^version:.*/${NEW_VERSION}/" "$PUBSPEC"
   git add "$PUBSPEC"
   echo "🔄 [SYNC-VERSION] Updated pubspec.yaml to: $NEW_VERSION (staged)"
 else

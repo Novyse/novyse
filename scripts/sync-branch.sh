@@ -14,14 +14,14 @@ if [ -f "$PUBSPEC" ]; then
   CURRENT_NAME=$(grep "^name:" "$PUBSPEC" | head -n 1)
   TARGET_NAME="name: novyse"
   if [ "$CURRENT_NAME" != "$TARGET_NAME" ]; then
-    sed -i "s/^name:.*/${TARGET_NAME}/" "$PUBSPEC"
+    sed_inplace "s/^name:.*/${TARGET_NAME}/" "$PUBSPEC"
     echo "  📦 Updated pubspec.yaml name to: ${TARGET_NAME}"
   fi
 
   CURRENT_DESC=$(grep "^description:" "$PUBSPEC" | head -n 1)
   TARGET_DESC="description: \"$APP_DESCRIPTION\""
   if [ "$CURRENT_DESC" != "$TARGET_DESC" ]; then
-    sed -i "s/^description:.*/${TARGET_DESC}/" "$PUBSPEC"
+    sed_inplace "s/^description:.*/${TARGET_DESC}/" "$PUBSPEC"
     echo "  📦 Updated pubspec.yaml description to: ${TARGET_DESC}"
   fi
 else
