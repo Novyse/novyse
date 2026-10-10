@@ -256,7 +256,7 @@ jobs:
       - name: Upload Windows Artifacts
         shell: bash
         run: |
-          for f in dist/*.zip dist/*.exe dist/*.msi; do
+          for f in dist/*.exe dist/*.msi; do
             if [ -f "$f" ]; then
               gh release upload v${{ inputs.version }} "$f" --clobber || true
             fi
@@ -399,7 +399,6 @@ jobs:
               *.exe|*.msi) platform="Windows" ;;
               *.deb|*.rpm|*.AppImage|*.snap|*.flatpak|*.tar.gz) platform="Linux" ;;
               *.dmg) platform="macOS" ;;
-              *windows*.zip) platform="Windows" ;;
               *macos*.zip|*mac*.zip) platform="macOS" ;;
               *web*.zip) platform="Web" ;;
             esac
