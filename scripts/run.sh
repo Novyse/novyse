@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 RAW_OS="$1"
-OS_TARGET="${1,,}" # Convert to lowercase
+OS_TARGET="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')" # Convert to lowercase
 
 show_usage() {
   echo "Usage: $0 <os> [optional flutter args...]"

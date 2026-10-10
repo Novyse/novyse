@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-TARGET_PLATFORM="${1,,}"
+TARGET_PLATFORM="$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]')"
 HOST_OS="$(uname -s)"
 
 if [ -z "$TARGET_PLATFORM" ]; then
@@ -52,12 +52,29 @@ case "$TARGET_PLATFORM" in
       echo "⚠️  Warning: GTK 3 development headers ('gtk+-3.0') were not detected by pkg-config."
       echo "   You may need to install 'libgtk-3-dev' (Ubuntu/Debian) or 'gtk3-devel' (Fedora)."
     fi
+
+    if command -v pkg-config >/dev/null 2>&1; then
+      if ! pkg-config --exists gstreamer-1.0 2>/dev/null; then
+        echo "⚠️  Warning: GStreamer development headers ('gstreamer-1.0') were not detected by pkg-config."
+        echo "   Required by audioplayers_linux. Install 'libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev' (Ubuntu/Debian)."
+      fi
+      if ! pkg-config --exists libsecret-1 2>/dev/null; then
+        echo "⚠️  Warning: libsecret headers ('libsecret-1') were not detected by pkg-config."
+        echo "   Required by flutter_secure_storage. Install 'libsecret-1-dev libjson-glib-dev' (Ubuntu/Debian)."
+      fi
+    fi
     ;;
   windows)
-    if [[ ! "$HOST_OS" =~ ^(MINGW|MSYS|CYGWIN) ]] && [ "$OS" != "Windows_NT" ]; then
-      echo "❌ Error: Cannot run Windows desktop on '$HOST_OS'. A Windows host machine is required."
-      exit 1
-    fi
+    case "$HOST_OS" in
+      MINGW*|MSYS*|CYGWIN*)
+        ;;
+      *)
+        if [ "${OS:-}" != "Windows_NT" ]; then
+          echo "❌ Error: Cannot run Windows desktop on '$HOST_OS'. A Windows host machine is required."
+          exit 1
+        fi
+        ;;
+    esac
     ;;
   macos|mac)
     if [ "$HOST_OS" != "Darwin" ]; then

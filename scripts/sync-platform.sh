@@ -7,7 +7,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 source "$ROOT_DIR/scripts/extract-metadata.sh"
 
 TARGET_PLATFORM="${1:-all}"
-TARGET_PLATFORM="${TARGET_PLATFORM,,}"
+TARGET_PLATFORM="$(printf '%s' "$TARGET_PLATFORM" | tr '[:upper:]' '[:lower:]')"
 
 echo "🔄 [SYNC-PLATFORM] Synchronizing for $APP_NAME ($APP_ID) v$APP_VERSION [$BRANCH] (Target: $TARGET_PLATFORM)..."
 echo "   Copyright: $COPYRIGHT (Year: $CURRENT_YEAR)"
