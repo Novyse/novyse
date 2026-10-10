@@ -1,0 +1,494 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:novyse/core/comms/devices/comms_bitrate_options.dart';
+import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
+import 'package:novyse/core/config/global.dart' as config;
+import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/settings/settings_actions.dart';
+import 'package:novyse/core/settings/settings_catalog.dart';
+import 'package:novyse/core/settings/settings_controller.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
+import 'package:novyse/core/utils/platform.dart';
+import 'package:novyse/pages/app/settings/active_devices_page.dart';
+import 'package:novyse/pages/app/settings/api_keys_page.dart';
+import 'package:novyse/pages/app/settings/password_page.dart';
+import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
+import 'package:novyse/ui/components/number/number_stepper.dart';
+import 'package:novyse/ui/components/settings/settings_base_row.dart';
+import 'package:novyse/ui/components/settings/settings_external_link_row.dart';
+import 'package:novyse/ui/components/settings/settings_modal_row.dart';
+import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
+import 'package:novyse/ui/components/settings/settings_sheets.dart';
+import 'package:novyse/ui/components/settings/settings_switch_row.dart';
+import 'package:novyse/ui/components/settings/settings_value_row.dart';
+import 'package:novyse/ui/components/status/status_message.dart';
+
+/// Renders a [SettingItem] with the shared settings row components.
+class SettingsItemRenderer extends ConsumerWidget {
+  final SettingItem item;
+
+  const SettingsItemRenderer({super.key, required this.item});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Hidden items are storage-only and never render.
+    if (item.hidden) {
+      return const SizedBox.shrink();
+    }
+    // Hide items not supported on this OS (e.g. tray/startup on mobile/web).
+    if (!item.supportedOS.contains(currentOS)) {
+      return const SizedBox.shrink();
+    }
+    // Conditional items (e.g. personalized share rows) render only when the
+    // watched setting matches. Watching here keeps page + search in sync.
+    final visibleWhen = item.visibleWhen;
+    if (visibleWhen != null) {
+      final raw = ref.watch(settingValueProvider(visibleWhen.settingKey));
+      final current = raw ?? visibleWhen.defaultValue;
+      if (current != visibleWhen.equals) {
+        return const SizedBox.shrink();
+      }
+    }
+    final bool isDisabled = item.disabled;
+    final title = context.settingsText(item.title);
+    final subtitle = context.settingsText(item.subtitle);
+    final subtitleOrNull = subtitle.isEmpty ? null : subtitle;
+    final settingKey = item.settingKey;
+
+    Widget wrapDisabled(Widget child) {
+      if (!isDisabled) return child;
+      return Opacity(opacity: 0.5, child: IgnorePointer(child: child));
+    }
+
+    switch (item.component) {
+      case SettingComponent.switchToggle:
+        final raw = settingKey == null
+            ? null
+            : ref.watch(settingValueProvider(settingKey));
+        final value = raw is bool
+            ? raw
+            : (item.defaultValue is bool ? item.defaultValue as bool : false);
+        return wrapDisabled(
+          SettingsSwitchRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            value: value,
+            onChanged: (isDisabled || settingKey == null)
+                ? null
+                : (next) => ref
+                      .read(settingsControllerProvider.notifier)
+                      .set(settingKey, next),
+          ),
+        );
+
+      case SettingComponent.select:
+      case SettingComponent.multiSelect:
+      case SettingComponent.slider:
+      case SettingComponent.textInput:
+      case SettingComponent.colorPicker:
+        final raw = settingKey == null
+            ? null
+            : ref.watch(settingValueProvider(settingKey));
+        final valueText = item.optionsLoader != null
+            ? null
+            : _displayValue(context, raw ?? item.defaultValue);
+        return wrapDisabled(
+          SettingsValueRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            valueText: valueText,
+            onTap: isDisabled ? null : () => _openSheet(context, ref),
+          ),
+        );
+
+      case SettingComponent.stepper:
+        final raw = settingKey == null
+            ? null
+            : ref.watch(settingValueProvider(settingKey));
+        final (minVal, maxVal, defaultVal) = _resolveStepperBounds(ref, item);
+        final double value;
+        if (raw is num) {
+          value = raw.toDouble();
+        } else if (raw is String) {
+          value = double.tryParse(raw) ?? defaultVal;
+        } else {
+          value = defaultVal;
+        }
+        final errorText = _resolveStepperError(context, ref, item, value);
+        final row = SettingsBaseRow(
+          icon: item.icon,
+          title: title,
+          subtitle: subtitleOrNull,
+          errorText: null,
+          trailing: NumberStepper(
+            value: value,
+            step: item.step ?? 1.0,
+            min: minVal,
+            max: maxVal,
+            hasError: errorText != null,
+            onChanged: (isDisabled || settingKey == null)
+                ? (_) {}
+                : (next) {
+                    final picked = item.onOptionPicked;
+                    if (picked != null) {
+                      picked(ref, next.round().toString());
+                    } else {
+                      ref
+                          .read(settingsControllerProvider.notifier)
+                          .set(settingKey, next.round());
+                    }
+                  },
+          ),
+        );
+        if (errorText != null) {
+          return wrapDisabled(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                row,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: StatusMessage(
+                    type: StatusMessageType.danger,
+                    content: [errorText],
+                    closable: false,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        return wrapDisabled(row);
+
+      case SettingComponent.hotkey:
+      case SettingComponent.custom:
+        if (!isDisabled && item.customRendererId == 'passwordManager') {
+          return SettingsNavigationRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const PasswordPage()),
+            ),
+          );
+        }
+        if (!isDisabled && item.customRendererId == 'sessionAuditor') {
+          return SettingsNavigationRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const ActiveDevicesPage(),
+              ),
+            ),
+          );
+        }
+        if (!isDisabled && item.customRendererId == 'apiKeys') {
+          return SettingsNavigationRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const ApiKeysPage()),
+            ),
+          );
+        }
+        final raw = settingKey == null
+            ? null
+            : ref.watch(settingValueProvider(settingKey));
+        return wrapDisabled(
+          SettingsValueRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            valueText: _displayValue(context, raw ?? item.defaultValue),
+            onTap: isDisabled
+                ? null
+                : () =>
+                      showSettingsComingSoonSheet(context: context, item: item),
+          ),
+        );
+
+      case SettingComponent.value:
+        return wrapDisabled(
+          SettingsValueRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            valueText: item.valueProviderId == 'appVersion'
+                ? config.appVersion
+                : item.valueProviderId == 'updateChannel'
+                ? config.updateChannel
+                : null,
+          ),
+        );
+
+      case SettingComponent.staticText:
+        return wrapDisabled(
+          SettingsValueRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+          ),
+        );
+
+      case SettingComponent.externalLink:
+        // URL-only rows open directly, no action needed.
+        return wrapDisabled(
+          SettingsExternalLinkRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            danger: item.danger,
+            url: isDisabled ? null : item.externalUrl,
+          ),
+        );
+
+      case SettingComponent.action:
+        const directActions = {'openLicenses', 'openAppLicense'};
+        if (directActions.contains(item.actionId)) {
+          return wrapDisabled(
+            SettingsNavigationRow(
+              icon: item.icon,
+              title: title,
+              subtitle: subtitleOrNull,
+              danger: item.danger,
+              onTap: isDisabled
+                  ? null
+                  : () => runSettingsAction(ref, context, item.actionId!),
+            ),
+          );
+        }
+        final isDeleteProfile = item.actionId == 'deleteProfile';
+        return wrapDisabled(
+          SettingsNavigationRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            danger: item.danger,
+            onTap: isDisabled
+                ? null
+                : () => isDeleteProfile
+                      ? showDeleteProfileSheet(context: context, ref: ref)
+                      : showSettingsConfirmSheet(
+                          context: context,
+                          ref: ref,
+                          item: item,
+                        ),
+          ),
+        );
+
+      case SettingComponent.navigation:
+      case SettingComponent.modal:
+        final target = item.targetPageId;
+        if (target == null) {
+          return wrapDisabled(
+            SettingsValueRow(
+              icon: item.icon,
+              title: title,
+              subtitle: subtitleOrNull,
+            ),
+          );
+        }
+        final parts = target.split('/');
+        final row = SettingsNavigationRow(
+          icon: item.icon,
+          title: title,
+          subtitle: subtitleOrNull,
+          danger: item.danger,
+          onTap: (isDisabled || parts.length != 2)
+              ? null
+              : () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => SettingsGroupPage(
+                      categoryId: parts[0],
+                      pageId: parts[1],
+                    ),
+                  ),
+                ),
+        );
+        if (item.component == SettingComponent.modal) {
+          return wrapDisabled(
+            SettingsModalRow(
+              icon: item.icon,
+              title: title,
+              subtitle: subtitleOrNull,
+              onTap: row.onTap,
+            ),
+          );
+        }
+        return wrapDisabled(row);
+    }
+  }
+
+  void _openSheet(BuildContext context, WidgetRef ref) {
+    switch (item.component) {
+      case SettingComponent.select:
+        showSettingsSelectSheet(context: context, ref: ref, item: item);
+      case SettingComponent.multiSelect:
+        showSettingsMultiSelectSheet(context: context, ref: ref, item: item);
+      case SettingComponent.slider:
+        showSettingsSliderSheet(context: context, ref: ref, item: item);
+      case SettingComponent.textInput:
+        showSettingsTextSheet(context: context, ref: ref, item: item);
+      case SettingComponent.colorPicker:
+        showSettingsColorSheet(context: context, ref: ref, item: item);
+      default:
+        break;
+    }
+  }
+
+  String? _displayValue(BuildContext context, Object? value) {
+    if (value == null) return null;
+    if (item.component == SettingComponent.select &&
+        item.options != null &&
+        value is String) {
+      for (final option in item.options!) {
+        if (option.value == value) {
+          final label = context.settingsText(option.label);
+          return label.isEmpty ? value : label;
+        }
+      }
+      return value;
+    }
+    if (item.component == SettingComponent.multiSelect && value is String) {
+      if (value.isEmpty) return null;
+      final parts = value.split(',').where((e) => e.isNotEmpty).toList();
+      if (parts.isEmpty) return null;
+      return parts.join(', ');
+    }
+    final text = value.toString();
+    if (text.isEmpty || text == '{}' || text == '[]') return null;
+    if (text.length > 32) return null;
+    return text;
+  }
+
+  (double, double, double) _resolveStepperBounds(
+    WidgetRef ref,
+    SettingItem item,
+  ) {
+    if (item.settingKey == CommsMediaConstraints.shareCustomBitrateKey) {
+      final rawQuality = ref.watch(
+        settingValueProvider(CommsMediaConstraints.shareCustomQualityKey),
+      );
+      final quality = rawQuality is String
+          ? rawQuality
+          : CommsMediaConstraints.defaultShareCustomQuality;
+      final rawFps = ref.watch(
+        settingValueProvider(CommsMediaConstraints.shareCustomFpsKey),
+      );
+      final fpsStr = rawFps is String
+          ? rawFps
+          : CommsMediaConstraints.defaultShareCustomFps;
+      final fps = CommsMediaConstraints.resolveVideoFps('', fpsStr);
+      final range = CommsBitrateOptions.rangeFor(fps, quality: quality);
+      return (
+        range.minKbps.toDouble(),
+        range.maxKbps.toDouble(),
+        range.defaultKbps.toDouble(),
+      );
+    }
+    if (item.settingKey == CommsMediaConstraints.videoBitrateKey) {
+      final rawQuality = ref.watch(
+        settingValueProvider(CommsMediaConstraints.videoQualityKey),
+      );
+      final quality = rawQuality is String
+          ? rawQuality
+          : CommsMediaConstraints.defaultVideoQuality;
+      final rawFps = ref.watch(
+        settingValueProvider(CommsMediaConstraints.videoFramerateKey),
+      );
+      final fpsStr = rawFps is String
+          ? rawFps
+          : CommsMediaConstraints.defaultVideoFramerate;
+      final fps = CommsMediaConstraints.resolveVideoFps(quality, fpsStr);
+      final range = CommsBitrateOptions.rangeFor(fps, quality: quality);
+      return (
+        range.minKbps.toDouble(),
+        range.maxKbps.toDouble(),
+        range.defaultKbps.toDouble(),
+      );
+    }
+    return (
+      item.min ?? 0.0,
+      item.max ?? 100.0,
+      (item.defaultValue as num?)?.toDouble() ?? 0.0,
+    );
+  }
+
+  String? _resolveStepperError(
+    BuildContext context,
+    WidgetRef ref,
+    SettingItem item,
+    double value,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return null;
+    final isPremium = ref.watch(isPremiumProvider);
+
+    if (item.settingKey == CommsMediaConstraints.shareCustomBitrateKey) {
+      final rawQuality = ref.watch(
+        settingValueProvider(CommsMediaConstraints.shareCustomQualityKey),
+      );
+      final quality = rawQuality is String
+          ? rawQuality
+          : CommsMediaConstraints.defaultShareCustomQuality;
+      final rawFps = ref.watch(
+        settingValueProvider(CommsMediaConstraints.shareCustomFpsKey),
+      );
+      final fpsStr = rawFps is String
+          ? rawFps
+          : CommsMediaConstraints.defaultShareCustomFps;
+      final fps = CommsMediaConstraints.resolveVideoFps('', fpsStr);
+      final err = CommsBitrateOptions.validate(
+        kbps: value.round(),
+        fps: fps,
+        quality: quality,
+        isPremium: isPremium,
+      );
+      return switch (err) {
+        CommsBitrateError.none ||
+        CommsBitrateError.belowMin ||
+        CommsBitrateError.aboveMax =>
+          null,
+        CommsBitrateError.premiumLimit =>
+          l10n.settingsItemBitratePremiumLimitError,
+      };
+    }
+    if (item.settingKey == CommsMediaConstraints.videoBitrateKey) {
+      final rawQuality = ref.watch(
+        settingValueProvider(CommsMediaConstraints.videoQualityKey),
+      );
+      final quality = rawQuality is String
+          ? rawQuality
+          : CommsMediaConstraints.defaultVideoQuality;
+      final rawFps = ref.watch(
+        settingValueProvider(CommsMediaConstraints.videoFramerateKey),
+      );
+      final fpsStr = rawFps is String
+          ? rawFps
+          : CommsMediaConstraints.defaultVideoFramerate;
+      final fps = CommsMediaConstraints.resolveVideoFps(quality, fpsStr);
+      final err = CommsBitrateOptions.validate(
+        kbps: value.round(),
+        fps: fps,
+        quality: quality,
+        isPremium: isPremium,
+      );
+      return switch (err) {
+        CommsBitrateError.none ||
+        CommsBitrateError.belowMin ||
+        CommsBitrateError.aboveMax =>
+          null,
+        CommsBitrateError.premiumLimit =>
+          l10n.settingsItemBitratePremiumLimitError,
+      };
+    }
+    return null;
+  }
+}

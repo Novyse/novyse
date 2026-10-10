@@ -1,0 +1,336 @@
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:novyse/core/config/global.dart' as config;
+import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/settings/settings_catalog.dart';
+import 'package:novyse/core/utils/platform.dart';
+
+void main() {
+  group('SettingsCatalog structure', () {
+    test('has ten root categories matching the wiki taxonomy', () {
+      expect(SettingsCatalog.categories.length, 10);
+      expect(SettingsCatalog.categories.map((c) => c.id).toList(), [
+        'account',
+        'chat',
+        'customization',
+        'storage',
+        'security',
+        'notifications',
+        'comms',
+        'system',
+        'language',
+        'info',
+      ]);
+    });
+
+    test('system category is hidden outside desktop platforms', () {
+      final system = SettingsCatalog.findCategory('system')!;
+      expect(system.hidden, currentPlatform != AppPlatform.desktop);
+    });
+
+    test('every category has pages and/or loose items', () {
+      for (final category in SettingsCatalog.categories) {
+        expect(
+          category.pages.isNotEmpty || category.items.isNotEmpty,
+          isTrue,
+          reason: category.id,
+        );
+        for (final page in category.pages) {
+          expect(page.groups, isNotEmpty, reason: page.id);
+          for (final group in page.groups) {
+            expect(group.items, isNotEmpty, reason: group.id);
+          }
+        }
+      }
+    });
+
+    test('all item ids are unique', () {
+      final ids = SettingsCatalog.allItems.map((i) => i.id).toList();
+      expect(ids.toSet().length, ids.length);
+    });
+
+    test('disabled defaults to false but WIP items are force-disabled', () {
+      // Only startup/tray items currently under implementation stay enabled,
+      // plus informational legal/licence rows, plus the working appearance rows
+      const enabledIds = {
+        'open_startup',
+        'open_background',
+        'close_to_tray',
+        'privacy_policy',
+        'terms_of_service',
+        'app_license',
+        'open_source_licenses',
+        'app_language',
+        'version',
+        'release_channel',
+        'resource_links',
+        'roadmap',
+        'patchnotes',
+        'news',
+        'status',
+        'theme_selector',
+        'theme_mode',
+        'surface_mode',
+        'input_device',
+        'output_device',
+        'webcam',
+        'noise_suppression',
+        'echo_cancellation',
+        'video_quality',
+        'video_fps',
+        'video_bitrate',
+        'share_quality',
+        'share_custom_quality',
+        'share_custom_fps',
+        'share_custom_bitrate',
+        'hifi_audio',
+        'logout',
+        'delete_profile',
+        'password',
+        'auth_sessions',
+        'api_keys',
+        'send_with_enter',
+      };
+      for (final item in SettingsCatalog.allItems) {
+        // Hidden items are storage-only and exempt from the WIP rule.
+        if (item.hidden) continue;
+        if (enabledIds.contains(item.id)) {
+          expect(item.disabled, isFalse, reason: item.id);
+        } else {
+          expect(item.disabled, isTrue, reason: item.id);
+        }
+      }
+    });
+
+    test('hidden items are storage-only and never shown', () {
+      final hiddenItems = SettingsCatalog.allItems
+          .where((i) => i.hidden)
+          .toList();
+      expect(hiddenItems, isNotEmpty, reason: 'expected hidden items');
+      for (final item in hiddenItems) {
+        expect(item.settingKey, isNotNull, reason: item.id);
+        expect(item.scope, isNotNull, reason: item.id);
+        expect(item.defaultValue, isNotNull, reason: item.id);
+      }
+      expect(hiddenItems.map((i) => i.id), contains('volumes_list'));
+    });
+
+    test('system items are desktop-only (linux/windows/macos)', () {
+      const systemIds = {
+        'open_startup',
+        'open_background',
+        'close_to_tray',
+        'gpu_accel',
+        'shortcut_manager',
+        'global_hotkeys',
+      };
+      for (final item in SettingsCatalog.allItems) {
+        if (systemIds.contains(item.id)) {
+          expect(item.supportedOS.map((e) => e.name).toSet(), {
+            'linux',
+            'windows',
+            'macos',
+          }, reason: item.id);
+        } else {
+          // Default: visible everywhere.
+          expect(item.supportedOS.length, AppOS.values.length, reason: item.id);
+        }
+      }
+    });
+
+    test('loose category items follow the wiki layout', () {
+      final account = SettingsCatalog.findCategory('account')!;
+      expect(account.pages.map((p) => p.id).toList(), ['account_profile']);
+      expect(account.items.map((i) => i.id).toList(), [
+        'logout',
+        'delete_profile',
+      ]);
+
+      final storage = SettingsCatalog.findCategory('storage')!;
+      expect(storage.pages.map((p) => p.id).toList(), [
+        'storage_local',
+        'storage_cloud',
+      ]);
+      expect(storage.items.map((i) => i.id).toList(), [
+        'wifi_download',
+        'mobile_download',
+        'roaming_download',
+        'save_gallery',
+        'reset_db',
+      ]);
+
+      final language = SettingsCatalog.findCategory('language')!;
+      expect(language.pages, isEmpty);
+      expect(language.items.map((i) => i.id).toList(), [
+        'app_language',
+        'hour_format',
+        'first_day',
+        'spellcheck',
+      ]);
+
+      final info = SettingsCatalog.findCategory('info')!;
+      expect(info.pages.map((p) => p.id).toList(), ['legal', 'resources']);
+      expect(info.items.map((i) => i.id).toList(), [
+        'version',
+        'release_channel',
+        'check_updates',
+        'export_logs',
+      ]);
+    });
+
+    test(
+      'update channel is read-only and resource links use official URLs',
+      () {
+        final info = SettingsCatalog.findCategory('info')!;
+        final version = info.items.firstWhere((i) => i.id == 'version');
+        final channel = info.items.firstWhere((i) => i.id == 'release_channel');
+        expect(version.component, SettingComponent.value);
+        expect(version.valueProviderId, 'appVersion');
+        expect(version.settingKey, isNull);
+        expect(version.disabled, isFalse);
+        expect(channel.component, SettingComponent.value);
+        expect(channel.valueProviderId, 'updateChannel');
+        expect(channel.settingKey, isNull);
+        expect(channel.disabled, isFalse);
+        expect(info.pages.map((page) => page.id), contains('resources'));
+
+        final links = info.pages
+            .firstWhere((page) => page.id == 'resources')
+            .groups
+            .single
+            .items;
+        expect(
+          {for (final item in links) item.id: item.externalUrl},
+          {
+            'roadmap': '${config.landingPageUrl}/roadmap',
+            'patchnotes': '${config.landingPageUrl}/patchnotes',
+            'news': '${config.landingPageUrl}/news',
+            'status': config.statusPageUrl,
+          },
+        );
+        expect(config.statusPageUrl, 'https://status.novyse.com');
+        expect(
+          config.updateChannel,
+          config.branch == 'development' ? 'dev' : config.branch,
+        );
+      },
+    );
+
+    test('info and diagnostics entries all have icons', () {
+      final info = SettingsCatalog.findCategory('info')!;
+      final items = [
+        ...info.items,
+        for (final page in info.pages)
+          for (final group in page.groups) ...group.items,
+      ];
+
+      for (final item in items) {
+        expect(item.icon, isNotNull, reason: item.id);
+      }
+    });
+
+    test('blocked users live in the privacy page, after call routing', () {
+      final security = SettingsCatalog.findCategory('security')!;
+      final authPage = security.pages.firstWhere(
+        (p) => p.id == 'security_auth',
+      );
+      final privacyPage = security.pages.firstWhere(
+        (p) => p.id == 'security_privacy',
+      );
+      expect(
+        authPage.groups.expand((g) => g.items).map((i) => i.id),
+        isNot(contains('blocked_users')),
+      );
+      final visibility = privacyPage.groups.firstWhere(
+        (g) => g.id == 'visibility',
+      );
+      expect(visibility.items.map((i) => i.id).last, 'blocked_users');
+    });
+
+    test('open source licences live in the legal group, after app licence', () {
+      final info = SettingsCatalog.findCategory('info')!;
+      final legal = info.pages.firstWhere((p) => p.id == 'legal');
+      expect(legal.groups.map((g) => g.id).toList(), ['legal']);
+      expect(legal.groups.first.items.map((i) => i.id).toList(), [
+        'privacy_policy',
+        'terms_of_service',
+        'app_license',
+        'open_source_licenses',
+      ]);
+      // The former standalone 'licenses' page is gone.
+      expect(info.pages.where((p) => p.id == 'licenses'), isEmpty);
+    });
+
+    test('legal external links carry a url and no action', () {
+      final info = SettingsCatalog.findCategory('info')!;
+      final legal = info.pages.firstWhere((p) => p.id == 'legal');
+      final items = {for (final i in legal.groups.first.items) i.id: i};
+      for (final id in ['privacy_policy', 'terms_of_service']) {
+        final item = items[id]!;
+        expect(item.component, SettingComponent.externalLink, reason: id);
+        expect(item.actionId, isNull, reason: id);
+        expect(item.externalUrl, isNotNull, reason: id);
+        expect(item.externalUrl, isNotEmpty, reason: id);
+      }
+      // Internal licence rows still go through actions.
+      expect(items['app_license']!.component, SettingComponent.action);
+      expect(items['open_source_licenses']!.component, SettingComponent.action);
+    });
+
+    test('persisted items always declare a scope', () {
+      for (final item in SettingsCatalog.allItems) {
+        if (item.settingKey != null) {
+          expect(item.scope, isNotNull, reason: item.id);
+        }
+      }
+    });
+
+    test('synchronized keys are unique and well-formed', () {
+      final keys = SettingsCatalog.synchronizedKeys;
+      expect(keys, isNotEmpty);
+      expect(keys.toSet().length, keys.length);
+      for (final key in keys) {
+        expect(key.contains('.'), isTrue, reason: key);
+      }
+    });
+  });
+
+  group('SettingsCatalog localization', () {
+    test('every catalog string has English and Italian copy', () {
+      final missing = <String>[];
+      final en = lookupAppLocalizations(const Locale('en'));
+      final it = lookupAppLocalizations(const Locale('it'));
+      void check(String id, String Function(AppLocalizations) text) {
+        if (text(en).isEmpty || text(it).isEmpty) missing.add(id);
+      }
+
+      void checkItem(SettingItem item) {
+        check('${item.id}.title', item.title);
+        check('${item.id}.subtitle', item.subtitle);
+        for (final option in item.options ?? const []) {
+          check('${item.id}.${option.value}', option.label);
+        }
+      }
+
+      for (final category in SettingsCatalog.categories) {
+        check('${category.id}.title', category.title);
+        check('${category.id}.subtitle', category.subtitle);
+        for (final page in category.pages) {
+          check('${page.id}.title', page.title);
+          check('${page.id}.subtitle', page.subtitle);
+          for (final group in page.groups) {
+            check('${group.id}.title', group.title);
+            for (final item in group.items) {
+              checkItem(item);
+            }
+          }
+        }
+        for (final item in category.items) {
+          checkItem(item);
+        }
+      }
+
+      expect(missing, isEmpty, reason: 'Missing translations: $missing');
+    });
+  });
+}

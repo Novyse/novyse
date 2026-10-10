@@ -1,0 +1,153 @@
+import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
+
+class ChatSelectedHeader extends StatelessWidget {
+  const ChatSelectedHeader({
+    super.key,
+    required this.selectedCount,
+    required this.onClose,
+    this.onReply,
+    this.onShare,
+    this.onDelete,
+    this.bottom,
+    VoidCallback? onForward,
+  });
+
+  final int selectedCount;
+  final VoidCallback onClose;
+  final VoidCallback? onReply;
+  final VoidCallback? onShare;
+  final VoidCallback? onDelete;
+  final Widget? bottom;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final canReply = selectedCount > 0 && selectedCount <= 3;
+
+    final hasActions =
+        (canReply && onReply != null) || onShare != null || onDelete != null;
+
+    final content = Row(
+      children: [
+        FloatingPill(
+          padding: FloatingAppBarConsts.iconPillPadding,
+          child: FloatingIconButton(
+            icon: AppHugeIcon(
+              icon: HugeIcons.strokeRoundedCancel01,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            tooltip: l10n.cancel,
+            onPressed: onClose,
+          ),
+        ),
+        const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+        Expanded(
+          child: FloatingPill(
+            radius: FloatingAppBarConsts.centralRadius,
+            padding: FloatingAppBarConsts.centralTitlePadding,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                minHeight: FloatingAppBarConsts.centralMinHeight,
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  l10n.selectedCount(selectedCount),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (hasActions) ...[
+          const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+          FloatingPill(
+            padding: FloatingAppBarConsts.actionsPadding,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (canReply && onReply != null)
+                  FloatingIconButton(
+                    icon: AppHugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowMoveUpLeft,
+                      color: colorScheme.onSurface,
+                    ),
+                    tooltip: l10n.reply,
+                    onPressed: onReply,
+                  ),
+                // Forward (always visible but greyed out and non-interactive.)
+                FloatingIconButton(
+                  icon: AppHugeIcon(
+                    icon: HugeIcons.strokeRoundedLinkForward,
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  ),
+                  tooltip: l10n.forward,
+                  onPressed: null,
+                ),
+                if (onShare != null)
+                  FloatingIconButton(
+                    icon: AppHugeIcon(
+                      icon: HugeIcons.strokeRoundedShare08,
+                      color: colorScheme.onSurface,
+                    ),
+                    tooltip: l10n.share,
+                    onPressed: onShare,
+                  ),
+                if (onDelete != null)
+                  FloatingIconButton(
+                    icon: AppHugeIcon(
+                      icon: HugeIcons.strokeRoundedDelete02,
+                      color: colorScheme.error,
+                    ),
+                    tooltip: l10n.delete,
+                    onPressed: () async {
+                      final confirmed = await showOverlayConfirm(
+                        context,
+                        title: l10n.delete,
+                        message: selectedCount == 1
+                            ? l10n.deleteMessageConfirm
+                            : l10n.deleteMessagesConfirm(selectedCount),
+                        confirmLabel: l10n.delete,
+                        cancelLabel: l10n.cancel,
+                        isDanger: true,
+                      );
+                      if (confirmed == true) {
+                        onDelete?.call();
+                      }
+                    },
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+
+    return ProgressiveOpacityBackground(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          content,
+          if (bottom != null) ...[
+            const SizedBox(height: FloatingAppBarConsts.bottomGap),
+            bottom!,
+          ],
+        ],
+      ),
+    );
+  }
+}

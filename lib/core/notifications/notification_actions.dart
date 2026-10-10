@@ -1,0 +1,122 @@
+import 'package:flutter/foundation.dart';
+import 'package:novyse/core/auth/onboarding_manager.dart';
+import 'package:novyse/core/chat/message_read_service.dart';
+import 'package:novyse/core/chat/queue/queue_manager.dart';
+import 'package:novyse/core/events/global_event_emitter.dart';
+import 'package:novyse/core/notifications/local_notification_service.dart';
+import 'package:novyse/core/notifications/notification_bridge.dart';
+import 'package:novyse/core/services/api_gateway.dart';
+import 'package:novyse/core/storage/database/database.dart';
+
+abstract final class NotificationActionIds {
+  static const reply = 'reply';
+  static const markAsRead = 'mark_read';
+  static const commsMute = 'comms_mute';
+  static const commsUnmute = 'comms_unmute';
+  static const commsToggleMic = 'comms_toggle_mic';
+  static const commsCameraOn = 'comms_camera_on';
+  static const commsCameraOff = 'comms_camera_off';
+  static const commsToggleVideo = 'comms_toggle_video';
+  static const commsLeave = 'comms_leave';
+}
+
+/// Handles notification actions
+class NotificationActions {
+  NotificationActions._();
+
+  /// Mark chat message as read from a notification.
+  static Future<void> handleMarkAsRead({
+    required String chatUUID,
+    required int subID,
+    required String messageId,
+  }) async {
+    if (chatUUID.isEmpty || messageId.isEmpty) return;
+    try {
+      await MessageReadService.instance.markNotificationMessageAsRead(
+        chatUUID: chatUUID,
+        subID: subID,
+        messageID: messageId,
+      );
+    } catch (e) {
+      debugPrint('[NotificationActions] markAsRead failed: $e');
+    }
+  }
+
+  /// Send a quick reply from a notification
+  static Future<void> handleReply({
+    required String chatUUID,
+    required int subID,
+    required String text,
+  }) async {
+    final content = text.trim();
+    if (content.isEmpty || chatUUID.isEmpty) return;
+
+    final userUUID = await onboardingManager.getUserUUID();
+    if (userUUID == null || userUUID.isEmpty) {
+      debugPrint('[NotificationActions] No local user, dropping quick reply');
+      return;
+    }
+    if (!AppDatabase.instance.isOpenForUser(userUUID)) {
+      await AppDatabase.instance.openForUser(userUUID);
+    }
+    var sent = false;
+
+    try {
+      final tempId = DateTime.now().millisecondsSinceEpoch.toString();
+      final message = {
+        'id': tempId,
+        'chatUUID': chatUUID,
+        'subID': subID,
+        'senderUUID': userUUID,
+        'userUUID': userUUID,
+        'content': content,
+        'type': 'message',
+        'createdAt': DateTime.now().toUtc().toIso8601String(),
+        'status': 'PENDING_SEND',
+        NotificationBridge.viaNotificationKey: true,
+      };
+      await QueueManager.instance.addOutgoingMessageJob(
+        id: tempId,
+        chatUUID: chatUUID,
+        subID: subID,
+        message: message,
+      );
+      sent = true;
+    } catch (e) {
+      debugPrint('[NotificationActions] queue reply failed: $e');
+    }
+
+    if (!sent) {
+      try {
+        final res = await Gateway.instance.message.send(
+          chatUUID,
+          subID: subID,
+          content: content,
+        );
+        sent = res.success;
+        if (sent && res.message != null) {
+          final confirmed = {
+            ...res.message!,
+            'chatUUID': chatUUID,
+            'subID': subID,
+            'status': 'sent',
+            NotificationBridge.viaNotificationKey: true,
+          };
+          await GlobalEventEmitter.instance.message.add(confirmed);
+          NotificationBridge.forwardMessage(confirmed);
+        }
+      } catch (e) {
+        debugPrint('[NotificationActions] gateway reply failed: $e');
+      }
+    }
+
+    if (sent) {
+      await LocalNotificationService.instance.reflectOwnReply(
+        chatUUID: chatUUID,
+        text: content,
+      );
+    } else {
+      await LocalNotificationService.instance.clearChat(chatUUID);
+    }
+  }
+}

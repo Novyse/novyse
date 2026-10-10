@@ -1,0 +1,307 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/chat/message_actions_service.dart';
+import 'package:novyse/core/chat/message_share_service.dart';
+import 'package:novyse/core/events/global_event_emitter.dart';
+import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/services/api_gateway.dart';
+import 'package:novyse/core/stores/chat_draft_store.dart';
+import 'package:novyse/core/stores/message_store.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
+import 'package:novyse/core/stores/status_store.dart';
+import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
+
+/// Encapsulates action handlers for messages (reply, quote, copy, select, delete, pin, edit, download).
+class MessageActionMethods {
+  final WidgetRef ref;
+  final BuildContext context;
+  final String chatUUID;
+  final int subID;
+
+  const MessageActionMethods({
+    required this.ref,
+    required this.context,
+    required this.chatUUID,
+    this.subID = 0,
+  });
+
+  void _fail(String op, Object e) {
+    debugPrint('[MessageAction] $op failed: $e');
+    try {
+      ref
+          .read(statusProvider.notifier)
+          .showStatus(
+            StatusItem(
+              id: 'message_action_$op',
+              source: StatusSource.general,
+              type: StatusMessageType.danger,
+              titleBuilder: (l10n) => l10n.statusError,
+              contentBuilders: [(l10n) => l10n.messageActionFailed],
+              closable: true,
+              timeout: const Duration(seconds: 4),
+            ),
+          );
+    } catch (_) {}
+  }
+
+  /// Adds message to the draft replying list.
+  void reply(MessageModel message) {
+    ref.read(chatDraftProvider(chatUUID).notifier).addReply(message);
+  }
+
+  /// Quotes selected text of a message and adds it to the draft replying list.
+  void quoteAndReply(MessageModel message, String selectedText) {
+    int? rangeStart;
+    int? rangeEnd;
+    if (message.content != null && selectedText.trim().isNotEmpty) {
+      final start = message.content!.indexOf(selectedText.trim());
+      if (start != -1) {
+        rangeStart = start;
+        rangeEnd = start + selectedText.trim().length;
+      }
+    }
+    ref
+        .read(chatDraftProvider(chatUUID).notifier)
+        .addReply(message, rangeStart: rangeStart, rangeEnd: rangeEnd);
+  }
+
+  /// Copies message content to clipboard.
+  void copy(MessageModel message) {
+    Clipboard.setData(ClipboardData(text: message.content ?? ''));
+  }
+
+  /// Copies selected text to clipboard.
+  void copySelected(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+  }
+
+  /// Toggles message selection in multi-selection mode.
+  void select(MessageModel message) {
+    ref.read(chatDraftProvider(chatUUID).notifier).toggleSelectMessage(message);
+  }
+
+  /// Shares a single message through the OS share sheet.
+  Future<void> share(BuildContext context, MessageModel message) {
+    return MessageShareService.shareMessage(context, ref, message);
+  }
+
+  /// Initiates editing of a message.
+  void edit(MessageModel message) {
+    final draftNotifier = ref.read(chatDraftProvider(chatUUID).notifier);
+    draftNotifier.setEditingMessage(message);
+    final content = message.content ?? '';
+    draftNotifier.setText(content);
+
+    final controller = ref.read(chatTextControllerProvider(chatUUID));
+    if (controller.text != content) {
+      controller.value = TextEditingValue(
+        text: content,
+        selection: TextSelection.collapsed(offset: content.length),
+      );
+    }
+
+    // Populate draft files from the message's current file list
+    final currentFiles = message.files
+        .map((f) => Map<String, dynamic>.from(f))
+        .toList();
+    draftNotifier.setFiles(currentFiles);
+    draftNotifier.setInvalidFiles([]);
+  }
+
+  /// Adds or removes a message from favorites (user-scoped).
+  Future<void> favorite(MessageModel message) async {
+    final messageIdStr = message.id.toString();
+    final isFavorited = message.favorited;
+
+    if (isFavorited) {
+      try {
+        final res = await apiGateway.message.favorite.remove(
+          chatUUID,
+          subID,
+          message.id,
+        );
+        if (res.success) {
+          await GlobalEventEmitter.instance.user.favorite.update(
+            chatUUID,
+            subID,
+            messageIdStr,
+            'favorite_remove',
+            res.userEventID,
+            {},
+          );
+        }
+      } catch (e) {
+        _fail('favorite_remove', e);
+      }
+    } else {
+      try {
+        final res = await apiGateway.message.favorite.add(
+          chatUUID,
+          subID,
+          message.id,
+        );
+        if (res.success) {
+          await GlobalEventEmitter.instance.user.favorite.update(
+            chatUUID,
+            subID,
+            messageIdStr,
+            'favorite_add',
+            res.userEventID,
+            {'createdAt': res.createdAt},
+          );
+        }
+      } catch (e) {
+        _fail('favorite_add', e);
+      }
+    }
+  }
+
+  /// Pins or unpins a message.
+  Future<void> pin(MessageModel message) async {
+    final messageIdStr = message.id.toString();
+    final localUserUUID = ref.read(userStoreProvider).localUserUUID;
+    final isPinned = message.pinned;
+
+    if (isPinned) {
+      try {
+        final res = await apiGateway.message.pin.remove(
+          chatUUID,
+          subID,
+          messageIdStr,
+        );
+        if (res.success) {
+          await GlobalEventEmitter.instance.message.update(
+            chatUUID,
+            subID,
+            messageIdStr,
+            'pin_remove',
+            res.chatEventID,
+            {},
+          );
+        }
+      } catch (e) {
+        _fail('pin_remove', e);
+      }
+    } else {
+      try {
+        final res = await apiGateway.message.pin.add(
+          chatUUID,
+          subID,
+          messageIdStr,
+        );
+        if (res.success) {
+          await GlobalEventEmitter.instance.message.update(
+            chatUUID,
+            subID,
+            messageIdStr,
+            'pin_add',
+            res.chatEventID,
+            {
+              'pinnedAt': res.pinnedAt ?? DateTime.now().toIso8601String(),
+              'userUUID': localUserUUID,
+            },
+          );
+        }
+      } catch (e) {
+        _fail('pin_add', e);
+      }
+    }
+  }
+
+  /// Downloads message attachments (not implemented yet).
+  Future<void> download(MessageModel message) {
+    throw UnimplementedError('Message download is not implemented yet');
+  }
+
+  /// Prompts for confirmation and deletes the message.
+  Future<void> delete(BuildContext context, MessageModel message) async {
+    final l10n = AppLocalizations.of(context)!;
+
+    final confirmed = await showOverlayConfirm(
+      context,
+      title: l10n.delete,
+      message: l10n.deleteMessageConfirm,
+      confirmLabel: l10n.delete,
+      cancelLabel: l10n.cancel,
+      isDanger: true,
+    );
+    if (!context.mounted) return;
+
+    if (confirmed != true) return;
+
+    final deleted = await ref
+        .read(messageActionsServiceProvider)
+        .delete(
+          chatUUID: chatUUID,
+          subID: subID,
+          messageID: message.id.toString(),
+        );
+    if (!deleted) _fail('delete', 'server did not confirm the delete');
+  }
+
+  /// Adds or removes a reaction from a message.
+  Future<void> toggleReaction(MessageModel message, String emoji) async {
+    final messageIdStr = message.id.toString();
+    final localUserUUID = ref.read(userStoreProvider).localUserUUID;
+
+    final existingReaction = message.reactions
+        .where((r) => r['emoji'] == emoji)
+        .firstOrNull;
+    final userUUIDs =
+        (existingReaction?['userUUIDs'] as List?)
+            ?.map((u) => u.toString())
+            .toList() ??
+        const [];
+    final hasReacted = userUUIDs.contains(localUserUUID);
+
+    if (hasReacted) {
+      try {
+        final res = await apiGateway.message.reaction.remove(
+          chatUUID,
+          subID,
+          messageIdStr,
+          emoji,
+        );
+        if (res.success) {
+          await GlobalEventEmitter.instance.message.update(
+            chatUUID,
+            subID,
+            messageIdStr,
+            'reaction_remove',
+            res.chatEventID,
+            {'userUUID': localUserUUID, 'reaction': emoji},
+          );
+        }
+      } catch (e) {
+        _fail('reaction_remove', e);
+      }
+    } else {
+      try {
+        final res = await apiGateway.message.reaction.add(
+          chatUUID,
+          subID,
+          messageIdStr,
+          emoji,
+        );
+        if (res.success) {
+          await GlobalEventEmitter.instance.message.update(
+            chatUUID,
+            subID,
+            messageIdStr,
+            'reaction_add',
+            res.chatEventID,
+            {
+              'userUUID': localUserUUID,
+              'reaction': emoji,
+              'reactedAt': res.reactedAt ?? DateTime.now().toIso8601String(),
+            },
+          );
+        }
+      } catch (e) {
+        _fail('reaction_add', e);
+      }
+    }
+  }
+}
