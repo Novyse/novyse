@@ -1,0 +1,116 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:novyse/core/l10n/app_localizations.dart';
+import 'package:novyse/ui/components/chat/chat_detail/chat_selected_header.dart';
+
+void main() {
+  Widget buildTestHeader({
+    required int selectedCount,
+    VoidCallback? onClose,
+    VoidCallback? onReply,
+    VoidCallback? onShare,
+    VoidCallback? onDelete,
+    Widget? bottom,
+  }) {
+    return MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      home: Scaffold(
+        body: ChatSelectedHeader(
+          selectedCount: selectedCount,
+          onClose: onClose ?? () {},
+          onReply: onReply,
+          onShare: onShare,
+          onDelete: onDelete,
+          bottom: bottom,
+        ),
+      ),
+    );
+  }
+
+  group('ChatSelectedHeader Widget Tests', () {
+    testWidgets('renders selected count and action icons', (tester) async {
+      await tester.pumpWidget(
+        buildTestHeader(
+          selectedCount: 2,
+          onReply: () {},
+          onShare: () {},
+          onDelete: () {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('2 selected'), findsOneWidget);
+      // Reply should be visible for count 2
+      expect(find.byTooltip('Reply'), findsOneWidget);
+      expect(find.byTooltip('Forward'), findsOneWidget);
+      expect(find.byTooltip('Share'), findsOneWidget);
+      expect(find.byTooltip('Delete'), findsOneWidget);
+    });
+
+    testWidgets('hides Reply icon when selectedCount > 3', (tester) async {
+      await tester.pumpWidget(
+        buildTestHeader(
+          selectedCount: 4,
+          onReply: () {},
+          onShare: () {},
+          onDelete: () {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('4 selected'), findsOneWidget);
+      // Reply icon should NOT be visible when count > 3
+      expect(find.byTooltip('Reply'), findsNothing);
+      expect(find.byTooltip('Forward'), findsOneWidget);
+      expect(find.byTooltip('Share'), findsOneWidget);
+      expect(find.byTooltip('Delete'), findsOneWidget);
+    });
+
+    testWidgets('forward icon is disabled and not tappable', (tester) async {
+      var shared = 0;
+      await tester.pumpWidget(
+        buildTestHeader(selectedCount: 1, onShare: () => shared++),
+      );
+      await tester.pumpAndSettle();
+
+      final forwardButton = tester.widget<IconButton>(
+        find.ancestor(
+          of: find.byTooltip('Forward'),
+          matching: find.byType(IconButton),
+        ),
+      );
+      expect(forwardButton.onPressed, isNull);
+      await tester.tap(find.byTooltip('Forward'));
+      await tester.pumpAndSettle();
+      expect(shared, 0);
+    });
+
+    testWidgets('tapping Close calls onClose callback', (tester) async {
+      bool closed = false;
+
+      await tester.pumpWidget(
+        buildTestHeader(selectedCount: 1, onClose: () => closed = true),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(closed, isTrue);
+    });
+
+    testWidgets('renders bottom widget when provided', (tester) async {
+      await tester.pumpWidget(
+        buildTestHeader(
+          selectedCount: 1,
+          bottom: const Text('SubHeader Content'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('SubHeader Content'), findsOneWidget);
+    });
+  });
+}

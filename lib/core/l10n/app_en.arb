@@ -1,0 +1,1225 @@
+{
+  "@@locale": "en",
+  "welcomeTitle": "Welcome",
+  "register": "Register",
+  "login": "Log in",
+  "back": "Back",
+  "securedBy": "Secured by",
+  "scanQrToLogin": "Scan the QR code to log in",
+  "qrExpiresIn": "Expires in {time}",
+  "@qrExpiresIn": {
+    "description": "QR code expiration countdown timer",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "loginSubtitle": "Enter your credentials to log in",
+  "createAccount": "Create account",
+  "signupSubtitle": "Get started with your account",
+  "name": "Name",
+  "nameHint": "Enter your name",
+  "password": "Password",
+  "passwordHint": "Enter your password",
+  "confirmPassword": "Confirm password",
+  "confirmPasswordHint": "Repeat your password",
+  "noAccountRegister": "Don't have an account? Register",
+  "hasAccountLogin": "Already have an account? Log in",
+  "username": "Username",
+  "usernameHint": "Enter your username",
+  "requiredField": "Required field",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "invalidName": "Name can only contain letters and spaces",
+  "nameTooLong": "Name is too long (max 50 characters)",
+  "invalidHandle": "Username can only contain lowercase letters, numbers, and underscores",
+  "handleTooShort": "Username must be at least 3 characters",
+  "handleTooLong": "Username cannot exceed 15 characters",
+  "handleConsecutiveUnderscores": "Username cannot contain consecutive underscores",
+  "passwordTooShort": "Password must be at least 8 characters",
+  "handleAlreadyInUse": "Username is already in use",
+  "availabilityError": "Unable to verify username availability",
+  "acceptLegal": "I accept the privacy policy and terms of service",
+  "privacyPolicy": "privacy policy",
+  "termsOfService": "terms of service",
+  "atLeastSixteen": "I am at least 16 years old",
+  "signupSuccess": "Registration completed successfully! You can now log in.",
+  "signupFailed": "Registration failed. Please check your data and try again.",
+  "loginFailed": "Login failed. Please check your credentials.",
+  "statusSuccess": "Success",
+  "statusError": "Error",
+  "statusWarning": "Warning",
+  "statusInfo": "Info",
+  "updateRequiredTitle": "Update Required",
+  "updateRequiredSubtitle": "A new version of Novyse is available and required to continue.\n\nPlease update to access the latest features and security improvements.",
+  "currentVersion": "Current: {version}",
+  "@currentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "requiredVersion": "Required: {version}",
+  "@requiredVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadLatestVersion": "Download Latest Version",
+  "openPlayStore": "Open Play Store",
+  "openAppStore": "Open App Store",
+  "openMicrosoftStore": "Open Microsoft Store",
+  "openGitHub": "Download from GitHub",
+  "refreshPage": "Refresh Page",
+  "updateNow": "Update Now",
+  "networkOfflineTitle": "No Connection",
+  "networkOfflineMessage": "You are offline. Waiting for network connection...",
+  "socketConnectingTitle": "Realtime Connection",
+  "socketConnectingMessage": "Connecting to server...",
+  "socketDisconnectedTitle": "Disconnected",
+  "socketDisconnectedMessage": "Reconnecting to realtime server...",
+  "apiErrorTitle": "Communication Error",
+  "apiErrorServer": "Server error (500)",
+  "apiErrorTimeout": "Request timed out",
+  "syncInitTitle": "Account Initialization",
+  "syncInitMessage": "Connecting to server and fetching data...",
+  "syncProgressTitle": "Syncing",
+  "syncProgressMessage": "Saving {chats} chats and {messages} messages...",
+  "@syncProgressMessage": {
+    "placeholders": {
+      "chats": {
+        "type": "int"
+      },
+      "messages": {
+        "type": "int"
+      }
+    }
+  },
+  "syncMessagesTitle": "Syncing Messages",
+  "syncMessagesMessage": "Processing chat history...",
+  "syncCacheTitle": "Configuring Cache",
+  "syncCacheMessage": "Loading into local store...",
+  "syncCompleteTitle": "Sync Complete",
+  "syncCompleteMessage": "All data loaded successfully!",
+  "syncErrorTitle": "Sync Error",
+  "syncErrorMessage": "Sync failed.",
+  "syncErrorInitMessage": "Unable to initialize data. Network or server error.",
+  "syncRetryCountdown": "Retrying in {seconds} seconds...",
+  "@syncRetryCountdown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "Retry",
+  "messageActionFailed": "Couldn't complete the action. Please retry.",
+  "savedMessages": "Saved Messages",
+  "chatDraft": "Draft",
+  "chatYou": "You",
+  "chatUnknown": "Unknown",
+  "noChats": "No chats yet",
+  "chatTitle": "Chat",
+  "chatNotFound": "Chat not found",
+  "chatNotFoundWithId": "No chat found with id \"{chatUUID}\"",
+  "@chatNotFoundWithId": {
+    "placeholders": {
+      "chatUUID": {
+        "type": "String"
+      }
+    }
+  },
+  "chatTypeAndMembers": "Type: {type} · Members: {count}",
+  "@chatTypeAndMembers": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "typeMessageHint": "Type a message...",
+  "online": "Online",
+  "offline": "Offline",
+  "membersCount": "{count} members",
+  "@membersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "edited": "edited",
+  "selectChatFromList": "Select a chat from the list",
+  "formatting": "Formatting",
+  "formatBold": "Bold",
+  "formatItalic": "Italic",
+  "formatMonospace": "Monospace",
+  "formatStrikethrough": "Strikethrough",
+  "formatUnderline": "Underline",
+  "formatSpoiler": "Spoiler",
+  "formatLink": "Create Link",
+  "formatRegular": "Clear Formatting",
+  "linkUrlHint": "https://example.com",
+  "cancel": "Cancel",
+  "apply": "Apply",
+  "logout": "Log out",
+  "logoutConfirmTitle": "Log out",
+  "logoutConfirmMessage": "Are you sure you want to log out from your account?",
+  "deleteProfileConfirmTitle": "Delete Account",
+  "deleteProfileConfirmWarning": "This action cannot be undone. All your data will be permanently deleted.",
+  "deleteProfileConfirmInstruction": "Type your username {username} to confirm.",
+  "@deleteProfileConfirmInstruction": {
+    "description": "Delete profile confirmation prompt showing the current username",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteProfileError": "Could not delete your profile. Please try again.",
+  "deleteProfileLearnMore": "Learn More",
+  "dropFilesHint": "Drop files here to add to draft",
+  "channelReadOnlyHint": "You do not have permission to send messages in this channel.",
+  "muteNotifications": "Mute notifications",
+  "enableNotifications": "Enable notifications",
+  "createSubTitle": "Create sub",
+  "createSubSubtitle": "Enter a name for the sub-channel",
+  "createSubType": "Sub type",
+  "createSubMixed": "Mixed",
+  "createSubText": "Text",
+  "createSubVocal": "Vocal",
+  "createSubAnnounce": "Announce",
+  "createSubBroadcast": "Broadcast",
+  "createSubBoard": "Board",
+  "createSubError": "Error creating sub-channel",
+  "removeInvalidFilesBeforeSending": "Please remove invalid files before sending.",
+  "editingMessage": "Editing message",
+  "messageCannotBeEmpty": "Message cannot be empty",
+  "errorEditingMessage": "Error editing message",
+  "errorPreparingFiles": "Error preparing files",
+  "invalidServerResponse": "Invalid server response",
+  "errorUploadingFile": "Error uploading {fileName}",
+  "@errorUploadingFile": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "errorConfirmingEdit": "Error confirming edit",
+  "unexpectedErrorEditing": "Unexpected error while editing",
+  "filesCount": "{count, plural, =1{1 file} other{{count} files}}",
+  "@filesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "emojiTooltip": "Emoji",
+  "addToDraftTooltip": "Add to draft",
+  "pauseTooltip": "Pause",
+  "resumeTooltip": "Resume",
+  "attachFilesTooltip": "Attach files",
+  "cancelRecordingTooltip": "Cancel recording",
+  "sendMessageTooltip": "Send message",
+  "sendVoiceTooltip": "Send voice message",
+  "recordVoiceTooltip": "Record voice message",
+  "clearAllFilesTooltip": "Clear all",
+  "removeFileTooltip": "Remove file",
+  "previewFileUnavailable": "Unable to preview this file",
+  "newChat": "New chat",
+  "searchHint": "Search chats and messages...",
+  "searchChats": "Chats",
+  "searchMessages": "Messages",
+  "searchNoResults": "No results found",
+  "createChatTitle": "Create chat",
+  "createChatSubtitle": "Choose a name, type and privacy for your new chat",
+  "createChatName": "Name",
+  "createChatNameHint": "Enter chat name",
+  "createChatType": "Communication style",
+  "createChatGroup": "Group",
+  "createChatGroupDesc": "Chat with everyone",
+  "createChatChannel": "Channel",
+  "createChatChannelDesc": "Broadcast to many",
+  "createChatForum": "Forum",
+  "createChatForumDesc": "Topics and threads",
+  "createChatPrivacy": "Privacy",
+  "createChatPrivate": "Private",
+  "createChatPublic": "Public",
+  "createChatHandle": "Handle",
+  "createChatHandleHint": "unique_handle",
+  "createChatHandleHelper": "Public chats need a unique @handle so anyone can find them.",
+  "createChatHandleTaken": "This handle is already taken",
+  "createChatHandleError": "Unable to verify handle availability",
+  "createChatPublicRequired": "Handle is required for public chats.",
+  "createChatAction": "Create",
+  "createChatError": "Error during chat creation",
+  "settings": "Settings",
+  "settingsSearchHint": "Search settings...",
+  "settingsSearchNoResults": "No settings found",
+  "user": "User",
+  "screenShareModalTitle": "Share screen",
+  "screenShareEntireScreen": "Entire screen",
+  "screenShareWindow": "Window",
+  "screenShareEntireScreenTitle": "Entire screen sharing",
+  "screenShareWindowSharingTitle": "Window sharing",
+  "screenShareNativePickerNotice": "Screen or window selection will be handled by the native system interface.",
+  "screenShareNoScreensDetected": "No screens detected",
+  "screenShareNoWindowsDetected": "No windows detected",
+  "screenShareIncludeSystemAudio": "Share system audio as well",
+  "screenShareStart": "Start sharing",
+  "screenShareSetupTitle": "Set up sharing",
+  "screenSharePreview": "Preview",
+  "screenShareChangeSource": "Change source",
+  "screenShareEditTitle": "Edit sharing",
+  "screenShareEditShare": "Edit sharing options",
+  "screenShareApply": "Apply",
+  "screenShareRetry": "Retry",
+  "screenShareCaptureFailed": "Could not capture the screen. Try again.",
+  "screenShareQualityTooltip": "Stream quality",
+  "screenShareQualityTitle": "Stream quality",
+  "screenShareQualityAuto": "Auto",
+  "commsJoinRoom": "Join voice room",
+  "commsLeaveRoom": "Leave voice room",
+  "commsMuteMic": "Mute microphone",
+  "commsUnmuteMic": "Unmute microphone",
+  "commsTurnOffCamera": "Turn off camera",
+  "commsTurnOnCamera": "Turn on camera",
+  "commsSwitchCamera": "Switch camera",
+  "commsDeafen": "Deafen room audio",
+  "commsUndeafen": "Undeafen room audio",
+  "commsShareScreen": "Share screen",
+  "commsNoParticipants": "No participants in the voice room",
+  "commsUserScreenShare": "{name} (Sharing)",
+  "@commsUserScreenShare": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "commsUserYou": "{name} (You)",
+  "@commsUserYou": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "commsUnpin": "Unpin",
+  "commsPin": "Pin",
+  "commsExitFullScreen": "Exit full screen",
+  "commsFullScreen": "Full screen",
+  "commsStopScreenShare": "Stop sharing",
+  "commsMuteUser": "Mute for me",
+  "commsUnmuteUser": "Unmute for me",
+  "commsVolume": "Volume",
+  "commsTokenError": "Unable to obtain token for voice room.",
+  "commsConnectionError": "LiveKit connection error: {error}",
+  "@commsConnectionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "commsMicAccessError": "Unable to access microphone.",
+  "commsCameraAccessError": "Unable to access camera.",
+  "joinCreateStartDm": "Start DM",
+  "joinCreateJoin": "Join",
+  "joinCreateJoinChat": "Join Chat",
+  "joinCreateJoinGroup": "Join Group",
+  "joinCreateJoinChannel": "Join Channel",
+  "joinCreateJoinForum": "Join Forum",
+  "joinCreateUserDesc": "Create a new direct message conversation with this user.",
+  "joinCreateChatDesc": "This is a public chat. Join to see messages and participate.",
+  "joinCreateSecurityDesc": "(WIP) End-to-End Encrypted conversation. Your data remains secure.",
+  "joinCreateNotificationDesc": "You can always mute notifications or leave the chat later.",
+  "joinCreateProcessing": "Processing...",
+  "joinCreateError": "Failed to join or create chat. Please try again.",
+  "searchGlobalChats": "Global chats",
+  "reply": "Reply",
+  "quoteAndReply": "Quote and reply",
+  "pin": "Pin",
+  "unpin": "Unpin",
+  "favorite": "Favorite",
+  "unfavorite": "Unfavorite",
+  "favoriteMessages": "Favorite messages",
+  "noFavoriteMessages": "No favorite messages yet",
+  "favoriteAdded": "Added to favorites",
+  "favoriteRemoved": "Removed from favorites",
+  "copy": "Copy",
+  "copySelected": "Copy selected",
+  "download": "Download",
+  "cancelEdit": "Cancel Edit",
+  "edit": "Edit",
+  "forward": "Forward",
+  "share": "Share",
+  "shareFailed": "Couldn't share. Please try again.",
+  "shareFilesNotAvailable": "Files aren't available for sharing yet. Try again once they finish downloading.",
+  "shareLinuxFilesUnsupported": "File sharing isn't supported on Linux. Text was shared instead.",
+  "incomingShareTitle": "Incoming share",
+  "incomingShareHint": "Pick a chat to continue",
+  "incomingShareFiles": "{count, plural, =1{1 file} other{{count} files}}",
+  "@incomingShareFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "incomingShareDiscard": "Discard share",
+  "incomingShareTooBig": "Some shared files exceed the 50 MB / 100 MB limits and were skipped.",
+  "unreadMessages": "Unread messages",
+  "select": "Select",
+  "delete": "Delete",
+  "selectedCount": "{count, plural, =1{1 selected} other{{count} selected}}",
+  "@selectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteMessageConfirm": "Are you sure you want to delete this message?",
+  "deleteMessagesConfirm": "Are you sure you want to delete {count} messages?",
+  "@deleteMessagesConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pinnedMessage": "Pinned message",
+  "attachMenuMedia": "Media",
+  "attachMenuCamera": "Camera",
+  "attachMenuFile": "File",
+  "attachMenuRecording": "Recording",
+  "attachMenuLocation": "Location",
+  "attachMenuTodo": "Todo",
+  "attachMenuPoll": "Poll",
+  "emojiMenuEmoji": "Emoji",
+  "emojiMenuSticker": "Sticker",
+  "emojiMenuGif": "GIF",
+  "emojiSearchPlaceholder": "Search emoji...",
+  "emojiNoResults": "No emojis found",
+  "emojiRecents": "Recents",
+  "emojiSearchResults": "Search Results",
+  "emojiCatSmileys": "Smileys & Emotion",
+  "emojiCatPeople": "People & Body",
+  "emojiCatAnimals": "Animals & Nature",
+  "emojiCatFood": "Food & Drink",
+  "emojiCatTravel": "Travel & Places",
+  "emojiCatActivities": "Activities",
+  "emojiCatObjects": "Objects",
+  "emojiCatSymbols": "Symbols",
+  "emojiCatFlags": "Flags",
+  "emojiSkinToneTitle": "Skin tone",
+  "stickerWip": "🚧 Stickers coming soon 🚧",
+  "gifSearchPlaceholder": "Search GIFs...",
+  "gifRecents": "Recent",
+  "gifPopular": "Popular",
+  "gifSearchResults": "Results",
+  "gifNoResults": "No GIFs found",
+  "gifLoadError": "Failed to load GIFs",
+  "gifProviderAll": "All",
+  "msgFormatPhotoSingular": "Photo",
+  "msgFormatPhotoPlural": "Photos",
+  "msgFormatVideoSingular": "Video",
+  "msgFormatVideoPlural": "Videos",
+  "msgFormatAudioSingular": "Audio",
+  "msgFormatAudioPlural": "Audios",
+  "msgFormatVoiceSingular": "Voice message",
+  "msgFormatVoicePlural": "Voice messages",
+  "msgFormatDocumentSingular": "Document",
+  "msgFormatDocumentPlural": "Documents",
+  "msgFormatCodeSingular": "Code snippet",
+  "msgFormatCodePlural": "Code snippets",
+  "msgFormatArchiveSingular": "Archive",
+  "msgFormatArchivePlural": "Archives",
+  "msgFormatGifSingular": "GIF",
+  "msgFormatGifPlural": "GIFs",
+  "msgFormatFileSingular": "File",
+  "msgFormatFilePlural": "Files",
+  "msgFormatMedia": "Media",
+  "msgFormatFiles": "Files",
+  "msgFormatChatCreated": "Chat created",
+  "msgFormatUserJoined": "{name} joined the chat",
+  "@msgFormatUserJoined": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatUserLeft": "{name} left the chat",
+  "@msgFormatUserLeft": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatSystemMessage": "System message",
+  "msgFormatJustNow": "Just now",
+  "msgFormatYesterday": "Yesterday",
+  "msgFormatSecondsAgo": "{count}s ago",
+  "@msgFormatSecondsAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatMinutesAgo": "{count}m ago",
+  "@msgFormatMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatHoursAgo": "{count}h ago",
+  "@msgFormatHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatDaysAgo": "{count}d ago",
+  "@msgFormatDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatTypingOne": "{name} is typing...",
+  "@msgFormatTypingOne": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatTypingTwo": "{name} and {name2} are typing...",
+  "@msgFormatTypingTwo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatTypingOther": "{name}, {name2} and {count} others are typing...",
+  "@msgFormatTypingOther": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatRecordingVoiceOne": "{name} is recording voice...",
+  "@msgFormatRecordingVoiceOne": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatRecordingVoiceTwo": "{name} and {name2} are recording voice...",
+  "@msgFormatRecordingVoiceTwo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatRecordingVoiceOther": "{name}, {name2} and {count} others are recording voice...",
+  "@msgFormatRecordingVoiceOther": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatRecordingVideoOne": "{name} is recording video...",
+  "@msgFormatRecordingVideoOne": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatRecordingVideoTwo": "{name} and {name2} are recording video...",
+  "@msgFormatRecordingVideoTwo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatRecordingVideoOther": "{name}, {name2} and {count} others are recording video...",
+  "@msgFormatRecordingVideoOther": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatUploadingFileOne": "{name} is uploading a file...",
+  "@msgFormatUploadingFileOne": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatUploadingFileTwo": "{name} and {name2} are uploading a file...",
+  "@msgFormatUploadingFileTwo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatUploadingFileOther": "{name}, {name2} and {count} others are uploading a file...",
+  "@msgFormatUploadingFileOther": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "msgFormatActiveOne": "{name} is active...",
+  "@msgFormatActiveOne": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatActiveTwo": "{name} and {name2} are active...",
+  "@msgFormatActiveTwo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
+  "msgFormatActiveOther": "{name}, {name2} and {count} others are active...",
+  "@msgFormatActiveOther": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "overviewTitle": "Overview",
+  "overviewMembers": "Members",
+  "overviewMedia": "Media",
+  "overviewFiles": "Files",
+  "overviewLinks": "Links",
+  "overviewMusic": "Music",
+  "overviewVoice": "Voice",
+  "overviewGifs": "GIFs",
+  "subFallback": "Sub {id}",
+  "overviewNoMembers": "No members found",
+  "overviewNoFiles": "No files shared yet",
+  "overviewNoMedia": "No media shared yet",
+  "overviewNoLinks": "No links shared yet",
+  "overviewNoMusic": "No music shared yet",
+  "overviewNoVoice": "No voice messages yet",
+  "overviewNoGifs": "No GIFs shared yet",
+  "overviewNotSpecified": "Not specified",
+  "overviewNoDescription": "No description yet",
+  "overviewUsername": "Username",
+  "overviewBiography": "Biography",
+  "overviewSubChannels": "Sub-channels",
+  "overviewSharedInSub": "Shared in #{subName}",
+  "@overviewSharedInSub": {
+    "placeholders": {
+      "subName": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "overviewSettings": "Settings",
+  "overviewFavouriteMessages": "Favorite messages",
+  "overviewLeave": "Leave",
+  "overviewLeaveConfirmTitle": "Leave chat?",
+  "overviewLeaveConfirmMessage": "Are you sure you want to leave this chat?",
+  "overviewWip": "Coming soon",
+  "overviewUnknownFile": "Unnamed file",
+  "notifChannelChatMessages": "Chat Messages",
+  "notifChannelChatMessagesDesc": "Incoming chat messages",
+  "notifNewMessage": "New message",
+  "notifUnknownSender": "Unknown",
+  "notifMe": "Me",
+  "notifOpenAction": "Open",
+  "notifGroupMessageBody": "{sender}: {body}",
+  "@notifGroupMessageBody": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "body": {
+        "type": "String"
+      }
+    }
+  },
+  "notifMarkAsRead": "Mark as read",
+  "notifReplyPlaceholder": "Type a message...",
+  "notifReplySend": "Send",
+  "notifShareTitle": "Screen sharing",
+  "notifShareText": "Novyse is sharing your screen",
+  "notifChannelComms": "Voice Call",
+  "notifChannelCommsDesc": "Ongoing voice call status and controls",
+  "notifCommsOngoingCall": "Voice Call",
+  "notifCommsParticipants": "{count, plural, =1{1 participant} other{{count} participants}}",
+  "@notifCommsParticipants": {
+    "description": "Number of participants in ongoing voice call",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notifCommsMute": "Mute",
+  "notifCommsUnmute": "Unmute",
+  "notifCommsVideoOff": "Turn off camera",
+  "notifCommsVideoOn": "Turn on camera",
+  "notifCommsLeave": "Leave",
+  "windowMinimize": "Minimize",
+  "windowMaximize": "Maximize",
+  "windowRestore": "Restore",
+  "windowClose": "Close",
+  "trayOpen": "Open",
+  "trayQuit": "Quit",
+  "settingsCategoryAccountSubtitle": "Profile and identity",
+  "settingsCategoryAccountTitle": "Account",
+  "settingsCategoryChatSubtitle": "Media, sounds and input",
+  "settingsCategoryChatTitle": "Chat",
+  "settingsCategoryCommsSubtitle": "Audio, video and sharing",
+  "settingsCategoryCommsTitle": "Voice & Video",
+  "settingsCategoryCustomizationSubtitle": "Themes and appearance",
+  "settingsCategoryCustomizationTitle": "Customization",
+  "settingsCategoryInfoSubtitle": "Version, resources and logs",
+  "settingsCategoryInfoTitle": "Info & Diagnostics",
+  "settingsCategoryLanguageSubtitle": "Localization and calendar",
+  "settingsCategoryLanguageTitle": "Language & Time",
+  "settingsCategoryNotificationsSubtitle": "Chats, calls and alerts",
+  "settingsCategoryNotificationsTitle": "Notifications",
+  "settingsCategorySecuritySubtitle": "Credentials and visibility",
+  "settingsCategorySecurityTitle": "Security & Privacy",
+  "settingsCategoryStorageSubtitle": "Local space, cloud and downloads",
+  "settingsCategoryStorageTitle": "Storage",
+  "settingsCategorySystemSubtitle": "Startup, tray and shortcuts",
+  "settingsCategorySystemTitle": "System",
+  "settingsCommonCancel": "Cancel",
+  "settingsCommonComingSoonMessage": "This editor is not available yet.",
+  "settingsCommonComingSoonTitle": "Coming soon",
+  "settingsCommonConfirm": "Confirm",
+  "settingsCommonDone": "Done",
+  "settingsCommonSave": "Save",
+  "settingsCommonSelectOption": "Select an option",
+  "settingsGroupCallsTitle": "Calls",
+  "settingsGroupChatNotificationsTitle": "Notifications for Chats",
+  "settingsGroupCloudStorageTitle": "Cloud Storage",
+  "settingsGroupCommsSoundItemsTitle": "Soundboard",
+  "settingsGroupGeneralTitle": "General",
+  "settingsGroupInappTitle": "In-App Notifications",
+  "settingsGroupInputFormattingTitle": "Input & Formatting",
+  "settingsGroupLocalStorageTitle": "Local Storage & Retention",
+  "settingsGroupMediaSoundsTitle": "Media and Sounds",
+  "settingsGroupPasswordSecurityTitle": "Security",
+  "settingsGroupProfileFieldsTitle": "Edit Profile",
+  "settingsGroupScreenshareTitle": "Screen Sharing",
+  "settingsGroupShortcutsTitle": "Shortcuts",
+  "settingsGroupThemesTitle": "Themes",
+  "settingsGroupVideoTitle": "Video & Webcam",
+  "settingsGroupVisibilityTitle": "Who Can See My Info",
+  "settingsGroupVisualAssetsTitle": "Visual Assets",
+  "settingsGroupVoiceTitle": "Voice Engine & Audio Processing",
+  "settingsGroupVolumesTitle": "Saved volumes",
+  "settingsGroupResourcesTitle": "Discover Novyse",
+  "settingsItemActiveSessionsSubtitle": "Devices, IP and remote revoke",
+  "settingsItemActiveSessionsTitle": "Active Sessions",
+  "settingsItemApiKeysSubtitle": "Keys for apps and services that connect to your account",
+  "settingsItemApiKeysTitle": "API Keys",
+  "settingsItemAppIconSubtitle": "Dock and taskbar icon style",
+  "settingsItemAppIconTitle": "App Icon",
+  "settingsItemAppLanguageSubtitle": "Interface language pack",
+  "settingsItemAppLanguageTitle": "Application Language",
+  "settingsItemAuthSessionsSubtitle": "Review devices signed in to your account and end sessions remotely",
+  "settingsItemAuthSessionsTitle": "Active Devices",
+  "settingsItemAutoRemoveSubtitle": "Prune unused media by age",
+  "settingsItemAutoRemoveTitle": "Auto-Remove Cached Media",
+  "settingsItemAutoplayGifsSubtitle": "Loop animated media automatically",
+  "settingsItemAutoplayGifsTitle": "Autoplay GIFs & Videos",
+  "settingsItemAvatarBannerSubtitle": "Profile photo and banner image",
+  "settingsItemAvatarBannerTitle": "Avatar & Profile Banner",
+  "settingsItemBadgeRulesSubtitle": "Count messages or chats",
+  "settingsItemBadgeRulesTitle": "Unread Badge Counter",
+  "settingsItemBioStatusSubtitle": "Biography and ephemeral status",
+  "settingsItemBioStatusTitle": "Bio & Custom Status",
+  "settingsItemBioVisibilitySubtitle": "Who reads your bio",
+  "settingsItemBioVisibilityTitle": "Bio & About Details",
+  "settingsItemBiometricLockSubtitle": "Require biometrics to unlock",
+  "settingsItemBiometricLockTitle": "Biometric App Lock",
+  "settingsItemBirthdayVisibilitySubtitle": "Who sees your birthday",
+  "settingsItemBirthdayVisibilityTitle": "Birthday & Age",
+  "settingsItemBlockedUsersSubtitle": "Blocked users and domains",
+  "settingsItemBlockedUsersTitle": "Blocked Users",
+  "settingsItemCallRoutingSubtitle": "Direct P2P or relay routing",
+  "settingsItemCallRoutingTitle": "Peer-to-Peer vs Relay Calling",
+  "settingsItemChannelsNotifSubtitle": "Alerts for subscribed channels",
+  "settingsItemChannelsNotifTitle": "Channels",
+  "settingsItemCheckUpdatesSubtitle": "Poll for new releases",
+  "settingsItemCheckUpdatesTitle": "Check for Updates",
+  "settingsItemClearCacheSubtitle": "Keep history, drop cached media",
+  "settingsItemClearCacheTitle": "Clear All Cache",
+  "settingsItemCloseToTraySubtitle": "X minimizes instead of quitting",
+  "settingsItemCloseToTrayTitle": "Close Window to Tray",
+  "settingsItemDeleteProfileSubtitle": "Permanently wipe identity and data",
+  "settingsItemDeleteProfileTitle": "Delete Profile",
+  "settingsItemDensityFontSubtitle": "Font size and bubble padding",
+  "settingsItemDensityFontTitle": "Message Density & Font Scale",
+  "settingsItemDisplayNameSubtitle": "Public name and unique handle",
+  "settingsItemDisplayNameTitle": "Display Name & Username",
+  "settingsItemEarSpeakerSubtitle": "Route voice notes to the earpiece",
+  "settingsItemEarSpeakerTitle": "Ear Speaker Mode",
+  "settingsItemEchoCancellationSubtitle": "Prevent speaker feedback",
+  "settingsItemEchoCancellationTitle": "Echo Cancellation",
+  "settingsItemExpanderSubtitle": "Boost quiet speech dynamics",
+  "settingsItemExpanderTitle": "Audio Expander",
+  "settingsItemExportLogsSubtitle": "Sanitized zero-PII archive",
+  "settingsItemExportLogsTitle": "Export Diagnostic Logs",
+  "settingsItemFirstDaySubtitle": "Calendar week start",
+  "settingsItemFirstDayTitle": "First Day of the Week",
+  "settingsItemForumsNotifSubtitle": "Alerts for subscribed topics",
+  "settingsItemForumsNotifTitle": "Forums & Topic Threads",
+  "settingsItemForwardAttributionSubtitle": "Link back to your profile",
+  "settingsItemForwardAttributionTitle": "Forwarded Message Attribution",
+  "settingsItemGlobalHotkeysSubtitle": "Hotkeys working in background",
+  "settingsItemGlobalHotkeysTitle": "Global System-Wide Hotkeys",
+  "settingsItemGpuAccelSubtitle": "GPU rendering for animations",
+  "settingsItemGpuAccelTitle": "GPU Hardware Acceleration",
+  "settingsItemGroupsModeSubtitle": "All, mentions only or muted",
+  "settingsItemGroupsModeTitle": "Groups",
+  "settingsItemHifiAudioSubtitle": "Stereo system audio in shares",
+  "settingsItemHifiAudioTitle": "High-Fidelity Audio Passthrough",
+  "settingsItemHolidayThemesSubtitle": "Seasonal festive themes",
+  "settingsItemHolidayThemesTitle": "Auto switch theme on holidays",
+  "settingsItemHourFormatSubtitle": "24-hour or 12-hour clock",
+  "settingsItemHourFormatTitle": "Hour Format",
+  "settingsItemInappEffectsSubtitle": "Send/receive click feedback",
+  "settingsItemInappEffectsTitle": "In-Chat Audio Effects",
+  "settingsItemInappPreviewSubtitle": "Floating toast with quick reply",
+  "settingsItemInappPreviewTitle": "In-App Preview",
+  "settingsItemInappSoundsSubtitle": "Chimes while app is open",
+  "settingsItemInappSoundsTitle": "In-App Sounds",
+  "settingsItemInappVibrateSubtitle": "Haptics for sends and alerts",
+  "settingsItemInappVibrateTitle": "In-App Vibrate",
+  "settingsItemInputDeviceSubtitle": "Microphone and input volume",
+  "settingsItemInputDeviceTitle": "Input Device & Gain",
+  "settingsItemInputModeSubtitle": "Voice detection or push-to-talk",
+  "settingsItemInputModeTitle": "Input Entry Mode",
+  "settingsItemKeystrokeAttenuationSubtitle": "Suppress keyboard clicks",
+  "settingsItemKeystrokeAttenuationTitle": "Typing Attenuation",
+  "settingsItemLastSeenSubtitle": "Who sees your presence",
+  "settingsItemLastSeenTitle": "Last Seen & Online Status",
+  "settingsItemLinkedContactsSubtitle": "Verified emails and recovery",
+  "settingsItemLinkedContactsTitle": "Linked Contacts",
+  "settingsItemLogoutSubtitle": "Sign out from your account on this device",
+  "settingsItemLogoutTitle": "Logout",
+  "settingsItemMarkdownToolbarSubtitle": "Inline formatting tools",
+  "settingsItemMarkdownToolbarTitle": "Markdown & Code Block Toolbar",
+  "settingsItemMaxCacheSubtitle": "LRU storage cap",
+  "settingsItemMaxCacheTitle": "Maximum Cache Size",
+  "settingsItemMediaExplorerSubtitle": "Browse files by size, bulk delete",
+  "settingsItemMediaExplorerTitle": "Media Explorer & Bulk Cleaner",
+  "settingsItemMfaSubtitle": "TOTP and FIDO2 security keys",
+  "settingsItemMfaTitle": "Multi-Factor Authentication",
+  "settingsItemMicTestSubtitle": "Waveform with loopback playback",
+  "settingsItemMicTestTitle": "Interactive Mic Test",
+  "settingsItemMobileDownloadSubtitle": "Auto-download rules on cellular",
+  "settingsItemMobileDownloadTitle": "When using Mobile Data",
+  "settingsItemNameColorSubtitle": "Username accent color",
+  "settingsItemNameColorTitle": "Name Color in Chats",
+  "settingsItemNoiseGateSubtitle": "Decibel cutoff for silence",
+  "settingsItemNoiseGateTitle": "Noise Gate Threshold",
+  "settingsItemNoiseSuppressionSubtitle": "Neural background noise filter",
+  "settingsItemNoiseSuppressionTitle": "AI Noise Suppression",
+  "settingsItemOpenBackgroundSubtitle": "Start minimized in tray",
+  "settingsItemOpenBackgroundTitle": "Open in Background",
+  "settingsItemOpenStartupSubtitle": "Launch on OS boot",
+  "settingsItemOpenStartupTitle": "Open on Startup",
+  "settingsItemOutputDeviceSubtitle": "Speakers and master volume",
+  "settingsItemOutputDeviceTitle": "Output Device & Volume",
+  "settingsItemPasswordSubtitle": "Change your account password",
+  "settingsItemPasswordTitle": "Password",
+  "settingsActiveDevicesSection": "Signed-in devices",
+  "settingsDevicesLoadFailed": "Could not load active devices.",
+  "settingsDeviceUnknown": "Unknown",
+  "settingsDeviceRevoked": "Device session revoked.",
+  "settingsDeviceRevokeFailed": "Could not revoke this device session.",
+  "settingsOtherDevicesRevoked": "Other device sessions revoked.",
+  "settingsDevicesRevokeFailed": "Could not revoke other device sessions.",
+  "settingsDismiss": "Dismiss",
+  "settingsRevokeOtherDevices": "Sign out other devices",
+  "settingsDevicesEmpty": "No active device sessions found.",
+  "settingsDeviceCurrent": "Current device",
+  "settingsRevokeDevice": "Revoke session",
+  "settingsDeviceIp": "IP address",
+  "settingsDeviceCreated": "Signed in",
+  "settingsDeviceLastActive": "Last active",
+  "settingsNewPassword": "New password",
+  "settingsConfirmNewPassword": "Confirm new password",
+  "settingsChangePassword": "Change password",
+  "settingsPasswordChanging": "Changing password…",
+  "settingsPasswordRequired": "Enter and confirm your new password.",
+  "settingsPasswordsDoNotMatch": "The passwords do not match.",
+  "settingsPasswordChanged": "Password changed successfully.",
+  "settingsPasswordChangeFailed": "Could not change your password.",
+  "settingsRevokeOtherDevicesConfirmTitle": "Sign out other devices?",
+  "settingsRevokeOtherDevicesConfirmMessage": "This will end every other active session on your account. You will stay signed in on this device.",
+  "settingsRevokeOtherDevicesConfirm": "Sign out devices",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
+  "settingsApiKeysTitle": "API Keys",
+  "settingsApiKeysActions": "Actions",
+  "settingsApiKeysCreate": "Create API key",
+  "settingsApiKeysManage": "Manage API keys",
+  "settingsApiKeysLoading": "Loading API keys…",
+  "settingsApiKeysEmpty": "No API keys yet",
+  "settingsApiKeysEmptySubtitle": "Create a key to connect an app or service to your account.",
+  "settingsApiKeysCreated": "API key created.",
+  "settingsApiKeyCreateFailed": "Could not create the API key.",
+  "settingsApiKeyName": "Key name",
+  "settingsApiKeyNameHint": "For example, my bot",
+  "settingsApiKeyNameRequired": "Enter a name for this API key.",
+  "settingsApiKeyCreateDialogTitle": "Create an API key",
+  "settingsApiKeyCreateDialogMessage": "Give this key a name so you can recognize it later.",
+  "settingsApiKeyCreateConfirm": "Create key",
+  "settingsApiKeyCreating": "Creating…",
+  "settingsApiKeyCreatedTitle": "API key created",
+  "settingsApiKeyCreatedWarning": "Copy and save this key now. For your security, you will not be able to see it again.",
+  "settingsApiKeyCopy": "Copy key",
+  "settingsApiKeyCopied": "Copied",
+  "settingsApiKeyDone": "Done",
+  "settingsApiKeyCreatedAt": "Created",
+  "settingsApiKeyLastUsed": "Last used",
+  "settingsApiKeyNeverUsed": "Never",
+  "settingsApiKeyUnknownDate": "Unknown",
+  "settingsApiKeyActive": "Active",
+  "settingsApiKeyInactive": "Inactive",
+  "settingsApiKeyActivateFailed": "Could not update the API key.",
+  "settingsApiKeyRevoke": "Revoke API key",
+  "settingsApiKeyRevokeTitle": "Revoke this API key?",
+  "settingsApiKeyRevokeMessage": "Apps and services using this key will no longer be able to access your account. This action cannot be undone.",
+  "settingsApiKeyRevokeConfirm": "Revoke key",
+  "settingsApiKeyRevoked": "API key revoked.",
+  "settingsApiKeyRevokeFailed": "Could not revoke the API key.",
+  "settingsApiKeysLoadFailed": "Could not load API keys.",
+  "settingsItemPauseMusicPlayingSubtitle": "Duck external audio in chats",
+  "settingsItemPauseMusicPlayingTitle": "Pause music while playing media",
+  "settingsItemPauseMusicRecordingSubtitle": "Pause external players on record",
+  "settingsItemPauseMusicRecordingTitle": "Pause music while recording",
+  "settingsItemPrivateChatsSubtitle": "Alerts for direct messages",
+  "settingsItemPrivateChatsTitle": "Private Chats",
+  "settingsItemProfilePhotoVisibilitySubtitle": "Who sees your avatar",
+  "settingsItemProfilePhotoVisibilityTitle": "Profile Photo & Avatar",
+  "settingsItemPurgeCloudSubtitle": "Bulk delete archived cloud assets",
+  "settingsItemPurgeCloudTitle": "Purge Remote Cloud Media",
+  "settingsItemQuotaGraphSubtitle": "Remote bucket usage",
+  "settingsItemQuotaGraphTitle": "Cloud Quota",
+  "settingsItemReadReceiptsSubtitle": "Checks and typing indicators",
+  "settingsItemReadReceiptsTitle": "Read Receipts & Typing Indicator",
+  "settingsItemReleaseChannelSubtitle": "Update channel for this app build",
+  "settingsItemReleaseChannelTitle": "Update Channel",
+  "settingsItemResetDbSubtitle": "Rebuild indices or clean resync",
+  "settingsItemResetDbTitle": "Reset Database & Resync",
+  "settingsItemResourceLinksSubtitle": "Roadmap, patch notes, news and service status",
+  "settingsItemResourceLinksTitle": "Official Links & Resources",
+  "settingsItemRingtoneSubtitle": "Built-in or custom tone",
+  "settingsItemRingtoneTitle": "Incoming Call Ringtone",
+  "settingsItemRoamingDownloadSubtitle": "Avoid roaming costs",
+  "settingsItemRoamingDownloadTitle": "When Roaming",
+  "settingsItemSaveGallerySubtitle": "Auto-save incoming media to gallery",
+  "settingsItemSaveGalleryTitle": "Save to Gallery",
+  "settingsItemSendWithEnterSubtitle": "Enter sends, Shift+Enter new line",
+  "settingsItemSendWithEnterTitle": "Send message with Enter",
+  "settingsItemShareCustomBitrateSubtitle": "Max bitrate (kbps) for personalized mode",
+  "settingsItemShareCustomBitrateTitle": "Custom Share Bitrate",
+  "settingsItemShareCustomFpsSubtitle": "Framerate for personalized mode",
+  "settingsItemShareCustomFpsTitle": "Custom Share Framerate",
+  "settingsItemShareCustomQualitySubtitle": "Resolution for personalized mode",
+  "settingsItemShareCustomQualityTitle": "Custom Share Quality",
+  "settingsItemShareQualitySubtitle": "Smooth, text, gaming or personalized",
+  "settingsItemShareQualityTitle": "Screen Share Mode",
+  "settingsItemShortcutManagerSubtitle": "Keybindings for navigation and chat",
+  "settingsItemShortcutManagerTitle": "Keyboard Shortcut Manager",
+  "settingsItemSmartEmojiSubtitle": "Autocomplete on :keyword",
+  "settingsItemSmartEmojiTitle": "Smart Emoji & Sticker Suggestions",
+  "settingsItemSoundboardSubtitle": "Join, mute and share sounds",
+  "settingsItemSoundboardTitle": "Sound Effects Soundboard",
+  "settingsItemSpellcheckSubtitle": "Grammar underlining in composer",
+  "settingsItemSpellcheckTitle": "Multilingual Spellcheck",
+  "settingsItemSyncThemesSubtitle": "Same visuals everywhere",
+  "settingsItemSyncThemesTitle": "Sync themes across all devices",
+  "settingsItemThemeSelectorSubtitle": "Seed color used for light and dark",
+  "settingsItemThemeSelectorTitle": "Color palette",
+  "settingsItemThemeModeTitle": "Appearance",
+  "settingsItemThemeModeSubtitle": "Light, dark, or follow the system",
+  "settingsItemSurfaceModeTitle": "Dark surfaces",
+  "settingsItemSurfaceModeSubtitle": "Black surfaces for OLED screens. Applies in dark mode",
+  "settingsItemThemeStudioSubtitle": "Theme Studio editor",
+  "settingsItemThemeStudioTitle": "Create Custom Theme",
+  "settingsItemUsageGraphSubtitle": "Disk breakdown by media type",
+  "settingsItemUsageGraphTitle": "Storage Usage",
+  "settingsItemVersionSubtitle": "Installed app version",
+  "settingsItemVersionTitle": "Version",
+  "settingsItemVibrationSubtitle": "Haptic pattern for calls",
+  "settingsItemVibrationTitle": "Call Vibration Pattern",
+  "settingsItemBitrateMaxError": "Bitrate is above the maximum for this setting",
+  "settingsItemBitrateMinError": "Bitrate is below the minimum for this setting",
+  "settingsItemBitratePremiumLimitError": "Subscribe to Premium to unlock all features (WIP)",
+  "settingsItemVideoBitrateSubtitle": "Transmission bitrate in kbps",
+  "settingsItemVideoBitrateTitle": "Video Bitrate",
+  "settingsItemVideoFpsSubtitle": "Capture framerate",
+  "settingsItemVideoFpsTitle": "Video Framerate",
+  "settingsItemVideoQualitySubtitle": "Capture resolution target",
+  "settingsItemVideoQualityTitle": "Video Quality & Resolution",
+  "settingsItemVolumesListSubtitle": "Adjust saved per-member volumes",
+  "settingsItemVolumesListTitle": "Member volumes",
+  "settingsItemVirtualBgSubtitle": "Blur, color or custom image",
+  "settingsItemVirtualBgTitle": "Virtual Background & AI Blur",
+  "settingsItemWallpaperSubtitle": "Backgrounds, blur and dimming",
+  "settingsItemWallpaperTitle": "App Background Wallpaper",
+  "settingsItemWebcamSubtitle": "Camera device selection",
+  "settingsItemWebcamTitle": "Webcam",
+  "settingsItemWifiDownloadSubtitle": "Auto-download rules on Wi-Fi",
+  "settingsItemWifiDownloadTitle": "When using Wi-Fi",
+  "settingsOptionAppIconClassicLabel": "Classic",
+  "settingsOptionAppIconDarkMonoLabel": "Dark Monochrome",
+  "settingsOptionAppIconGradientLabel": "Gradient",
+  "settingsOptionAppIconMinimalistLabel": "Minimalist",
+  "settingsOptionAppIconRetro3dLabel": "Retro 3D",
+  "settingsOptionAppLanguageDeLabel": "Deutsch",
+  "settingsOptionAppLanguageEnLabel": "English",
+  "settingsOptionAppLanguageEsLabel": "Español",
+  "settingsOptionAppLanguageFrLabel": "Français",
+  "settingsOptionAppLanguageItLabel": "Italiano",
+  "settingsOptionAppLanguageJaLabel": "日本語",
+  "settingsOptionAppLanguageZhLabel": "中文",
+  "settingsResourceRoadmap": "Roadmap",
+  "settingsResourceRoadmapSubtitle": "Explore planned features and upcoming work",
+  "settingsResourcePatchnotes": "Patch Notes",
+  "settingsResourcePatchnotesSubtitle": "See what is new in each release",
+  "settingsResourceNews": "News",
+  "settingsResourceNewsSubtitle": "Read the latest Novyse announcements",
+  "settingsResourceStatus": "Service Status",
+  "settingsResourceStatusSubtitle": "Check current service availability",
+  "settingsOptionAutoRemoveForeverLabel": "Keep Forever",
+  "settingsOptionAutoRemoveOneMonthLabel": "1 Month",
+  "settingsOptionAutoRemoveOneWeekLabel": "1 Week",
+  "settingsOptionAutoRemoveThreeDaysLabel": "3 Days",
+  "settingsOptionBadgeRulesExcludeMutedLabel": "Exclude muted chats",
+  "settingsOptionBadgeRulesUnreadChatsLabel": "Count unread chats",
+  "settingsOptionBadgeRulesUnreadMessagesLabel": "Count unread messages",
+  "settingsOptionBioVisibilityContactsLabel": "My Contacts",
+  "settingsOptionBioVisibilityEveryoneLabel": "Everyone",
+  "settingsOptionBioVisibilityNobodyLabel": "Nobody",
+  "settingsOptionBirthdayVisibilityContactsLabel": "My Contacts",
+  "settingsOptionBirthdayVisibilityEveryoneLabel": "Everyone",
+  "settingsOptionBirthdayVisibilityNobodyLabel": "Nobody",
+  "settingsOptionCallRoutingP2pLabel": "Peer-to-Peer",
+  "settingsOptionCallRoutingRelayLabel": "Novyse Relay",
+  "settingsOptionFirstDayMondayLabel": "Monday",
+  "settingsOptionFirstDaySundayLabel": "Sunday",
+  "settingsOptionForumsNotifAllLabel": "All",
+  "settingsOptionForumsNotifMutedLabel": "Muted",
+  "settingsOptionForumsNotifSubscribedLabel": "Subscribed Topics",
+  "settingsOptionGroupsModeAllLabel": "All Messages",
+  "settingsOptionGroupsModeMentionsLabel": "Mentions Only",
+  "settingsOptionGroupsModeMutedLabel": "Muted",
+  "settingsOptionHourFormat12hLabel": "12-hour (2:30 PM)",
+  "settingsOptionHourFormat24hLabel": "24-hour (14:30)",
+  "settingsOptionInputModePttLabel": "Push-to-Talk",
+  "settingsOptionInputModeVadLabel": "Voice Activity Detection",
+  "settingsOptionLastSeenContactsLabel": "My Contacts",
+  "settingsOptionLastSeenEveryoneLabel": "Everyone",
+  "settingsOptionLastSeenNobodyLabel": "Nobody",
+  "settingsOptionMaxCacheGb1Label": "1 GB",
+  "settingsOptionMaxCacheGb16Label": "16 GB",
+  "settingsOptionMaxCacheGb32Label": "32 GB",
+  "settingsOptionMaxCacheGb5Label": "5 GB",
+  "settingsOptionMaxCacheUnlimitedLabel": "Unlimited",
+  "settingsOptionMobileDownloadFilesLabel": "Files",
+  "settingsOptionMobileDownloadPhotosLabel": "Photos",
+  "settingsOptionMobileDownloadVideosLabel": "Videos",
+  "settingsOptionProfilePhotoVisibilityContactsLabel": "My Contacts",
+  "settingsOptionProfilePhotoVisibilityEveryoneLabel": "Everyone",
+  "settingsOptionProfilePhotoVisibilityNobodyLabel": "Nobody",
+  "settingsOptionReleaseChannelBetaLabel": "Beta",
+  "settingsOptionReleaseChannelNightlyLabel": "Nightly",
+  "settingsOptionReleaseChannelStableLabel": "Stable",
+  "settingsOptionRoamingDownloadFilesLabel": "Files",
+  "settingsOptionRoamingDownloadPhotosLabel": "Photos",
+  "settingsOptionRoamingDownloadVideosLabel": "Videos",
+  "settingsOptionSaveGalleryAllLabel": "All",
+  "settingsOptionSaveGalleryDisabledLabel": "Disabled",
+  "settingsOptionSaveGalleryGroupsOnlyLabel": "Groups Only",
+  "settingsOptionSaveGalleryPrivateOnlyLabel": "Private Chats Only",
+  "settingsOptionShareQualityClarityLabel": "Text",
+  "settingsOptionShareQualityCustomLabel": "Personalized",
+  "settingsOptionShareQualityFluid60Label": "Smooth",
+  "settingsOptionShareQualityGamingLabel": "Gaming",
+  "settingsOptionShareQualitySmoothLabel": "Smooth",
+  "settingsOptionShareQualityTextLabel": "Text",
+  "settingsOptionPaletteNovyseLabel": "Novyse",
+  "settingsOptionPaletteForestLabel": "Forest",
+  "settingsOptionPaletteSunsetLabel": "Sunset",
+  "settingsOptionPaletteIrisLabel": "Iris",
+  "settingsOptionThemeModeSystemLabel": "System",
+  "settingsOptionThemeModeLightLabel": "Light",
+  "settingsOptionThemeModeDarkLabel": "Dark",
+  "settingsOptionSurfaceStandardLabel": "Standard",
+  "settingsOptionSurfaceAmoledLabel": "AMOLED",
+  "settingsOptionSurfaceAmoledExtremeLabel": "AMOLED extreme",
+  "settingsOptionThemeSelectorCleanLightLabel": "Clean Light",
+  "settingsOptionThemeSelectorCyberpunkNeonLabel": "Cyberpunk Neon",
+  "settingsOptionThemeSelectorDarkSlateLabel": "Dark Slate",
+  "settingsOptionThemeSelectorForestLabel": "Forest",
+  "settingsOptionThemeSelectorMidnightOledLabel": "Midnight OLED",
+  "settingsOptionThemeSelectorSunsetLabel": "Sunset",
+  "settingsOptionVibrationContinuousLabel": "Continuous",
+  "settingsOptionVibrationHeartbeatLabel": "Heartbeat",
+  "settingsOptionVibrationPulseLabel": "Rapid Pulse",
+  "settingsOptionVibrationSilentLabel": "Silent",
+  "settingsOptionVideoFps120Label": "120 FPS",
+  "settingsOptionVideoFps15Label": "15 FPS",
+  "settingsOptionVideoFps24Label": "24 FPS",
+  "settingsOptionVideoFps30Label": "30 FPS",
+  "settingsOptionVideoFps5Label": "5 FPS",
+  "settingsOptionVideoFps60Label": "60 FPS",
+  "settingsOptionVideoQuality1080pLabel": "1080p Full HD",
+  "settingsOptionVideoQuality2kLabel": "2K Quad HD",
+  "settingsOptionVideoQuality480pLabel": "480p SD",
+  "settingsOptionVideoQuality4kLabel": "4K Ultra HD",
+  "settingsOptionVideoQuality720pLabel": "720p HD",
+  "settingsOptionVirtualBgCustomLabel": "Custom Image",
+  "settingsOptionVirtualBgHeavyBlurLabel": "Heavy Blur",
+  "settingsOptionVirtualBgLightBlurLabel": "Light Blur",
+  "settingsOptionVirtualBgNoneLabel": "None",
+  "settingsOptionWifiDownloadFilesLabel": "Files",
+  "settingsOptionWifiDownloadPhotosLabel": "Photos",
+  "settingsOptionWifiDownloadVideosLabel": "Videos",
+  "settingsPageAccountProfileSubtitle": "Name, avatar, bio and contacts",
+  "settingsPageAccountProfileTitle": "Edit Profile",
+  "settingsPageChatInputSubtitle": "Keyboard dispatch and composer tools",
+  "settingsPageChatInputTitle": "Input & Formatting",
+  "settingsPageChatMediaSubtitle": "Playback automation and ducking",
+  "settingsPageChatMediaTitle": "Media and Sounds",
+  "settingsPageCommsScreenshareSubtitle": "Share quality and audio",
+  "settingsPageCommsScreenshareTitle": "Screen Share",
+  "settingsPageCommsSoundsSubtitle": "Room and call soundboard",
+  "settingsPageCommsSoundsTitle": "Communication Sounds",
+  "settingsPageCommsVolumesSubtitle": "Per-member voice volumes",
+  "settingsPageCommsVolumesTitle": "Member Volumes",
+  "settingsPageCommsVideoSubtitle": "Camera, quality and background",
+  "settingsPageCommsVideoTitle": "Video",
+  "settingsPageCommsVoiceSubtitle": "Devices and audio processing",
+  "settingsPageCommsVoiceTitle": "Voice",
+  "settingsPageCustomizationThemesSubtitle": "Color themes and seasonal effects",
+  "settingsPageCustomizationThemesTitle": "Themes",
+  "settingsPageCustomizationVisualSubtitle": "Icons, wallpaper and density",
+  "settingsPageCustomizationVisualTitle": "Visual Assets",
+  "settingsPageNotificationsCallsSubtitle": "Ringtones and vibration",
+  "settingsPageNotificationsCallsTitle": "Calls",
+  "settingsPageNotificationsChatsSubtitle": "DMs, groups, channels and forums",
+  "settingsPageNotificationsChatsTitle": "Chat Notifications",
+  "settingsPageNotificationsInappSubtitle": "Sounds, previews and badges",
+  "settingsPageNotificationsInappTitle": "In-App Notifications",
+  "settingsPageSecurityAuthSubtitle": "Credentials, MFA, keys and blocks",
+  "settingsPageSecurityAuthTitle": "Password & Security",
+  "settingsPageSecurityPrivacySubtitle": "Who can see your info",
+  "settingsPageSecurityPrivacyTitle": "Privacy",
+  "settingsPageStorageCloudSubtitle": "Remote quota and purge",
+  "settingsPageStorageCloudTitle": "Cloud Storage",
+  "settingsPageStorageLocalSubtitle": "Cache, retention and cleanup",
+  "settingsPageStorageLocalTitle": "Local Storage",
+  "settingsPageSystemGeneralSubtitle": "Startup, tray and graphics",
+  "settingsPageSystemGeneralTitle": "General",
+  "settingsPageSystemShortcutsSubtitle": "Keyboard and global hotkeys",
+  "settingsPageSystemShortcutsTitle": "Shortcuts",
+  "settingsPageInfoLegalSubtitle": "Privacy policy, terms and licences",
+  "settingsPageInfoLegalTitle": "Legal & Privacy",
+  "settingsGroupLegalTitle": "Legal",
+  "settingsItemPrivacyPolicySubtitle": "How we handle your data",
+  "settingsItemPrivacyPolicyTitle": "Privacy Policy",
+  "settingsItemTermsSubtitle": "Rules for using Novyse",
+  "settingsItemTermsTitle": "Terms of Service",
+  "settingsItemAppLicenseSubtitle": "Novyse is GPL-3.0-or-later",
+  "settingsItemAppLicenseTitle": "App Licence",
+  "settingsItemOpenSourceSubtitle": "Full text of every bundled licence",
+  "settingsItemOpenSourceTitle": "Open Source Licences",
+  "screenShareBitrateLabel": "Bitrate (kbps)",
+  "screenShareBitrateMinError": "Bitrate is below the minimum for this setting",
+  "screenShareBitrateMaxError": "Bitrate is above the maximum for this setting",
+  "screenShareBitratePremiumLimitError": "Subscribe to Premium to unlock all features (WIP)"
+}

@@ -1,0 +1,532 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/events/event_bus.dart';
+import 'package:novyse/core/events/events.dart';
+import 'package:novyse/core/storage/database/database.dart';
+
+/// Immutable model representing a Chat message.
+@immutable
+class MessageModel {
+  final dynamic id;
+  final String chatUUID;
+  final int subID;
+  final String userUUID;
+  final DateTime createdAt;
+  final bool edited;
+  final bool pinned;
+  final bool favorited;
+  final String? content;
+  final List<dynamic> replyTos;
+  final List<Map<String, dynamic>> reactions;
+  final List<dynamic> reads;
+  final List<Map<String, dynamic>> files;
+  final String status;
+  final String type;
+  final String? systemAction;
+
+  const MessageModel({
+    required this.id,
+    required this.chatUUID,
+    this.subID = 0,
+    required this.userUUID,
+    required this.createdAt,
+    this.edited = false,
+    this.pinned = false,
+    this.favorited = false,
+    this.content,
+    this.replyTos = const [],
+    this.reactions = const [],
+    this.reads = const [],
+    this.files = const [],
+    this.status = 'sent',
+    this.type = 'message',
+    this.systemAction,
+  });
+
+  bool get isPending => status == 'PENDING_SEND';
+
+  bool get isSystem => type == 'system';
+
+  factory MessageModel.fromMap(Map<String, dynamic> map) {
+    return MessageModel(
+      id: map['id'] ?? map['messageID'] ?? 0,
+      chatUUID: MessageFieldParser.parseChatUUID(map) ?? '',
+      subID: MessageFieldParser.parseSubID(map['subID']),
+      userUUID: MessageFieldParser.parseSenderUUID(map) ?? '',
+      createdAt: MessageFieldParser.parseCreatedAtDateTime(map['created_at']),
+      edited: MessageFieldParser.isEdited(map),
+      pinned: MessageFieldParser.isPinned(map),
+      favorited: MessageFieldParser.isFavorited(map),
+      content: (map['content'])?.toString(),
+      replyTos: map['replyTos'] is List ? (map['replyTos'] as List) : const [],
+      reactions: MessageFieldParser.parseMapList(map['reactions']),
+      reads: MessageFieldParser.parseMapList(map['reads']),
+      files: MessageFieldParser.parseMapList(map['files']),
+      status: (map['status'] ?? 'sent').toString(),
+      type: (map['type'] ?? 'message').toString(),
+      systemAction: (map['system_action'] ?? map['systemAction'])?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'messageID': id,
+      'chatUUID': chatUUID,
+      'subID': subID,
+      'userUUID': userUUID,
+      'senderUUID': userUUID,
+      'created_at': createdAt.toIso8601String(),
+      'edited': edited,
+      'pinned': pinned,
+      'favorited': favorited,
+      'content': content,
+      'replyTos': replyTos,
+      'reactions': reactions,
+      'reads': reads,
+      'files': files,
+      'status': status,
+      'type': type,
+      if (systemAction != null) 'system_action': systemAction,
+    };
+  }
+
+  MessageModel copyWith({
+    dynamic id,
+    String? chatUUID,
+    int? subID,
+    String? userUUID,
+    DateTime? createdAt,
+    bool? edited,
+    bool? pinned,
+    bool? favorited,
+    String? content,
+    List<dynamic>? replyTos,
+    List<Map<String, dynamic>>? reactions,
+    List<dynamic>? reads,
+    List<Map<String, dynamic>>? files,
+    String? status,
+    String? type,
+    String? systemAction,
+  }) {
+    return MessageModel(
+      id: id ?? this.id,
+      chatUUID: chatUUID ?? this.chatUUID,
+      subID: subID ?? this.subID,
+      userUUID: userUUID ?? this.userUUID,
+      createdAt: createdAt ?? this.createdAt,
+      edited: edited ?? this.edited,
+      pinned: pinned ?? this.pinned,
+      favorited: favorited ?? this.favorited,
+      content: content ?? this.content,
+      replyTos: replyTos ?? this.replyTos,
+      reactions: reactions ?? this.reactions,
+      reads: reads ?? this.reads,
+      files: files ?? this.files,
+      status: status ?? this.status,
+      type: type ?? this.type,
+      systemAction: systemAction ?? this.systemAction,
+    );
+  }
+}
+
+/// State for the paginated message list of a specific chat & sub-channel.
+@immutable
+class MessageListState {
+  final List<MessageModel> messages;
+  final bool loading;
+  final bool hasMore;
+  final bool historyLoaded;
+
+  const MessageListState({
+    this.messages = const [],
+    this.loading = false,
+    this.hasMore = true,
+    this.historyLoaded = false,
+  });
+
+  MessageListState copyWith({
+    List<MessageModel>? messages,
+    bool? loading,
+    bool? hasMore,
+    bool? historyLoaded,
+  }) {
+    return MessageListState(
+      messages: messages ?? this.messages,
+      loading: loading ?? this.loading,
+      hasMore: hasMore ?? this.hasMore,
+      historyLoaded: historyLoaded ?? this.historyLoaded,
+    );
+  }
+}
+
+/// Family Notifier holding the cached, paginated messages for a (chatUUID, subID) pair.
+class MessageListNotifier
+    extends FamilyNotifier<MessageListState, ({String chatUUID, int subID})> {
+  final List<StreamSubscription> _subscriptions = [];
+  bool _isInitInProgress = false;
+
+  @override
+  MessageListState build(({String chatUUID, int subID}) arg) {
+    ref.onDispose(() {
+      for (final sub in _subscriptions) {
+        sub.cancel();
+      }
+      _subscriptions.clear();
+    });
+
+    _setupEventListeners();
+    return const MessageListState();
+  }
+
+  void _setupEventListeners() {
+    final bus = ref.read(eventBusProvider);
+
+    _subscriptions.add(
+      bus.on<MessageNewEvent>().listen((event) {
+        final msg = event.message;
+        if (msg['chatUUID'] == arg.chatUUID &&
+            (msg['subID'] ?? 0) == arg.subID) {
+          onNewMessage(msg);
+        }
+      }),
+    );
+
+    _subscriptions.add(
+      bus.on<MessageFailedEvent>().listen((event) {
+        onMessageFailed(event.tempId, event.error);
+      }),
+    );
+
+    _subscriptions.add(
+      bus.on<MessageUpdateEvent>().listen((event) {
+        if (event.chatUUID == arg.chatUUID && event.subID == arg.subID) {
+          onMessageUpdate(event.messageID, event.action, event.data);
+        }
+      }),
+    );
+
+    _subscriptions.add(
+      bus.on<FavoriteMessageUpdateEvent>().listen((event) {
+        if (event.chatUUID == arg.chatUUID && event.subID == arg.subID) {
+          onMessageUpdate(event.messageID, event.action, event.data);
+        }
+      }),
+    );
+  }
+
+  /// Initial load of messages for this channel from SQLite.
+  Future<void> init({int limit = 50}) async {
+    if (_isInitInProgress || state.historyLoaded) return;
+    _isInitInProgress = true;
+    state = state.copyWith(loading: true);
+
+    try {
+      final db = AppDatabase.instance;
+      final rawMessages = await db.message.get.by.sub(
+        arg.chatUUID,
+        arg.subID,
+        limit: limit,
+      );
+
+      final list = rawMessages.reversed
+          .map((raw) => MessageModel.fromMap(raw))
+          .toList();
+
+      state = state.copyWith(
+        messages: list,
+        loading: false,
+        hasMore: rawMessages.length >= limit,
+        historyLoaded: true,
+      );
+    } catch (e) {
+      debugPrint('MessageStore init error for ${arg.chatUUID}: $e');
+      state = state.copyWith(loading: false);
+    } finally {
+      _isInitInProgress = false;
+    }
+  }
+
+  /// Loads older messages before the oldest current message.
+  Future<void> loadMore({int limit = 50}) async {
+    if (state.loading || !state.hasMore || state.messages.isEmpty) return;
+
+    state = state.copyWith(loading: true);
+
+    try {
+      final oldestTime = state.messages.last.createdAt.toIso8601String();
+      final db = AppDatabase.instance;
+      final rawOlder = await db.message.get.by.sub(
+        arg.chatUUID,
+        arg.subID,
+        limit: limit,
+        beforeTime: oldestTime,
+      );
+
+      final older = rawOlder.map((raw) => MessageModel.fromMap(raw)).toList();
+
+      state = state.copyWith(
+        messages: [...state.messages, ...older],
+        loading: false,
+        hasMore: older.length >= limit,
+      );
+    } catch (e) {
+      debugPrint('MessageStore loadMore error: $e');
+      state = state.copyWith(loading: false);
+    }
+  }
+
+  /// Fetches a message by its ID: checks in-memory cache first, then SQLite.
+  /// If retrieved from SQLite, it is added to the in-memory list to enable scrolling/rendering.
+  Future<MessageModel?> fetchMessageById(dynamic messageId) async {
+    final idStr = messageId.toString();
+    final inMemory = state.messages.where((m) => m.id.toString() == idStr);
+    if (inMemory.isNotEmpty) {
+      return inMemory.first;
+    }
+
+    try {
+      final db = AppDatabase.instance;
+      final raw = await db.message.get.by.id(
+        arg.chatUUID,
+        arg.subID,
+        messageId,
+      );
+      if (raw != null) {
+        final model = MessageModel.fromMap(raw);
+        if (!state.messages.any((m) => m.id.toString() == idStr)) {
+          state = state.copyWith(messages: [...state.messages, model]);
+        }
+        return model;
+      }
+    } catch (e) {
+      debugPrint('Error fetching message $messageId: $e');
+    }
+    return null;
+  }
+
+  void onNewMessage(Map<String, dynamic> raw) {
+    final newMsg = MessageModel.fromMap(raw);
+    final tempId = raw['tempId']?.toString();
+
+    final index = state.messages.indexWhere(
+      (m) =>
+          m.id.toString() == newMsg.id.toString() ||
+          (tempId != null && tempId.isNotEmpty && m.id.toString() == tempId),
+    );
+
+    if (index != -1) {
+      final list = List<MessageModel>.from(state.messages);
+      list[index] = newMsg;
+      state = state.copyWith(messages: list);
+    } else {
+      state = state.copyWith(messages: [newMsg, ...state.messages]);
+    }
+  }
+
+  void onMessageFailed(String tempId, String? error) {
+    state = state.copyWith(
+      messages: state.messages.map((m) {
+        if (m.id.toString() == tempId) {
+          return m.copyWith(status: 'failed');
+        }
+        return m;
+      }).toList(),
+    );
+  }
+
+  void onMessageUpdate(
+    String messageID,
+    String action,
+    Map<String, dynamic> data,
+  ) {
+    switch (action) {
+      case 'delete':
+        state = state.copyWith(
+          messages: state.messages
+              .where((m) => m.id.toString() != messageID)
+              .toList(),
+        );
+        break;
+
+      case 'edit':
+        state = state.copyWith(
+          messages: state.messages.map((m) {
+            if (m.id.toString() == messageID) {
+              final newContent = (data['content'] ?? data['text']) as String?;
+              List<Map<String, dynamic>> updatedFiles = List.from(m.files);
+
+              if (data['files'] is List) {
+                updatedFiles = (data['files'] as List)
+                    .whereType<Map>()
+                    .map((f) => Map<String, dynamic>.from(f))
+                    .toList();
+              }
+
+              return m.copyWith(
+                content: newContent,
+                edited: true,
+                files: updatedFiles,
+              );
+            }
+            return m;
+          }).toList(),
+        );
+        break;
+
+      case 'pin_add':
+        state = state.copyWith(
+          messages: state.messages.map((m) {
+            if (m.id.toString() == messageID) {
+              return m.copyWith(pinned: true);
+            }
+            return m;
+          }).toList(),
+        );
+        break;
+
+      case 'pin_remove':
+        state = state.copyWith(
+          messages: state.messages.map((m) {
+            if (m.id.toString() == messageID) {
+              return m.copyWith(pinned: false);
+            }
+            return m;
+          }).toList(),
+        );
+        break;
+
+      case 'reaction_add':
+        state = state.copyWith(
+          messages: state.messages.map((m) {
+            if (m.id.toString() != messageID) return m;
+
+            final emoji = data['reaction'] as String?;
+            final userUUID = data['userUUID'] as String?;
+            if (emoji == null || userUUID == null) return m;
+
+            final reactions = List<Map<String, dynamic>>.from(m.reactions);
+            final idx = reactions.indexWhere((r) => r['emoji'] == emoji);
+
+            if (idx >= 0) {
+              final users = List<String>.from(
+                reactions[idx]['userUUIDs'] ?? [],
+              );
+              if (!users.contains(userUUID)) {
+                users.add(userUUID);
+                reactions[idx] = {
+                  ...reactions[idx],
+                  'userUUIDs': users,
+                  'at': data['at'] ?? DateTime.now().toIso8601String(),
+                };
+              }
+            } else {
+              reactions.add({
+                'emoji': emoji,
+                'userUUIDs': [userUUID],
+                'at': data['at'] ?? DateTime.now().toIso8601String(),
+              });
+            }
+
+            return m.copyWith(reactions: reactions);
+          }).toList(),
+        );
+        break;
+
+      case 'reaction_remove':
+        state = state.copyWith(
+          messages: state.messages.map((m) {
+            if (m.id.toString() != messageID) return m;
+
+            final emoji = data['reaction'] as String?;
+            final userUUID = data['userUUID'] as String?;
+            if (emoji == null || userUUID == null) return m;
+
+            final reactions = List<Map<String, dynamic>>.from(m.reactions);
+            final idx = reactions.indexWhere((r) => r['emoji'] == emoji);
+            if (idx < 0) return m;
+
+            final users = List<String>.from(reactions[idx]['userUUIDs'] ?? [])
+                .where((u) => u != userUUID)
+                .toList();
+
+            if (users.isEmpty) {
+              reactions.removeAt(idx);
+            } else {
+              reactions[idx] = {...reactions[idx], 'userUUIDs': users};
+            }
+
+            return m.copyWith(reactions: reactions);
+          }).toList(),
+        );
+        break;
+
+      case 'favorite_add':
+        state = state.copyWith(
+          messages: state.messages.map((m) {
+            if (m.id.toString() == messageID) {
+              return m.copyWith(favorited: true);
+            }
+            return m;
+          }).toList(),
+        );
+        break;
+
+      case 'favorite_remove':
+        state = state.copyWith(
+          messages: state.messages.map((m) {
+            if (m.id.toString() == messageID) {
+              return m.copyWith(favorited: false);
+            }
+            return m;
+          }).toList(),
+        );
+        break;
+
+      case 'read':
+        final readUserUUID = (data['userUUID'] as String?)?.trim() ?? '';
+        if (readUserUUID.isEmpty) break;
+        final readAt =
+            (data['readAt'] as String?) ?? DateTime.now().toIso8601String();
+        final targetId = int.tryParse(messageID) ?? -1;
+        state = state.copyWith(
+          messages: state.messages.map((m) {
+            final mid = int.tryParse(m.id.toString());
+            // Watermark: reading `targetId` implies reading everything before
+            // it. The author's own messages never carry their own read.
+            if (mid == null ||
+                m.userUUID == readUserUUID ||
+                (targetId >= 0 && mid > targetId)) {
+              return m;
+            }
+            final reads = List<Map<String, dynamic>>.from(
+              m.reads.whereType<Map>().map((r) => Map<String, dynamic>.from(r)),
+            );
+            final already = reads.any(
+              (r) => (r['userUUID'] as String?) == readUserUUID,
+            );
+            if (!already) {
+              reads.add({'userUUID': readUserUUID, 'readAt': readAt});
+              return m.copyWith(reads: reads);
+            }
+            return m;
+          }).toList(),
+        );
+        break;
+    }
+  }
+
+  void clear() {
+    state = const MessageListState();
+  }
+}
+
+/// Family provider that returns paginated messages for a specific (chatUUID, subID).
+final chatMessagesProvider =
+    NotifierProvider.family<
+      MessageListNotifier,
+      MessageListState,
+      ({String chatUUID, int subID})
+    >(MessageListNotifier.new);

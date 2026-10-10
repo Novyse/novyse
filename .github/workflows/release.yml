@@ -1,4 +1,4 @@
-name: Client release
+name: Client Release
 
 on:
   workflow_dispatch:
@@ -21,6 +21,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   git-flow:
     runs-on: ubuntu-latest
@@ -37,59 +41,24 @@ jobs:
           git config user.name "GitHub Action Bot"
           git config user.email "bot@novyse.com"
 
-      - name: Update package.json & metainfo.xml
+      - name: Update Version in global.dart & pubspec
         run: |
-          npm version ${{ inputs.version }} --no-git-tag-version --allow-same-version
-          cd desktop
-          npm version ${{ inputs.version }} --no-git-tag-version --allow-same-version
-          cd ..
-
-          # Automatically update the Flathub AppStream metadata version and release date
-          export VERSION="${{ inputs.version }}"
-          export DATE=$(date +%Y-%m-%d)
-          python3 -c "
-          import os
-          import xml.etree.ElementTree as ET
-          import re
-
-          VERSION = os.environ.get('VERSION')
-          DATE = os.environ.get('DATE')
-
-           # 1. Update metainfo.xml
-          file_path = 'desktop/flathub/com.novyse.Novyse.metainfo.xml'
-          tree = ET.parse(file_path)
-          root = tree.getroot()
-          releases = root.find('releases')
-          if releases is not None:
-              for r in list(releases):
-                  releases.remove(r)
-              new_rel = ET.Element('release', version=VERSION, date=DATE)
-              releases.insert(0, new_rel)
-          ET.indent(tree, space='  ')
-          tree.write(file_path, encoding='utf-8', xml_declaration=True)
-
-          # 2. Update Flatpak manifest tag
-          manifest_path = 'desktop/flathub/com.novyse.Novyse.yml'
-          with open(manifest_path, 'r') as f:
-              yaml_content = f.read()
-
-          # Replace 'tag: <anything>' with 'tag: v<version>'
-          updated_yaml = re.sub(r'tag:\s*v?\S+', f'tag: v{VERSION}', yaml_content)
-          with open(manifest_path, 'w') as f:
-              f.write(updated_yaml)
-          "
-
-          git commit -am "chore: bump version to ${{ inputs.version }} and update Flathub metainfo" || true
+          sed -i "s/const String appVersion = '[^']*';/const String appVersion = '${{ inputs.version }}';/g" lib/core/config/global.dart
+          bash scripts/sync-version.sh
+          bash scripts/sync-platform.sh
+          git commit -am "chore: bump version to ${{ inputs.version }} and sync platform metadata" || true
 
       - name: Merge into target branch
         run: |
           git checkout ${{ inputs.release_type }}
           git merge development
 
-      - name: Update app.config.ts
+      - name: Set Branch in global.dart
         run: |
-          sed -i 's/const BRANCH = "[^"]*"/const BRANCH = "${{ inputs.release_type }}"/g' app.config.ts
-          git commit -am "chore: set branch to ${{ inputs.release_type }} in app.config.ts" || true
+          sed -i "s/const String branch = '[^']*';/const String branch = '${{ inputs.release_type }}';/g" lib/core/config/global.dart
+          bash scripts/sync-platform.sh
+          bash scripts/sync-branch.sh || true
+          git commit -am "chore: set branch to ${{ inputs.release_type }}" || true
 
       - name: Push to GitHub
         run: |
@@ -100,8 +69,8 @@ jobs:
     needs: git-flow
     runs-on: ubuntu-latest
     steps:
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - name: Create Draft Release
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ inputs.version }}
           name: Version ${{ inputs.version }}
@@ -111,44 +80,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-web:
-    needs: create-release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.release_type }}
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-      - name: Install dependencies & Build Web
-        run: |
-          bun install
-          bun run build:web
-
-      - name: Package Web Build
-        run: |
-          cd dist
-          zip -r ../novyse-web-${{ inputs.version }}.zip .
-          cd ..
-
-      - name: Attach Web Build Artifact to GitHub Release
-        run: gh release upload v${{ inputs.version }} novyse-web-${{ inputs.version }}.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload dist for deploy job
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-dist
-          path: dist/
-          retention-days: 1
-
   build-android:
     needs: create-release
     runs-on: ubuntu-latest
@@ -156,94 +87,100 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.release_type }}
-      - name: Setup Node, Bun & Java
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-      - uses: oven-sh/setup-bun@v1
-      - uses: actions/setup-java@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: "17"
 
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
       - name: Decode Google Services
         run: |
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > ${{ github.workspace }}/google-services.json
-          echo "${{ secrets.GOOGLE_SERVICES_PLIST }}" | base64 --decode > ${{ github.workspace }}/GoogleService-Info.plist
-
-      - name: Install Dependencies
-        run: bun install
+          if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
+            echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > android/app/google-services.json
+          fi
 
       - name: Decode Keystore
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
           if [ -n "$KEYSTORE_B64" ]; then
-            echo "$KEYSTORE_B64" | base64 --decode > ${{ github.workspace }}/novyse-release.keystore
-          else
-            echo "No keystore provided, skipping decode."
+            echo "$KEYSTORE_B64" | base64 --decode > novyse-release.keystore
           fi
 
-      - name: Build Android (Local Native)
+      - name: Install Dependencies & Sync
         run: |
-          bunx expo prebuild
-          node scripts/patch-android-build.js
-          cd android
+          flutter pub get
+          bash scripts/sync-licenses.sh
+          bash scripts/sync-platform.sh
+
+      - name: Build Android Release (Universal & Split APKs, AAB)
+        run: |
+          # 1. Build Universal APK
+          flutter build apk --release
+
+          # 2. Build Split-per-ABI APKs
+          flutter build apk --release --split-per-abi
+
+          # 3. Build Google Play Store App Bundle (production channel)
           if [ "${{ inputs.release_type }}" = "production" ]; then
-            ./gradlew bundleRelease && ./gradlew assembleRelease
-          else
-            ./gradlew assembleRelease
+            flutter build appbundle --release
           fi
-          cd ..
         env:
           ANDROID_KEYSTORE_FILE: ${{ github.workspace }}/novyse-release.keystore
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          GOOGLE_SERVICES_JSON: ${{ github.workspace }}/google-services.json
-          GOOGLE_SERVICES_PLIST: ${{ github.workspace }}/GoogleService-Info.plist
-          NODE_OPTIONS: "--max-old-space-size=4096"
-          _JAVA_OPTIONS: "-Xmx4g"
-          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m"
 
-      - name: Attach Android Build Artifacts to GitHub Release
+      - name: Export Public Signing Certificate
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          mkdir -p dist
+          if [ -f novyse-release.keystore ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ]; then
+            echo "🔑 Exporting public certificate (.pem)..."
+            keytool -exportcert -rfc \
+              -keystore novyse-release.keystore \
+              -alias "$KEY_ALIAS" \
+              -storepass "$KEYSTORE_PASSWORD" \
+              -file dist/novyse-release-cert.pem
+          fi
+
+      - name: Organize Android Artifacts
         run: |
           SUFFIX=""
           if [ "${{ inputs.release_type }}" = "preview" ]; then
             SUFFIX="-preview"
           fi
 
-          # Copy and rename AAB files
-          find android/app/build/outputs/bundle -name "*.aab" | while read -r aab_path; do
-            filename=$(basename "$aab_path")
-            new_name=$(echo "$filename" | sed "s/app-/novyse${SUFFIX}-/; s/-release//")
-            if [ "$new_name" = "novyse${SUFFIX}.aab" ]; then
-              cp "$aab_path" "./novyse${SUFFIX}.aab"
-            else
-              cp "$aab_path" "./$new_name"
-            fi
+          mkdir -p dist
+
+          # Copy and rename AAB
+          find build/app/outputs/bundle -name "*.aab" | while read -r aab_path; do
+            cp "$aab_path" "dist/novyse${SUFFIX}.aab"
           done
 
-          # Copy and rename APK files (handles both single and split ABI APKs)
-          find android/app/build/outputs/apk -name "*.apk" | while read -r apk_path; do
-            filename=$(basename "$apk_path")
-            new_name=$(echo "$filename" | sed "s/app-/novyse${SUFFIX}-/; s/-release//")
-            if [ "$new_name" = "novyse${SUFFIX}.apk" ]; then
-              cp "$apk_path" "./novyse${SUFFIX}.apk"
-            else
-              cp "$apk_path" "./$new_name"
-            fi
+          # Copy and rename Universal APK
+          if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
+            cp build/app/outputs/flutter-apk/app-release.apk "dist/novyse${SUFFIX}.apk"
+          fi
+
+          # Copy and rename Split ABI APKs
+          find build/app/outputs/flutter-apk -name "app-*-release.apk" | while read -r apk_path; do
+            abi=$(basename "$apk_path" | sed -E 's/app-(.*)-release\.apk/\1/')
+            cp "$apk_path" "dist/novyse${SUFFIX}-${abi}.apk"
           done
 
-          # Upload AAB artifacts
-          for f in ./novyse${SUFFIX}*.aab; do
-            if [ -f "$f" ]; then
-              gh release upload v${{ inputs.version }} "$f" --clobber || true
-            fi
-          done
-
-          # Upload APK artifacts
-          for f in ./novyse${SUFFIX}*.apk; do
+      - name: Upload Android Artifacts to Release
+        run: |
+          for f in dist/*.aab dist/*.apk dist/*.pem; do
             if [ -f "$f" ]; then
               gh release upload v${{ inputs.version }} "$f" --clobber || true
             fi
@@ -251,169 +188,210 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-electron-linux:
+  build-linux:
     needs: create-release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.release_type }}
-      - name: Setup Node & Bun
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-      - uses: oven-sh/setup-bun@v1
 
-      - name: Install Linux Build Tools
+      - name: Install Linux Build Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder elfutils zip unzip
-          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08 org.freedesktop.Sdk.Extension.node22//24.08
-          sudo snap install snapcraft --classic
+          sudo apt-get install -y libgtk-3-dev libx11-dev pkg-config ninja-build libsecret-1-dev dpkg-dev rpm elfutils zip unzip flatpak flatpak-builder
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
+          flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08 || true
+          sudo snap install snapcraft --classic || true
 
-      - name: Install Dependencies
-        run: |
-          bun install
-          cd desktop && bun install
-
-      - name: Build Linux
-        run: bun run build:desktop --linux --publish always
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish to Snap Store
-        if: inputs.release_type == 'production'
-        uses: snapcore/action-publish@v1
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          store_login: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-          snap: desktop/dist/Novyse.snap
-          release: stable
+          channel: "stable"
+          cache: true
 
-  build-electron-win:
+      - name: Build & Package Linux
+        run: |
+          flutter pub get
+          bash scripts/sync-licenses.sh
+          bash scripts/build.sh linux
+
+      - name: Upload Linux Artifacts
+        run: |
+          for f in dist/*.tar.gz dist/*.deb dist/*.AppImage dist/*.rpm dist/*.snap dist/*.flatpak; do
+            if [ -f "$f" ]; then
+              gh release upload v${{ inputs.version }} "$f" --clobber || true
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows:
     needs: create-release
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.release_type }}
-      - name: Setup Node & Bun
-        uses: actions/setup-node@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          node-version: "24"
-      - uses: oven-sh/setup-bun@v1
+          channel: "stable"
+          cache: true
 
-      - name: Install Dependencies
+      - name: Install Packaging Tools (Inno Setup & WiX Toolset)
+        shell: pwsh
         run: |
-          bun install
-          cd desktop
-          bun install
+          choco install innosetup wixtoolset --no-progress
+          "C:\Program Files (x86)\WiX Toolset v3.11\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
-      - name: Build Windows
-        run: bun run build:desktop --win --publish always
+      - name: Build & Package Windows
+        shell: bash
+        run: |
+          flutter pub get
+          bash scripts/sync-licenses.sh
+          bash scripts/build.sh windows
+
+      - name: Upload Windows Artifacts
+        shell: bash
+        run: |
+          for f in dist/*.zip dist/*.exe dist/*.msi; do
+            if [ -f "$f" ]; then
+              gh release upload v${{ inputs.version }} "$f" --clobber || true
+            fi
+          done
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Kill zombie processes (Windows Fix)
-        if: always()
-        run: taskkill //F //IM bun.exe //T || taskkill //F //IM node.exe //T || true
-
-  build-electron-mac:
+  build-macos:
     needs: create-release
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.release_type }}
-      - name: Setup Node & Bun
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-      - uses: oven-sh/setup-bun@v1
-      - name: Install Dependencies
-        run: |
-          bun install
-          cd desktop && bun install
-      - name: Build Mac
-        run: bun run build:desktop --mac --publish always
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  flathub-validation:
-    needs: publish-release
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
+      - name: Build & Package macOS
+        run: |
+          flutter pub get
+          bash scripts/sync-licenses.sh
+          bash scripts/build.sh macos
+
+      - name: Upload macOS Artifacts
+        run: |
+          for f in dist/*.dmg dist/*.zip; do
+            if [ -f "$f" ]; then
+              gh release upload v${{ inputs.version }} "$f" --clobber || true
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # iOS Build (Currently Not Supported for Automated Releases)
+
+  build-web:
+    needs: create-release
     runs-on: ubuntu-latest
-    if: ${{ inputs.release_type == 'production' }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.release_type }}
 
-      - name: Setup Node & Bun
-        uses: actions/setup-node@v4
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          node-version: "24"
+          channel: "stable"
+          cache: true
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Build & Package Web
+        run: |
+          flutter pub get
+          bash scripts/sync-licenses.sh
+          bash scripts/build.sh web
+
+      - name: Upload Web Build to GitHub Release
+        run: |
+          gh release upload v${{ inputs.version }} dist/novyse-web-${{ inputs.version }}.zip --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Web Dist Artifact for Deploy Job
+        uses: actions/upload-artifact@v4
         with:
-          python-version: "3.11"
-
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder elfutils
-
-      - name: Install flatpak-node-generator
-        run: |
-          python3 -m pip install --upgrade pip
-          pip3 install git+https://github.com/flatpak/flatpak-builder-tools.git#subdirectory=node
-
-      - name: Configure Flathub Repository
-        run: |
-          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-
-      - name: Generate clean package-lock.json files
-        run: |
-          npm install --package-lock-only --legacy-peer-deps --ignore-scripts
-          cd desktop && npm install --package-lock-only --ignore-scripts && cd ..
-
-      - name: Generate flatpak-node-dependencies.json
-        run: |
-          flatpak-node-generator npm -r package-lock.json -o desktop/flathub/flatpak-node-dependencies.json
-
-      - name: Run flatpak-builder-lint on Manifest
-        run: |
-          docker run --rm -v "$(pwd):/src:ro" ghcr.io/flathub-infra/flatpak-builder-lint:latest manifest /src/desktop/flathub/com.novyse.Novyse.yml
-
-      - name: Install SDKs and BaseApp for test build
-        run: |
-          flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08 org.electronjs.Electron2.BaseApp//24.08 org.freedesktop.Sdk.Extension.node22//24.08
-
-      - name: Run test build with flatpak-builder
-        run: |
-          flatpak-builder --user --disable-rofiles-fuse --force-clean --build-only --ccache build_dir desktop/flathub/com.novyse.Novyse.yml
+          name: web-dist
+          path: build/web/
+          retention-days: 1
 
   publish-release:
-    needs:
-      [
-        build-web,
-        build-android,
-        build-electron-linux,
-        build-electron-win,
-        build-electron-mac,
-      ]
+    needs: [build-web, build-android, build-linux, build-windows, build-macos]
     if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Publish the Draft Release
-        run: gh release edit v${{ inputs.version }} --draft=false
+      - name: Append Verification Table & Publish Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PATCH_NOTES: ${{ inputs.patch_notes }}
+        run: |
+          mkdir -p release-assets
+          gh release download v${{ inputs.version }} --dir release-assets
+
+          # Detect Android public cert fingerprint if present
+          ANDROID_FINGERPRINT=""
+          if [ -f release-assets/novyse-release-cert.pem ]; then
+            ANDROID_FINGERPRINT=$(openssl x509 -in release-assets/novyse-release-cert.pem -noout -fingerprint -sha256 2>/dev/null | cut -d'=' -f2 || true)
+          fi
+
+          # Start release notes with original user patch notes
+          printf "%s\n\n" "$PATCH_NOTES" > release-notes.md
+
+          # Append verification section
+          echo "---" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### Integrity Checksums" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "Below are the SHA-256 checksums to verify the authenticity and integrity of each file." >> release-notes.md
+          echo "For detailed verification guides and platform instructions, see [BUILD.md](https://github.com/Novyse/novyse/blob/${{ inputs.release_type }}/BUILD.md#verifying-release-artifacts)." >> release-notes.md
+
+          if [ -n "$ANDROID_FINGERPRINT" ]; then
+            echo "" >> release-notes.md
+            echo "> **Android Official Signing Certificate SHA-256:** \`$ANDROID_FINGERPRINT\`" >> release-notes.md
+          fi
+
+          echo "" >> release-notes.md
+          echo "| Platform | File | SHA-256 Checksum |" >> release-notes.md
+          echo "| :--- | :--- | :--- |" >> release-notes.md
+
+          # Append each binary asset to table
+          find release-assets -maxdepth 1 -type f ! -name "*.txt" ! -name "*.md" | sort | while read -r filepath; do
+            filename=$(basename "$filepath")
+            hash=$(sha256sum "$filepath" | awk '{print $1}')
+
+            platform="Other"
+            case "$filename" in
+              *.apk|*.aab|*.pem) platform="Android" ;;
+              *.exe|*.msi) platform="Windows" ;;
+              *.deb|*.rpm|*.AppImage|*.snap|*.flatpak|*.tar.gz) platform="Linux" ;;
+              *.dmg) platform="macOS" ;;
+              *windows*.zip) platform="Windows" ;;
+              *macos*.zip|*mac*.zip) platform="macOS" ;;
+              *web*.zip) platform="Web" ;;
+            esac
+
+            echo "| **$platform** | \`$filename\` | \`$hash\` |" >> release-notes.md
+          done
+
+          # Update release notes and publish release
+          gh release edit v${{ inputs.version }} --notes-file release-notes.md --draft=false
 
   deploy-web:
     needs: publish-release
@@ -423,7 +401,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: web-dist
-          path: dist/
+          path: build/web/
 
       - name: Set Cloudflare Project
         id: cf-settings
@@ -439,58 +417,62 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=${{ steps.cf-settings.outputs.project }} --commit-dirty=true
+          command: pages deploy build/web --project-name=${{ steps.cf-settings.outputs.project }} --commit-dirty=true
 
   publish-flathub:
-    needs: flathub-validation
+    needs: publish-release
     runs-on: ubuntu-latest
     if: ${{ inputs.release_type == 'production' }}
     steps:
+      - name: Check Flathub Token
+        id: check-token
+        env:
+          FLATHUB_DEPLOY_TOKEN: ${{ secrets.FLATHUB_DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$FLATHUB_DEPLOY_TOKEN" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "FLATHUB_DEPLOY_TOKEN secret is not set. Skipping Flathub deployment."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout repository
+        if: steps.check-token.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.release_type }}
 
-      - name: Setup Node & Bun
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install flatpak-node-generator
-        run: |
-          python3 -m pip install --upgrade pip
-          pip3 install git+https://github.com/flatpak/flatpak-builder-tools.git#subdirectory=node
-
-      - name: Generate clean package-lock.json files
-        run: |
-          npm install --package-lock-only --legacy-peer-deps --ignore-scripts
-          cd desktop && npm install --package-lock-only --ignore-scripts && cd ..
-
-      - name: Generate flatpak-node-dependencies.json
-        run: |
-          flatpak-node-generator npm -r package-lock.json -o desktop/flathub/flatpak-node-dependencies.json
-
       - name: Checkout Flathub Repository
+        if: steps.check-token.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
-          repository: flathub/com.novyse.Novyse
+          repository: flathub/com.novyse.desktop
           path: flathub-repo
           token: ${{ secrets.FLATHUB_DEPLOY_TOKEN }}
 
-      - name: Copy manifest files to Flathub Repo
+      - name: Generate Manifest and Copy Metadata
+        if: steps.check-token.outputs.skip != 'true'
         run: |
-          cp desktop/flathub/com.novyse.Novyse.yml flathub-repo/com.novyse.Novyse.yml
-          cp desktop/flathub/com.novyse.Novyse.desktop flathub-repo/com.novyse.Novyse.desktop
-          cp desktop/flathub/com.novyse.Novyse.metainfo.xml flathub-repo/com.novyse.Novyse.metainfo.xml
-          cp desktop/flathub/run.sh flathub-repo/run.sh
-          cp desktop/flathub/flatpak-node-dependencies.json flathub-repo/flatpak-node-dependencies.json
+          source scripts/extract-metadata.sh
+
+          TARBALL="novyse-${{ inputs.version }}-linux-x64.tar.gz"
+          gh release download v${{ inputs.version }} -p "$TARBALL" || true
+          if [ -f "$TARBALL" ]; then
+            TARBALL_SHA256=$(sha256sum "$TARBALL" | awk '{print $1}')
+          else
+            TARBALL_SHA256=""
+          fi
+          TARBALL_URL="https://github.com/Novyse/novyse/releases/download/v${{ inputs.version }}/$TARBALL"
+
+          generate_desktop_entry "flathub-repo/${APP_ID}.desktop"
+          generate_appstream_metainfo "flathub-repo/${APP_ID}.metainfo.xml"
+          generate_linux_icons "flathub-repo/icons"
+          generate_flathub_manifest "flathub-repo/${APP_ID}.yml" "$TARBALL_URL" "$TARBALL_SHA256"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit and Push to Flathub
+        if: steps.check-token.outputs.skip != 'true'
         run: |
           cd flathub-repo
           git config user.name "GitHub Action Bot"

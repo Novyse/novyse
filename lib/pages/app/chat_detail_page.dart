@@ -1,0 +1,633 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/chat/chat_permission_helpers.dart';
+import 'package:novyse/core/chat/message_actions_service.dart';
+import 'package:novyse/core/chat/message_share_service.dart';
+import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/router/chat_routes.dart';
+import 'package:novyse/core/share/incoming_share_service.dart';
+import 'package:novyse/core/shortcuts/chat_shortcuts.dart';
+import 'package:novyse/core/stores/active_chat_store.dart';
+import 'package:novyse/core/stores/chat_draft_store.dart';
+import 'package:novyse/core/stores/chat_list_store.dart';
+import 'package:novyse/core/stores/message_store.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
+import 'package:novyse/core/stores/status_store.dart';
+import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/pages/app/adaptive.dart';
+import 'package:novyse/pages/app/chat_call_page.dart';
+import 'package:novyse/ui/components/chat/bottom_bar/chat_bottom_bar.dart';
+import 'package:novyse/ui/components/chat/chat_detail/chat_detail_app_bar.dart';
+import 'package:novyse/ui/components/chat/chat_detail/chat_detail_search_app_bar.dart';
+import 'package:novyse/ui/components/chat/chat_detail/chat_selected_header.dart';
+import 'package:novyse/ui/components/chat/chat_detail/chat_sub_header.dart';
+import 'package:novyse/ui/components/chat/chat_drop_zone.dart';
+import 'package:novyse/ui/components/chat/chat_list_item.dart';
+import 'package:novyse/ui/components/chat/message_list.dart';
+import 'package:novyse/ui/components/chat/sub/sub_list.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
+
+class ChatDetailPage extends ConsumerStatefulWidget {
+  const ChatDetailPage({
+    super.key,
+    required this.chatUUID,
+    required this.subID,
+  });
+
+  final String chatUUID;
+  final int subID;
+
+  @override
+  ConsumerState<ChatDetailPage> createState() => _ChatDetailPageState();
+}
+
+class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
+  bool _callOpen = false;
+  bool _searching = false;
+  bool _isAttachMenuOpen = false;
+  bool _isEmojiMenuOpen = false;
+  bool _routeSyncPending = false;
+  final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
+  String _searchQuery = '';
+  int _searchIndex = 0;
+  double _subListWidth = kSubListDefaultWidth;
+  final _bottomBarKey = GlobalKey();
+  // Stima iniziale bottombar a una riga (48 pill + 24 padding + safe + fade).
+  // Aggiornata alla misura reale via SizeChangedLayoutNotifier (altezza variabile).
+  double _bottomInset = 132;
+
+  @override
+  void initState() {
+    super.initState();
+    _routeSyncPending = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref
+            .read(activeChatProvider.notifier)
+            .setSelectedChatUUID(widget.chatUUID, subOverride: widget.subID);
+        _consumeIncomingShare();
+      }
+    });
+  }
+
+  /// Consume-once: the first opened chat absorbs the pending incoming share.
+  void _consumeIncomingShare() {
+    final pending = IncomingShareService.consumePending(ref);
+    if (pending.isEmpty) return;
+    final draft = ref.read(chatDraftProvider(widget.chatUUID).notifier);
+    if (pending.text.trim().isNotEmpty) {
+      draft.setText(pending.text.trim());
+      try {
+        final controller = ref.read(
+          chatTextControllerProvider(widget.chatUUID),
+        );
+        if (controller.text != pending.text.trim()) {
+          controller.text = pending.text.trim();
+        }
+      } catch (_) {}
+    }
+    if (pending.files.isNotEmpty) {
+      draft.setFiles(IncomingShareService.toDraftFiles(pending.files));
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant ChatDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.chatUUID != widget.chatUUID) {
+      _isAttachMenuOpen = false;
+      _isEmojiMenuOpen = false;
+      _callOpen = false;
+      _closeSearch(resetText: true);
+    }
+    if (oldWidget.chatUUID != widget.chatUUID ||
+        oldWidget.subID != widget.subID) {
+      _routeSyncPending = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref
+              .read(activeChatProvider.notifier)
+              .setSelectedChatUUID(widget.chatUUID, subOverride: widget.subID);
+        }
+      });
+    }
+  }
+
+  int get _selectedSub =>
+      ref.read(activeChatProvider.select((s) => s.selectedSub));
+
+  void _openCall() {
+    if (_callOpen) return;
+    _closeSearch(resetText: true);
+    setState(() => _callOpen = true);
+  }
+
+  void _closeCall() {
+    if (!_callOpen) return;
+    setState(() => _callOpen = false);
+  }
+
+  void _openSearch() {
+    setState(() => _searching = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _searchFocusNode.requestFocus();
+    });
+  }
+
+  void _closeSearch({bool resetText = true}) {
+    if (!_searching) return;
+    setState(() {
+      _searching = false;
+      _searchQuery = '';
+      _searchIndex = 0;
+      if (resetText) _searchController.clear();
+    });
+    _searchFocusNode.unfocus();
+  }
+
+  void _onSearchQueryChanged(String value) {
+    setState(() {
+      _searchQuery = value;
+      _searchIndex = 0;
+    });
+    _jumpToSearchMatch();
+  }
+
+  List<MessageModel> _currentSearchMatches() {
+    final selectedSub = _selectedSub;
+    final messages = ref.read(
+      chatMessagesProvider((chatUUID: widget.chatUUID, subID: selectedSub))
+          .select((s) => s.messages),
+    );
+    final trimmedQuery = _searchQuery.trim().toLowerCase();
+    if (trimmedQuery.isEmpty) return const [];
+    return messages
+        .where((m) => (m.content ?? '').toLowerCase().contains(trimmedQuery))
+        .toList();
+  }
+
+  void _jumpToSearchMatch() {
+    if (!_searching) return;
+    final matches = _currentSearchMatches();
+    if (matches.isEmpty) return;
+    final index = _searchIndex.clamp(0, matches.length - 1);
+    ref
+        .read(activeChatProvider.notifier)
+        .jumpToMessage(matches[index].id, subID: _selectedSub);
+  }
+
+  void _goToNextResult(int total) {
+    if (total == 0) return;
+    setState(() => _searchIndex = (_searchIndex - 1 + total) % total);
+    _jumpToSearchMatch();
+  }
+
+  void _goToPreviousResult(int total) {
+    if (total == 0) return;
+    setState(() => _searchIndex = (_searchIndex + 1) % total);
+    _jumpToSearchMatch();
+  }
+
+  void _closeAttachMenu() {
+    if (!_isAttachMenuOpen) return;
+    setState(() => _isAttachMenuOpen = false);
+  }
+
+  void _toggleAttachMenu() {
+    setState(() {
+      _isAttachMenuOpen = !_isAttachMenuOpen;
+      if (_isAttachMenuOpen) _isEmojiMenuOpen = false;
+    });
+  }
+
+  void _closeEmojiMenu() {
+    if (!_isEmojiMenuOpen) return;
+    setState(() => _isEmojiMenuOpen = false);
+  }
+
+  void _toggleEmojiMenu() {
+    final opening = !_isEmojiMenuOpen;
+    if (opening) {
+      // Mirror legacy: hide keyboard on mobile so the inline panel is visible.
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
+    setState(() {
+      _isEmojiMenuOpen = opening;
+      if (opening) _isAttachMenuOpen = false;
+    });
+  }
+
+  void _handleBack() {
+    if (_isEmojiMenuOpen) {
+      _closeEmojiMenu();
+      return;
+    }
+    if (_isAttachMenuOpen) {
+      _closeAttachMenu();
+      return;
+    }
+    final hasSelection = ref
+        .read(chatDraftProvider(widget.chatUUID))
+        .selectedMessages
+        .isNotEmpty;
+    if (hasSelection) {
+      ref
+          .read(chatDraftProvider(widget.chatUUID).notifier)
+          .clearSelectedMessages();
+      return;
+    }
+    if (_searching) {
+      _closeSearch();
+      return;
+    }
+    if (_callOpen) {
+      _closeCall();
+      return;
+    }
+    popOrChats(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final chatUUID = widget.chatUUID;
+    final chat = ref.watch(chatProvider(chatUUID));
+    final l10n = AppLocalizations.of(context)!;
+    final goRouter = GoRouter.of(context);
+    final providerSub = ref.watch(
+      activeChatProvider.select((s) => s.selectedSub),
+    );
+    var selectedSub = _routeSyncPending ? widget.subID : providerSub;
+
+    if (chat == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.chatTitle),
+          leading: IconButton(
+            icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
+            onPressed: () => popOrChats(context),
+          ),
+        ),
+        body: Center(child: Text(l10n.chatNotFoundWithId(chatUUID))),
+      );
+    }
+
+    selectedSub = resolveChatSub(subs: chat.subs, requestedSub: selectedSub);
+    if (_routeSyncPending && providerSub == widget.subID) {
+      _routeSyncPending = false;
+    }
+    if (selectedSub != widget.subID) {
+      final targetSub = selectedSub;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final target = chatSubPath(chatUUID, targetSub);
+        if (goRouter.state.uri.path != target) {
+          goRouter.replace(target);
+        }
+      });
+    }
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final localUserUUID = ref.watch(
+      userStoreProvider.select((s) => s.localUserUUID),
+    );
+    final users = ref.watch(userStoreProvider.select((s) => s.users));
+    final metadata = resolveChatMetadata(
+      chat: chat,
+      localUserUUID: localUserUUID,
+      users: users,
+      l10n: l10n,
+    );
+
+    String subtitleText;
+    if (metadata.isSavedMessages) {
+      subtitleText = '';
+    } else if (chat.type == 'DM') {
+      subtitleText = metadata.isOnline ? l10n.online : l10n.offline;
+    } else {
+      subtitleText = l10n.membersCount(chat.members.length);
+    }
+
+    final messages = ref.watch(
+      chatMessagesProvider((chatUUID: chatUUID, subID: selectedSub))
+          .select((s) => s.messages),
+    );
+    final trimmedQuery = _searchQuery.trim();
+    final lowerQuery = trimmedQuery.toLowerCase();
+    final searchMatches = lowerQuery.isEmpty
+        ? const []
+        : messages
+              .where(
+                (m) => (m.content ?? '').toLowerCase().contains(lowerQuery),
+              )
+              .toList();
+    final searchTotal = searchMatches.length;
+    final searchIndex = searchTotal == 0
+        ? 0
+        : _searchIndex.clamp(0, searchTotal - 1);
+    final displayIndex = searchTotal == 0 ? 0 : searchTotal - 1 - searchIndex;
+
+    final draftState = ref.watch(chatDraftProvider(chatUUID));
+    final selectedMessages = draftState.selectedMessages;
+    final hasSelection = selectedMessages.isNotEmpty;
+
+    final forum = chat.type == 'FORUM';
+    final wideLayout = isMasterDetailLayout(context);
+    final subListCollapsed =
+        !wideLayout || _subListWidth < kSubListExpandThreshold;
+    final subListWidth = forum
+        ? (wideLayout ? _subListWidth : kSubListCollapsedWidth)
+        : 0.0;
+
+    final sub = chat.subs
+        .where((s) => s['id'] as int == selectedSub)
+        .firstOrNull;
+    final subType = sub?['type'] as String?;
+    final showComposer =
+        subType == 'MIXED' || subType == 'TEXT' || subType == 'ANNOUNCE';
+    final canSendMessage = ChatPermissionHelpers.canUserSendMessage(
+      chat,
+      localUserUUID,
+      subID: selectedSub,
+    );
+
+    // VOCAL -> only vocal UI. TEXT/ANNOUNCE -> only chat. MIXED -> toggle.
+    final showViewToggle = subType == null || subType == 'MIXED';
+    final showSearch =
+        subType == null ||
+        subType == 'MIXED' ||
+        subType == 'TEXT' ||
+        subType == 'ANNOUNCE';
+    final showVocal = subType == 'VOCAL' || (showViewToggle && _callOpen);
+
+    if (subType == 'VOCAL' && _searching) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _closeSearch();
+      });
+    }
+    if ((subType == 'TEXT' || subType == 'ANNOUNCE') && _callOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _closeCall();
+      });
+    }
+
+    final Widget floatingBar;
+
+    if (hasSelection) {
+      floatingBar = ChatSelectedHeader(
+        selectedCount: selectedMessages.length,
+        onClose: () {
+          ref
+              .read(chatDraftProvider(chatUUID).notifier)
+              .clearSelectedMessages();
+        },
+        onReply: () {
+          for (final m in selectedMessages) {
+            ref.read(chatDraftProvider(chatUUID).notifier).addReply(m);
+          }
+          ref
+              .read(chatDraftProvider(chatUUID).notifier)
+              .clearSelectedMessages();
+        },
+        onShare: () {
+          final toShare = List<MessageModel>.from(selectedMessages);
+          ref.read(chatDraftProvider(chatUUID).notifier).clearSelectedMessages();
+          MessageShareService.shareMessages(context, ref, toShare);
+        },
+        onDelete: () async {
+          final actions = ref.read(messageActionsServiceProvider);
+          var deleted = 0;
+          for (final m in selectedMessages) {
+            final ok = await actions.delete(
+              chatUUID: chatUUID,
+              subID: m.subID,
+              messageID: m.id.toString(),
+            );
+            if (ok) deleted++;
+          }
+          if (deleted == 0 && selectedMessages.isNotEmpty) {
+            ref
+                .read(statusProvider.notifier)
+                .showStatus(
+                  StatusItem(
+                    id: 'bulk_delete_failed',
+                    source: StatusSource.general,
+                    type: StatusMessageType.danger,
+                    titleBuilder: (l10n) => l10n.statusError,
+                    contentBuilders: [(l10n) => l10n.messageActionFailed],
+                    closable: true,
+                    timeout: const Duration(seconds: 4),
+                  ),
+                );
+          }
+          ref
+              .read(chatDraftProvider(chatUUID).notifier)
+              .clearSelectedMessages();
+        },
+        bottom: ChatSubHeader(chatUUID: chatUUID),
+      );
+    } else if (_searching) {
+      floatingBar = ChatDetailSearchAppBar(
+        controller: _searchController,
+        focusNode: _searchFocusNode,
+        onQueryChanged: _onSearchQueryChanged,
+        onClose: () => _closeSearch(),
+        totalResults: searchTotal,
+        currentIndex: displayIndex,
+        onNext: () => _goToNextResult(searchTotal),
+        onPrevious: () => _goToPreviousResult(searchTotal),
+        bottom: ChatSubHeader(chatUUID: chatUUID),
+      );
+    } else {
+      floatingBar = ChatDetailAppBar(
+        title: metadata.name,
+        subtitle: subtitleText,
+        subtitleHighlighted: chat.type == 'DM' && metadata.isOnline,
+        avatarUuid: metadata.profilePictureUUID,
+        seedKey: chatUUID,
+        isOnline: metadata.isOnline,
+        isSavedMessages: metadata.isSavedMessages,
+        chatType: chat.type,
+        showVocal: showVocal,
+        showSearch: showSearch,
+        showViewToggle: showViewToggle,
+        onBack: _handleBack,
+        onOpenSearch: _openSearch,
+        onToggleView: _callOpen ? _closeCall : _openCall,
+        onOpenOverview: () =>
+            context.push(chatOverviewPath(chatUUID, selectedSub)),
+        bottom: ChatSubHeader(chatUUID: chatUUID),
+      );
+    }
+
+    // Lista full-bleed + bottombar flottante in overlay: i messaggi
+    // scorrono sotto la bottombar (ProgressiveOpacityBackground bottomToTop).
+    // bottomInset dinamico = altezza reale bottombar (testo fino a 4 righe,
+    // reply/edit/files/mention) + 12 di respiro, così l'ultimo messaggio
+    // risale sopra la pill ma resta lo scroll-under.
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
+    final effectiveBottomInset = showComposer
+        ? _bottomInset
+        : bottomPadding + 12;
+    final messagePane = Stack(
+      children: [
+        Positioned.fill(
+          child: ChatDropZone(
+            chatUUID: chatUUID,
+            child: MessageList(
+              chatUUID: chatUUID,
+              subID: selectedSub,
+              searchQuery: _searching ? trimmedQuery : '',
+              bottomInset: effectiveBottomInset,
+            ),
+          ),
+        ),
+        if (showComposer)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: NotificationListener<SizeChangedLayoutNotification>(
+              onNotification: (_) {
+                final size = _bottomBarKey.currentContext?.size;
+                if (size != null) {
+                  final next = size.height + 12;
+                  if ((next - _bottomInset).abs() > 1) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) setState(() => _bottomInset = next);
+                    });
+                  }
+                }
+                return true;
+              },
+              child: SizeChangedLayoutNotifier(
+                child: Container(
+                  key: _bottomBarKey,
+                  child: ChatBottomBar(
+                    chatUUID: chatUUID,
+                    subID: selectedSub,
+                    readOnly: !canSendMessage,
+                    isAttachMenuOpen: _isAttachMenuOpen,
+                    onToggleAttachMenu: _toggleAttachMenu,
+                    onCloseAttachMenu: _closeAttachMenu,
+                    isEmojiMenuOpen: _isEmojiMenuOpen,
+                    onToggleEmojiMenu: _toggleEmojiMenu,
+                    onCloseEmojiMenu: _closeEmojiMenu,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+
+    final contentPane = showVocal
+        ? ChatCallPage(chatUUID: chatUUID, subID: selectedSub)
+        : messagePane;
+
+    final chatBody = forum
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SubList(
+                chat: chat,
+                selectedSub: selectedSub,
+                isCollapsed: subListCollapsed,
+                width: subListWidth,
+                topPadding: 78,
+              ),
+              if (wideLayout)
+                SubListResizeHandle(
+                  onDragUpdate: (dx) {
+                    setState(() {
+                      _subListWidth = (_subListWidth + dx).clamp(
+                        kSubListMinWidth,
+                        kSubListMaxWidth,
+                      );
+                    });
+                  },
+                ),
+              Expanded(child: contentPane),
+            ],
+          )
+        : contentPane;
+
+    return PopScope(
+      canPop:
+          !_callOpen &&
+          !_searching &&
+          !hasSelection &&
+          !_isAttachMenuOpen &&
+          !_isEmojiMenuOpen,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (_isEmojiMenuOpen) {
+          _closeEmojiMenu();
+          return;
+        }
+        if (_isAttachMenuOpen) {
+          _closeAttachMenu();
+          return;
+        }
+        if (hasSelection) {
+          ref
+              .read(chatDraftProvider(chatUUID).notifier)
+              .clearSelectedMessages();
+          return;
+        }
+        if (_searching) {
+          _closeSearch();
+          return;
+        }
+        if (_callOpen) {
+          _closeCall();
+        }
+      },
+      child: Focus(
+        autofocus: true,
+        onKeyEvent: (node, event) {
+          if (_searching && _searchFocusNode.hasFocus) {
+            return KeyEventResult.ignored;
+          }
+          return ChatKeyboardHandler.handleKeyEvent(
+            event: event,
+            ref: ref,
+            context: context,
+            chatUUID: chatUUID,
+            subID: selectedSub,
+            textController: ref.read(chatTextControllerProvider(chatUUID)),
+            onSendMessage: () {},
+          );
+        },
+        child: Scaffold(
+          body: Stack(
+            children: [
+              chatBody,
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: colorScheme.brightness == Brightness.dark
+                      ? SystemUiOverlayStyle.light
+                      : SystemUiOverlayStyle.dark,
+                  child: floatingBar,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -12,12 +12,10 @@ First off, thank you for considering contributing to Novyse! It's people like yo
    - [Pull Requests](#pull-requests)
 2. [Development Guide](#development-guide)
    - [Environment Setup](#environment-setup)
-   - [Build Instructions](#build-instructions)
-     - [Intro & Config](#intro--config)
-     - [Web Build](#web-build)
-     - [Android Build](#android-build)
-     - [Other Platforms](#other-platforms)
-3. [Security & Legal](#security--legal)
+   - [Running the App](#running-the-app)
+   - [Testing & Code Coverage](#testing--code-coverage)
+3. [Building the App](#building-the-app)
+4. [Security & Legal](#security--legal)
 
 ---
 
@@ -40,7 +38,7 @@ Before creating enhancement suggestions, please check the [existing issues](http
 The process which describes how to contribute to the repository:
 
 1. Fork the repository and create your branch from `development`.
-2. Make sure your code lints using `bun lint`.
+2. Make sure your code passes `dart format`, `flutter analyze` and `flutter test`.
 3. Ensure your code follows the existing style and architecture.
 4. Issue that pull request!
 
@@ -50,220 +48,69 @@ The process which describes how to contribute to the repository:
 
 ### Environment Setup
 
-To start the local development environment, ensure you have [Bun](https://bun.sh/) installed.
+To start local development, install the Flutter SDK by following the [official install guide](https://docs.flutter.dev/get-started/install).
 
-Run one of the following commands to start the development server:
+```bash
+flutter pub get
+```
 
-- `bunx expo start -c` (clears the cache before starting)
-- `bunx expo start` (starts the server normally)
+Localizations are generated automatically on `pub get` / build
+(`flutter: generate: true` in `pubspec.yaml`).
+To regenerate the OSS licenses file run:
 
-For more detailed information on React Native development with Expo, refer to the [official Expo documentation](https://docs.expo.dev/).
+```bash
+./scripts/sync-licenses.sh
+```
+
+### Running the App (Development)
+
+Use the `./scripts/run.sh` script to launch the app during development. It automatically prepares the environment before launching `flutter run`:
+
+```bash
+./scripts/run.sh <platform> [optional flutter args...]
+```
+
+**Supported platforms:** `web`, `linux`, `windows`, `macos`, `android`, `ios`.
+
+#### What `run.sh` does:
+1. **Branch Synchronization:** Runs `scripts/sync-branch.sh` to ensure `pubspec.yaml` name and description are in sync with `lib/core/config/global.dart`.
+2. **Platform Runtime Sync:** Runs `scripts/sync-platform.sh <platform>` to ensure runtime configuration files (e.g., Xcode `AppEnvironment.xcconfig` for iOS/macOS, `web/manifest.json` and `web/index.html` for Web) match the active branch.
+3. **Environment Checks:** Validates dependencies and system requirements via `scripts/check/check-dependencies.sh` and `scripts/check/check-platform.sh`.
+4. **Target Execution:** Launches `flutter run` with target-optimized flags (e.g. `--web-port 8081` on Web, `--no-enable-impeller` on Linux). Any additional arguments passed to `run.sh` are forwarded directly to `flutter run`:
+
+```bash
+# Examples:
+./scripts/run.sh web
+./scripts/run.sh linux --dart-define=API_URL=http://localhost:3000
+./scripts/run.sh android -d <device_id>
+```
+
+### Testing & Code Coverage
+
+To run all unit and widget tests:
+
+```bash
+flutter test
+```
+
+To run tests with code coverage:
+
+```bash
+flutter test --coverage
+```
+
+Before pushing, also check formatting and static analysis:
+
+```bash
+dart format lib test
+flutter analyze
+```
 
 ---
 
-## Build Instructions
+## Building the App
 
-> [!NOTE]  
-> The build process described in this documentation is likely to be automated in the future to streamline development and deployment. This document will remain available to ensure transparency, allowing developers to understand the underlying steps and verify the automation's correctness.
-
-### Intro & Config
-
-> [!IMPORTANT]  
-> Before building the application, ensure you update the `app.config.ts` file to switch the environment from `development` to `preview` or `production`, depending on your target build. This configuration affects various aspects of the app, such as API endpoints, logging levels, and feature toggles.
-
-Additionally, update related values in the config file accordingly, including:
-
-- **Version numbers**: (e.g., semantic versioning like 1.0.0)
-- **Build number**: (incremental integer for tracking builds)
-- **Build date**: (current timestamp or date string)
-
-These changes ensure the build reflects the correct environment and metadata.
-
-### Web Build
-
-Building for production on the web is straightforward. Run the following command to export the web build:
-
-```bash
-bunx expo export -p web
-```
-
-This command generates a `/dist` directory containing the production-ready web assets. You can serve these files using a web server like Nginx, Apache, or any static file host.
-
-### Android Build
-
-#### Development Build
-
-For a development build on Android, follow these steps:
-
-1. Clean and prepare the native project:
-   ```bash
-   bunx expo prebuild --clean
-   ```
-2. Create a `local.properties` file inside the `android/` folder with the following content (adjust the SDK path based on your system):
-   ```properties
-   # example
-   ## Windows
-   sdk.dir=C:\\Users\\ISRaiken\\AppData\\Local\\Android\\Sdk
-   ## Linux
-   sdk.dir=/home/israiken/Android/Sdk
-   ```
-3. Run the Android build:
-   ```bash
-   bunx expo run:android --no-build-cache
-   ```
-   Alternatively, you can use `bunx expo run:android`.
-
-> [!WARNING]  
-> **Windows Long Path Error**: If you encounter a "path too long 260 char" error on Windows, enable long paths support using PowerShell (Admin):
->
-> ```powershell
-> New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
-> ```
->
-> **Ninja Build Tools**: Download the latest Ninja .exe from the [Ninja repository releases](https://github.com/ninja-build/ninja/releases). Replace the existing `ninja.exe` in:  
-> `C:\Users\{LOCAL_USER}\AppData\Local\Android\Sdk\cmake\{VERSION}\bin`
-
-> [!WARNING]
-> **Windows EMFILE: too many files open** error: if you encounter this error you need to clear metro-cache folder inside `C:\Users\{LOCAL_USER}\AppData\Local\Temp` and `node_modules` folder, then install watchman: `winget install Facebook.Watchman`, check if it's installed correctly and then run `bunx expo start --clear`
-
-> [!WARNING]  
-> **Audio API Error**: If you encounter a `react-native-audio-api:downloadPrebuiltBinaries FAILED` error on Windows, restore the missing prebuilt binaries by running:
->
->```bash
->node scripts/download-react-native-audio-api-binaries.js
->node scripts/patch-react-native-audio-api.js
->```
->
->This downloads `libopusfile.a`, `jniLibs`, and related native assets without relying on WSL/bash during the Gradle build.
-
-#### Preview Build
-
-For a preview build on Android, follow these steps:
-
-1. Clean and prepare the native project:
-   ```bash
-   bunx expo prebuild --clean
-   ```
-2. Build the app (local is advised):
-   ```bash
-   cd android
-   ./gradlew assembleRelease
-   ```
-
-> [!TIP]
-> **APK Splitting**: By default a single fat APK will be built. To build separately for various platforms, insert this script inside `android/app/build.gradle` inside the `android` object:
-
-```gradle
-    // APK splitting
-    splits {
-        abi {
-            enable true
-            reset()
-            include 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
-            universalApk false
-        }
-    }
-
-    project.ext.versionCodes = ['x86': 0, 'x86_64': 1, 'armeabi-v7a': 2, 'arm64-v8a': 3]
-
-    android.applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            output.versionCodeOverride = project.ext.versionCodes.get(output.getFilter(com.android.build.OutputFile.ABI), 0) * 1 + android.defaultConfig.versionCode
-        }
-    }
-```
-
-#### Production Build
-
-You can choose one of the following methods:
-
-**Option 1: EAS Build**
-
-1. Clean and prepare: `bunx expo prebuild --clean`
-2. Build: `bunx eas build --platform android --profile=production`
-
-**Option 2: Local Build (Manual Gradle)**
-
-1. Clean and prepare: `bunx expo prebuild --clean`
-2. Build locally:
-   ```bash
-   cd android
-   # For APK
-   ./gradlew assembleRelease
-   # For AAB (Google Play Store)
-   ./gradlew bundleRelease
-   ```
-
-**Option 3: Local Build (Using Package Script)**
-
-You can use the convenient project script to automatically handle prebuilding, patching, and gradle builds:
-
-- Build both APK and AAB (default):
-  ```bash
-  bun run build:android
-  # or
-  bun run build:android --all
-  ```
-- Build only APK:
-  ```bash
-  bun run build:android --apk
-  ```
-- Build only AAB:
-  ```bash
-  bun run build:android --aab
-  ```
-
-### Other Platforms
-
-#### iOS
-
-> [!WARNING]  
-> Building for iOS is not possible as of now. First test done, not working :(
-
-#### Windows / macOS / Linux
-
-You can run and build the application for Desktop platforms using Electron and Bun.
-
-##### Development
-
-To launch the desktop application in development mode with hot-reloading:
-
-```bash
-bun run desktop
-```
-
-##### Production Build
-
-To package and compile the application for production, run:
-
-```bash
-bun run build:desktop [options]
-```
-
-###### Platform Options:
-
-- **Build for current OS**:
-  ```bash
-  bun run build:desktop
-  ```
-- **Build for Windows**:
-  ```bash
-  bun run build:desktop --win
-  ```
-- **Build for Linux**:
-  ```bash
-  bun run build:desktop --linux
-  ```
-- **Build for macOS**:
-  ```bash
-  bun run build:desktop --mac
-  ```
-- **Build for all platforms**:
-  ```bash
-  bun run build:desktop --win --mac --linux
-  ```
-
-Generated installers and packages will be located in the `desktop/dist/` directory.
+For complete release build and packaging instructions across all platforms (Linux, Windows, macOS, Android, iOS, and Web), please refer to the dedicated **[Build Documentation](BUILD.md)**.
 
 ---
 

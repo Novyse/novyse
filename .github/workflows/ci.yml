@@ -1,0 +1,64 @@
+name: CI (Analyze & Tests)
+on:
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - '**'
+  #   paths-ignore:
+  #     - '**.md'
+  #     - '.gitignore'
+  #     - 'LICENSE'
+  # pull_request:
+  #   branches:
+  #     - '**'
+  #   paths-ignore:
+  #     - '**.md'
+  #     - '.gitignore'
+  #     - 'LICENSE'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze-and-test:
+    name: Flutter Analyze & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Linux Build Dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libgtk-3-dev libx11-dev pkg-config ninja-build libsecret-1-dev
+
+      - name: Cache Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
+          cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:"
+
+      - name: Cache Pub Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Generate OSS Licenses
+        run: ./scripts/sync-licenses.sh
+
+      - name: Analyze Code
+        run: flutter analyze
+
+      - name: Run Tests
+        run: flutter test --concurrency=4
