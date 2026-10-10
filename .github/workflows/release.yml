@@ -279,19 +279,29 @@ jobs:
           cache: true
 
       - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: stable
-          targets: aarch64-apple-darwin,x86_64-apple-darwin
-
-      - name: Repair rustup default host
+        shell: bash
         run: |
+          set -eux
+          which rustup
+          rustup --version
+          cat "${RUSTUP_HOME:-$HOME/.rustup}/settings.toml" || true
+          # Fix image default-host before any install (macos-26-arm64 images
+          # have been observed resolving bare `stable` to linux triple).
           rustup set default-host aarch64-apple-darwin
-          rustup toolchain install stable-aarch64-apple-darwin --profile minimal || true
+          rustup toolchain install stable-aarch64-apple-darwin --profile minimal \
+            --target aarch64-apple-darwin,x86_64-apple-darwin
+          # Remove wrong-OS toolchain if the image baked it in.
+          rustup toolchain uninstall stable-x86_64-unknown-linux-gnu || true
           rustup default stable-aarch64-apple-darwin
-          rustup show active-toolchain
+          rustup show
+          rustup toolchain list
+          rustc -vV
+          cargo -vV
+          rustup target list --installed
 
       - name: Build & Package macOS
+        env:
+          RUSTUP_TOOLCHAIN: stable-aarch64-apple-darwin
         run: |
           flutter pub get
           bash scripts/sync-licenses.sh
