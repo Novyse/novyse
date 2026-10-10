@@ -11,6 +11,15 @@ fi
 
 _GLOBAL_CONTENT=$(tr '\r\n' '  ' < "$_GLOBAL_DART")
 
+# Portable in-place sed
+sed_inplace() {
+  if [ "$(uname -s)" = "Darwin" ]; then
+    sed -i '' "$@"
+  else
+    sed -i "$@"
+  fi
+}
+
 # 1. Extract active deployment branch
 BRANCH=$(sed -n "s/.*const[[:space:]]\+String[[:space:]]\+branch[[:space:]]*=[[:space:]]*['\"]\([^'\"]\+\)['\"].*/\1/p" "$_GLOBAL_DART" | head -n 1)
 [ -z "$BRANCH" ] && BRANCH="development"
