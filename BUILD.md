@@ -19,8 +19,8 @@ Outputs are generated in the `dist/` directory.
   - Preview/dev: `novyse-preview-macos.zip`, `novyse-preview.dmg` / `novyse-dev-macos.zip`, `novyse-dev.dmg`
 - **Android:**
   - **Command:** `./scripts/build.sh android`
-  - **Formats:** `apk` (`novyse.apk`, `novyse-<abi>.apk` per split), `aab` (`novyse.aab`)
-  - Preview/dev: `novyse-preview.apk`, `novyse-preview.aab` / `novyse-dev.apk`, `novyse-dev.aab`
+  - **Formats:** `apk` (`novyse-universal.apk`, `novyse-<abi>.apk` per split), `aab` (`novyse.aab`)
+  - Preview/dev: `novyse-preview-universal.apk`, `novyse-preview.aab` / `novyse-dev-universal.apk`, `novyse-dev.aab`
 - **iOS:**
   - **Command:** `./scripts/build.sh ios`
   - **Formats:** `xcarchive` (`novyse-ios.xcarchive.zip` / `novyse-preview-ios.xcarchive.zip` / `novyse-dev-ios.xcarchive.zip`)

@@ -311,12 +311,12 @@ build_android() {
     fi
 
     # Copy APKs to dist/ with clean channel-aware names:
-    # novyse.apk / novyse-preview.apk / novyse-dev.apk (+ -<abi> for split builds)
+    # novyse-universal.apk / novyse-preview-universal.apk / novyse-dev-universal.apk (+ -<abi> for split builds)
     find "$ROOT_DIR/build/app/outputs/flutter-apk" -maxdepth 1 -name "*.apk" 2>/dev/null | while read -r apk_file; do
       apk_base=$(basename "$apk_file")
       if [ "$apk_base" = "app-release.apk" ]; then
-        cp "$apk_file" "$DIST_DIR/${PKG_NAME}.apk"
-        echo "✅ [ANDROID] Copied APK: $DIST_DIR/${PKG_NAME}.apk"
+        cp "$apk_file" "$DIST_DIR/${PKG_NAME}-universal.apk"
+        echo "✅ [ANDROID] Copied APK: $DIST_DIR/${PKG_NAME}-universal.apk"
       else
         abi=$(basename "$apk_file" | sed -E 's/app-(.*)-release\.apk/\1/')
         cp "$apk_file" "$DIST_DIR/${PKG_NAME}-${abi}.apk"

@@ -169,7 +169,7 @@ jobs:
 
           # Copy and rename Universal APK
           if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
-            cp build/app/outputs/flutter-apk/app-release.apk "dist/novyse${SUFFIX}.apk"
+            cp build/app/outputs/flutter-apk/app-release.apk "dist/novyse${SUFFIX}-universal.apk"
           fi
 
           # Copy and rename Split ABI APKs
