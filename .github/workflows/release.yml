@@ -281,23 +281,16 @@ jobs:
       - name: Setup Rust toolchain
         shell: bash
         run: |
-          set -eux
-          which rustup
-          rustup --version
-          cat "${RUSTUP_HOME:-$HOME/.rustup}/settings.toml" || true
-          # Fix image default-host before any install (macos-26-arm64 images
-          # have been observed resolving bare `stable` to linux triple).
+          set -e
           rustup set default-host aarch64-apple-darwin
           rustup toolchain install stable-aarch64-apple-darwin --profile minimal \
             --target aarch64-apple-darwin,x86_64-apple-darwin
-          # Remove wrong-OS toolchain if the image baked it in.
           rustup toolchain uninstall stable-x86_64-unknown-linux-gnu || true
           rustup default stable-aarch64-apple-darwin
-          rustup show
-          rustup toolchain list
-          rustc -vV
-          cargo -vV
-          rustup target list --installed
+          if rustup toolchain list | grep -qE '^stable( \(|$)'; then
+            rustup toolchain unlink stable || true
+          fi
+          rustup toolchain link stable "${HOME}/.rustup/toolchains/stable-aarch64-apple-darwin"
 
       - name: Build & Package macOS
         env:
