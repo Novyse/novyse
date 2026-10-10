@@ -1,0 +1,113 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/chat/message_format.dart';
+import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/stores/chat_draft_store.dart';
+import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
+
+class EditBar extends ConsumerWidget {
+  const EditBar({super.key, required this.chatUUID});
+
+  final String chatUUID;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final editingMessage = ref
+        .watch(chatDraftProvider(chatUUID))
+        .editingMessage;
+    if (editingMessage == null) return const SizedBox.shrink();
+
+    final userState = ref.watch(userStoreProvider);
+    final localUserUUID = userState.localUserUUID;
+    final users = userState.users;
+
+    final formatted = formatMessage(
+      editingMessage,
+      localUserUUID: localUserUUID,
+      getUser: (uuid) => users[uuid]?.toMap(),
+      l10n: l10n,
+    );
+
+    final rawFormatted = formatted['content']?.toString() ?? '';
+    final content = rawFormatted.isNotEmpty
+        ? rawFormatted
+        : (editingMessage.content ?? '');
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    void handleCancelEdit() {
+      ref.read(chatDraftProvider(chatUUID).notifier).cancelEdit();
+      ref.read(chatTextControllerProvider(chatUUID)).clear();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: FloatingAppBarConsts.bottomGap),
+      child: FloatingPill(
+        radius: FloatingAppBarConsts.centralRadius,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(children: [
+          AppHugeIcon(
+            icon: HugeIcons.strokeRoundedPencilEdit02,
+            size: 18,
+            color: colorScheme.primary,
+          ),
+          const SizedBox(width: 8),
+          Container(
+            width: 3,
+            height: 24,
+            decoration: BoxDecoration(
+              color: colorScheme.primary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l10n.editingMessage,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                Text(
+                  content,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          InkWell(
+            onTap: handleCancelEdit,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: AppHugeIcon(
+                icon: HugeIcons.strokeRoundedCancel01,
+                size: 16,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+        ),
+      ),
+    );
+  }
+}

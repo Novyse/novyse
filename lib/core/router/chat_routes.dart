@@ -1,0 +1,74 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import 'navigator_keys.dart';
+
+/// Parsed `/chats/:chatUUID/:subID/...` location.
+typedef ChatPathLocation = ({String? chatUUID, int subID});
+
+ChatPathLocation _parseChatPath(String path) {
+  final segments = Uri.parse(path).pathSegments;
+  if (segments.length < 2 || segments.first != 'chats') {
+    return (chatUUID: null, subID: 0);
+  }
+  final subID = segments.length >= 3 ? (int.tryParse(segments[2]) ?? 0) : 0;
+  return (chatUUID: segments[1], subID: subID);
+}
+
+String? chatUUIDFromPath(String path) => _parseChatPath(path).chatUUID;
+
+int chatSubIDFromPath(String path) => _parseChatPath(path).subID;
+
+/// - empty subs (DM/group without subs) -> 0
+/// - requested sub exists -> requested sub
+/// - otherwise -> first available sub id (FORUMs often have no 0 sub)
+int resolveChatSub({
+  required List<Map<String, dynamic>> subs,
+  required int requestedSub,
+}) {
+  if (subs.isEmpty) return 0;
+  if (subs.any((s) => (s['id'] as num?)?.toInt() == requestedSub)) {
+    return requestedSub;
+  }
+  return (subs.first['id'] as num?)?.toInt() ?? 0;
+}
+
+String chatSubPath(String chatUUID, int subID) => '/chats/$chatUUID/$subID';
+
+String chatOverviewPath(String chatUUID, int subID) =>
+    '/chats/$chatUUID/$subID/overview';
+
+String chatFavoritesPath(String chatUUID, int subID) =>
+    '/chats/$chatUUID/$subID/overview/favorites';
+
+String pathForTab(int index) {
+  switch (index) {
+    case 1:
+      return '/settings';
+    case 2:
+      return '/profile';
+    default:
+      return '/chats';
+  }
+}
+
+int? tabIndexFromPath(String path) {
+  if (chatUUIDFromPath(path) != null) return null;
+  if (path.startsWith('/settings')) return 1;
+  if (path.startsWith('/profile')) return 2;
+  if (path.startsWith('/chats')) return 0;
+  return null;
+}
+
+void popOrChats(BuildContext context) {
+  if (context.canPop()) {
+    context.pop();
+    return;
+  }
+  final shell = shellNavigatorKey.currentState;
+  if (shell != null && shell.canPop()) {
+    shell.pop();
+    return;
+  }
+  context.go('/chats');
+}

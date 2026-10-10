@@ -1,0 +1,464 @@
+import 'dart:async';
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/chat/chat_permission_helpers.dart';
+import 'package:novyse/core/chat/message_action_methods.dart';
+import 'package:novyse/core/chat/permissions.dart';
+import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/stores/chat_list_store.dart';
+import 'package:novyse/core/stores/message_store.dart';
+import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/ui/components/chat/message/action_menu/reaction_menu.dart';
+import 'package:novyse/ui/components/context_menu/app_context_menu.dart';
+import 'package:novyse/ui/components/context_menu/app_context_menu_item.dart';
+import 'package:novyse/ui/components/context_menu/app_context_menu_stat.dart';
+
+class MessageActionMenuItem {
+  final String label;
+  final List<List<dynamic>> icon;
+  final VoidCallback? onTap;
+  final bool isDanger;
+  final bool enabled;
+
+  const MessageActionMenuItem({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+    this.isDanger = false,
+    this.enabled = true,
+  });
+}
+
+class MessageActionMenu extends ConsumerStatefulWidget {
+  const MessageActionMenu({
+    super.key,
+    required this.position,
+    required this.message,
+    this.selectedText,
+  });
+
+  final Offset position;
+  final MessageModel message;
+  final String? selectedText;
+
+  static const double menuWidth = 175.0;
+  static const double edgePadding = AppMenuTokens.edgePadding;
+  static const double itemHeight = AppMenuTokens.itemHeight;
+
+  static Future<void> show({
+    required BuildContext context,
+    required Offset position,
+    required MessageModel message,
+    String? selectedText,
+  }) {
+    return showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'DismissContextOverlay',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 150),
+      pageBuilder: (dialogContext, animation, secondaryAnimation) {
+        return FadeTransition(
+          opacity: animation,
+          child: MessageActionMenu(
+            position: position,
+            message: message,
+            selectedText: selectedText,
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  ConsumerState<MessageActionMenu> createState() => _MessageActionMenuState();
+}
+
+class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
+  bool _isReactionExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = widget.message;
+    final position = widget.position;
+    final selectedText = widget.selectedText;
+
+    final methods = MessageActionMethods(
+      ref: ref,
+      context: context,
+      chatUUID: message.chatUUID,
+      subID: message.subID,
+    );
+    final l10n = AppLocalizations.of(context)!;
+    final screenSize = MediaQuery.sizeOf(context);
+
+    final hasSelectedText =
+        selectedText != null && selectedText.trim().isNotEmpty;
+    final hasFiles = message.files.isNotEmpty;
+
+    final localUserUUID = ref.watch(
+      userStoreProvider.select((s) => s.localUserUUID),
+    );
+    final chat = ref.watch(chatProvider(message.chatUUID));
+
+    final isMine = message.userUUID == localUserUUID;
+    final isPinned = message.pinned;
+    final isFavorited = message.favorited;
+
+    final canReply = ChatPermissionHelpers.canUserSendMessage(
+      chat,
+      localUserUUID,
+      subID: message.subID,
+    );
+    final canQuoteAndReply = canReply && hasSelectedText;
+    final canPin = ChatPermissionHelpers.canUserPerform(
+      chat,
+      localUserUUID,
+      ChatPermissions.pinMessage,
+    );
+    final canEdit = isMine && canReply;
+
+    final canDelete = ChatPermissionHelpers.canUserDeleteMessage(
+      chat: chat,
+      localUserUUID: localUserUUID,
+      targetUserUUID: message.userUUID,
+    );
+
+    final isSystem = message.isSystem;
+
+    final items = isSystem
+        ? <MessageActionMenuItem>[]
+        : <MessageActionMenuItem>[
+            // Reply
+            if (canReply)
+              MessageActionMenuItem(
+                label: l10n.reply,
+                icon: HugeIcons.strokeRoundedArrowMoveUpLeft,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  methods.reply(message);
+                },
+              ),
+
+            // Quote and Reply (if text selected and reply allowed)
+            if (canQuoteAndReply)
+              MessageActionMenuItem(
+                label: l10n.quoteAndReply,
+                icon: HugeIcons.strokeRoundedArrowMoveUpLeft,
+                onTap: () {
+                  final text = selectedText;
+                  Navigator.of(context).pop();
+                  methods.quoteAndReply(message, text);
+                },
+              ),
+
+            // Pin / Unpin
+            if (canPin)
+              MessageActionMenuItem(
+                label: isPinned ? l10n.unpin : l10n.pin,
+                icon: isPinned
+                    ? HugeIcons.strokeRoundedPinOff
+                    : HugeIcons.strokeRoundedPin,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  methods.pin(message);
+                },
+              ),
+
+            // Favorite / Unfavorite
+            MessageActionMenuItem(
+              label: isFavorited ? l10n.unfavorite : l10n.favorite,
+              icon: isFavorited
+                  ? HugeIcons.strokeRoundedStarOff
+                  : HugeIcons.strokeRoundedFavourite,
+              onTap: () {
+                Navigator.of(context).pop();
+                methods.favorite(message);
+              },
+            ),
+
+            // Copy
+            MessageActionMenuItem(
+              label: l10n.copy,
+              icon: HugeIcons.strokeRoundedCopy01,
+              onTap: () {
+                Navigator.of(context).pop();
+                methods.copy(message);
+              },
+            ),
+
+            // Copy Selected (if text selected)
+            if (hasSelectedText)
+              MessageActionMenuItem(
+                label: l10n.copySelected,
+                icon: HugeIcons.strokeRoundedCopy01,
+                onTap: () {
+                  final text = selectedText;
+                  Navigator.of(context).pop();
+                  methods.copySelected(text);
+                },
+              ),
+
+            // Download (if files present)
+            if (hasFiles)
+              MessageActionMenuItem(
+                label: l10n.download,
+                icon: HugeIcons.strokeRoundedDownload01,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  methods.download(message);
+                },
+              ),
+
+            // Edit (if sender and can reply)
+            if (canEdit)
+              MessageActionMenuItem(
+                label: l10n.edit,
+                icon: HugeIcons.strokeRoundedEdit02,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  methods.edit(message);
+                },
+              ),
+
+            // Forward (visible greyed-out placeholder, no action)
+            MessageActionMenuItem(
+              label: l10n.forward,
+              icon: HugeIcons.strokeRoundedLinkForward,
+              onTap: null,
+              enabled: false,
+            ),
+
+            // Share (system share sheet: text and/or downloaded files)
+            MessageActionMenuItem(
+              label: l10n.share,
+              icon: HugeIcons.strokeRoundedShare08,
+              onTap: () {
+                Navigator.of(context).pop();
+                methods.share(context, message);
+              },
+            ),
+
+            // Select
+            MessageActionMenuItem(
+              label: l10n.select,
+              icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+              onTap: () {
+                Navigator.of(context).pop();
+                methods.select(message);
+              },
+            ),
+
+            // Delete (author or admin with deleteMessage & higher/equal role level)
+            if (canDelete)
+              MessageActionMenuItem(
+                label: l10n.delete,
+                icon: HugeIcons.strokeRoundedDelete02,
+                isDanger: true,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  unawaited(methods.delete(context, message));
+                },
+              ),
+          ];
+
+    // Stats calculations
+
+    final distinctReaders = <String>{};
+    for (final r in message.reads) {
+      final uuid =
+          ((r is Map ? (r['userUUID'] as String?) : r.toString()) ?? '').trim();
+      if (uuid.isEmpty || uuid == message.userUUID) continue;
+      distinctReaders.add(uuid);
+    } // excluding the author
+    final readCount = distinctReaders.length;
+    final hasRead = readCount > 0;
+
+    final reactions = message.reactions;
+    final totalReactions = reactions.fold<int>(
+      0,
+      (acc, r) => acc + ((r['userUUIDs'] as List?)?.length ?? 0),
+    );
+    final hasReactions = totalReactions > 0;
+    final showStats =
+        !message.isPending && ((isMine && hasRead) || hasReactions);
+
+    const menuWidth = MessageActionMenu.menuWidth;
+    const edgePadding = MessageActionMenu.edgePadding;
+    const itemHeight = MessageActionMenu.itemHeight;
+
+    const reactionHeaderHeight = 44.0;
+    const reactionHeaderMargin = AppMenuTokens.padding;
+    final actionsCardHeight = items.isNotEmpty
+        ? items.length * itemHeight + AppMenuTokens.padding * 2
+        : 0.0;
+    final statsHeight = showStats ? 40.0 : 0.0;
+
+    final expandedReactionHeight = math.max(
+      306.0,
+      actionsCardHeight +
+          reactionHeaderHeight +
+          reactionHeaderMargin +
+          statsHeight,
+    );
+    final maxAllowedHeight = screenSize.height - edgePadding * 2;
+    final targetExpandedHeight = math.min(
+      expandedReactionHeight,
+      maxAllowedHeight,
+    );
+
+    final collapsedTotalHeight =
+        (message.isPending
+            ? 0.0
+            : (reactionHeaderHeight + reactionHeaderMargin)) +
+        actionsCardHeight +
+        statsHeight;
+
+    final neededHeight = math.max(
+      _isReactionExpanded ? targetExpandedHeight : 0.0,
+      collapsedTotalHeight,
+    );
+
+    // Position clamping (same math as production `getContextMenuPosition`).
+    final resolved = resolveAppMenuPosition(
+      anchor: position,
+      overlaySize: screenSize,
+      width: menuWidth,
+      estimatedHeight: neededHeight,
+      edgePadding: edgePadding,
+    );
+    final x = resolved.dx;
+    final y = resolved.dy;
+
+    return Stack(
+      children: [
+        // Barrier dismiss listener
+        Positioned.fill(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.of(context).pop(),
+            onSecondaryTap: () => Navigator.of(context).pop(),
+            child: const SizedBox.expand(),
+          ),
+        ),
+
+        // Positioned Menu Card
+        AnimatedPositioned(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          left: x,
+          top: y,
+          child: Material(
+            color: Colors.transparent,
+            child: SizedBox(
+              width: menuWidth,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Base column: Spacer for reaction header + actions + stats
+                  Container(
+                    constraints: BoxConstraints(
+                      minHeight: _isReactionExpanded
+                          ? targetExpandedHeight
+                          : 0.0,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (!message.isPending)
+                          const SizedBox(
+                            height: reactionHeaderHeight + reactionHeaderMargin,
+                          ),
+                        AnimatedOpacity(
+                          duration: const Duration(milliseconds: 180),
+                          opacity: _isReactionExpanded ? 0.0 : 1.0,
+                          child: IgnorePointer(
+                            ignoring: _isReactionExpanded,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (items.isNotEmpty) ...[
+                                  AppMenuShell(
+                                    width: menuWidth,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: items
+                                          .map(
+                                            (item) => AppMenuItem(
+                                              label: item.label,
+                                              icon: item.icon,
+                                              onTap: item.onTap,
+                                              isDanger: item.isDanger,
+                                            ),
+                                          )
+                                          .toList(),
+                                    ),
+                                  ),
+                                ],
+                                if (showStats) ...[
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      if (!message.isPending && hasRead)
+                                        Expanded(
+                                          child: AppMenuStat(
+                                            icon: HugeIcons.strokeRoundedView,
+                                            text: '$readCount',
+                                          ),
+                                        ),
+                                      if (!message.isPending &&
+                                          hasRead &&
+                                          hasReactions)
+                                        const SizedBox(width: 8),
+                                      if (hasReactions)
+                                        Expanded(
+                                          child: AppMenuStat(
+                                            icon: HugeIcons.strokeRoundedSmile,
+                                            text: '$totalReactions',
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Floating ReactionMenu Header (in quick mode it sits in the spacer; in full mode it expands over the menu)
+                  if (!message.isPending)
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: ReactionMenu(
+                        width: menuWidth,
+                        expandedHeight: targetExpandedHeight,
+                        onSelectEmoji: (emoji) {
+                          Navigator.of(context).pop();
+                          methods.toggleReaction(message, emoji);
+                        },
+                        onExpandChanged: (expanded) {
+                          setState(() {
+                            _isReactionExpanded = expanded;
+                          });
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
