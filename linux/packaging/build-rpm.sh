@@ -21,7 +21,7 @@ fi
 
 mkdir -p "$DIST_DIR"
 CLEAN_VERSION=$(echo "$APP_VERSION" | tr '-' '.')
-RPM_NAME="${PKG_NAME}-${CLEAN_VERSION}-1.x86_64.rpm"
+RPM_NAME="${PKG_NAME}.rpm"
 STAGING_DIR="$(mktemp -d)"
 
 mkdir -p "$STAGING_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
@@ -64,7 +64,10 @@ EOF
 
 rpmbuild --define "_topdir $STAGING_DIR" -bb "$STAGING_DIR/SPECS/${PKG_NAME}.spec" >/dev/null 2>&1 || true
 
-find "$STAGING_DIR/RPMS" -name "*.rpm" -exec cp {} "$DIST_DIR/" \; 2>/dev/null || true
+BUILT_RPM=$(find "$STAGING_DIR/RPMS" -name "*.rpm" | head -n 1)
+if [ -n "$BUILT_RPM" ]; then
+  cp "$BUILT_RPM" "$DIST_DIR/$RPM_NAME" 2>/dev/null || true
+fi
 rm -rf "$STAGING_DIR"
 
 if [ -f "$DIST_DIR/$RPM_NAME" ]; then

@@ -36,7 +36,7 @@ fi
 
 generate_snapcraft_yaml "$STAGING_DIR/snap/snapcraft.yaml" "bundle"
 
-SNAP_NAME="${PKG_NAME}_${APP_VERSION}_amd64.snap"
+SNAP_NAME="${PKG_NAME}.snap"
 (cd "$STAGING_DIR" && snapcraft pack --output "$DIST_DIR/$SNAP_NAME") 2>/dev/null || true
 rm -rf "$STAGING_DIR"
 

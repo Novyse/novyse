@@ -17,7 +17,7 @@ fi
 
 mkdir -p "$DIST_DIR"
 
-TAR_NAME="${PKG_NAME}-${APP_VERSION}-linux-x64.tar.gz"
+TAR_NAME="${PKG_NAME}.tar.gz"
 STAGING_DIR="$(mktemp -d)"
 
 echo "📦 [TARBALL] Creating Linux portable tarball for $APP_NAME ($PKG_NAME)..."

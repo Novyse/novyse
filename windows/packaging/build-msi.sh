@@ -15,7 +15,7 @@ if [ ! -d "$BUNDLE_DIR" ]; then
   exit 1
 fi
 
-MSI_NAME="${INSTALLER_NAME}.msi"
+MSI_NAME="${PKG_NAME}-setup.msi"
 OUTPUT_MSI="$DIST_DIR/$MSI_NAME"
 mkdir -p "$DIST_DIR"
 

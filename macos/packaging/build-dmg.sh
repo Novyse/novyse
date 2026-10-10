@@ -17,8 +17,8 @@ fi
 
 mkdir -p "$DIST_DIR"
 
-ZIP_NAME="${APP_NAME}-${APP_VERSION}-macos.zip"
-DMG_NAME="${APP_NAME}-${APP_VERSION}.dmg"
+ZIP_NAME="${PKG_NAME}-macos.zip"
+DMG_NAME="${PKG_NAME}.dmg"
 
 echo "📦 [MACOS] Packaging $APP_NAME into zip: $DIST_DIR/$ZIP_NAME..."
 ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$DIST_DIR/$ZIP_NAME" || (cd "$(dirname "$APP_PATH")" && zip -r -y "$DIST_DIR/$ZIP_NAME" "$(basename "$APP_PATH")")

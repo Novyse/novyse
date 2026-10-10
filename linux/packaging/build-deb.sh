@@ -19,7 +19,8 @@ mkdir -p "$DIST_DIR"
 
 # Debian versions cannot have dashes in upstream version (convert to ~)
 CLEAN_VERSION=$(echo "$APP_VERSION" | tr '-' '~')
-DEB_NAME="${PKG_NAME}_${CLEAN_VERSION}_amd64.deb"
+
+DEB_NAME="${PKG_NAME}.deb"
 STAGING_DIR="$(mktemp -d)"
 
 echo "📦 [DEB] Assembling Debian package structure for $APP_NAME ($PKG_NAME) in $STAGING_DIR..."

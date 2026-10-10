@@ -18,7 +18,7 @@ MANIFEST_FILE="$STAGING_DIR/${APP_ID}.yml"
 # Generate files
 generate_desktop_entry "$DESKTOP_FILE"
 generate_appstream_metainfo "$METAINFO_FILE"
-generate_flathub_manifest "$MANIFEST_FILE" "https://github.com/Novyse/novyse/releases/download/v${APP_VERSION}/novyse-${APP_VERSION}-linux-x64.tar.gz" "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+generate_flathub_manifest "$MANIFEST_FILE" "https://github.com/Novyse/novyse/releases/download/v${APP_VERSION}/novyse.tar.gz" "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
 # Check Docker requirement first
 if ! command -v docker >/dev/null 2>&1; then

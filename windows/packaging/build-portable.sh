@@ -15,10 +15,7 @@ if [ ! -d "$BUNDLE_DIR" ]; then
   exit 1
 fi
 
-PORTABLE_NAME="${INSTALLER_NAME/-Setup/-Portable}.exe"
-if [ "$PORTABLE_NAME" = "${INSTALLER_NAME}.exe" ]; then
-  PORTABLE_NAME="${APP_NAME}-Portable.exe"
-fi
+PORTABLE_NAME="${PKG_NAME}-portable.exe"
 OUTPUT_EXE="$DIST_DIR/$PORTABLE_NAME"
 
 mkdir -p "$DIST_DIR"

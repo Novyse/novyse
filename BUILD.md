@@ -7,22 +7,26 @@ Outputs are generated in the `dist/` directory.
 
 - **Linux:**
   - **Command:** `./scripts/build.sh linux`
-  - **Formats:** `tarball` (`.tar.gz`), `deb` (`.deb`), `appimage` (`.AppImage`), `rpm` (`.rpm`), `snap` (`.snap`), `flatpak` (`.flatpak`)
+  - **Formats:** `tarball` (`novyse.tar.gz`), `deb` (`novyse.deb`), `appimage` (`novyse.AppImage`), `rpm` (`novyse.rpm`), `snap` (`novyse.snap`), `flatpak` (`novyse.flatpak`)
+  - Preview/dev: `novyse-preview.deb`, `novyse-preview.rpm`, ... / `novyse-dev.deb`, `novyse-dev.rpm`, ...
 - **Windows:**
   - **Command:** `./scripts/build.sh windows`
-  - **Formats:** `zip` (`.zip`), `exe` (`-Setup.exe`), `portable` (`-Portable.exe`), `msi` (`-Setup.msi`)
+  - **Formats:** `zip` (`novyse-windows.zip`), `exe` (`novyse-setup.exe`), `portable` (`novyse-portable.exe`), `msi` (`novyse-setup.msi`)
+  - Preview/dev: `novyse-preview-windows.zip`, `novyse-preview-setup.exe`, ... / `novyse-dev-windows.zip`, `novyse-dev-setup.exe`, ...
 - **macOS:**
   - **Command:** `./scripts/build.sh macos`
-  - **Formats:** `zip` (`.zip`), `dmg` (`.dmg`)
+  - **Formats:** `zip` (`novyse-macos.zip`), `dmg` (`novyse.dmg`)
+  - Preview/dev: `novyse-preview-macos.zip`, `novyse-preview.dmg` / `novyse-dev-macos.zip`, `novyse-dev.dmg`
 - **Android:**
   - **Command:** `./scripts/build.sh android`
-  - **Formats:** `apk` (`.apk`), `aab` (`.aab`)
+  - **Formats:** `apk` (`novyse.apk`, `novyse-<abi>.apk` per split), `aab` (`novyse.aab`)
+  - Preview/dev: `novyse-preview.apk`, `novyse-preview.aab` / `novyse-dev.apk`, `novyse-dev.aab`
 - **iOS:**
   - **Command:** `./scripts/build.sh ios`
-  - **Formats:** `xcarchive` (`.xcarchive.zip`)
+  - **Formats:** `xcarchive` (`novyse-ios.xcarchive.zip` / `novyse-preview-ios.xcarchive.zip` / `novyse-dev-ios.xcarchive.zip`)
 - **Web:**
   - **Command:** `./scripts/build.sh web`
-  - **Formats:** `zip` (`.zip`)
+  - **Formats:** `zip` (`novyse-web.zip` / `novyse-preview-web.zip` / `novyse-dev-web.zip`)
 - **All Platforms:**
   - **Command:** `./scripts/build.sh all`
 
@@ -70,7 +74,7 @@ Every official GitHub Release includes a verification table containing the SHA-2
 #### Windows
 In PowerShell:
 ```powershell
-Get-FileHash -Algorithm SHA256 .\Novyse-Setup.exe
+Get-FileHash -Algorithm SHA256 .\novyse-setup.exe
 ```
 Compare the resulting `Hash` with the checksum listed in the release table.
 
@@ -84,7 +88,7 @@ Compare the resulting hash with the release table checksum.
 #### macOS
 In Terminal:
 ```bash
-shasum -a 256 Novyse.dmg
+shasum -a 256 novyse.dmg
 ```
 Compare the resulting hash with the release table checksum.
 

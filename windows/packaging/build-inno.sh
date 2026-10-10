@@ -40,6 +40,6 @@ echo "📦 [INNO] Compiling Windows installer with Inno Setup..."
 "$ISCC_CMD" "$INNO_TEMP" || true
 rm -f "$INNO_TEMP"
 
-if [ -f "$DIST_DIR/${INSTALLER_NAME}.exe" ]; then
-  echo "✅ [INNO] Created: $DIST_DIR/${INSTALLER_NAME}.exe"
+if [ -f "$DIST_DIR/${WIN_SETUP_NAME}.exe" ]; then
+  echo "✅ [INNO] Created: $DIST_DIR/${WIN_SETUP_NAME}.exe"
 fi

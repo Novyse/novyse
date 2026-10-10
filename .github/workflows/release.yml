@@ -318,7 +318,11 @@ jobs:
 
       - name: Upload Web Build to GitHub Release
         run: |
-          gh release upload v${{ inputs.version }} dist/novyse-web-${{ inputs.version }}.zip --clobber
+          SUFFIX=""
+          if [ "${{ inputs.release_type }}" = "preview" ]; then
+            SUFFIX="-preview"
+          fi
+          gh release upload v${{ inputs.version }} "dist/novyse${SUFFIX}-web.zip" --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -455,7 +459,7 @@ jobs:
         run: |
           source scripts/extract-metadata.sh
 
-          TARBALL="novyse-${{ inputs.version }}-linux-x64.tar.gz"
+          TARBALL="novyse.tar.gz"
           gh release download v${{ inputs.version }} -p "$TARBALL" || true
           if [ -f "$TARBALL" ]; then
             TARBALL_SHA256=$(sha256sum "$TARBALL" | awk '{print $1}')

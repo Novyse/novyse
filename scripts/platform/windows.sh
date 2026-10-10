@@ -10,13 +10,14 @@ if [ -z "$APP_ID" ]; then
 fi
 
 export WIN_EXE_NAME="novyse.exe"
-export WIN_SETUP_NAME="$INSTALLER_NAME"
-export WIN_PORTABLE_NAME="${INSTALLER_NAME/-Setup/-Portable}.exe"
-export WIN_MSI_NAME="${INSTALLER_NAME}.msi"
-export WIN_ZIP_NAME="${APP_NAME}-windows-x64.zip"
+export WIN_SETUP_NAME="${PKG_NAME}-setup"
+export WIN_SETUP_EXE="${PKG_NAME}-setup.exe"
+export WIN_PORTABLE_NAME="${PKG_NAME}-portable.exe"
+export WIN_MSI_NAME="${PKG_NAME}-setup.msi"
+export WIN_ZIP_NAME="${PKG_NAME}-windows.zip"
 
 get_iscc_flags() {
-  echo "/DMyAppName=${APP_NAME} /DMyAppVersion=${APP_VERSION} /DMyAppPublisher=${AUTHOR_NAME} /DMyAppURL=${AUTHOR_URL} /DMyAppScheme=${APP_SCHEME} /DMyAppSetupName=${INSTALLER_NAME}"
+  echo "/DMyAppName=${APP_NAME} /DMyAppVersion=${APP_VERSION} /DMyAppPublisher=${AUTHOR_NAME} /DMyAppURL=${AUTHOR_URL} /DMyAppScheme=${APP_SCHEME} /DMyAppSetupName=${WIN_SETUP_NAME}"
 }
 
 # Generate Inno Setup script on-demand
@@ -31,7 +32,7 @@ generate_inno_setup_iss() {
 #define MyAppURL "${AUTHOR_URL}"
 #define MyAppExeName "novyse.exe"
 #define MyAppScheme "${APP_SCHEME}"
-#define MyAppSetupName "${INSTALLER_NAME}"
+#define MyAppSetupName "${WIN_SETUP_NAME}"
 
 [Setup]
 AppId={{E1D4A7F2-81F1-4A59-86BC-71D62D55A67B}}
