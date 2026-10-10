@@ -8,15 +8,33 @@ source "$ROOT_DIR/scripts/extract-metadata.sh"
 
 DIST_DIR="$ROOT_DIR/dist"
 
+# Portable lowercase helper
+to_lower() {
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+# Portable "contains word" check: case " $list " in *" $word "*) ...
+list_contains() {
+  case " $1 " in
+    *" $2 "*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 # Platform to formats compatibility map
-declare -A PLATFORM_COMPAT=(
-  ["linux"]="tarball deb appimage rpm snap flatpak"
-  ["windows"]="zip exe portable msi"
-  ["macos"]="zip dmg"
-  ["android"]="apk aab"
-  ["ios"]="xcarchive ipa"
-  ["web"]="zip"
-)
+compat_formats() {
+  case "$1" in
+    linux) echo "tarball deb appimage rpm snap flatpak" ;;
+    windows) echo "zip exe portable msi" ;;
+    macos) echo "zip dmg" ;;
+    android) echo "apk aab" ;;
+    ios) echo "xcarchive ipa" ;;
+    web) echo "zip" ;;
+    *) echo "" ;;
+  esac
+}
+
+ALL_PLATFORMS="linux windows macos android ios web"
 
 show_usage() {
   echo "Usage: $0 <platform> [options]"
@@ -53,7 +71,7 @@ if [ -z "$1" ] || [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "help" ]; t
   exit 0
 fi
 
-PLATFORM="${1,,}"
+PLATFORM="$(to_lower "$1")"
 shift
 
 BUILD_MODE="release"
@@ -63,7 +81,8 @@ SKIP_PACKAGING=0
 SELECTED_FORMATS=()
 
 normalize_format() {
-  local fmt="${1,,}"
+  local fmt
+  fmt="$(to_lower "$1")"
   case "$fmt" in
     tar) echo "tarball" ;;
     setup|installer|inno) echo "exe" ;;
@@ -152,7 +171,7 @@ done
 # Validate platform and format compatibility
 validate_compatibility() {
   # 1. Validate platform
-  if [ "$PLATFORM" != "all" ] && [ -z "${PLATFORM_COMPAT[$PLATFORM]}" ]; then
+  if [ "$PLATFORM" != "all" ] && [ -z "$(compat_formats "$PLATFORM")" ]; then
     echo "❌ [COMPATIBILITY ERROR] Unknown platform '$PLATFORM'."
     echo "   Supported platforms: linux, windows, macos, android, ios, web, all"
     exit 1
@@ -163,8 +182,8 @@ validate_compatibility() {
     for fmt in "${SELECTED_FORMATS[@]}"; do
       if [ "$PLATFORM" = "all" ]; then
         local found=0
-        for p in "${!PLATFORM_COMPAT[@]}"; do
-          if [[ " ${PLATFORM_COMPAT[$p]} " =~ " $fmt " ]]; then
+        for p in $ALL_PLATFORMS; do
+          if list_contains "$(compat_formats "$p")" "$fmt"; then
             found=1
             break
           fi
@@ -174,8 +193,9 @@ validate_compatibility() {
           exit 1
         fi
       else
-        local valid_list="${PLATFORM_COMPAT[$PLATFORM]}"
-        if [[ ! " $valid_list " =~ " $fmt " ]]; then
+        local valid_list
+        valid_list="$(compat_formats "$PLATFORM")"
+        if ! list_contains "$valid_list" "$fmt"; then
           echo "❌ [COMPATIBILITY ERROR] Format '$fmt' is not compatible with platform '$PLATFORM'."
           echo "   Compatible formats for '$PLATFORM': $valid_list"
           exit 1
@@ -254,6 +274,29 @@ build_linux() {
   fi
 }
 
+package_windows_zip() {
+  local src_dir="$1"
+  local out_zip="$2"
+  rm -f "$out_zip"
+  if command -v zip >/dev/null 2>&1; then
+    (cd "$src_dir" && zip -r -q "$out_zip" .) || true
+  elif command -v 7z >/dev/null 2>&1; then
+    (cd "$src_dir" && 7z a -tzip -mx=9 "$out_zip" . >/dev/null 2>&1) || true
+  elif [ -f "/c/Program Files/7-Zip/7z.exe" ]; then
+    (cd "$src_dir" && "/c/Program Files/7-Zip/7z.exe" a -tzip -mx=9 "$out_zip" . >/dev/null 2>&1) || true
+  elif command -v powershell.exe >/dev/null 2>&1; then
+    powershell.exe -NoProfile -NonInteractive -Command "Compress-Archive -Path '$src_dir\*' -DestinationPath '$out_zip' -Force" || true
+  else
+    echo "⚠️  [WINDOWS WARNING] No zip tool found ('zip'/'7z'/PowerShell). Skipping windows.zip."
+    return 0
+  fi
+  if [ -f "$out_zip" ]; then
+    echo "✅ [WINDOWS] Created: $out_zip"
+  else
+    echo "⚠️  [WINDOWS WARNING] Failed to create $out_zip (zip tool failed)."
+  fi
+}
+
 build_windows() {
   echo "🪟 Building Windows ($BUILD_MODE) for $APP_NAME..."
   flutter build windows "--$BUILD_MODE"
@@ -263,12 +306,13 @@ build_windows() {
     if is_format_selected "zip"; then
       WIN_RELEASE_DIR="$ROOT_DIR/build/windows/x64/runner/Release"
       if [ -d "$WIN_RELEASE_DIR" ]; then
-        (cd "$WIN_RELEASE_DIR" && zip -r -q "$DIST_DIR/${PKG_NAME}-windows.zip" .) || true
-        echo "✅ [WINDOWS] Created: $DIST_DIR/${PKG_NAME}-windows.zip"
+        package_windows_zip "$WIN_RELEASE_DIR" "$DIST_DIR/${PKG_NAME}-windows.zip"
       fi
     fi
     if is_format_selected "exe"; then
-      bash "$ROOT_DIR/windows/packaging/build-inno.sh" || true
+      if ! bash "$ROOT_DIR/windows/packaging/build-inno.sh"; then
+        echo "⚠️  [WINDOWS WARNING] Inno Setup packaging failed; continuing with other formats."
+      fi
     fi
     if is_format_selected "portable"; then
       bash "$ROOT_DIR/windows/packaging/build-portable.sh" || true
@@ -289,7 +333,11 @@ build_macos() {
       APP_PATH=$(find "$ROOT_DIR/build/macos/Build/Products/Release" -maxdepth 1 -name "*.app" | head -n 1)
       if [ -n "$APP_PATH" ] && [ -d "$APP_PATH" ]; then
         (cd "$(dirname "$APP_PATH")" && zip -r -y -q "$DIST_DIR/${PKG_NAME}-macos.zip" "$(basename "$APP_PATH")") || true
-        echo "✅ [MACOS] Created: $DIST_DIR/${PKG_NAME}-macos.zip"
+        if [ -f "$DIST_DIR/${PKG_NAME}-macos.zip" ]; then
+          echo "✅ [MACOS] Created: $DIST_DIR/${PKG_NAME}-macos.zip"
+        else
+          echo "⚠️  [MACOS WARNING] Failed to create $DIST_DIR/${PKG_NAME}-macos.zip"
+        fi
       fi
     fi
     if is_format_selected "dmg"; then
@@ -398,8 +446,17 @@ case "$PLATFORM" in
     elif [ "$HOST_OS" = "Darwin" ]; then
       build_macos
       build_ios
-    elif [[ "$HOST_OS" =~ ^(MINGW|MSYS|CYGWIN) ]] || [ "$OS" = "Windows_NT" ]; then
-      build_windows
+    else
+      case "$HOST_OS" in
+        MINGW*|MSYS*|CYGWIN*)
+          build_windows
+          ;;
+        *)
+          if [ "${OS:-}" = "Windows_NT" ]; then
+            build_windows
+          fi
+          ;;
+      esac
     fi
     ;;
 esac

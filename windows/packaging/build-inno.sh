@@ -37,9 +37,19 @@ INNO_TEMP="$(mktemp --suffix=.iss)"
 generate_inno_setup_iss "$INNO_TEMP"
 
 echo "📦 [INNO] Compiling Windows installer with Inno Setup..."
-"$ISCC_CMD" "$INNO_TEMP" || true
+INNO_ARG="$INNO_TEMP"
+if command -v cygpath >/dev/null 2>&1; then
+  INNO_ARG="$(cygpath -w "$INNO_TEMP")"
+fi
+ISCC_STATUS=0
+"$ISCC_CMD" "$INNO_ARG" || ISCC_STATUS=$?
 rm -f "$INNO_TEMP"
 
 if [ -f "$DIST_DIR/${WIN_SETUP_NAME}.exe" ]; then
   echo "✅ [INNO] Created: $DIST_DIR/${WIN_SETUP_NAME}.exe"
+  exit 0
 fi
+
+echo "❌ [INNO ERROR] Inno Setup compilation failed (exit=$ISCC_STATUS), setup.exe not created."
+echo "   Inspect the ISCC output above (e.g. 'Could not read ...' means a path in the .iss is wrong)."
+exit 1

@@ -16,6 +16,20 @@ export WIN_PORTABLE_NAME="${PKG_NAME}-portable.exe"
 export WIN_MSI_NAME="${PKG_NAME}-setup.msi"
 export WIN_ZIP_NAME="${PKG_NAME}-windows.zip"
 
+to_win_path() {
+  local p="$1"
+  if command -v cygpath >/dev/null 2>&1; then
+    cygpath -w "$p"
+  elif printf '%s' "$p" | grep -Eq '^/[a-zA-Z]/'; then
+    local drive rest
+    drive="$(printf '%s' "$p" | cut -c2 | tr '[:lower:]' '[:upper:]')"
+    rest="$(printf '%s' "$p" | cut -c3-)"
+    printf '%s:%s' "$drive" "$rest"
+  else
+    printf '%s' "$p"
+  fi
+}
+
 get_iscc_flags() {
   echo "/DMyAppName=${APP_NAME} /DMyAppVersion=${APP_VERSION} /DMyAppPublisher=${AUTHOR_NAME} /DMyAppURL=${AUTHOR_URL} /DMyAppScheme=${APP_SCHEME} /DMyAppSetupName=${WIN_SETUP_NAME}"
 }
@@ -24,6 +38,12 @@ get_iscc_flags() {
 generate_inno_setup_iss() {
   local target_file="$1"
   mkdir -p "$(dirname "$target_file")"
+  local win_root win_dist win_license win_icon win_bundle
+  win_root="$(to_win_path "$_ROOT_DIR")"
+  win_dist="$(to_win_path "$_ROOT_DIR/dist")"
+  win_license="$(to_win_path "$_ROOT_DIR/LICENSE")"
+  win_icon="$(to_win_path "$_ROOT_DIR/windows/runner/resources/app_icon.ico")"
+  win_bundle="$(to_win_path "$_ROOT_DIR/build/windows/x64/runner/Release")"
   cat << EOF > "$target_file"
 ; Inno Setup Script for Novyse Windows Desktop Client (Generated on-demand)
 #define MyAppName "${APP_NAME}"
@@ -45,10 +65,10 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-LicenseFile=${_ROOT_DIR}/LICENSE
-OutputDir=${_ROOT_DIR}/dist
+LicenseFile=${win_license}
+OutputDir=${win_dist}
 OutputBaseFilename={#MyAppSetupName}
-SetupIconFile=${_ROOT_DIR}/windows/runner/resources/app_icon.ico
+SetupIconFile=${win_icon}
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
@@ -65,7 +85,7 @@ Name: "italian"; MessagesFile: "compiler:Languages\\Italian.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "${_ROOT_DIR}/build/windows/x64/runner/Release/*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "${win_bundle}/*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\\{#MyAppName}"; Filename: "{app}\\{#MyAppExeName}"
