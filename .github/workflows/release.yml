@@ -278,6 +278,12 @@ jobs:
           channel: "stable"
           cache: true
 
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
       - name: Build & Package macOS
         run: |
           flutter pub get
