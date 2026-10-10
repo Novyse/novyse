@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/pages/app/profile_page.dart';
-import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
+import 'package:novyse/ui/components/huge_icon.dart';
 
 void main() {
-  testWidgets('ProfilePage renders user details and handles logout', (
+  testWidgets('ProfilePage renders user details and opens QR modal', (
     tester,
   ) async {
     const mockUser = UserModel(
@@ -40,32 +41,22 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    // Verify user information is displayed
+    // Verify user information actually rendered by the page
+    // (name, handle, biography card and country row; email and region
+    // are intentionally not shown by the current design).
     expect(find.text('Mario Rossi'), findsOneWidget);
     expect(find.text('@mariorossi'), findsOneWidget);
-    expect(find.text('mario@example.com'), findsOneWidget);
     expect(find.text('Software developer'), findsOneWidget);
-    expect(find.text('Lombardia'), findsOneWidget);
     expect(find.text('Italy'), findsOneWidget);
+    expect(find.text('mario@example.com'), findsNothing);
 
-    // Verify Logout button exists in AppBar
-    final appBarLogout = find.byTooltip('Log out');
-    expect(appBarLogout, findsOneWidget);
-
-    // Tap on AppBar logout button
-    await tester.tap(appBarLogout);
-    await tester.pumpAndSettle();
-
-    // Verify confirmation dialog opens
-    expect(find.byType(OverlayConfirmContent), findsOneWidget);
-    expect(
-      find.text('Are you sure you want to log out from your account?'),
-      findsOneWidget,
+    // Tap the QR button and verify the profile QR modal opens.
+    final qrButton = find.byWidgetPredicate(
+      (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedQrCode,
     );
-
-    // Cancel dialog
-    await tester.tap(find.text('Cancel'));
+    expect(qrButton, findsOneWidget);
+    await tester.tap(qrButton);
     await tester.pumpAndSettle();
-    expect(find.byType(OverlayConfirmContent), findsNothing);
+    expect(find.text('@MARIOROSSI'), findsOneWidget);
   });
 }
