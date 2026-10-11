@@ -1,0 +1,63 @@
+name: Build Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      os:
+        description: Target OS to build (all or single)
+        required: false
+        default: all
+        type: choice
+        options:
+          - all
+          - android
+          - linux
+          - windows
+          - macos
+          - web
+      ref:
+        description: Branch or ref to build
+        required: false
+        default: development
+        type: string
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: build-test-${{ inputs.ref }}-${{ inputs.os }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      os: ${{ inputs.os }}
+      ref: ${{ inputs.ref }}
+      release_type: production
+    secrets: inherit
+
+  report:
+    needs: [build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all dist artifacts
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-*
+          path: all-dist
+          merge-multiple: true
+
+      - name: List built files
+        run: |
+          echo "## Built files" >> "$GITHUB_STEP_SUMMARY"
+          if [ -d all-dist ]; then
+            find all-dist -type f | sort | tee -a "$GITHUB_STEP_SUMMARY" || true
+          else
+            echo "_No artifacts were produced._" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+          echo ""
+          echo "Build result: ${{ needs.build.result }}"

@@ -2,9 +2,9 @@ name: Tests & Coverage
 
 on:
   push:
-    branches: [development, preview, production]
+    branches: [production]
   pull_request:
-    branches: [development, preview, production]
+    branches: [production]
 
 jobs:
   test:
