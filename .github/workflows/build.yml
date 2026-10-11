@@ -30,6 +30,11 @@ on:
         required: false
         default: false
         type: boolean
+      build_type:
+        description: Build mode (release.yml always uses release)
+        required: false
+        default: release
+        type: string
     secrets:
       GOOGLE_SERVICES_JSON:
         required: false
@@ -80,6 +85,7 @@ jobs:
       - name: Build Android
         if: steps.check.outputs.skip != 'true'
         env:
+          BUILD_TYPE: ${{ inputs.build_type }}
           RELEASE_TYPE: ${{ inputs.release_type }}
           GOOGLE_SERVICES_B64: ${{ secrets.GOOGLE_SERVICES_JSON }}
           ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -139,6 +145,8 @@ jobs:
 
       - name: Build Linux
         if: steps.check.outputs.skip != 'true'
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
         run: bash scripts/ci/ci-build.sh linux
 
       - name: Skip notice
@@ -191,6 +199,8 @@ jobs:
       - name: Build Windows
         if: steps.check.outputs.skip != 'true'
         shell: bash
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
         run: bash scripts/ci/ci-build.sh windows
 
       - name: Skip notice
@@ -292,6 +302,7 @@ jobs:
       - name: Build macOS
         if: steps.check.outputs.skip != 'true'
         env:
+          BUILD_TYPE: ${{ inputs.build_type }}
           RUSTUP_TOOLCHAIN: stable-aarch64-apple-darwin
         run: bash scripts/ci/ci-build.sh macos
 
@@ -336,6 +347,8 @@ jobs:
 
       - name: Build Web
         if: steps.check.outputs.skip != 'true'
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
         run: bash scripts/ci/ci-build.sh web
 
       - name: Skip notice
