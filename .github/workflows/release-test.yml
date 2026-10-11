@@ -24,6 +24,11 @@ on:
           - development
           - preview
           - production
+      verbose:
+        description: Stream verbose logs for the macOS build (temporary diagnostic)
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -40,6 +45,7 @@ jobs:
       os: ${{ inputs.os }}
       ref: ${{ inputs.ref }}
       release_type: production
+      verbose: ${{ inputs.verbose }}
     secrets: inherit
 
   report:

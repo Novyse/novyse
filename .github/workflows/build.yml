@@ -30,6 +30,11 @@ on:
         required: false
         default: false
         type: boolean
+      verbose:
+        description: Stream verbose flutter logs for the macOS build (temporary diagnostic)
+        required: false
+        default: false
+        type: boolean
     secrets:
       GOOGLE_SERVICES_JSON:
         required: false
@@ -248,6 +253,17 @@ jobs:
           restore-keys: |
             macos-spm-
 
+      - name: Cache Cargo registry
+        if: steps.check.outputs.skip != 'true'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: macos-cargo-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            macos-cargo-
+
       - name: Setup Rust toolchain
         if: steps.check.outputs.skip != 'true'
         shell: bash
@@ -277,6 +293,7 @@ jobs:
       - name: Build macOS
         if: steps.check.outputs.skip != 'true'
         env:
+          VERBOSE: ${{ inputs.verbose }}
           RUSTUP_TOOLCHAIN: stable-aarch64-apple-darwin
         run: bash scripts/ci/ci-build.sh macos
 
