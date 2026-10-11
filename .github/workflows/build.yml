@@ -30,11 +30,6 @@ on:
         required: false
         default: false
         type: boolean
-      verbose:
-        description: Stream verbose flutter logs for the macOS build (temporary diagnostic)
-        required: false
-        default: false
-        type: boolean
     secrets:
       GOOGLE_SERVICES_JSON:
         required: false
@@ -58,6 +53,7 @@ jobs:
 
       - name: Check existing artifacts
         id: check
+        if: ${{ inputs.check_existing }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -115,6 +111,7 @@ jobs:
 
       - name: Check existing artifacts
         id: check
+        if: ${{ inputs.check_existing }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -166,6 +163,7 @@ jobs:
 
       - name: Check existing artifacts
         id: check
+        if: ${{ inputs.check_existing }}
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -217,6 +215,7 @@ jobs:
 
       - name: Check existing artifacts
         id: check
+        if: ${{ inputs.check_existing }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -293,7 +292,6 @@ jobs:
       - name: Build macOS
         if: steps.check.outputs.skip != 'true'
         env:
-          VERBOSE: ${{ inputs.verbose }}
           RUSTUP_TOOLCHAIN: stable-aarch64-apple-darwin
         run: bash scripts/ci/ci-build.sh macos
 
@@ -319,6 +317,7 @@ jobs:
 
       - name: Check existing artifacts
         id: check
+        if: ${{ inputs.check_existing }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

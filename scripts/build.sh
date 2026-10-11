@@ -80,11 +80,6 @@ SPLIT_PER_ABI=0
 SKIP_PACKAGING=0
 SELECTED_FORMATS=()
 
-VFLAG=""
-if [ "${VERBOSE:-false}" = "true" ]; then
-  VFLAG="-v"
-fi
-
 normalize_format() {
   local fmt
   fmt="$(to_lower "$1")"
@@ -301,7 +296,7 @@ build_windows() {
 
 build_macos() {
   echo "🍏 Building macOS ($BUILD_MODE) for $APP_NAME..."
-  flutter build macos "--$BUILD_MODE" $VFLAG
+  flutter build macos "--$BUILD_MODE"
 
   if [ "$SKIP_PACKAGING" -eq 0 ] && [ "$BUILD_MODE" = "release" ]; then
     echo "📦 Packaging macOS distributables..."
