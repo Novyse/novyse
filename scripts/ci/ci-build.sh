@@ -40,8 +40,8 @@ build_android() {
   fi
 
   flutter pub get
-  bash "$SCRIPT_DIR/sync-licenses.sh"
-  bash "$SCRIPT_DIR/sync-platform.sh"
+  bash "$ROOT_DIR/scripts/sync-licenses.sh"
+  bash "$ROOT_DIR/scripts/sync-platform.sh"
 
   flutter build apk --release
   flutter build apk --release --split-per-abi
@@ -77,8 +77,8 @@ case "$OS" in
     ;;
   linux | windows | macos | web | ios)
     flutter pub get
-    bash "$SCRIPT_DIR/sync-licenses.sh"
-    bash "$SCRIPT_DIR/build.sh" "$OS"
+    bash "$ROOT_DIR/scripts/sync-licenses.sh"
+    bash "$ROOT_DIR/scripts/build.sh" "$OS"
     ;;
   *)
     echo "❌ [CI-BUILD] Unknown OS '$OS'. Expected: android|linux|windows|macos|web|ios"
