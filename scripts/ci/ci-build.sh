@@ -17,7 +17,7 @@ set -e
 OS="${1:?Usage: ci-build.sh <os: android|linux|windows|macos|web|ios>}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$ROOT_DIR"
 
 source "$ROOT_DIR/scripts/extract-metadata.sh"
