@@ -16,10 +16,14 @@ on:
           - macos
           - web
       ref:
-        description: Branch or ref to build
+        description: Branch to build
         required: false
         default: development
-        type: string
+        type: choice
+        options:
+          - development
+          - preview
+          - production
 
 permissions:
   contents: read
