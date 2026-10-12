@@ -6,18 +6,18 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 source "$ROOT_DIR/scripts/extract-metadata.sh"
 
-echo "🔍 [CHECK-FLATHUB] Validating Flathub metadata for $APP_NAME ($APP_ID)..."
+echo "🔍 [CHECK-FLATHUB] Validating Flathub metadata for $APP_NAME ($FLATHUB_APP_ID)..."
 
 STAGING_DIR="$(mktemp -d)"
 trap 'rm -rf "$STAGING_DIR"' EXIT
 
-DESKTOP_FILE="$STAGING_DIR/${APP_ID}.desktop"
-METAINFO_FILE="$STAGING_DIR/${APP_ID}.metainfo.xml"
-MANIFEST_FILE="$STAGING_DIR/${APP_ID}.yml"
+DESKTOP_FILE="$STAGING_DIR/${FLATHUB_APP_ID}.desktop"
+METAINFO_FILE="$STAGING_DIR/${FLATHUB_APP_ID}.metainfo.xml"
+MANIFEST_FILE="$STAGING_DIR/${FLATHUB_APP_ID}.yml"
 
 # Generate files
-generate_desktop_entry "$DESKTOP_FILE"
-generate_appstream_metainfo "$METAINFO_FILE"
+generate_desktop_entry "$DESKTOP_FILE" "$FLATHUB_APP_ID"
+generate_appstream_metainfo "$METAINFO_FILE" "$FLATHUB_APP_ID"
 generate_flathub_manifest "$MANIFEST_FILE" "https://github.com/Novyse/novyse/releases/download/v${APP_VERSION}/${PKG_NAME}-${APP_VERSION}-linux.tar.gz" "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
 # Check Docker requirement first
@@ -35,8 +35,8 @@ chmod 644 "$DESKTOP_FILE" "$METAINFO_FILE" "$MANIFEST_FILE"
 LINTER_IMAGE="ghcr.io/flathub-infra/flatpak-builder-lint:latest"
 
 # 1. Validate Desktop Entry (via Docker)
-echo "  1️⃣  Validating Desktop file (${APP_ID}.desktop via Docker)..."
-if docker run --rm --entrypoint desktop-file-validate -v "$STAGING_DIR:/src:ro,Z" "$LINTER_IMAGE" "/src/${APP_ID}.desktop"; then
+echo "  1️⃣  Validating Desktop file (${FLATHUB_APP_ID}.desktop via Docker)..."
+if docker run --rm --entrypoint desktop-file-validate -v "$STAGING_DIR:/src:ro,Z" "$LINTER_IMAGE" "/src/${FLATHUB_APP_ID}.desktop"; then
   echo "     ✅ Desktop entry is valid."
 else
   echo "     ❌ Desktop entry validation failed."
@@ -44,8 +44,8 @@ else
 fi
 
 # 2. Validate AppStream Metainfo (via Docker)
-echo "  2️⃣  Validating AppStream Metainfo (${APP_ID}.metainfo.xml via Docker)..."
-if docker run --rm --entrypoint appstreamcli -v "$STAGING_DIR:/src:ro,Z" "$LINTER_IMAGE" validate --no-net "/src/${APP_ID}.metainfo.xml"; then
+echo "  2️⃣  Validating AppStream Metainfo (${FLATHUB_APP_ID}.metainfo.xml via Docker)..."
+if docker run --rm --entrypoint appstreamcli -v "$STAGING_DIR:/src:ro,Z" "$LINTER_IMAGE" validate --no-net "/src/${FLATHUB_APP_ID}.metainfo.xml"; then
   echo "     ✅ AppStream metainfo is valid."
 else
   echo "     ❌ AppStream metainfo validation failed."
@@ -54,8 +54,8 @@ fi
 
 # 3. Flathub Builder Linter (via Docker)
 echo "  3️⃣  Running Flathub Linter (manifest & appstream via Docker)..."
-docker run --rm -v "$STAGING_DIR:/src:ro,Z" "$LINTER_IMAGE" manifest "/src/${APP_ID}.yml" || ERRORS=$((ERRORS + 1))
-docker run --rm -v "$STAGING_DIR:/src:ro,Z" "$LINTER_IMAGE" appstream "/src/${APP_ID}.metainfo.xml" || ERRORS=$((ERRORS + 1))
+docker run --rm -v "$STAGING_DIR:/src:ro,Z" "$LINTER_IMAGE" manifest "/src/${FLATHUB_APP_ID}.yml" || ERRORS=$((ERRORS + 1))
+docker run --rm -v "$STAGING_DIR:/src:ro,Z" "$LINTER_IMAGE" appstream "/src/${FLATHUB_APP_ID}.metainfo.xml" || ERRORS=$((ERRORS + 1))
 
 echo ""
 if [ "$ERRORS" -eq 0 ]; then
