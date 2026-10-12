@@ -30,7 +30,7 @@ generate_linux_icons "$STAGING_DIR/icons"
 
 generate_flatpak_manifest "$STAGING_DIR/${APP_ID}.yml" "."
 
-FLATPAK_NAME="${PKG_NAME}.flatpak"
+FLATPAK_NAME="${PKG_NAME}-${APP_VERSION}-linux.flatpak"
 if (cd "$STAGING_DIR" && flatpak-builder --force-clean --repo="$STAGING_DIR/repo" build_dir "${APP_ID}.yml" && flatpak build-bundle "$STAGING_DIR/repo" "$DIST_DIR/$FLATPAK_NAME" "${APP_ID}"); then
   echo "✅ [FLATPAK] Created: $DIST_DIR/$FLATPAK_NAME"
 else

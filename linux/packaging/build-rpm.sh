@@ -21,7 +21,7 @@ fi
 
 mkdir -p "$DIST_DIR"
 CLEAN_VERSION=$(echo "$APP_VERSION" | tr '-' '.')
-RPM_NAME="${PKG_NAME}.rpm"
+RPM_NAME="${PKG_NAME}-${APP_VERSION}-linux.rpm"
 STAGING_DIR="$(mktemp -d)"
 
 mkdir -p "$STAGING_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}

@@ -23,9 +23,14 @@ cd "$ROOT_DIR"
 source "$ROOT_DIR/scripts/extract-metadata.sh"
 
 RELEASE_TYPE="${RELEASE_TYPE:-production}"
-SUFFIX=""
-if [ "$RELEASE_TYPE" = "preview" ]; then
-  SUFFIX="-preview"
+if [ -n "${PKG_NAME:-}" ] && [ -n "${APP_VERSION:-}" ]; then
+  ANDROID_BASE="${PKG_NAME}-${APP_VERSION}-android"
+else
+  SUFFIX=""
+  if [ "$RELEASE_TYPE" = "preview" ]; then
+    SUFFIX="-preview"
+  fi
+  ANDROID_BASE="novyse${SUFFIX}"
 fi
 
 build_android() {
@@ -51,14 +56,14 @@ build_android() {
 
   mkdir -p dist
   find build/app/outputs/bundle -name "*.aab" 2>/dev/null | while read -r aab_path; do
-    cp "$aab_path" "dist/novyse${SUFFIX}.aab"
+    cp "$aab_path" "dist/${ANDROID_BASE}.aab"
   done
   if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
-    cp build/app/outputs/flutter-apk/app-release.apk "dist/novyse${SUFFIX}-universal.apk"
+    cp build/app/outputs/flutter-apk/app-release.apk "dist/${ANDROID_BASE}-universal.apk"
   fi
   find build/app/outputs/flutter-apk -name "app-*-release.apk" 2>/dev/null | while read -r apk_path; do
     abi=$(basename "$apk_path" | sed -E 's/app-(.*)-release\.apk/\1/')
-    cp "$apk_path" "dist/novyse${SUFFIX}-${abi}.apk"
+    cp "$apk_path" "dist/${ANDROID_BASE}-${abi}.apk"
   done
 
   if [ -f "$KEYSTORE_FILE" ] && [ -n "${ANDROID_KEYSTORE_PASSWORD:-}" ] && [ -n "${ANDROID_KEY_ALIAS:-}" ]; then

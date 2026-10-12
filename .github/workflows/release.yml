@@ -253,7 +253,7 @@ jobs:
         run: |
           source scripts/extract-metadata.sh
 
-          TARBALL="novyse.tar.gz"
+          TARBALL="${PKG_NAME}-${{ inputs.version }}-linux.tar.gz"
           gh release download v${{ inputs.version }} -p "$TARBALL" || true
           if [ -f "$TARBALL" ]; then
             TARBALL_SHA256=$(sha256sum "$TARBALL" | awk '{print $1}')

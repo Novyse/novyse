@@ -10,8 +10,8 @@ export MACOS_CATEGORY="$(get_dart_field macOSCategory)"
 [ -z "$MACOS_CATEGORY" ] && export MACOS_CATEGORY="public.app-category.social-networking"
 
 export MACOS_BUNDLE_ID="$APP_ID"
-export MACOS_ZIP_NAME="${PKG_NAME}-macos.zip"
-export MACOS_DMG_NAME="${PKG_NAME}.dmg"
+export MACOS_ZIP_NAME="${PKG_NAME}-${APP_VERSION}-macos.zip"
+export MACOS_DMG_NAME="${PKG_NAME}-${APP_VERSION}-macos.dmg"
 
 case "$BRANCH" in
   "production") MACOS_HOST_SUFFIX="" ;;

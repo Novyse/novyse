@@ -15,7 +15,7 @@ if [ ! -d "$BUNDLE_DIR" ]; then
   exit 1
 fi
 
-PORTABLE_NAME="${PKG_NAME}-portable.exe"
+PORTABLE_NAME="${PKG_NAME}-${APP_VERSION}-windows-portable.exe"
 OUTPUT_EXE="$DIST_DIR/$PORTABLE_NAME"
 
 mkdir -p "$DIST_DIR"
