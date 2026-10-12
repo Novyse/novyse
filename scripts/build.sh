@@ -221,7 +221,10 @@ bash "$SCRIPT_DIR/sync-branch.sh"
 # 2. Synchronize version in pubspec.yaml
 bash "$SCRIPT_DIR/sync-version.sh"
 
-# 3. Synchronize target platform configurations
+# 3. Synchronize desktop update keys
+bash "$SCRIPT_DIR/sync-update-keys.sh"
+
+# 4. Synchronize target platform configurations
 if [ "$PLATFORM" = "all" ]; then
   bash "$SCRIPT_DIR/sync-platform.sh" all
 else
@@ -239,6 +242,39 @@ if [ "$CLEAN_BUILD" -eq 1 ]; then
   flutter clean
   flutter pub get
 fi
+
+build_desktop_updater_zip() {
+  local du_platform="$1" input_path="$2" package_id="$3"
+  if [ "${BRANCH:-development}" != "production" ]; then
+    echo "⏭️  [DESKTOP-UPDATER] Skipped (branch=$BRANCH, production only)."
+    return 0
+  fi
+  if [ ! -e "$input_path" ]; then
+    echo "⚠️  [DESKTOP-UPDATER WARNING] Bundle not found: $input_path; skipping."
+    return 0
+  fi
+  if [ ! -f "$ROOT_DIR/desktop_updater.keys.json" ]; then
+    echo "⚠️  [DESKTOP-UPDATER WARNING] desktop_updater.keys.json missing; skipping."
+    return 0
+  fi
+  local out_dir="$DIST_DIR/desktop_updater/$du_platform"
+  mkdir -p "$out_dir"
+  local artifact_url="https://github.com/Novyse/novyse/releases/download/v${APP_VERSION}/novyse-${du_platform}-${APP_VERSION}.zip"
+  echo "📦 [DESKTOP-UPDATER] Packaging $du_platform update ($APP_VERSION)..."
+  if dart run desktop_updater package \
+    --input "$input_path" \
+    --output "$out_dir" \
+    --package-id "$package_id" \
+    --app-name "$APP_NAME" \
+    --version "$APP_VERSION" \
+    --platform "$du_platform" \
+    --channel stable \
+    --artifact-url "$artifact_url"; then
+    echo "✅ [DESKTOP-UPDATER] Created: $out_dir"
+  else
+    echo "⚠️  [DESKTOP-UPDATER WARNING] Packaging failed for $du_platform; continuing."
+  fi
+}
 
 build_linux() {
   echo "🐧 Building Linux for $APP_NAME..."
@@ -264,6 +300,9 @@ build_linux() {
     if is_format_selected "flatpak"; then
       bash "$ROOT_DIR/linux/packaging/build-flatpak.sh" || true
     fi
+    if [ "$SKIP_PACKAGING" -eq 0 ]; then
+      build_desktop_updater_zip "linux" "$ROOT_DIR/build/linux/x64/release/bundle" "$APP_ID"
+    fi
   fi
 }
 
@@ -283,6 +322,9 @@ build_windows() {
     fi
     if is_format_selected "msi"; then
       bash "$ROOT_DIR/windows/packaging/build-msi.sh" || true
+    fi
+    if [ "$SKIP_PACKAGING" -eq 0 ]; then
+      build_desktop_updater_zip "windows" "$ROOT_DIR/build/windows/x64/runner/Release" "$APP_ID"
     fi
   fi
 }
@@ -306,6 +348,15 @@ build_macos() {
     fi
     if is_format_selected "dmg"; then
       bash "$ROOT_DIR/macos/packaging/build-dmg.sh" || true
+    fi
+    if [ "$SKIP_PACKAGING" -eq 0 ]; then
+      APP_PATH_DU=$(find "$ROOT_DIR/build/macos/Build/Products/Release" -maxdepth 1 -name "*.app" | head -n 1)
+      if [ -n "${APP_PATH_DU:-}" ]; then
+        # TODO: Pay apple
+        # Unsigned direct-zip: no Developer ID/notarization (see docs/desktop-update-keys.md).
+        # Gatekeeper may block relaunch; UpdateRequired falls back to website download.
+        build_desktop_updater_zip "macos" "$APP_PATH_DU" "$APP_ID"
+      fi
     fi
   fi
 }

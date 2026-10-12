@@ -14,6 +14,7 @@ export LINUX_KEYWORDS="$(get_dart_field linuxKeywords)"
 # Generate desktop entry on-demand
 generate_desktop_entry() {
   local target_file="$1"
+  local APP_ID="${2:-$APP_ID}"
   mkdir -p "$(dirname "$target_file")"
   cat << EOF > "$target_file"
 [Desktop Entry]
@@ -35,6 +36,7 @@ EOF
 # Generate AppStream metadata on-demand
 generate_appstream_metainfo() {
   local target_file="$1"
+  local APP_ID="${2:-$APP_ID}"
   mkdir -p "$(dirname "$target_file")"
   cat << EOF > "$target_file"
 <?xml version="1.0" encoding="utf-8"?>
@@ -86,9 +88,10 @@ EOF
 generate_flatpak_manifest() {
   local target_file="$1"
   local source_dir="${2:-.}"
+  local FLATHUB_APP_ID="${3:-$FLATHUB_APP_ID}"
   mkdir -p "$(dirname "$target_file")"
   cat << EOF > "$target_file"
-app-id: ${APP_ID}
+app-id: ${FLATHUB_APP_ID}
 runtime: org.freedesktop.Platform
 runtime-version: "26.08"
 sdk: org.freedesktop.Sdk
@@ -115,8 +118,8 @@ modules:
       - mkdir -p /app/bin /app/lib /app/data
       - cp -R bundle/* /app/
       - install -Dm755 bundle/novyse /app/bin/novyse
-      - install -Dm644 ${APP_ID}.desktop /app/share/applications/${APP_ID}.desktop
-      - install -Dm644 ${APP_ID}.metainfo.xml /app/share/metainfo/${APP_ID}.metainfo.xml
+      - install -Dm644 ${FLATHUB_APP_ID}.desktop /app/share/applications/${FLATHUB_APP_ID}.desktop
+      - install -Dm644 ${FLATHUB_APP_ID}.metainfo.xml /app/share/metainfo/${FLATHUB_APP_ID}.metainfo.xml
       - mkdir -p /app/share/icons/hicolor
       - cp -R icons/hicolor/* /app/share/icons/hicolor/
     sources:
@@ -130,9 +133,10 @@ generate_flathub_manifest() {
   local target_file="$1"
   local tarball_url="$2"
   local tarball_sha256="$3"
+  local FLATHUB_APP_ID="${4:-$FLATHUB_APP_ID}"
   mkdir -p "$(dirname "$target_file")"
   cat << EOF > "$target_file"
-app-id: ${APP_ID}
+app-id: ${FLATHUB_APP_ID}
 runtime: org.freedesktop.Platform
 runtime-version: "26.08"
 sdk: org.freedesktop.Sdk
@@ -159,8 +163,8 @@ modules:
       - mkdir -p /app/bin /app/lib /app/data
       - cp -R * /app/
       - install -Dm755 novyse /app/bin/novyse
-      - install -Dm644 ${APP_ID}.desktop /app/share/applications/${APP_ID}.desktop
-      - install -Dm644 ${APP_ID}.metainfo.xml /app/share/metainfo/${APP_ID}.metainfo.xml
+      - install -Dm644 ${FLATHUB_APP_ID}.desktop /app/share/applications/${FLATHUB_APP_ID}.desktop
+      - install -Dm644 ${FLATHUB_APP_ID}.metainfo.xml /app/share/metainfo/${FLATHUB_APP_ID}.metainfo.xml
       - mkdir -p /app/share/icons/hicolor
       - cp -R icons/hicolor/* /app/share/icons/hicolor/
     sources:
@@ -168,9 +172,9 @@ modules:
         url: ${tarball_url}
         sha256: ${tarball_sha256}
       - type: file
-        path: ${APP_ID}.desktop
+        path: ${FLATHUB_APP_ID}.desktop
       - type: file
-        path: ${APP_ID}.metainfo.xml
+        path: ${FLATHUB_APP_ID}.metainfo.xml
       - type: dir
         path: icons
 EOF
@@ -223,6 +227,7 @@ EOF
 # Generate hicolor icons on-demand (ImageMagick magick/convert)
 generate_linux_icons() {
   local target_root="${1:-$_ROOT_DIR/linux/packaging/icons}"
+  local APP_ID="${2:-$APP_ID}"
   local logo_src="$_ROOT_DIR/assets/images/logo-novyse.png"
   local svg_src="$_ROOT_DIR/assets/images/logo.svg"
 

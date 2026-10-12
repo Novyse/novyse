@@ -74,6 +74,8 @@ get_dart_field() {
 # Export common metadata
 export BRANCH="$BRANCH"
 export APP_ID="$(get_dart_field appId)"
+export FLATHUB_APP_ID="$(get_dart_field flathubAppId)"
+[ -z "$FLATHUB_APP_ID" ] && export FLATHUB_APP_ID="com.novyse.novyse"
 export APP_NAME="$(get_dart_field appName)"
 export APP_VERSION="$(get_dart_field appVersion)"
 export APP_DESCRIPTION="$(get_dart_field appDescription)"
