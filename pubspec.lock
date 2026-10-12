@@ -591,8 +591,8 @@ packages:
     dependency: transitive
     description:
       path: "auth-sdk/flutter/flutter_opaque"
-      ref: "402c5810a78bb9216c40e5b6d8ee67dff515b93e"
-      resolved-ref: "402c5810a78bb9216c40e5b6d8ee67dff515b93e"
+      ref: "6d1ac673669f9cbc32709710b49fea8cc1b65e22"
+      resolved-ref: "6d1ac673669f9cbc32709710b49fea8cc1b65e22"
       url: "https://github.com/Novyse/packages.git"
     source: git
     version: "0.0.1"
@@ -1067,7 +1067,7 @@ packages:
     description:
       path: "auth-sdk/flutter"
       ref: main
-      resolved-ref: "402c5810a78bb9216c40e5b6d8ee67dff515b93e"
+      resolved-ref: "6d1ac673669f9cbc32709710b49fea8cc1b65e22"
       url: "https://github.com/Novyse/packages.git"
     source: git
     version: "1.0.0"
@@ -1459,8 +1459,8 @@ packages:
     dependency: transitive
     description:
       path: "auth-sdk/flutter/flutter_opaque/rust_builder"
-      ref: "402c5810a78bb9216c40e5b6d8ee67dff515b93e"
-      resolved-ref: "402c5810a78bb9216c40e5b6d8ee67dff515b93e"
+      ref: "6d1ac673669f9cbc32709710b49fea8cc1b65e22"
+      resolved-ref: "6d1ac673669f9cbc32709710b49fea8cc1b65e22"
       url: "https://github.com/Novyse/packages.git"
     source: git
     version: "0.0.1"
