@@ -70,19 +70,7 @@ jobs:
     needs: git-flow
     runs-on: ubuntu-latest
     steps:
-      - name: Check if release already exists
-        id: exists
-        run: |
-          if gh release view "v${{ inputs.version }}" >/dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Create Draft Release
-        if: steps.exists.outputs.exists != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ inputs.version }}
@@ -100,9 +88,19 @@ jobs:
       os: all
       ref: ${{ inputs.release_type }}
       release_type: ${{ inputs.release_type }}
-      version: ${{ inputs.version }}
-      check_existing: true
     secrets: inherit
+
+  cleanup-release:
+    needs: [create-release, build]
+    if: ${{ needs.build.result == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete draft release left behind by the failed build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Build failed — deleting draft release v${{ inputs.version }}."
+          gh release delete "v${{ inputs.version }}" --cleanup-tag --yes
 
   upload-release:
     needs: build

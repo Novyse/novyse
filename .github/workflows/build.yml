@@ -20,16 +20,6 @@ on:
         required: false
         default: production
         type: string
-      version:
-        description: Release version without leading `v` (only used with check_existing)
-        required: false
-        default: ""
-        type: string
-      check_existing:
-        description: Skip an OS build when its artifacts are already complete
-        required: false
-        default: false
-        type: boolean
     secrets:
       GOOGLE_SERVICES_JSON:
         required: false
@@ -51,34 +41,19 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Check existing artifacts
-        id: check
-        if: ${{ inputs.check_existing }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ '${{ inputs.check_existing }}' = 'true' ]; then
-            echo "skip=$(bash scripts/ci/check-artifacts.sh android '${{ inputs.version }}' '${{ inputs.release_type }}')" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Setup Java
-        if: steps.check.outputs.skip != 'true'
         uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: "17"
 
       - name: Setup Flutter
-        if: steps.check.outputs.skip != 'true'
         uses: subosito/flutter-action@v2
         with:
           channel: "stable"
           cache: true
 
       - name: Build Android
-        if: steps.check.outputs.skip != 'true'
         env:
           RELEASE_TYPE: ${{ inputs.release_type }}
           GOOGLE_SERVICES_B64: ${{ secrets.GOOGLE_SERVICES_JSON }}
@@ -88,10 +63,6 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: bash scripts/ci/ci-build.sh android
-
-      - name: Skip notice
-        if: steps.check.outputs.skip == 'true'
-        run: echo "✅ Android artifacts already present, build skipped."
 
       - name: Upload dist
         if: always()
@@ -109,20 +80,7 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Check existing artifacts
-        id: check
-        if: ${{ inputs.check_existing }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ '${{ inputs.check_existing }}' = 'true' ]; then
-            echo "skip=$(bash scripts/ci/check-artifacts.sh linux '${{ inputs.version }}' '${{ inputs.release_type }}')" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Install Linux Build Dependencies
-        if: steps.check.outputs.skip != 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libx11-dev pkg-config ninja-build libsecret-1-dev libjson-glib-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good libglib2.0-dev libwebkit2gtk-4.1-dev libpulse-dev libmpv-dev libepoxy-dev dpkg-dev rpm elfutils zip unzip flatpak flatpak-builder
@@ -131,19 +89,13 @@ jobs:
           sudo snap install snapcraft --classic || true
 
       - name: Setup Flutter
-        if: steps.check.outputs.skip != 'true'
         uses: subosito/flutter-action@v2
         with:
           channel: "stable"
           cache: true
 
       - name: Build Linux
-        if: steps.check.outputs.skip != 'true'
         run: bash scripts/ci/ci-build.sh linux
-
-      - name: Skip notice
-        if: steps.check.outputs.skip == 'true'
-        run: echo "✅ Linux artifacts already present, build skipped."
 
       - name: Upload dist
         if: always()
@@ -161,41 +113,21 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Check existing artifacts
-        id: check
-        if: ${{ inputs.check_existing }}
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ '${{ inputs.check_existing }}' = 'true' ]; then
-            echo "skip=$(bash scripts/ci/check-artifacts.sh windows '${{ inputs.version }}' '${{ inputs.release_type }}')" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Setup Flutter
-        if: steps.check.outputs.skip != 'true'
         uses: subosito/flutter-action@v2
         with:
           channel: "stable"
           cache: true
 
       - name: Install Packaging Tools (Inno Setup & WiX Toolset)
-        if: steps.check.outputs.skip != 'true'
         shell: pwsh
         run: |
           choco install innosetup wixtoolset zip --no-progress
           "C:\Program Files (x86)\WiX Toolset v3.11\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: Build Windows
-        if: steps.check.outputs.skip != 'true'
         shell: bash
         run: bash scripts/ci/ci-build.sh windows
-
-      - name: Skip notice
-        if: steps.check.outputs.skip == 'true'
-        run: echo "✅ Windows artifacts already present, build skipped."
 
       - name: Upload dist
         if: always()
@@ -213,27 +145,13 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Check existing artifacts
-        id: check
-        if: ${{ inputs.check_existing }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ '${{ inputs.check_existing }}' = 'true' ]; then
-            echo "skip=$(bash scripts/ci/check-artifacts.sh macos '${{ inputs.version }}' '${{ inputs.release_type }}')" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Setup Flutter
-        if: steps.check.outputs.skip != 'true'
         uses: subosito/flutter-action@v2
         with:
           channel: "stable"
           cache: true
 
       - name: Cache CocoaPods
-        if: steps.check.outputs.skip != 'true'
         uses: actions/cache@v4
         with:
           path: macos/Pods
@@ -242,7 +160,6 @@ jobs:
             macos-pods-
 
       - name: Cache SwiftPM packages
-        if: steps.check.outputs.skip != 'true'
         uses: actions/cache@v4
         with:
           path: |
@@ -253,7 +170,6 @@ jobs:
             macos-spm-
 
       - name: Cache Cargo registry
-        if: steps.check.outputs.skip != 'true'
         uses: actions/cache@v4
         with:
           path: |
@@ -264,7 +180,6 @@ jobs:
             macos-cargo-
 
       - name: Setup Rust toolchain
-        if: steps.check.outputs.skip != 'true'
         shell: bash
         run: |
           set -e
@@ -274,14 +189,9 @@ jobs:
           rustup default stable-aarch64-apple-darwin
 
       - name: Build macOS
-        if: steps.check.outputs.skip != 'true'
         env:
           RUSTUP_TOOLCHAIN: stable-aarch64-apple-darwin
         run: bash scripts/ci/ci-build.sh macos
-
-      - name: Skip notice
-        if: steps.check.outputs.skip == 'true'
-        run: echo "✅ macOS artifacts already present, build skipped."
 
       - name: Upload dist
         if: always()
@@ -299,32 +209,14 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Check existing artifacts
-        id: check
-        if: ${{ inputs.check_existing }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ '${{ inputs.check_existing }}' = 'true' ]; then
-            echo "skip=$(bash scripts/ci/check-artifacts.sh web '${{ inputs.version }}' '${{ inputs.release_type }}')" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Setup Flutter
-        if: steps.check.outputs.skip != 'true'
         uses: subosito/flutter-action@v2
         with:
           channel: "stable"
           cache: true
 
       - name: Build Web
-        if: steps.check.outputs.skip != 'true'
         run: bash scripts/ci/ci-build.sh web
-
-      - name: Skip notice
-        if: steps.check.outputs.skip == 'true'
-        run: echo "✅ Web artifacts already present, build skipped."
 
       - name: Upload dist
         if: always()
@@ -335,7 +227,6 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload web dist for deploy job
-        if: steps.check.outputs.skip != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: web-dist
