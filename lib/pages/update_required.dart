@@ -1,4 +1,3 @@
-import 'package:desktop_updater/desktop_updater.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
@@ -6,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../core/config/global.dart' as config;
 import '../core/l10n/l10n.dart';
-import '../core/updater/updater_controller_factory.dart';
+import '../core/updater/app_updater.dart';
 import '../core/updater/updater_keys.dart';
 import '../core/utils/platform.dart';
 
