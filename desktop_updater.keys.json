@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "profileId": "98ee1b59a5cc8959059fa64c03d666c2",
+  "feedUrl": "https://github.com/Novyse/novyse/releases/latest/download/app-archive.json",
+  "activeKeyId": "release-689c861f78cd1ea3dddb5d84",
+  "publicKeys": {
+    "release-689c861f78cd1ea3dddb5d84": "qqLWN1e+CheqM0NUbV3/593VffzmWQKUbD6ROFXpiK0="
+  }
+}

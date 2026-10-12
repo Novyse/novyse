@@ -1,0 +1,8 @@
+updates:
+  baseUrl: https://github.com/Novyse/novyse/releases/latest/download
+  channel: stable
+
+hooks:
+  postPackage:
+    - command: "dart run desktop_updater:release sign --release dist/desktop_updater/linux/release.json"
+      platforms: ["linux"]
