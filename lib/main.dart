@@ -15,6 +15,7 @@ import 'package:novyse/core/notifications/notification_binder.dart';
 import 'package:novyse/core/notifications/notification_manager.dart';
 import 'package:novyse/core/share/share_intent_binder.dart';
 import 'package:novyse/core/shortcuts/app_shortcuts_wrapper.dart';
+import 'package:novyse/core/updater/updater_controller_factory.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_recents_store.dart';
 import 'package:novyse/ui/components/window/desktop_tray_controller.dart';
@@ -63,6 +64,7 @@ void main() async {
   }
   await initializeDateFormatting();
   await _initDesktopWindow();
+  await recoverPendingDesktopInstall();
   await _initFirebase();
   if (kIsWeb) {
     unawaited(BrowserContextMenu.disableContextMenu());

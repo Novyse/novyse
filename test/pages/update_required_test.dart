@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/pages/update_required.dart';
 
 void main() {
@@ -27,6 +28,54 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Required: 2.0.0'), findsOneWidget);
-    expect(find.text('Download from GitHub'), findsOneWidget);
+    expect(find.text('Update Now'), findsOneWidget);
+    expect(find.text('Download from Website'), findsOneWidget);
+  });
+
+  testWidgets('UpdateRequiredPage renders fallback button on mobile', (
+    tester,
+  ) async {
+    debugOverridePlatform = AppPlatform.mobile;
+    addTearDown(() => debugOverridePlatform = null);
+
+    await tester.pumpWidget(buildTestWidget(minVersion: '2.0.0'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Update Now'), findsNothing);
+    expect(find.text('Download from Website'), findsOneWidget);
+  });
+
+  testWidgets('UpdateRequiredPage renders store guidance for Flathub install', (
+    tester,
+  ) async {
+    debugOverrideInstallSource = AppInstallSource.flathub;
+    addTearDown(() => debugOverrideInstallSource = null);
+
+    await tester.pumpWidget(buildTestWidget(minVersion: '2.0.0'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('This install is managed by Flathub. Update it through that store.'),
+      findsOneWidget,
+    );
+    expect(find.text('Update Now'), findsNothing);
+    expect(find.text('Open Flathub'), findsOneWidget);
+  });
+
+  testWidgets('UpdateRequiredPage renders store guidance for Snap install', (
+    tester,
+  ) async {
+    debugOverrideInstallSource = AppInstallSource.snapStore;
+    addTearDown(() => debugOverrideInstallSource = null);
+
+    await tester.pumpWidget(buildTestWidget(minVersion: '2.0.0'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('This install is managed by Snap Store. Update it through that store.'),
+      findsOneWidget,
+    );
+    expect(find.text('Update Now'), findsNothing);
+    expect(find.text('Open Snap Store'), findsOneWidget);
   });
 }

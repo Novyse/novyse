@@ -1,3 +1,4 @@
+import 'package:desktop_updater/desktop_updater.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
@@ -5,28 +6,57 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../core/config/global.dart' as config;
 import '../core/l10n/l10n.dart';
+import '../core/updater/updater_controller_factory.dart';
+import '../core/updater/updater_keys.dart';
 import '../core/utils/platform.dart';
 
 /// Screen displayed when the client version is outdated and an update is required.
-class UpdateRequiredPage extends StatelessWidget {
+class UpdateRequiredPage extends StatefulWidget {
   const UpdateRequiredPage({super.key, this.minVersion});
 
   final String? minVersion;
 
-  String _getButtonLabel(AppLocalizations l10n) {
+  @override
+  State<UpdateRequiredPage> createState() => _UpdateRequiredPageState();
+}
+
+enum _DesktopUpdatePhase { idle, working, error, upToDate }
+
+class _UpdateRequiredPageState extends State<UpdateRequiredPage> {
+  DesktopUpdaterController? _controller;
+  _DesktopUpdatePhase _phase = _DesktopUpdatePhase.idle;
+  String? _statusText;
+  double? _progress;
+  String? _error;
+
+  bool get _isDesktop => currentPlatform == AppPlatform.desktop;
+  String? get _managingStore => currentStoreName;
+
+  bool get _canSelfUpdate =>
+      _isDesktop &&
+      currentInstallSource == AppInstallSource.direct &&
+      _managingStore == null &&
+      trustedReleasePublicKeys.isNotEmpty;
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  String _getFallbackButtonLabel(AppLocalizations l10n) {
     if (kIsWeb) return l10n.refreshPage;
+    if (_managingStore != null) return l10n.updaterOpenStore(_managingStore!);
     return switch (currentOS) {
       AppOS.web => l10n.refreshPage,
       AppOS.android => l10n.openPlayStore,
       AppOS.ios => l10n.openAppStore,
-      AppOS.windows ||
-      AppOS.linux ||
-      AppOS.macos ||
-      AppOS.fuchsia => l10n.openGitHub,
+      AppOS.windows || AppOS.linux || AppOS.macos || AppOS.fuchsia =>
+        l10n.updaterOpenWebsite,
     };
   }
 
-  Future<void> _handleAction() async {
+  Future<void> _handleFallbackAction() async {
     if (kIsWeb) {
       final uri = Uri.parse(config.appUrl);
       if (await canLaunchUrl(uri)) {
@@ -34,18 +64,96 @@ class UpdateRequiredPage extends StatelessWidget {
       }
       return;
     }
-
     final url = switch (currentOS) {
       AppOS.android => config.playStoreUrl,
       AppOS.ios => config.appStoreUrl,
-      _ => config.releasesUrl,
+      AppOS.linux when currentInstallSource == AppInstallSource.snapStore =>
+        config.snapStoreUrl,
+      AppOS.linux when currentInstallSource == AppInstallSource.flathub =>
+        config.flathubUrl,
+      AppOS.windows || AppOS.linux || AppOS.macos || AppOS.fuchsia =>
+        config.downloadPageUrl,
+      AppOS.web => config.appUrl,
     };
-
     if (url.isNotEmpty) {
       final uri = Uri.parse(url);
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
+    }
+  }
+
+  void _bindController(DesktopUpdaterController controller) {
+    controller.addListener(() {
+      if (!mounted) return;
+      final state = controller.state;
+      setState(() {
+        if (state is UpdateChecking) {
+          _statusText = null;
+          _progress = null;
+        } else if (state is UpdateDownloading) {
+          final total = state.totalBytes;
+          _progress = total > 0 ? state.receivedBytes / total : null;
+        } else if (state is UpdateInstalling) {
+          _progress = null;
+        }
+      });
+    });
+  }
+
+  Future<void> _handleDesktopUpdate(AppLocalizations l10n) async {
+    if (!_canSelfUpdate) {
+      await _handleFallbackAction();
+      return;
+    }
+    if (_phase == _DesktopUpdatePhase.working) return;
+    setState(() {
+      _phase = _DesktopUpdatePhase.working;
+      _error = null;
+      _progress = null;
+      _statusText = l10n.updaterChecking;
+    });
+    try {
+      _controller ??= await createDesktopUpdaterController();
+      final controller = _controller!;
+      _bindController(controller);
+
+      final result = await controller.checkForUpdates();
+      if (!mounted) return;
+
+      if (result is ManualUpdateCheckUpToDate) {
+        setState(() {
+          _phase = _DesktopUpdatePhase.upToDate;
+          _statusText = l10n.updaterNoUpdate;
+        });
+        return;
+      }
+      if (result is ManualUpdateCheckFreshInstallRequired ||
+          result is ManualUpdateCheckBlockedBySupportPolicy) {
+        await _handleFallbackAction();
+        setState(() => _phase = _DesktopUpdatePhase.idle);
+        return;
+      }
+      if (result is ManualUpdateCheckFailed) {
+        throw result.error;
+      }
+
+      setState(() => _statusText = l10n.updaterVerifying);
+      await controller.downloadUpdate();
+      if (!mounted) return;
+
+      setState(() => _statusText = l10n.updaterInstalling);
+      await controller.restartApp();
+      if (!mounted) return;
+      setState(() => _statusText = l10n.updaterRestarting);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _phase = _DesktopUpdatePhase.error;
+        _error = l10n.updaterError;
+        _statusText = null;
+        _progress = null;
+      });
     }
   }
 
@@ -140,9 +248,10 @@ class UpdateRequiredPage extends StatelessWidget {
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            if (minVersion != null && minVersion!.isNotEmpty)
+                            if (widget.minVersion != null &&
+                                widget.minVersion!.isNotEmpty)
                               Text(
-                                l10n.requiredVersion(minVersion!),
+                                l10n.requiredVersion(widget.minVersion!),
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
@@ -153,10 +262,85 @@ class UpdateRequiredPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      AppButton(
-                        label: _getButtonLabel(l10n),
-                        onPressed: () => _handleAction(),
-                      ),
+                      if (_isDesktop) ...[
+                        if (_managingStore case final store?) ...[
+                          Text(
+                            l10n.updaterStoreManaged(store),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (_phase == _DesktopUpdatePhase.working) ...[
+                          if (_progress != null)
+                            LinearProgressIndicator(value: _progress),
+                          if (_progress == null)
+                            const LinearProgressIndicator(),
+                          const SizedBox(height: 12),
+                          Text(
+                            _statusTextWithProgress(l10n),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (_phase == _DesktopUpdatePhase.error &&
+                            _error != null) ...[
+                          Text(
+                            _error!,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: theme.colorScheme.error,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (_phase == _DesktopUpdatePhase.upToDate) ...[
+                          Text(
+                            l10n.updaterNoUpdate,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (_canSelfUpdate) ...[
+                          AppButton(
+                            label: _phase == _DesktopUpdatePhase.working
+                                ? _statusTextWithProgress(l10n)
+                                : l10n.updaterUpdateNow,
+                            onPressed: _phase == _DesktopUpdatePhase.working
+                                ? null
+                                : () => _handleDesktopUpdate(l10n),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        AppButton(
+                          label: _getFallbackButtonLabel(l10n),
+                          onPressed: () => _handleFallbackAction(),
+                        ),
+                        if (_phase == _DesktopUpdatePhase.error) ...[
+                          const SizedBox(height: 12),
+                          AppButton(
+                            label: l10n.updaterRetry,
+                            onPressed: () => _handleDesktopUpdate(l10n),
+                          ),
+                        ],
+                      ] else ...[
+                        AppButton(
+                          label: _getFallbackButtonLabel(l10n),
+                          onPressed: () => _handleFallbackAction(),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -166,5 +350,17 @@ class UpdateRequiredPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _statusTextWithProgress(AppLocalizations l10n) {
+    final state = _controller?.state;
+    if (state is UpdateDownloading) {
+      final pct = _progress == null
+          ? ''
+          : ' ${(_progress! * 100).toStringAsFixed(0)}%';
+      return l10n.updaterDownloading(pct);
+    }
+    if (state is UpdateInstalling) return l10n.updaterInstalling;
+    return _statusText ?? l10n.updaterChecking;
   }
 }

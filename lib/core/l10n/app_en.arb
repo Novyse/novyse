@@ -1221,5 +1221,38 @@
   "screenShareBitrateLabel": "Bitrate (kbps)",
   "screenShareBitrateMinError": "Bitrate is below the minimum for this setting",
   "screenShareBitrateMaxError": "Bitrate is above the maximum for this setting",
-  "screenShareBitratePremiumLimitError": "Subscribe to Premium to unlock all features (WIP)"
+  "screenShareBitratePremiumLimitError": "Subscribe to Premium to unlock all features (WIP)",
+  "updaterChecking": "Checking for updates...",
+  "updaterDownloading": "Downloading update {progress}...",
+  "@updaterDownloading": {
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "updaterVerifying": "Verifying update...",
+  "updaterInstalling": "Installing update...",
+  "updaterRestarting": "Restarting to apply update...",
+  "updaterNoUpdate": "You are already on the latest version.",
+  "updaterError": "Automatic update failed. Please try again or download manually.",
+  "updaterOpenWebsite": "Download from Website",
+  "updaterUpdateNow": "Update Now",
+  "updaterRetry": "Retry",
+  "updaterStoreManaged": "This install is managed by {store}. Update it through that store.",
+  "@updaterStoreManaged": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "updaterOpenStore": "Open {store}",
+  "@updaterOpenStore": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  }
 }
