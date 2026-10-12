@@ -296,7 +296,17 @@ build_windows() {
 
 build_macos() {
   echo "🍏 Building macOS ($BUILD_MODE) for $APP_NAME..."
-  flutter build macos "--$BUILD_MODE"
+
+# TODO: Remove
+  local limited=(perl "$ROOT_DIR/scripts/limited-exec.sh" "${CI_BUILD_TIMEOUT:-5400}")
+  if [ -n "${CI_MACOS_TRACE:-}" ]; then
+    set -o pipefail
+    "${limited[@]}" flutter build macos "--$BUILD_MODE" -v 2>&1 \
+      | perl -pe 's/\r/\n/g' \
+      | perl -ne 'BEGIN{$|=1} print if /PhaseScriptExecution|CompileSwift|SwiftDriver|CompileC |Ld |Libtool|CodeSign|CopySwiftLibs|ProcessInfoPlistFile|error:|\*\* BUILD/'
+  else
+    "${limited[@]}" flutter build macos "--$BUILD_MODE"
+  fi
 
   if [ "$SKIP_PACKAGING" -eq 0 ] && [ "$BUILD_MODE" = "release" ]; then
     echo "📦 Packaging macOS distributables..."

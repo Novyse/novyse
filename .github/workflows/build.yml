@@ -218,6 +218,7 @@ jobs:
   build-macos:
     if: ${{ inputs.os == 'all' || inputs.os == 'macos' }}
     runs-on: macos-latest
+    timeout-minutes: 120 # TODO: Remove
     steps:
       - uses: actions/checkout@v4
         with:
@@ -283,27 +284,13 @@ jobs:
             --target aarch64-apple-darwin,x86_64-apple-darwin
           rustup toolchain uninstall stable-x86_64-unknown-linux-gnu || true
           rustup default stable-aarch64-apple-darwin
-          # Cargokit runs `rustup run stable ...` (not configurable) and bare
-          # `stable` host resolution is broken on this image, so shadow rustup
-          # with a wrapper that rewrites `run stable` to the full triple.
-          if [ -f "${HOME}/.cargo/bin/rustup" ] && [ ! -L "${HOME}/.cargo/bin/rustup" ]; then
-            mv "${HOME}/.cargo/bin/rustup" "${HOME}/.cargo/bin/rustup.real"
-          fi
-          REAL_RUSTUP="$(command -v rustup.real || true)"
-          if [ -z "$REAL_RUSTUP" ] && [ -x "${HOME}/.cargo/bin/rustup.real" ]; then
-            REAL_RUSTUP="${HOME}/.cargo/bin/rustup.real"
-          fi
-          if [ -z "$REAL_RUSTUP" ]; then
-            REAL_RUSTUP="/opt/homebrew/bin/rustup"
-          fi
-          printf '#!/bin/bash\nREAL_RUSTUP="%s"\nif [ "${1:-}" = "run" ] && [ "${2:-}" = "stable" ]; then\n  shift 2\n  set -- run stable-aarch64-apple-darwin "$@"\nfi\nexec "$REAL_RUSTUP" "$@"\n' "$REAL_RUSTUP" > "${HOME}/.cargo/bin/rustup"
-          chmod +x "${HOME}/.cargo/bin/rustup"
 
       - name: Build macOS
         if: steps.check.outputs.skip != 'true'
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
           RUSTUP_TOOLCHAIN: stable-aarch64-apple-darwin
+          CI_MACOS_TRACE: "1" #TODO: Remove
         run: bash scripts/ci/ci-build.sh macos
 
       - name: Skip notice
