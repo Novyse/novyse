@@ -1213,5 +1213,38 @@
   "screenShareBitrateLabel": "Bitrate (kbps)",
   "screenShareBitrateMinError": "Il bitrate è sotto il minimo per questa impostazione",
   "screenShareBitrateMaxError": "Il bitrate supera il massimo per questa impostazione",
-  "screenShareBitratePremiumLimitError": "Abbonati a Premium per sbloccare tutte le funzioni (WIP)"
+  "screenShareBitratePremiumLimitError": "Abbonati a Premium per sbloccare tutte le funzioni (WIP)",
+  "updaterChecking": "Controllo aggiornamenti...",
+  "updaterDownloading": "Download aggiornamento {progress}...",
+  "@updaterDownloading": {
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "updaterVerifying": "Verifica aggiornamento...",
+  "updaterInstalling": "Installazione aggiornamento...",
+  "updaterRestarting": "Riavvio per applicare l'aggiornamento...",
+  "updaterNoUpdate": "Hai già l'ultima versione.",
+  "updaterError": "Aggiornamento automatico non riuscito. Riprova o scarica manualmente.",
+  "updaterOpenWebsite": "Scarica dal Sito",
+  "updaterUpdateNow": "Aggiorna Ora",
+  "updaterRetry": "Riprova",
+  "updaterStoreManaged": "Questa installazione è gestita da {store}. Aggiornala tramite quello store.",
+  "@updaterStoreManaged": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "updaterOpenStore": "Apri {store}",
+  "@updaterOpenStore": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  }
 }

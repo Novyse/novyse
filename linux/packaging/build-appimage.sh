@@ -17,7 +17,7 @@ fi
 
 mkdir -p "$DIST_DIR"
 
-APPIMAGE_NAME="${PKG_NAME}.AppImage"
+APPIMAGE_NAME="${PKG_NAME}-${APP_VERSION}-linux.AppImage"
 APPDIR="$(mktemp -d)/${APP_NAME}.AppDir"
 
 echo "📦 [APPIMAGE] Creating AppDir for $APP_NAME at: $APPDIR"

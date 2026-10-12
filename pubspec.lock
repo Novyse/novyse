@@ -273,6 +273,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.7"
+  cryptography_plus:
+    dependency: transitive
+    description:
+      name: cryptography_plus
+      sha256: "34db787df4f4740a39474b6fb0a610aa6dc13a5b5b68754b4787a79939ac0454"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.7.1"
   csslib:
     dependency: transitive
     description:
@@ -329,6 +337,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.15"
+  desktop_updater:
+    dependency: "direct main"
+    description:
+      name: desktop_updater
+      sha256: "9b4aec9683fb6ccc75f2b13a02036694a4718945b47b064eda2f696a77b820d3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.1"
   dev_build:
     dependency: transitive
     description:
@@ -591,8 +607,8 @@ packages:
     dependency: transitive
     description:
       path: "auth-sdk/flutter/flutter_opaque"
-      ref: "402c5810a78bb9216c40e5b6d8ee67dff515b93e"
-      resolved-ref: "402c5810a78bb9216c40e5b6d8ee67dff515b93e"
+      ref: "6d1ac673669f9cbc32709710b49fea8cc1b65e22"
+      resolved-ref: "6d1ac673669f9cbc32709710b49fea8cc1b65e22"
       url: "https://github.com/Novyse/packages.git"
     source: git
     version: "0.0.1"
@@ -822,6 +838,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  js:
+    dependency: transitive
+    description:
+      name: js
+      sha256: "53385261521cc4a0c4658fd0ad07a7d14591cf8fc33abbceae306ddb974888dc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.2"
   json_annotation:
     dependency: transitive
     description:
@@ -1067,7 +1091,7 @@ packages:
     description:
       path: "auth-sdk/flutter"
       ref: main
-      resolved-ref: "402c5810a78bb9216c40e5b6d8ee67dff515b93e"
+      resolved-ref: "6d1ac673669f9cbc32709710b49fea8cc1b65e22"
       url: "https://github.com/Novyse/packages.git"
     source: git
     version: "1.0.0"
@@ -1459,8 +1483,8 @@ packages:
     dependency: transitive
     description:
       path: "auth-sdk/flutter/flutter_opaque/rust_builder"
-      ref: "402c5810a78bb9216c40e5b6d8ee67dff515b93e"
-      resolved-ref: "402c5810a78bb9216c40e5b6d8ee67dff515b93e"
+      ref: "6d1ac673669f9cbc32709710b49fea8cc1b65e22"
+      resolved-ref: "6d1ac673669f9cbc32709710b49fea8cc1b65e22"
       url: "https://github.com/Novyse/packages.git"
     source: git
     version: "0.0.1"

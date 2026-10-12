@@ -17,15 +17,20 @@ set -e
 OS="${1:?Usage: ci-build.sh <os: android|linux|windows|macos|web|ios>}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$ROOT_DIR"
 
 source "$ROOT_DIR/scripts/extract-metadata.sh"
 
 RELEASE_TYPE="${RELEASE_TYPE:-production}"
-SUFFIX=""
-if [ "$RELEASE_TYPE" = "preview" ]; then
-  SUFFIX="-preview"
+if [ -n "${PKG_NAME:-}" ] && [ -n "${APP_VERSION:-}" ]; then
+  ANDROID_BASE="${PKG_NAME}-${APP_VERSION}-android"
+else
+  SUFFIX=""
+  if [ "$RELEASE_TYPE" = "preview" ]; then
+    SUFFIX="-preview"
+  fi
+  ANDROID_BASE="novyse${SUFFIX}"
 fi
 
 build_android() {
@@ -40,8 +45,8 @@ build_android() {
   fi
 
   flutter pub get
-  bash "$SCRIPT_DIR/sync-licenses.sh"
-  bash "$SCRIPT_DIR/sync-platform.sh"
+  bash "$ROOT_DIR/scripts/sync-licenses.sh"
+  bash "$ROOT_DIR/scripts/sync-platform.sh"
 
   flutter build apk --release
   flutter build apk --release --split-per-abi
@@ -51,14 +56,14 @@ build_android() {
 
   mkdir -p dist
   find build/app/outputs/bundle -name "*.aab" 2>/dev/null | while read -r aab_path; do
-    cp "$aab_path" "dist/novyse${SUFFIX}.aab"
+    cp "$aab_path" "dist/${ANDROID_BASE}.aab"
   done
   if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
-    cp build/app/outputs/flutter-apk/app-release.apk "dist/novyse${SUFFIX}-universal.apk"
+    cp build/app/outputs/flutter-apk/app-release.apk "dist/${ANDROID_BASE}-universal.apk"
   fi
   find build/app/outputs/flutter-apk -name "app-*-release.apk" 2>/dev/null | while read -r apk_path; do
     abi=$(basename "$apk_path" | sed -E 's/app-(.*)-release\.apk/\1/')
-    cp "$apk_path" "dist/novyse${SUFFIX}-${abi}.apk"
+    cp "$apk_path" "dist/${ANDROID_BASE}-${abi}.apk"
   done
 
   if [ -f "$KEYSTORE_FILE" ] && [ -n "${ANDROID_KEYSTORE_PASSWORD:-}" ] && [ -n "${ANDROID_KEY_ALIAS:-}" ]; then
@@ -77,8 +82,8 @@ case "$OS" in
     ;;
   linux | windows | macos | web | ios)
     flutter pub get
-    bash "$SCRIPT_DIR/sync-licenses.sh"
-    bash "$SCRIPT_DIR/build.sh" "$OS"
+    bash "$ROOT_DIR/scripts/sync-licenses.sh"
+    bash "$ROOT_DIR/scripts/build.sh" "$OS"
     ;;
   *)
     echo "❌ [CI-BUILD] Unknown OS '$OS'. Expected: android|linux|windows|macos|web|ios"
@@ -89,3 +94,7 @@ esac
 echo ""
 echo "📦 [CI-BUILD] Artifacts in dist/:"
 ls -la dist/ 2>/dev/null || echo "(empty)"
+if [ ! -d dist ] || [ -z "$(ls -A dist 2>/dev/null)" ]; then
+  echo "📦 [CI-BUILD] Compiled products:"
+  find build -maxdepth 4 \( -name "*.app" -o -name "*.exe" \) 2>/dev/null | head -20 || true
+fi

@@ -36,7 +36,7 @@ fi
 
 generate_snapcraft_yaml "$STAGING_DIR/snap/snapcraft.yaml" "bundle"
 
-SNAP_NAME="${PKG_NAME}.snap"
+SNAP_NAME="${PKG_NAME}-${APP_VERSION}-linux.snap"
 if (cd "$STAGING_DIR" && snapcraft pack --destructive-mode --output "$DIST_DIR/$SNAP_NAME"); then
   echo "✅ [SNAP] Created: $DIST_DIR/$SNAP_NAME"
 else

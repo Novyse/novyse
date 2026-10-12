@@ -12,7 +12,7 @@ const String appName = branch == 'production'
 const String appDescription =
     'Next-Gen Communications. Connect, collaborate, and communicate securely.';
 
-const String appVersion = '1.3.0-20261011.0';
+const String appVersion = '1.3.0-20261012.0';
 
 /// Human-readable update channel for the active deployment branch.
 const String updateChannel = branch == 'development' ? 'dev' : branch;
@@ -34,7 +34,7 @@ const String metadataLicense = 'CC0-1.0';
 const String appId = branch == 'production'
     ? 'com.novyse'
     : (branch == 'preview' ? 'com.novyse.preview' : 'com.novyse.dev');
-const String linuxDesktopId = appId;
+const String flathubAppId = 'com.novyse.novyse';
 const String linuxCategories = 'Network;InstantMessaging;Chat;';
 const String linuxKeywords = 'chat;messaging;voip;call;communication;novyse;';
 const String macOSCategory = 'public.app-category.social-networking';
@@ -64,6 +64,12 @@ const String releasesUrl = 'https://github.com/Novyse/novyse/releases';
 String get playStoreUrl =>
     'https://play.google.com/store/apps/details?id=$appId';
 const String appStoreUrl = 'https://apps.apple.com/app/novyse';
+const String snapStoreUrl = 'https://snapcraft.io/novyse';
+const String flathubUrl = 'https://flathub.org/apps/com.novyse.novyse';
+
+/// Stable desktop update feed URL.
+String get desktopUpdaterArchiveUrl =>
+    '$releasesUrl/latest/download/app-archive.json';
 
 // Domain helpers
 
@@ -97,6 +103,7 @@ final String appUrl = switch (branch) {
 
 const String tinyAppUrl = 'https://vyse.me';
 const String landingPageUrl = 'https://www.novyse.com';
+const String downloadPageUrl = 'https://www.novyse.com#download';
 const String statusPageUrl = 'https://status.novyse.com';
 const String privacyPolicyUrl = '$landingPageUrl/legal/privacy-policy';
 const String tosUrl = '$landingPageUrl/legal/terms-of-service';

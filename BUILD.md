@@ -7,26 +7,26 @@ Outputs are generated in the `dist/` directory.
 
 - **Linux:**
   - **Command:** `./scripts/build.sh linux`
-  - **Formats:** `tarball` (`novyse.tar.gz`), `deb` (`novyse.deb`), `appimage` (`novyse.AppImage`), `rpm` (`novyse.rpm`), `snap` (`novyse.snap`), `flatpak` (`novyse.flatpak`)
-  - Preview/dev: `novyse-preview.deb`, `novyse-preview.rpm`, ... / `novyse-dev.deb`, `novyse-dev.rpm`, ...
+  - **Formats:** `tarball` (`novyse-<version>-linux.tar.gz`), `deb` (`novyse-<version>-linux.deb`), `appimage` (`novyse-<version>-linux.AppImage`), `rpm` (`novyse-<version>-linux.rpm`), `snap` (`novyse-<version>-linux.snap`), `flatpak` (`novyse-<version>-linux.flatpak`)
+  - Preview/dev: `novyse-preview-<version>-linux.deb`, ... / `novyse-dev-<version>-linux.deb`, ...
 - **Windows:**
   - **Command:** `./scripts/build.sh windows`
-  - **Formats:** `exe` (`novyse-setup.exe`), `portable` (`novyse-portable.exe`), `msi` (`novyse-setup.msi`)
-  - Preview/dev: `novyse-preview-setup.exe`, ... / `novyse-dev-setup.exe`, ...
+  - **Formats:** `exe` (`novyse-<version>-windows-setup.exe`), `portable` (`novyse-<version>-windows-portable.exe`), `msi` (`novyse-<version>-windows-setup.msi`)
+  - Preview/dev: `novyse-preview-<version>-windows-setup.exe`, ... / `novyse-dev-<version>-windows-setup.exe`, ...
 - **macOS:**
   - **Command:** `./scripts/build.sh macos`
-  - **Formats:** `zip` (`novyse-macos.zip`), `dmg` (`novyse.dmg`)
-  - Preview/dev: `novyse-preview-macos.zip`, `novyse-preview.dmg` / `novyse-dev-macos.zip`, `novyse-dev.dmg`
+  - **Formats:** `zip` (`novyse-<version>-macos.zip`), `dmg` (`novyse-<version>-macos.dmg`)
+  - Preview/dev: `novyse-preview-<version>-macos.zip`, `novyse-preview-<version>-macos.dmg` / `novyse-dev-<version>-macos.zip`, `novyse-dev-<version>-macos.dmg`
 - **Android:**
   - **Command:** `./scripts/build.sh android`
-  - **Formats:** `apk` (`novyse-universal.apk`, `novyse-<abi>.apk` per split), `aab` (`novyse.aab`)
-  - Preview/dev: `novyse-preview-universal.apk`, `novyse-preview.aab` / `novyse-dev-universal.apk`, `novyse-dev.aab`
+  - **Formats:** `apk` (`novyse-<version>-android-universal.apk`, `novyse-<version>-android-<abi>.apk` per split), `aab` (`novyse-<version>-android.aab`)
+  - Preview/dev: `novyse-preview-<version>-android-universal.apk`, `novyse-preview-<version>-android.aab` / `novyse-dev-<version>-android-universal.apk`, `novyse-dev-<version>-android.aab`
 - **iOS:**
   - **Command:** `./scripts/build.sh ios`
-  - **Formats:** `xcarchive` (`novyse-ios.xcarchive.zip` / `novyse-preview-ios.xcarchive.zip` / `novyse-dev-ios.xcarchive.zip`)
+  - **Formats:** `xcarchive` (`novyse-<version>-ios.xcarchive.zip` / `novyse-preview-<version>-ios.xcarchive.zip` / `novyse-dev-<version>-ios.xcarchive.zip`)
 - **Web:**
   - **Command:** `./scripts/build.sh web`
-  - **Formats:** `zip` (`novyse-web.zip` / `novyse-preview-web.zip` / `novyse-dev-web.zip`)
+  - **Formats:** `zip` (`novyse-<version>-web.zip` / `novyse-preview-<version>-web.zip` / `novyse-dev-<version>-web.zip`)
 - **All Platforms:**
   - **Command:** `./scripts/build.sh all`
 
@@ -74,21 +74,21 @@ Every official GitHub Release includes a verification table containing the SHA-2
 #### Windows
 In PowerShell:
 ```powershell
-Get-FileHash -Algorithm SHA256 .\novyse-setup.exe
+Get-FileHash -Algorithm SHA256 .\novyse-<version>-windows-setup.exe
 ```
 Compare the resulting `Hash` with the checksum listed in the release table.
 
 #### Linux
 In terminal:
 ```bash
-sha256sum novyse.deb
+sha256sum novyse-<version>-linux.deb
 ```
 Compare the resulting hash with the release table checksum.
 
 #### macOS
 In Terminal:
 ```bash
-shasum -a 256 novyse.dmg
+shasum -a 256 novyse-<version>-macos.dmg
 ```
 Compare the resulting hash with the release table checksum.
 
@@ -97,16 +97,16 @@ Official Novyse APKs are digitally signed with the official release key:
 
 1. **Verify Certificate Fingerprint with `apksigner` (Android SDK):**
    ```bash
-   apksigner verify --print-certs novyse.apk
+   apksigner verify --print-certs novyse-<version>-android-arm64-v8a.apk
    ```
    Confirm that the `Signer #1 certificate SHA-256 digest` matches the `Android Official Signing Certificate SHA-256` shown in the release notes.
 
 2. **Verify Certificate with Java `keytool`:**
    ```bash
-   keytool -printcert -jarfile novyse.apk
+   keytool -printcert -jarfile novyse-<version>-android-arm64-v8a.apk
    ```
 
 3. **Verify File Hash:**
    ```bash
-   sha256sum novyse.apk
+   sha256sum novyse-<version>-android-arm64-v8a.apk
    ```

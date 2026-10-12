@@ -16,10 +16,14 @@ on:
           - macos
           - web
       ref:
-        description: Branch or ref to build
+        description: Branch to build
         required: false
         default: development
-        type: string
+        type: choice
+        options:
+          - development
+          - preview
+          - production
 
 permissions:
   contents: read
@@ -61,3 +65,25 @@ jobs:
           fi
           echo ""
           echo "Build result: ${{ needs.build.result }}"
+
+      - name: Setup Flutter (desktop-update verify)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
+      - name: Verify desktop update feed files
+        run: |
+          echo "## Desktop update feed" >> "$GITHUB_STEP_SUMMARY"
+          if [ -d all-dist/desktop_updater ]; then
+            find all-dist/desktop_updater -type f | sort | tee -a "$GITHUB_STEP_SUMMARY" || true
+          else
+            echo "_No desktop_updater output (expected on non-production branches)._" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+          for f in $(find all-dist/desktop_updater -name "release.json" 2>/dev/null); do
+            echo "Verifying $f (candidate-only: unsigned package output)" | tee -a "$GITHUB_STEP_SUMMARY"
+            dart run desktop_updater verify --release "$f" --candidate-only 2>&1 | tee -a "$GITHUB_STEP_SUMMARY" || echo "⚠️ verify failed for $f" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
+          echo ""
+          echo "SHA-256:" | tee -a "$GITHUB_STEP_SUMMARY"
+          find all-dist/desktop_updater -name "*.zip" -exec sha256sum {} \; 2>/dev/null | tee -a "$GITHUB_STEP_SUMMARY" || true

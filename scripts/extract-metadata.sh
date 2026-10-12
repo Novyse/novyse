@@ -18,6 +18,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ] && [ -n "$1" ]; then
   case "$1" in
     branch) echo "$BRANCH" ;;
     appId) echo "$APP_ID" ;;
+    flathubAppId) echo "$FLATHUB_APP_ID" ;;
     appName) echo "$APP_NAME" ;;
     appVersion) echo "$APP_VERSION" ;;
     appDescription) echo "$APP_DESCRIPTION" ;;
