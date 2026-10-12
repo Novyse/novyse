@@ -58,9 +58,6 @@ show_usage() {
   echo "  --split-per-abi    : (Android APK) Build separate APKs per CPU architecture"
   echo ""
   echo "General options:"
-  echo "  --release          : Build in release mode (default)"
-  echo "  --debug            : Build in debug mode"
-  echo "  --profile          : Build in profile mode"
   echo "  --clean            : Run 'flutter clean && flutter pub get' before building"
   echo "  --skip-packaging   : Compile Flutter binaries only without packaging"
   echo ""
@@ -74,7 +71,6 @@ fi
 PLATFORM="$(to_lower "$1")"
 shift
 
-BUILD_MODE="release"
 CLEAN_BUILD=0
 SPLIT_PER_ABI=0
 SKIP_PACKAGING=0
@@ -121,9 +117,6 @@ is_format_selected() {
 # Parse CLI arguments
 while [ $# -gt 0 ]; do
   case "$1" in
-    --release) BUILD_MODE="release" ;;
-    --debug) BUILD_MODE="debug" ;;
-    --profile) BUILD_MODE="profile" ;;
     --clean) CLEAN_BUILD=1 ;;
     --skip-packaging) SKIP_PACKAGING=1 ;;
     --split-per-abi) SPLIT_PER_ABI=1 ;;
@@ -248,10 +241,10 @@ if [ "$CLEAN_BUILD" -eq 1 ]; then
 fi
 
 build_linux() {
-  echo "🐧 Building Linux ($BUILD_MODE) for $APP_NAME..."
-  flutter build linux "--$BUILD_MODE"
+  echo "🐧 Building Linux for $APP_NAME..."
+  flutter build linux --release
 
-  if [ "$SKIP_PACKAGING" -eq 0 ] && [ "$BUILD_MODE" = "release" ]; then
+  if [ "$SKIP_PACKAGING" -eq 0 ]; then
     echo "📦 Packaging Linux distributables..."
     if is_format_selected "tarball"; then
       bash "$ROOT_DIR/linux/packaging/build-tarball.sh" || true
@@ -275,10 +268,10 @@ build_linux() {
 }
 
 build_windows() {
-  echo "🪟 Building Windows ($BUILD_MODE) for $APP_NAME..."
-  flutter build windows "--$BUILD_MODE"
+  echo "🪟 Building Windows for $APP_NAME..."
+  flutter build windows --release
 
-  if [ "$SKIP_PACKAGING" -eq 0 ] && [ "$BUILD_MODE" = "release" ]; then
+  if [ "$SKIP_PACKAGING" -eq 0 ]; then
     echo "📦 Packaging Windows distributables..."
     if is_format_selected "exe"; then
       if ! bash "$ROOT_DIR/windows/packaging/build-inno.sh"; then
@@ -295,20 +288,10 @@ build_windows() {
 }
 
 build_macos() {
-  echo "🍏 Building macOS ($BUILD_MODE) for $APP_NAME..."
+  echo "🍏 Building macOS for $APP_NAME..."
+  flutter build macos --release
 
-# TODO: Remove
-  local limited=(perl "$ROOT_DIR/scripts/limited-exec.sh" "${CI_BUILD_TIMEOUT:-5400}")
-  if [ -n "${CI_MACOS_TRACE:-}" ]; then
-    set -o pipefail
-    "${limited[@]}" flutter build macos "--$BUILD_MODE" -v 2>&1 \
-      | perl -pe 's/\r/\n/g' \
-      | perl -ne 'BEGIN{$|=1} print if /PhaseScriptExecution|CompileSwift|SwiftDriver|CompileC |Ld |Libtool|CodeSign|CopySwiftLibs|ProcessInfoPlistFile|error:|\*\* BUILD|(?:^|\s)(?:INFO|FINE|FINER|WARNING|SEVERE): /'
-  else
-    "${limited[@]}" flutter build macos "--$BUILD_MODE"
-  fi
-
-  if [ "$SKIP_PACKAGING" -eq 0 ] && [ "$BUILD_MODE" = "release" ]; then
+  if [ "$SKIP_PACKAGING" -eq 0 ]; then
     echo "📦 Packaging macOS distributables..."
     if is_format_selected "zip"; then
       APP_PATH=$(find "$ROOT_DIR/build/macos/Build/Products/Release" -maxdepth 1 -name "*.app" | head -n 1)
@@ -328,15 +311,15 @@ build_macos() {
 }
 
 build_android() {
-  echo "🤖 Building Android ($BUILD_MODE) for $APP_NAME ($APP_ID)..."
+  echo "🤖 Building Android for $APP_NAME ($APP_ID)..."
 
   if is_format_selected "apk"; then
     if [ "$SPLIT_PER_ABI" -eq 1 ]; then
       echo "  📲 Building APKs (split per ABI)..."
-      flutter build apk "--$BUILD_MODE" --split-per-abi
+      flutter build apk --release --split-per-abi
     else
       echo "  📲 Building universal APK..."
-      flutter build apk "--$BUILD_MODE"
+      flutter build apk --release
     fi
 
     # Copy APKs to dist/ with clean channel-aware names:
@@ -356,7 +339,7 @@ build_android() {
 
   if is_format_selected "aab"; then
     echo "  📦 Building App Bundle (AAB)..."
-    flutter build appbundle "--$BUILD_MODE"
+    flutter build appbundle --release
     find "$ROOT_DIR/build/app/outputs/bundle/release" -maxdepth 1 -name "*.aab" 2>/dev/null | while read -r aab_file; do
       cp "$aab_file" "$DIST_DIR/${PKG_NAME}.aab"
       echo "✅ [ANDROID] Copied AAB: $DIST_DIR/${PKG_NAME}.aab"
@@ -372,16 +355,16 @@ build_android() {
 }
 
 build_ios() {
-  echo "📱 Building iOS ($BUILD_MODE) for $APP_NAME ($APP_ID)..."
-  flutter build ipa "--$BUILD_MODE" --no-codesign
+  echo "📱 Building iOS for $APP_NAME ($APP_ID)..."
+  flutter build ipa --release --no-codesign
   find "$ROOT_DIR/build/ios/archive" -name "*.xcarchive" 2>/dev/null | while read -r archive_file; do
     (cd "$(dirname "$archive_file")" && zip -r -q "$DIST_DIR/${PKG_NAME}-ios.xcarchive.zip" "$(basename "$archive_file")") || true
   done
 }
 
 build_web() {
-  echo "🌐 Building Web ($BUILD_MODE) for $APP_NAME..."
-  flutter build web "--$BUILD_MODE"
+  echo "🌐 Building Web for $APP_NAME..."
+  flutter build web --release
 
   # Copy public static assets (e.g., .well-known/assetlinks.json) if present
   if [ -d "$ROOT_DIR/public" ]; then

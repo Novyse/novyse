@@ -23,14 +23,6 @@ cd "$ROOT_DIR"
 source "$ROOT_DIR/scripts/extract-metadata.sh"
 
 RELEASE_TYPE="${RELEASE_TYPE:-production}"
-BUILD_MODE="${BUILD_TYPE:-release}"
-case "$BUILD_MODE" in
-  release | debug | profile) ;;
-  *)
-    echo "❌ [CI-BUILD] Unknown BUILD_TYPE '$BUILD_MODE'. Expected: release|debug|profile"
-    exit 1
-    ;;
-esac
 SUFFIX=""
 if [ "$RELEASE_TYPE" = "preview" ]; then
   SUFFIX="-preview"
@@ -86,7 +78,7 @@ case "$OS" in
   linux | windows | macos | web | ios)
     flutter pub get
     bash "$ROOT_DIR/scripts/sync-licenses.sh"
-    bash "$ROOT_DIR/scripts/build.sh" "$OS" "--$BUILD_MODE"
+    bash "$ROOT_DIR/scripts/build.sh" "$OS"
     ;;
   *)
     echo "❌ [CI-BUILD] Unknown OS '$OS'. Expected: android|linux|windows|macos|web|ios"

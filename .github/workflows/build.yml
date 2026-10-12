@@ -30,11 +30,6 @@ on:
         required: false
         default: false
         type: boolean
-      build_type:
-        description: Build mode (release.yml always uses release)
-        required: false
-        default: release
-        type: string
     secrets:
       GOOGLE_SERVICES_JSON:
         required: false
@@ -85,7 +80,6 @@ jobs:
       - name: Build Android
         if: steps.check.outputs.skip != 'true'
         env:
-          BUILD_TYPE: ${{ inputs.build_type }}
           RELEASE_TYPE: ${{ inputs.release_type }}
           GOOGLE_SERVICES_B64: ${{ secrets.GOOGLE_SERVICES_JSON }}
           ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -145,8 +139,6 @@ jobs:
 
       - name: Build Linux
         if: steps.check.outputs.skip != 'true'
-        env:
-          BUILD_TYPE: ${{ inputs.build_type }}
         run: bash scripts/ci/ci-build.sh linux
 
       - name: Skip notice
@@ -199,8 +191,6 @@ jobs:
       - name: Build Windows
         if: steps.check.outputs.skip != 'true'
         shell: bash
-        env:
-          BUILD_TYPE: ${{ inputs.build_type }}
         run: bash scripts/ci/ci-build.sh windows
 
       - name: Skip notice
@@ -218,7 +208,6 @@ jobs:
   build-macos:
     if: ${{ inputs.os == 'all' || inputs.os == 'macos' }}
     runs-on: macos-latest
-    timeout-minutes: 120 # TODO: Remove
     steps:
       - uses: actions/checkout@v4
         with:
@@ -279,57 +268,15 @@ jobs:
         shell: bash
         run: |
           set -e
-          echo "rustup on PATH : $(command -v rustup)"
-          echo "cargo rustup   : $(ls -l "${HOME}/.cargo/bin/rustup" 2>&1 | sed 's/.*[0-9] //')"
-          echo "--- settings.toml BEFORE ---"; cat "${HOME}/.rustup/settings.toml" 2>&1 || true
-          echo "--- toolchains BEFORE ---";   ls "${HOME}/.rustup/toolchains" 2>&1 || true
-
-          # The runner image ships a Linux toolchain from its build pipeline;
-          # it shadows the darwin one when a bare `stable` is resolved.
-          rm -rf "${HOME}"/.rustup/toolchains/*-linux-* 2>/dev/null || true
-
-          # Must precede the install: Cargokit always runs `rustup run stable`
-          # and lets rustup pick the host from settings.toml.
           rustup set default-host aarch64-apple-darwin
           rustup toolchain install stable-aarch64-apple-darwin --profile minimal \
             --target aarch64-apple-darwin,x86_64-apple-darwin
           rustup default stable-aarch64-apple-darwin
 
-          echo "--- settings.toml AFTER ---"; cat "${HOME}/.rustup/settings.toml" 2>&1 || true
-          echo "--- toolchain list ---"; rustup toolchain list
-
-          # Reproduce exactly what Cargokit does. It resolves rustup through
-          # Rustup.executablePath(), which checks ~/.cargo/bin first and only
-          # then PATH, so probing the PATH copy would not prove anything.
-          echo "--- Cargokit probe: ~/.cargo/bin/rustup run stable ---"
-          "${HOME}/.cargo/bin/rustup" run stable rustc -vV
-          echo "--- Cargokit probe: cargo itself ---"
-          "${HOME}/.cargo/bin/rustup" run stable cargo --version
-          echo "--- targets Cargokit will check ---"
-          "${HOME}/.cargo/bin/rustup" target list --toolchain stable --installed
-
-      - name: Probe rustup under build env
-        if: steps.check.outputs.skip != 'true'
-        shell: bash
-        env:
-          RUSTUP_TOOLCHAIN: stable-aarch64-apple-darwin
-        run: |
-          set -x
-          rustup toolchain list
-          "${HOME}/.cargo/bin/rustup" toolchain list
-          "${HOME}/.cargo/bin/rustup" run stable rustc -vV
-          mkdir -p /tmp/probe/src
-          printf '[package]\nname="probe"\nversion="0.0.0"\nedition="2021"\n' > /tmp/probe/Cargo.toml
-          echo 'fn main() {}' > /tmp/probe/src/main.rs
-          "${HOME}/.cargo/bin/rustup" run stable cargo build --manifest-path /tmp/probe/Cargo.toml
-
       - name: Build macOS
         if: steps.check.outputs.skip != 'true'
         env:
-          BUILD_TYPE: ${{ inputs.build_type }}
           RUSTUP_TOOLCHAIN: stable-aarch64-apple-darwin
-          CI_MACOS_TRACE: "1" #TODO: Remove
-          CARGOKIT_VERBOSE: "1"
         run: bash scripts/ci/ci-build.sh macos
 
       - name: Skip notice
@@ -373,8 +320,6 @@ jobs:
 
       - name: Build Web
         if: steps.check.outputs.skip != 'true'
-        env:
-          BUILD_TYPE: ${{ inputs.build_type }}
         run: bash scripts/ci/ci-build.sh web
 
       - name: Skip notice

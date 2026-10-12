@@ -24,21 +24,13 @@ on:
           - development
           - preview
           - production
-      build_type:
-        description: Build mode
-        required: false
-        default: debug
-        type: choice
-        options:
-          - debug
-          - release
 
 permissions:
   contents: read
   actions: write
 
 concurrency:
-  group: build-test-${{ inputs.ref }}-${{ inputs.os }}-${{ inputs.build_type }}
+  group: build-test-${{ inputs.ref }}-${{ inputs.os }}
   cancel-in-progress: true
 
 jobs:
@@ -48,7 +40,6 @@ jobs:
       os: ${{ inputs.os }}
       ref: ${{ inputs.ref }}
       release_type: production
-      build_type: ${{ inputs.build_type }}
     secrets: inherit
 
   report:
