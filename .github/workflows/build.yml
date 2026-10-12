@@ -308,12 +308,28 @@ jobs:
           echo "--- targets Cargokit will check ---"
           "${HOME}/.cargo/bin/rustup" target list --toolchain stable --installed
 
+      - name: Probe rustup under build env
+        if: steps.check.outputs.skip != 'true'
+        shell: bash
+        env:
+          RUSTUP_TOOLCHAIN: stable-aarch64-apple-darwin
+        run: |
+          set -x
+          rustup toolchain list
+          "${HOME}/.cargo/bin/rustup" toolchain list
+          "${HOME}/.cargo/bin/rustup" run stable rustc -vV
+          mkdir -p /tmp/probe/src
+          printf '[package]\nname="probe"\nversion="0.0.0"\nedition="2021"\n' > /tmp/probe/Cargo.toml
+          echo 'fn main() {}' > /tmp/probe/src/main.rs
+          "${HOME}/.cargo/bin/rustup" run stable cargo build --manifest-path /tmp/probe/Cargo.toml
+
       - name: Build macOS
         if: steps.check.outputs.skip != 'true'
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
           RUSTUP_TOOLCHAIN: stable-aarch64-apple-darwin
           CI_MACOS_TRACE: "1" #TODO: Remove
+          CARGOKIT_VERBOSE: "1"
         run: bash scripts/ci/ci-build.sh macos
 
       - name: Skip notice

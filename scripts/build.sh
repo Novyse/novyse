@@ -303,7 +303,7 @@ build_macos() {
     set -o pipefail
     "${limited[@]}" flutter build macos "--$BUILD_MODE" -v 2>&1 \
       | perl -pe 's/\r/\n/g' \
-      | perl -ne 'BEGIN{$|=1} print if /PhaseScriptExecution|CompileSwift|SwiftDriver|CompileC |Ld |Libtool|CodeSign|CopySwiftLibs|ProcessInfoPlistFile|error:|\*\* BUILD/'
+      | perl -ne 'BEGIN{$|=1} print if /PhaseScriptExecution|CompileSwift|SwiftDriver|CompileC |Ld |Libtool|CodeSign|CopySwiftLibs|ProcessInfoPlistFile|error:|\*\* BUILD|^(INFO|FINE|FINER|WARNING|SEVERE): /'
   else
     "${limited[@]}" flutter build macos "--$BUILD_MODE"
   fi
