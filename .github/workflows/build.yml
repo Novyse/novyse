@@ -279,11 +279,34 @@ jobs:
         shell: bash
         run: |
           set -e
+          echo "rustup on PATH : $(command -v rustup)"
+          echo "cargo rustup   : $(ls -l "${HOME}/.cargo/bin/rustup" 2>&1 | sed 's/.*[0-9] //')"
+          echo "--- settings.toml BEFORE ---"; cat "${HOME}/.rustup/settings.toml" 2>&1 || true
+          echo "--- toolchains BEFORE ---";   ls "${HOME}/.rustup/toolchains" 2>&1 || true
+
+          # The runner image ships a Linux toolchain from its build pipeline;
+          # it shadows the darwin one when a bare `stable` is resolved.
+          rm -rf "${HOME}"/.rustup/toolchains/*-linux-* 2>/dev/null || true
+
+          # Must precede the install: Cargokit always runs `rustup run stable`
+          # and lets rustup pick the host from settings.toml.
           rustup set default-host aarch64-apple-darwin
           rustup toolchain install stable-aarch64-apple-darwin --profile minimal \
             --target aarch64-apple-darwin,x86_64-apple-darwin
-          rustup toolchain uninstall stable-x86_64-unknown-linux-gnu || true
           rustup default stable-aarch64-apple-darwin
+
+          echo "--- settings.toml AFTER ---"; cat "${HOME}/.rustup/settings.toml" 2>&1 || true
+          echo "--- toolchain list ---"; rustup toolchain list
+
+          # Reproduce exactly what Cargokit does. It resolves rustup through
+          # Rustup.executablePath(), which checks ~/.cargo/bin first and only
+          # then PATH, so probing the PATH copy would not prove anything.
+          echo "--- Cargokit probe: ~/.cargo/bin/rustup run stable ---"
+          "${HOME}/.cargo/bin/rustup" run stable rustc -vV
+          echo "--- Cargokit probe: cargo itself ---"
+          "${HOME}/.cargo/bin/rustup" run stable cargo --version
+          echo "--- targets Cargokit will check ---"
+          "${HOME}/.cargo/bin/rustup" target list --toolchain stable --installed
 
       - name: Build macOS
         if: steps.check.outputs.skip != 'true'
