@@ -126,10 +126,94 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  desktop-updater:
+    needs: upload-release
+    if: ${{ inputs.release_type == 'production' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
+      - name: Download desktop update candidates
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-*
+          path: dist-upload
+          merge-multiple: true
+
+      - name: Restore desktop-update signing key
+        env:
+          DESKTOP_UPDATER_KEY_BUNDLE_BASE64: ${{ secrets.DESKTOP_UPDATER_KEY_BUNDLE_BASE64 }}
+          DESKTOP_UPDATER_KEY_BUNDLE_PASSPHRASE: ${{ secrets.DESKTOP_UPDATER_KEY_BUNDLE_PASSPHRASE }}
+        run: |
+          if [ -z "$DESKTOP_UPDATER_KEY_BUNDLE_BASE64" ]; then
+            echo "⚠️ DESKTOP_UPDATER_KEY_BUNDLE_BASE64 not set; skipping desktop feed."
+            exit 0
+          fi
+          echo "$DESKTOP_UPDATER_KEY_BUNDLE_BASE64" | base64 --decode > /tmp/release-key.dukey
+          flutter pub get
+          dart run desktop_updater:release keys import \
+            --input /tmp/release-key.dukey \
+            --passphrase-env DESKTOP_UPDATER_KEY_BUNDLE_PASSPHRASE
+          shred -u /tmp/release-key.dukey || rm -f /tmp/release-key.dukey
+
+      - name: Sign and upload desktop update files
+        run: |
+          shopt -s nullglob
+          archive_file="dist-upload/desktop_updater/app-archive.json"
+          for plat in windows linux macos; do
+            for z in dist-upload/desktop_updater/$plat/*.zip; do
+              [ -f "$z" ] || continue
+              canon_zip="dist-upload/desktop_updater/$plat/novyse-$plat-${{ inputs.version }}.zip"
+              if [ "$z" != "$canon_zip" ]; then mv "$z" "$canon_zip" || true; fi
+            done
+
+            rel="dist-upload/desktop_updater/$plat/release.json"
+            if [ -f "$rel" ]; then
+              canon_rel="dist-upload/desktop_updater/$plat/novyse-$plat-${{ inputs.version }}-release.json"
+              mv "$rel" "$canon_rel"
+              echo "Signing $canon_rel"
+              dart run desktop_updater release sign --release "$canon_rel" || echo "⚠️ sign failed for $canon_rel"
+
+              echo "Registering $plat in app-archive.json"
+              dart run desktop_updater:app_archive upsert \
+                --archive "$archive_file" \
+                --app-name "Novyse" \
+                --version "${{ inputs.version }}" \
+                --platform "$plat" \
+                --channel stable \
+                --release-url "https://github.com/Novyse/novyse/releases/download/v${{ inputs.version }}/novyse-$plat-${{ inputs.version }}-release.json"
+            fi
+          done
+
+          if [ -f "$archive_file" ]; then
+            echo "Signing $archive_file"
+            dart run desktop_updater:release sign --app-archive "$archive_file" || echo "⚠️ sign failed for $archive_file"
+          fi
+
+          mapfile -t dufiles < <(find dist-upload/desktop_updater -type f | sort)
+          if [ "${#dufiles[@]}" -eq 0 ]; then
+            echo "No desktop update files."
+            exit 0
+          fi
+          printf '%s\n' "${dufiles[@]}" | tee -a "$GITHUB_STEP_SUMMARY"
+          gh release upload "v${{ inputs.version }}" "${dufiles[@]}" --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   # iOS Build (Currently Not Supported for Automated Releases)
 
   publish-release:
-    needs: [build, upload-release]
+    needs: [build, upload-release, desktop-updater]
     if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
     runs-on: ubuntu-latest
     steps:
@@ -244,7 +328,7 @@ jobs:
         if: steps.check-token.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
-          repository: flathub/com.novyse.desktop
+          repository: flathub/com.novyse.novyse
           path: flathub-repo
           token: ${{ secrets.FLATHUB_DEPLOY_TOKEN }}
 
@@ -262,10 +346,10 @@ jobs:
           fi
           TARBALL_URL="https://github.com/Novyse/novyse/releases/download/v${{ inputs.version }}/$TARBALL"
 
-          generate_desktop_entry "flathub-repo/${APP_ID}.desktop"
-          generate_appstream_metainfo "flathub-repo/${APP_ID}.metainfo.xml"
-          generate_linux_icons "flathub-repo/icons"
-          generate_flathub_manifest "flathub-repo/${APP_ID}.yml" "$TARBALL_URL" "$TARBALL_SHA256"
+          generate_desktop_entry "flathub-repo/${FLATHUB_APP_ID}.desktop" "$FLATHUB_APP_ID"
+          generate_appstream_metainfo "flathub-repo/${FLATHUB_APP_ID}.metainfo.xml" "$FLATHUB_APP_ID"
+          generate_linux_icons "flathub-repo/icons" "$FLATHUB_APP_ID"
+          generate_flathub_manifest "flathub-repo/${FLATHUB_APP_ID}.yml" "$TARBALL_URL" "$TARBALL_SHA256"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
