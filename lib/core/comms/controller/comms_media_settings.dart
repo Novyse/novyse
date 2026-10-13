@@ -29,15 +29,6 @@ mixin CommsMediaSettingsMixin on Notifier<CommsState> {
     return fallback;
   }
 
-  /// Reads a persisted bool setting with [fallback] when missing.
-  bool _savedMediaBool(String key, bool fallback) {
-    try {
-      final raw = ref.read(settingsControllerProvider)[key];
-      if (raw is bool) return raw;
-    } catch (_) {}
-    return fallback;
-  }
-
   /// Reads a persisted int setting or returns null when missing/invalid.
   int? _savedMediaIntOrNull(String key) {
     try {
@@ -47,24 +38,6 @@ mixin CommsMediaSettingsMixin on Notifier<CommsState> {
       if (raw is String) return int.tryParse(raw);
     } catch (_) {}
     return null;
-  }
-
-  /// Audio capture options resolved from the settings JSON
-  /// (noise suppression + echo cancellation switches).
-  AudioCaptureOptions _audioCaptureOptions() {
-    return CommsMediaConstraints.audioCapture(
-      deviceId: CommsDevicesDefaults.resolveLiveKitDeviceId(
-        _savedDeviceId(CommsDevicesDefaults.kAudioInputKey),
-      ),
-      noiseSuppression: _savedMediaBool(
-        CommsMediaConstraints.noiseSuppressionKey,
-        CommsMediaConstraints.defaultNoiseSuppression,
-      ),
-      echoCancellation: _savedMediaBool(
-        CommsMediaConstraints.echoCancellationKey,
-        CommsMediaConstraints.defaultEchoCancellation,
-      ),
-    );
   }
 
   /// Camera capture options resolved from the settings JSON
@@ -85,34 +58,5 @@ mixin CommsMediaSettingsMixin on Notifier<CommsState> {
         CommsMediaConstraints.videoBitrateKey,
       ),
     );
-  }
-
-  /// Live-applies the audio DSP switches to the active mic track without
-  /// restarting capture. Called when the settings change mid-call.
-  Future<void> _applyAudioProcessingLive() async {
-    final local = state.room?.localParticipant;
-    if (local == null) return;
-    // ignore: experimental_member_use
-    final processing = CommsMediaConstraints.audioProcessing(
-      noiseSuppression: _savedMediaBool(
-        CommsMediaConstraints.noiseSuppressionKey,
-        CommsMediaConstraints.defaultNoiseSuppression,
-      ),
-      echoCancellation: _savedMediaBool(
-        CommsMediaConstraints.echoCancellationKey,
-        CommsMediaConstraints.defaultEchoCancellation,
-      ),
-    );
-    for (final pub in local.audioTrackPublications.toList()) {
-      final track = pub.track;
-      if (track is LocalAudioTrack && track.source == TrackSource.microphone) {
-        try {
-          // ignore: experimental_member_use
-          await track.setAudioProcessingOptions(processing);
-        } catch (e) {
-          debugPrint('[CommsController] Failed to apply DSP live: $e');
-        }
-      }
-    }
   }
 }

@@ -1,8 +1,7 @@
 part of '../comms_controller.dart';
 
 /// Live device switching + audio-output routing.
-mixin CommsDevicesLiveMixin
-    on Notifier<CommsState>, CommsMediaSettingsMixin {
+mixin CommsDevicesLiveMixin on Notifier<CommsState>, CommsMediaSettingsMixin {
   /// Persist + immediately apply a new microphone (live switch if publishing).
   Future<void> setAudioInputDevice(String deviceId) async {
     await ref.read(commsDevicesProvider.notifier).setAudioInput(deviceId);
@@ -21,19 +20,13 @@ mixin CommsDevicesLiveMixin
       } else {
         if (state.isAudioEnabled) {
           await local.setMicrophoneEnabled(false);
-          await local.setMicrophoneEnabled(
-            true,
-            audioCaptureOptions: _audioCaptureOptions(),
-          );
+          await local.setMicrophoneEnabled(true);
         }
       }
     } catch (e) {
       debugPrint('[CommsController] Failed to switch microphone: $e');
     }
   }
-
-  /// Live-applies the persisted audio DSP switches to the active mic track
-  Future<void> applyAudioSettingsLive() => _applyAudioProcessingLive();
 
   /// Pushes [top] bitrate/framerate caps to the live RTCRtpSender(s).
   Future<bool> _pushVideoSenderEncoding(
@@ -105,15 +98,13 @@ mixin CommsDevicesLiveMixin
                       quality,
                       fps,
                     ),
-                degradationPreference:
-                    DegradationPreference.maintainFramerate,
+                degradationPreference: DegradationPreference.maintainFramerate,
               )
             : VideoPublishOptions(
                 simulcast: false,
                 videoCodec: 'vp8',
                 videoEncoding: top,
-                degradationPreference:
-                    DegradationPreference.maintainFramerate,
+                degradationPreference: DegradationPreference.maintainFramerate,
               );
       }
     } catch (e) {
@@ -202,7 +193,8 @@ mixin CommsDevicesLiveMixin
     } catch (e) {
       debugPrint('[CommsController] Failed to switch camera: $e');
       state = state.copyWith(
-        errorMessageBuilder: () => (l10n) => l10n.commsCameraAccessError,
+        errorMessageBuilder: () =>
+            (l10n) => l10n.commsCameraAccessError,
       );
     }
   }

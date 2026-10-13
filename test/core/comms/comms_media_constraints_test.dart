@@ -5,11 +5,6 @@ import 'package:novyse/core/settings/settings_catalog.dart';
 
 void main() {
   group('CommsMediaConstraints free-tier defaults', () {
-    test('noise suppression + echo cancellation default to on', () {
-      expect(CommsMediaConstraints.defaultNoiseSuppression, isTrue);
-      expect(CommsMediaConstraints.defaultEchoCancellation, isTrue);
-    });
-
     test('video defaults to max free-tier quality (1080p60)', () {
       expect(CommsMediaConstraints.defaultVideoQuality, '1080p');
       expect(CommsMediaConstraints.defaultVideoFramerate, '60');
@@ -31,32 +26,6 @@ void main() {
   });
 
   group('CommsMediaConstraints audio capture', () {
-    test('maps the settings JSON to native WebRTC constraints', () {
-      final on = CommsMediaConstraints.audioCapture(
-        deviceId: 'mic-1',
-        noiseSuppression: true,
-        echoCancellation: true,
-      );
-      expect(on.deviceId, 'mic-1');
-      expect(on.noiseSuppression, isTrue);
-      expect(on.echoCancellation, isTrue);
-      // Max-quality helpers stay on; custom DSP (typing filter) stays off.
-      expect(on.autoGainControl, isTrue);
-      expect(on.highPassFilter, isTrue);
-      expect(on.voiceIsolation, isTrue);
-      expect(on.typingNoiseDetection, isFalse);
-
-      final off = CommsMediaConstraints.audioCapture(
-        deviceId: null,
-        noiseSuppression: false,
-        echoCancellation: false,
-      );
-      expect(off.noiseSuppression, isFalse);
-      expect(off.echoCancellation, isFalse);
-      expect(off.voiceIsolation, isFalse);
-      expect(off.autoGainControl, isTrue);
-    });
-
     test('voice publish encoding is maximum quality stereo', () {
       const publish = CommsMediaConstraints.maxQualityAudioPublish;
       expect(
@@ -244,22 +213,21 @@ void main() {
     SettingItem item(String key) =>
         SettingsCatalog.findBySettingKey(key)!;
 
-    test('only native DSP switches are enabled with on-by-default', () {
-      final noise = item('comms.noiseSuppression');
-      final echo = item('comms.echoCancellation');
-      expect(noise.disabled, isFalse);
-      expect(echo.disabled, isFalse);
-      expect(noise.defaultValue, isTrue);
-      expect(echo.defaultValue, isTrue);
-
-      // Custom DSP stays WIP-disabled.
+    test('audio filters stay present but disabled and off', () {
       for (final key in [
+        'comms.noiseSuppression',
+        'comms.echoCancellation',
         'comms.expander',
         'comms.noiseGateDb',
         'comms.keystrokeAttenuation',
       ]) {
-        expect(item(key).disabled, isTrue, reason: key);
+        final entry = item(key);
+        expect(entry.disabled, isTrue, reason: key);
       }
+      expect(item('comms.noiseSuppression').defaultValue, isFalse);
+      expect(item('comms.echoCancellation').defaultValue, isFalse);
+      expect(item('comms.expander').defaultValue, isFalse);
+      expect(item('comms.keystrokeAttenuation').defaultValue, isFalse);
     });
 
     test('video offers low-to-high qualities + extended fps', () {

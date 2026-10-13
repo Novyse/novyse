@@ -57,17 +57,17 @@ mixin CommsConnectionMixin
         roomOptions: RoomOptions(
           adaptiveStream: true,
           dynacast: true,
-          defaultAudioPublishOptions: CommsMediaConstraints.maxQualityAudioPublish,
+          defaultAudioPublishOptions:
+              CommsMediaConstraints.maxQualityAudioPublish,
           defaultVideoPublishOptions: CommsMediaConstraints.cameraPublishFrom(
             ref.read(settingsControllerProvider),
           ),
-          defaultAudioCaptureOptions: _audioCaptureOptions(),
           defaultCameraCaptureOptions: _cameraCaptureOptions(),
           defaultScreenShareCaptureOptions:
               CommsMediaConstraints.screenShareCaptureFrom(
-            ref.read(settingsControllerProvider),
-            captureScreenAudio: false,
-          ),
+                ref.read(settingsControllerProvider),
+                captureScreenAudio: false,
+              ),
           defaultAudioOutputOptions: AudioOutputOptions(
             deviceId: CommsDevicesDefaults.resolveLiveKitDeviceId(
               _savedDeviceId(CommsDevicesDefaults.kAudioOutputKey),
@@ -121,10 +121,7 @@ mixin CommsConnectionMixin
           return;
         }
         try {
-          await newRoom?.localParticipant?.setMicrophoneEnabled(
-            true,
-            audioCaptureOptions: _audioCaptureOptions(),
-          );
+          await newRoom?.localParticipant?.setMicrophoneEnabled(true);
           if (!_isDisposed) {
             state = state.copyWith(isAudioEnabled: true);
             (this as CommsNotifier).syncCommsNotification();

@@ -80,7 +80,8 @@ final List<SettingCategory> commsCategory = [
                 component: SettingComponent.switchToggle,
                 settingKey: 'comms.noiseSuppression',
                 scope: SettingScope.local,
-                defaultValue: true,
+                defaultValue: false,
+                disabled: true,
               ),
               SettingItem(
                 id: 'expander',
@@ -111,7 +112,7 @@ final List<SettingCategory> commsCategory = [
                 component: SettingComponent.switchToggle,
                 settingKey: 'comms.keystrokeAttenuation',
                 scope: SettingScope.local,
-                defaultValue: true,
+                defaultValue: false,
                 disabled: true,
               ),
               SettingItem(
@@ -121,7 +122,8 @@ final List<SettingCategory> commsCategory = [
                 component: SettingComponent.switchToggle,
                 settingKey: 'comms.echoCancellation',
                 scope: SettingScope.local,
-                defaultValue: true,
+                defaultValue: false,
+                disabled: true,
               ),
             ],
           ),

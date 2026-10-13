@@ -74,8 +74,6 @@ void main() {
         'input_device',
         'output_device',
         'webcam',
-        'noise_suppression',
-        'echo_cancellation',
         'video_quality',
         'video_fps',
         'video_bitrate',

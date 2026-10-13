@@ -57,7 +57,6 @@ class CommsNotifier extends Notifier<CommsState>
     });
     ref.listen<Map<String, Object?>>(settingsControllerProvider, (prev, next) {
       _hydrateVolumes(next);
-      _onAudioDspSettingsChanged(prev, next);
     });
     ref.listen<ChatListState>(chatListProvider, (prev, next) {
       if (state.connected) {
@@ -71,24 +70,6 @@ class CommsNotifier extends Notifier<CommsState>
       } catch (_) {}
     });
     return const CommsState();
-  }
-
-  /// Reacts to noise-suppression / echo-cancellation flips mid-call by
-  /// pushing the new processing config to the live mic track.
-  void _onAudioDspSettingsChanged(
-    Map<String, Object?>? prev,
-    Map<String, Object?> next,
-  ) {
-    if (prev == null) return;
-    final noiseChanged =
-        prev[CommsMediaConstraints.noiseSuppressionKey] !=
-        next[CommsMediaConstraints.noiseSuppressionKey];
-    final echoChanged =
-        prev[CommsMediaConstraints.echoCancellationKey] !=
-        next[CommsMediaConstraints.echoCancellationKey];
-    if (!noiseChanged && !echoChanged) return;
-    if (state.room?.localParticipant == null) return;
-    unawaited(_applyAudioProcessingLive());
   }
 
   /// Synchronizes the ongoing mobile notification with the current comms state.
@@ -121,14 +102,16 @@ class CommsNotifier extends Notifier<CommsState>
       }
     } catch (_) {}
 
-    unawaited(CommsNotificationService.instance.showOrUpdate(
-      chatUUID: chatUUID,
-      subID: sub,
-      chatName: chatName,
-      participantCount: state.participantCount,
-      isAudioEnabled: state.isAudioEnabled,
-      isVideoEnabled: state.isVideoEnabled,
-    ));
+    unawaited(
+      CommsNotificationService.instance.showOrUpdate(
+        chatUUID: chatUUID,
+        subID: sub,
+        chatName: chatName,
+        participantCount: state.participantCount,
+        isAudioEnabled: state.isAudioEnabled,
+        isVideoEnabled: state.isVideoEnabled,
+      ),
+    );
   }
 }
 
