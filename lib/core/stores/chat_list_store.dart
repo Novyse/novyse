@@ -544,8 +544,7 @@ class ChatListNotifier extends Notifier<ChatListState> {
     if (msg == null) return DateTime.fromMillisecondsSinceEpoch(0);
     final val = msg['createdAt'] ?? msg['created_at'];
     if (val != null) {
-      final parsed = DateTime.tryParse(val.toString());
-      if (parsed != null) return parsed;
+      return MessageFieldParser.parseCreatedAtDateTime(val);
     }
     return DateTime.fromMillisecondsSinceEpoch(0);
   }
