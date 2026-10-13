@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -8,6 +6,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/comms/screen_share_actions.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
@@ -91,45 +90,30 @@ class CommsBottomBar extends ConsumerWidget {
     commsState,
     CommsNotifier controller,
   ) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(100),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-        child: Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.45),
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 16,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: Center(
-            child: commsState.connecting
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: Colors.white,
-                    ),
-                  )
-                : IconButton(
-                    icon: const AppHugeIcon(
-                      icon: HugeIcons.strokeRoundedCall02,
-                      color: AppColors.success,
-                      size: 26,
-                    ),
-                    tooltip: l10n.commsJoinRoom,
-                    onPressed: () => controller.join(chatUUID, sub: sub),
+    return FloatingPill(
+      padding: const EdgeInsets.all(9),
+      child: SizedBox(
+        width: FloatingAppBarConsts.iconButtonSize,
+        height: FloatingAppBarConsts.iconButtonSize,
+        child: Center(
+          child: commsState.connecting
+              ? SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-          ),
+                )
+              : FloatingIconButton(
+                  tooltip: l10n.commsJoinRoom,
+                  onPressed: () => controller.join(chatUUID, sub: sub),
+                  icon: AppHugeIcon(
+                    icon: HugeIcons.strokeRoundedCall02,
+                    color: context.statusColors.success,
+                    size: 22,
+                  ),
+                ),
         ),
       ),
     );
@@ -142,119 +126,111 @@ class CommsBottomBar extends ConsumerWidget {
     commsState,
     CommsNotifier controller,
   ) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(100),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.45),
-            borderRadius: BorderRadius.circular(100),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 16,
-                spreadRadius: 2,
-              ),
-            ],
+    final scheme = Theme.of(context).colorScheme;
+    final status = context.statusColors;
+    final idleBg = scheme.surfaceContainerHighest;
+    final idleIcon = scheme.onSurfaceVariant;
+
+    return FloatingPill(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 1. Microphone toggle
+          _buildControlButton(
+            icon: commsState.isAudioEnabled
+                ? HugeIcons.strokeRoundedMic02
+                : HugeIcons.strokeRoundedMicOff02,
+            tooltip: commsState.isAudioEnabled
+                ? l10n.commsMuteMic
+                : l10n.commsUnmuteMic,
+            backgroundColor: !commsState.isAudioEnabled
+                ? status.danger
+                : idleBg,
+            iconColor: !commsState.isAudioEnabled
+                ? Colors.white
+                : idleIcon,
+            onPressed: controller.toggleAudio,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 1. Microphone toggle
-              _buildIconButton(
-                icon: commsState.isAudioEnabled
-                    ? HugeIcons.strokeRoundedMic02
-                    : HugeIcons.strokeRoundedMicOff02,
-                tooltip: commsState.isAudioEnabled
-                    ? l10n.commsMuteMic
-                    : l10n.commsUnmuteMic,
-                backgroundColor: !commsState.isAudioEnabled
-                    ? AppColors.danger
-                    : Colors.white.withValues(alpha: 0.12),
-                iconColor: Colors.white,
-                onPressed: controller.toggleAudio,
-              ),
-              const SizedBox(width: 8),
+          const SizedBox(width: 8),
 
-              // 2. Camera toggle
-              _buildIconButton(
-                icon: commsState.isVideoEnabled
-                    ? HugeIcons.strokeRoundedVideo02
-                    : HugeIcons.strokeRoundedVideoOff,
-                tooltip: commsState.isVideoEnabled
-                    ? l10n.commsTurnOffCamera
-                    : l10n.commsTurnOnCamera,
-                backgroundColor: commsState.isVideoEnabled
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.white.withValues(alpha: 0.12),
-                iconColor: Colors.white,
-                onPressed: controller.toggleVideo,
-              ),
-              const SizedBox(width: 8),
-
-              // 3. Speaker Output (Deafen) toggle
-              _buildIconButton(
-                icon: commsState.isAudioOutputEnabled
-                    ? HugeIcons.strokeRoundedVolumeHigh
-                    : HugeIcons.strokeRoundedVolumeOff,
-                tooltip: commsState.isAudioOutputEnabled
-                    ? l10n.commsDeafen
-                    : l10n.commsUndeafen,
-                backgroundColor: !commsState.isAudioOutputEnabled
-                    ? AppColors.danger
-                    : Colors.white.withValues(alpha: 0.12),
-                iconColor: Colors.white,
-                onPressed: controller.toggleAudioOutput,
-              ),
-              const SizedBox(width: 8),
-
-              // 4. Screen share
-              _buildIconButton(
-                icon: HugeIcons.strokeRoundedComputerScreenShare,
-                tooltip: l10n.commsShareScreen,
-                backgroundColor: Colors.white.withValues(alpha: 0.12),
-                iconColor: Colors.white,
-                onPressed: () =>
-                    ScreenShareActions.startShareFlow(context, ref),
-              ),
-              const SizedBox(width: 8),
-
-              // 5. Voice & video settings
-              _buildIconButton(
-                icon: HugeIcons.strokeRoundedSettings01,
-                tooltip: l10n.settings,
-                backgroundColor: Colors.white.withValues(alpha: 0.12),
-                iconColor: Colors.white,
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) =>
-                          const SettingsCategoryPage(categoryId: 'comms'),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 12),
-
-              // 6. Leave vocal call button
-              _buildIconButton(
-                icon: HugeIcons.strokeRoundedCallEnd01,
-                tooltip: l10n.commsLeaveRoom,
-                backgroundColor: AppColors.danger,
-                iconColor: Colors.white,
-                onPressed: controller.leave,
-              ),
-            ],
+          // 2. Camera toggle
+          _buildControlButton(
+            icon: commsState.isVideoEnabled
+                ? HugeIcons.strokeRoundedVideo02
+                : HugeIcons.strokeRoundedVideoOff,
+            tooltip: commsState.isVideoEnabled
+                ? l10n.commsTurnOffCamera
+                : l10n.commsTurnOnCamera,
+            backgroundColor: commsState.isVideoEnabled
+                ? scheme.primary
+                : idleBg,
+            iconColor: commsState.isVideoEnabled
+                ? scheme.onPrimary
+                : idleIcon,
+            onPressed: controller.toggleVideo,
           ),
-        ),
+          const SizedBox(width: 8),
+
+          // 3. Speaker Output (Deafen) toggle
+          _buildControlButton(
+            icon: commsState.isAudioOutputEnabled
+                ? HugeIcons.strokeRoundedVolumeHigh
+                : HugeIcons.strokeRoundedVolumeOff,
+            tooltip: commsState.isAudioOutputEnabled
+                ? l10n.commsDeafen
+                : l10n.commsUndeafen,
+            backgroundColor: !commsState.isAudioOutputEnabled
+                ? status.danger
+                : idleBg,
+            iconColor: !commsState.isAudioOutputEnabled
+                ? Colors.white
+                : idleIcon,
+            onPressed: controller.toggleAudioOutput,
+          ),
+          const SizedBox(width: 8),
+
+          // 4. Screen share
+          _buildControlButton(
+            icon: HugeIcons.strokeRoundedComputerScreenShare,
+            tooltip: l10n.commsShareScreen,
+            backgroundColor: idleBg,
+            iconColor: idleIcon,
+            onPressed: () => ScreenShareActions.startShareFlow(context, ref),
+          ),
+          const SizedBox(width: 8),
+
+          // 5. Voice & video settings
+          _buildControlButton(
+            icon: HugeIcons.strokeRoundedSettings01,
+            tooltip: l10n.settings,
+            backgroundColor: idleBg,
+            iconColor: idleIcon,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      const SettingsCategoryPage(categoryId: 'comms'),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+
+          // 6. Leave vocal call button
+          _buildControlButton(
+            icon: HugeIcons.strokeRoundedCall02,
+            tooltip: l10n.commsLeaveRoom,
+            backgroundColor: status.danger,
+            iconColor: Colors.white,
+            onPressed: controller.leave,
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildIconButton({
+  Widget _buildControlButton({
     required dynamic icon,
     required String tooltip,
     required Color backgroundColor,
@@ -271,8 +247,8 @@ class CommsBottomBar extends ConsumerWidget {
           customBorder: const CircleBorder(),
           onTap: onPressed,
           child: SizedBox(
-            width: 44,
-            height: 44,
+            width: FloatingAppBarConsts.iconButtonSize,
+            height: FloatingAppBarConsts.iconButtonSize,
             child: Center(
               child: AppHugeIcon(icon: icon, color: iconColor, size: 20),
             ),
