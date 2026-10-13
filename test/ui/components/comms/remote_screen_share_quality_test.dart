@@ -5,12 +5,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/comms/comms_models.dart';
+import 'package:novyse/core/comms/comms_state.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/services/profile_picture_service.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/comms/comms_user_card.dart';
 import 'package:novyse/ui/components/comms/remote_screen_share_quality_menu.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+
+class _TestCommsNotifier extends CommsNotifier {
+  @override
+  CommsState build() => const CommsState(connected: true);
+}
 
 void main() {
   group('RemoteQualityOption.resolveOptions', () {
@@ -105,6 +111,7 @@ void main() {
           surname: 'Smith',
         ),
       ),
+      commsProvider.overrideWith(() => _TestCommsNotifier()),
     ];
 
     CommsTileItem createTile({
