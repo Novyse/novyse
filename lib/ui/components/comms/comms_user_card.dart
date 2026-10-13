@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +11,7 @@ import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/core/utils/platform.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/comms/comms_user_context_menu.dart';
 import 'package:novyse/ui/components/comms/remote_screen_share_quality_menu.dart';
@@ -47,7 +47,10 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
 
   /// Corner radius of the tile. Shared by the clip, the background and the
   /// border so the three always describe the same shape.
-  static const _tileRadius = 20.0;
+  static const _tileRadius = 24.0;
+
+  /// Touch box of the small overlay buttons (pin, fullscreen, ...).
+  static const _chipButtonSize = 32.0;
 
   bool _isHovered = false;
 
@@ -131,6 +134,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
 
     final videoTrack = tile.hasActiveVideo ? tile.videoTrack : null;
     final isSpeaking = tile.isSpeaking && !tile.isScreenShare;
+    final status = context.statusColors;
 
     // Mute badges (bottom-right):
     // - mic-with-lock: local-only mute from this client's context menu.
@@ -177,6 +181,8 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
     final cardRadius = BorderRadius.circular(
       widget.isFullScreen ? 0 : _tileRadius,
     );
+    final onEditShare = widget.onEditShare;
+    final onStopShare = widget.onStopShare;
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -203,7 +209,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
             boxShadow: isSpeaking
                 ? [
                     BoxShadow(
-                      color: AppColors.success.withValues(alpha: 0.4),
+                      color: status.success.withValues(alpha: 0.4),
                       blurRadius: 16,
                       spreadRadius: 2,
                     ),
@@ -215,7 +221,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
             borderRadius: cardRadius,
             border: Border.all(
               color: isSpeaking
-                  ? AppColors.success
+                  ? status.success
                   : colorScheme.outline.withValues(alpha: 0.25),
               width: isSpeaking ? 2.5 : 1,
             ),
@@ -239,119 +245,76 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                   child: AnimatedOpacity(
                     opacity: controlsOpacity,
                     duration: const Duration(milliseconds: 150),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                        child: Container(
-                          color: Colors.black.withValues(alpha: 0.45),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 2,
+                    child: FloatingPill(
+                      padding: const EdgeInsets.all(2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (!widget.isFullScreen)
+                            _ChipIconButton(
+                              icon: widget.isPinned
+                                  ? HugeIcons.strokeRoundedPinOff
+                                  : HugeIcons.strokeRoundedPin,
+                              color: widget.isPinned
+                                  ? colorScheme.primary
+                                  : colorScheme.onSurfaceVariant,
+                              tooltip: widget.isPinned
+                                  ? l10n.commsUnpin
+                                  : l10n.commsPin,
+                              onPressed: widget.onPin,
+                            ),
+                          _ChipIconButton(
+                            icon: widget.isFullScreen
+                                ? HugeIcons.strokeRoundedArrowShrink01
+                                : HugeIcons.strokeRoundedArrowExpand01,
+                            tooltip: widget.isFullScreen
+                                ? l10n.commsExitFullScreen
+                                : l10n.commsFullScreen,
+                            onPressed: widget.onFullScreen,
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (!widget.isFullScreen)
-                                IconButton(
-                                  icon: AppHugeIcon(
-                                    icon: widget.isPinned
-                                        ? HugeIcons.strokeRoundedPinOff
-                                        : HugeIcons.strokeRoundedPin,
-                                    color: widget.isPinned
-                                        ? colorScheme.primary
-                                        : Colors.white,
-                                    size: 18,
-                                  ),
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.all(6),
-                                  tooltip: widget.isPinned
-                                      ? l10n.commsUnpin
-                                      : l10n.commsPin,
-                                  onPressed: widget.onPin,
-                                ),
-                              IconButton(
-                                icon: AppHugeIcon(
-                                  icon: widget.isFullScreen
-                                      ? HugeIcons.strokeRoundedArrowShrink01
-                                      : HugeIcons.strokeRoundedArrowExpand01,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                                visualDensity: VisualDensity.compact,
-                                padding: const EdgeInsets.all(6),
-                                tooltip: widget.isFullScreen
-                                    ? l10n.commsExitFullScreen
-                                    : l10n.commsFullScreen,
-                                onPressed: widget.onFullScreen,
+                          if (tile.isScreenShare &&
+                              !tile.isLocal &&
+                              tile.trackSid != null)
+                            Builder(
+                              builder: (btnContext) => _ChipIconButton(
+                                icon: HugeIcons.strokeRoundedSlidersVertical,
+                                tooltip: l10n.screenShareQualityTooltip,
+                                onPressed: () {
+                                  final box =
+                                      btnContext.findRenderObject()
+                                          as RenderBox?;
+                                  final pos = box?.localToGlobal(
+                                        Offset(0, box.size.height + 4),
+                                      ) ??
+                                      Offset.zero;
+                                  showRemoteScreenShareQualityMenu(
+                                    context: context,
+                                    ref: ref,
+                                    trackSid: tile.trackSid!,
+                                    anchor: pos,
+                                  );
+                                },
                               ),
-                              if (tile.isScreenShare &&
-                                  !tile.isLocal &&
-                                  tile.trackSid != null)
-                                Builder(
-                                  builder: (btnContext) => IconButton(
-                                    icon: const AppHugeIcon(
-                                      icon: HugeIcons
-                                          .strokeRoundedSlidersVertical,
-                                      color: Colors.white,
-                                      size: 18,
-                                    ),
-                                    visualDensity: VisualDensity.compact,
-                                    padding: const EdgeInsets.all(6),
-                                    tooltip: l10n.screenShareQualityTooltip,
-                                    onPressed: () {
-                                      final box =
-                                          btnContext.findRenderObject()
-                                              as RenderBox?;
-                                      final pos = box?.localToGlobal(
-                                            Offset(
-                                              0,
-                                              box.size.height + 4,
-                                            ),
-                                          ) ??
-                                          Offset.zero;
-                                      showRemoteScreenShareQualityMenu(
-                                        context: context,
-                                        ref: ref,
-                                        trackSid: tile.trackSid!,
-                                        anchor: pos,
-                                      );
-                                    },
-                                  ),
-                                ),
-                              if (tile.isScreenShare &&
-                                  tile.isLocal &&
-                                  widget.onEditShare != null)
-                                IconButton(
-                                  icon: const AppHugeIcon(
-                                    icon:
-                                        HugeIcons.strokeRoundedPencilEdit02,
-                                    color: Colors.white,
-                                    size: 18,
-                                  ),
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.all(6),
-                                  tooltip: l10n.screenShareEditShare,
-                                  onPressed: widget.onEditShare,
-                                ),
-                              if (tile.isScreenShare &&
-                                  tile.isLocal &&
-                                  widget.onStopShare != null)
-                                IconButton(
-                                  icon: const AppHugeIcon(
-                                    icon: HugeIcons
-                                        .strokeRoundedComputerRemove,
-                                    color: AppColors.danger,
-                                    size: 18,
-                                  ),
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.all(6),
-                                  tooltip: l10n.commsStopScreenShare,
-                                  onPressed: widget.onStopShare,
-                                ),
-                            ],
-                          ),
-                        ),
+                            ),
+                          if (tile.isScreenShare &&
+                              tile.isLocal &&
+                              onEditShare != null)
+                            _ChipIconButton(
+                              icon: HugeIcons.strokeRoundedPencilEdit02,
+                              tooltip: l10n.screenShareEditShare,
+                              onPressed: onEditShare,
+                            ),
+                          if (tile.isScreenShare &&
+                              tile.isLocal &&
+                              onStopShare != null)
+                            _ChipIconButton(
+                              icon:
+                                  HugeIcons.strokeRoundedComputerRemove,
+                              color: status.danger,
+                              tooltip: l10n.commsStopScreenShare,
+                              onPressed: onStopShare,
+                            ),
+                        ],
                       ),
                     ),
                   ),
@@ -364,43 +327,36 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                 child: AnimatedOpacity(
                   opacity: widget.isFullScreen ? controlsOpacity : 1.0,
                   duration: const Duration(milliseconds: 150),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                      child: Container(
-                        color: Colors.black.withValues(alpha: 0.45),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (tile.isScreenShare) ...[
-                              const Icon(
-                                Icons.screen_share_rounded,
-                                size: 14,
-                                color: Colors.white70,
-                              ),
-                              const SizedBox(width: 5),
-                            ],
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 160),
-                              child: Text(
-                                labelText,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                  child: FloatingPill(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (tile.isScreenShare) ...[
+                          Icon(
+                            Icons.screen_share_rounded,
+                            size: 14,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 6),
+                        ],
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 160),
+                          child: Text(
+                            labelText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: colorScheme.onSurface,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
-                          ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ),
@@ -420,62 +376,46 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                   child: AnimatedOpacity(
                     opacity: widget.isFullScreen ? controlsOpacity : 1.0,
                     duration: const Duration(milliseconds: 150),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                        child: Container(
-                          color: Colors.black.withValues(alpha: 0.45),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 2,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (showLocalLock)
-                                Tooltip(
-                                  message: l10n.commsUnmuteUser,
-                                  child: const Padding(
-                                    padding: EdgeInsets.all(6),
-                                    child: AppHugeIcon(
-                                      icon: HugeIcons.strokeRoundedMicOff02,
-                                      color: Colors.white,
-                                      size: 18,
-                                    ),
-                                  ),
-                                )
-                              else if (showRemoteSimple)
-                                const Padding(
-                                  padding: EdgeInsets.all(6),
-                                  child: AppHugeIcon(
-                                    icon: HugeIcons.strokeRoundedMicOff02,
-                                    color: AppColors.danger,
-                                    size: 18,
-                                  ),
+                    child: FloatingPill(
+                      padding: const EdgeInsets.all(2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (showLocalLock)
+                            Tooltip(
+                              message: l10n.commsUnmuteUser,
+                              child: Padding(
+                                padding: const EdgeInsets.all(7),
+                                child: AppHugeIcon(
+                                  icon: HugeIcons.strokeRoundedMicOff02,
+                                  color: colorScheme.onSurfaceVariant,
+                                  size: 18,
                                 ),
-                              if (tile.isLocal &&
-                                  isCommsConnected &&
-                                  !tile.isScreenShare &&
-                                  videoTrack != null &&
-                                  currentPlatform == AppPlatform.mobile)
-                                IconButton(
-                                  icon: const AppHugeIcon(
-                                    icon:
-                                        HugeIcons.strokeRoundedCameraRotated01,
-                                    color: Colors.white,
-                                    size: 18,
-                                  ),
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.all(6),
-                                  tooltip: l10n.commsSwitchCamera,
-                                  onPressed: () => ref
-                                      .read(commsProvider.notifier)
-                                      .switchCamera(),
-                                ),
-                            ],
-                          ),
-                        ),
+                              ),
+                            )
+                          else if (showRemoteSimple)
+                            Padding(
+                              padding: const EdgeInsets.all(7),
+                              child: AppHugeIcon(
+                                icon: HugeIcons.strokeRoundedMicOff02,
+                                color: status.danger,
+                                size: 18,
+                              ),
+                            ),
+                          if (tile.isLocal &&
+                              isCommsConnected &&
+                              !tile.isScreenShare &&
+                              videoTrack != null &&
+                              currentPlatform == AppPlatform.mobile)
+                            _ChipIconButton(
+                              icon:
+                                  HugeIcons.strokeRoundedCameraRotated01,
+                              tooltip: l10n.commsSwitchCamera,
+                              onPressed: () => ref
+                                  .read(commsProvider.notifier)
+                                  .switchCamera(),
+                            ),
+                        ],
                       ),
                     ),
                   ),
@@ -514,6 +454,49 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
 
             return Avatar(uuid: pfpUUID, name: displayName, size: avatarSize);
           },
+        ),
+      ),
+    );
+  }
+}
+
+/// Small round button for the overlay chips. 32px box, 18px icon —
+/// same proportions as the 42/20 app-bar buttons, one step smaller.
+class _ChipIconButton extends StatelessWidget {
+  const _ChipIconButton({
+    required this.icon,
+    this.color,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final dynamic icon;
+  final Color? color;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onPressed,
+          child: SizedBox(
+            width: _CommsUserCardState._chipButtonSize,
+            height: _CommsUserCardState._chipButtonSize,
+            child: Center(
+              child: AppHugeIcon(
+                icon: icon,
+                color: color ?? Theme.of(context).colorScheme.onSurfaceVariant,
+                size: 18,
+              ),
+            ),
+          ),
         ),
       ),
     );
