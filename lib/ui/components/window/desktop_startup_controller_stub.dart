@@ -12,4 +12,6 @@ abstract final class DesktopStartupController {
     required bool openOnStartup,
     required bool openInBackground,
   }) async {}
+
+  static Future<void> sync(dynamic ref) async {}
 }
