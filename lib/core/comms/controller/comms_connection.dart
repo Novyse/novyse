@@ -121,7 +121,13 @@ mixin CommsConnectionMixin
           return;
         }
         try {
-          await newRoom?.localParticipant?.setMicrophoneEnabled(true);
+          await ref.read(commsDevicesProvider.notifier).refresh();
+          await newRoom?.localParticipant?.setMicrophoneEnabled(
+            true,
+            audioCaptureOptions: AudioCaptureOptions(
+              deviceId: _microphoneDeviceId(),
+            ),
+          );
           if (!_isDisposed) {
             state = state.copyWith(isAudioEnabled: true);
             (this as CommsNotifier).syncCommsNotification();

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:novyse/core/comms/devices/comms_device.dart';
 import 'package:novyse/core/comms/devices/comms_devices_state.dart';
+import 'package:novyse/core/comms/devices/os_default_audio.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 
 /// Single source of truth for OS devices + persisted selection.
@@ -65,43 +66,25 @@ class CommsDevicesNotifier extends Notifier<CommsDevicesState> {
       final inputs = await Hardware.instance.audioInputs();
       final outputs = await Hardware.instance.audioOutputs();
       final videos = await Hardware.instance.videoInputs();
+      final osDefaults = await readOsDefaultAudioNames();
+
+      final audioInputs = CommsDevicesDefaults.collapseSystemDefault(
+        _toDevices(inputs, CommsDeviceKind.audioInput, 'Microphone'),
+        osDefaultId: osDefaults.inputId,
+        osDefaultLabel: osDefaults.input,
+      );
+      final audioOutputs = CommsDevicesDefaults.collapseSystemDefault(
+        _toDevices(outputs, CommsDeviceKind.audioOutput, 'Speaker'),
+        osDefaultId: osDefaults.outputId,
+        osDefaultLabel: osDefaults.output,
+      );
 
       state = state.copyWith(
-        audioInputs: [
-          for (var i = 0; i < inputs.length; i++)
-            CommsDevice(
-              id: inputs[i].deviceId,
-              label: _labelOrFallback(
-                inputs[i].label,
-                'Microphone',
-                i,
-              ),
-              kind: CommsDeviceKind.audioInput,
-              groupId: inputs[i].groupId,
-            ),
-        ],
-        audioOutputs: [
-          for (var i = 0; i < outputs.length; i++)
-            CommsDevice(
-              id: outputs[i].deviceId,
-              label: _labelOrFallback(
-                outputs[i].label,
-                'Speaker',
-                i,
-              ),
-              kind: CommsDeviceKind.audioOutput,
-              groupId: outputs[i].groupId,
-            ),
-        ],
-        videoInputs: [
-          for (var i = 0; i < videos.length; i++)
-            CommsDevice(
-              id: videos[i].deviceId,
-              label: _labelOrFallback(videos[i].label, 'Camera', i),
-              kind: CommsDeviceKind.videoInput,
-              groupId: videos[i].groupId,
-            ),
-        ],
+        audioInputs: audioInputs.devices,
+        audioOutputs: audioOutputs.devices,
+        systemDefaultAudioInput: audioInputs.systemDefault,
+        systemDefaultAudioOutput: audioOutputs.systemDefault,
+        videoInputs: _toDevices(videos, CommsDeviceKind.videoInput, 'Camera'),
         loading: false,
         errorMessage: () => null,
       );
@@ -175,11 +158,21 @@ class CommsDevicesNotifier extends Notifier<CommsDevicesState> {
     );
   }
 
-  static String _labelOrFallback(String label, String base, int index) {
-    final trimmed = label.trim();
-    if (trimmed.isNotEmpty) return trimmed;
-    return '$base ${index + 1}';
-  }
+  static List<CommsDevice> _toDevices(
+    List<MediaDevice> raw,
+    CommsDeviceKind kind,
+    String fallback,
+  ) => [
+    for (var i = 0; i < raw.length; i++)
+      CommsDevice(
+        id: raw[i].deviceId,
+        label: raw[i].label.trim().isNotEmpty
+            ? raw[i].label.trim()
+            : '$fallback ${i + 1}',
+        kind: kind,
+        groupId: raw[i].groupId,
+      ),
+  ];
 }
 
 final commsDevicesProvider =
