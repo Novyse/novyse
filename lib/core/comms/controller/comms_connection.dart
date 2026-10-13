@@ -120,6 +120,9 @@ mixin CommsConnectionMixin
         if (_isDisposed || !state.connected || state.room != newRoom) {
           return;
         }
+        if (!state.isAudioOutputEnabled && isMuteMicWithSpeakerEnabled) {
+          return;
+        }
         try {
           await ref.read(commsDevicesProvider.notifier).refresh();
           await newRoom?.localParticipant?.setMicrophoneEnabled(

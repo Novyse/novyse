@@ -11,7 +11,13 @@ mixin CommsLocalMediaMixin
     try {
       final next = !state.isAudioEnabled;
       await localParticipant.setMicrophoneEnabled(next);
-      state = state.copyWith(isAudioEnabled: next);
+      state = state.copyWith(
+        isAudioEnabled: next,
+        wasMicEnabledBeforeSpeakerMute:
+            (!state.isAudioOutputEnabled && !next)
+                ? () => false
+                : null,
+      );
       (this as CommsNotifier).syncCommsNotification();
     } catch (e) {
       debugPrint('[CommsController] Failed to toggle microphone: $e');
@@ -26,7 +32,10 @@ mixin CommsLocalMediaMixin
   Future<void> setAudioEnabled(bool enabled) async {
     if (state.isAudioEnabled == enabled) return;
     final localParticipant = state.room?.localParticipant;
-    if (localParticipant == null) return;
+    if (localParticipant == null) {
+      state = state.copyWith(isAudioEnabled: enabled);
+      return;
+    }
 
     try {
       await localParticipant.setMicrophoneEnabled(enabled);

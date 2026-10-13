@@ -17,6 +17,18 @@ void main() {
 
   CommsState read() => container.read(commsProvider);
 
+  ProviderContainer containerWithSettings(Map<String, Object?> preset) {
+    final c = ProviderContainer(
+      overrides: [
+        settingsControllerProvider.overrideWith(
+          () => _StubSettingsController(preset),
+        ),
+      ],
+    );
+    addTearDown(c.dispose);
+    return c;
+  }
+
   setUp(() {
     container = ProviderContainer();
     notifier = container.read(commsProvider.notifier);
@@ -178,6 +190,91 @@ void main() {
 
       expect(read().isAudioOutputEnabled, isTrue);
     });
+
+    test('muting speaker automatically mutes mic by default when mic was unmuted', () async {
+      container.read(commsProvider.notifier).state = const CommsState(
+        isAudioEnabled: true,
+        isAudioOutputEnabled: true,
+      );
+
+      await notifier.toggleAudioOutput();
+
+      expect(read().isAudioOutputEnabled, isFalse);
+      expect(read().isAudioEnabled, isFalse);
+      expect(read().wasMicEnabledBeforeSpeakerMute, isTrue);
+    });
+
+    test('unmuting speaker automatically unmutes mic if mic was unmuted before speaker was muted', () async {
+      container.read(commsProvider.notifier).state = const CommsState(
+        isAudioEnabled: true,
+        isAudioOutputEnabled: true,
+      );
+
+      await notifier.toggleAudioOutput();
+      expect(read().isAudioOutputEnabled, isFalse);
+      expect(read().isAudioEnabled, isFalse);
+      expect(read().wasMicEnabledBeforeSpeakerMute, isTrue);
+
+      await notifier.toggleAudioOutput();
+      expect(read().isAudioOutputEnabled, isTrue);
+      expect(read().isAudioEnabled, isTrue);
+      expect(read().wasMicEnabledBeforeSpeakerMute, isNull);
+    });
+
+    test('unmuting speaker keeps mic muted if mic was already muted before speaker was muted', () async {
+      container.read(commsProvider.notifier).state = const CommsState(
+        isAudioEnabled: false,
+        isAudioOutputEnabled: true,
+      );
+
+      await notifier.toggleAudioOutput();
+      expect(read().isAudioOutputEnabled, isFalse);
+      expect(read().isAudioEnabled, isFalse);
+      expect(read().wasMicEnabledBeforeSpeakerMute, isFalse);
+
+      await notifier.toggleAudioOutput();
+      expect(read().isAudioOutputEnabled, isTrue);
+      expect(read().isAudioEnabled, isFalse);
+      expect(read().wasMicEnabledBeforeSpeakerMute, isNull);
+    });
+
+    test('when setting toggle is disabled, muting speaker does not mute mic', () async {
+      final c = containerWithSettings({
+        CommsNotifier.muteMicWithSpeakerSettingsKey: false,
+      });
+      final n = c.read(commsProvider.notifier);
+      n.state = const CommsState(
+        isAudioEnabled: true,
+        isAudioOutputEnabled: true,
+      );
+
+      await n.toggleAudioOutput();
+      expect(c.read(commsProvider).isAudioOutputEnabled, isFalse);
+      expect(c.read(commsProvider).isAudioEnabled, isTrue);
+
+      await n.toggleAudioOutput();
+      expect(c.read(commsProvider).isAudioOutputEnabled, isTrue);
+      expect(c.read(commsProvider).isAudioEnabled, isTrue);
+    });
+
+    test('when setting toggle is disabled, unmuting speaker leaves muted mic muted', () async {
+      final c = containerWithSettings({
+        CommsNotifier.muteMicWithSpeakerSettingsKey: false,
+      });
+      final n = c.read(commsProvider.notifier);
+      n.state = const CommsState(
+        isAudioEnabled: false,
+        isAudioOutputEnabled: true,
+      );
+
+      await n.toggleAudioOutput();
+      expect(c.read(commsProvider).isAudioOutputEnabled, isFalse);
+      expect(c.read(commsProvider).isAudioEnabled, isFalse);
+
+      await n.toggleAudioOutput();
+      expect(c.read(commsProvider).isAudioOutputEnabled, isTrue);
+      expect(c.read(commsProvider).isAudioEnabled, isFalse);
+    });
   });
 
   group('clearError', () {
@@ -289,18 +386,6 @@ void main() {
   });
 
   group('volume persistence', () {
-    ProviderContainer containerWithSettings(Map<String, Object?> preset) {
-      final c = ProviderContainer(
-        overrides: [
-          settingsControllerProvider.overrideWith(
-            () => _StubSettingsController(preset),
-          ),
-        ],
-      );
-      addTearDown(c.dispose);
-      return c;
-    }
-
     Map<String, Object?> writtenOf(ProviderContainer c) =>
         (c.read(settingsControllerProvider.notifier)
                 as _StubSettingsController)

@@ -40,6 +40,12 @@ mixin CommsMediaSettingsMixin on Notifier<CommsState> {
     return null;
   }
 
+  /// Whether muting the speaker automatically mutes the microphone.
+  bool get isMuteMicWithSpeakerEnabled =>
+      ref.read(settingsControllerProvider)[
+          CommsNotifier.muteMicWithSpeakerSettingsKey] as bool? ??
+      true;
+
   /// Capture device id. On desktop `default` resolves to the concrete OS
   /// default device — an empty id opens a silent virtual entry instead.
   String? _microphoneDeviceId() {

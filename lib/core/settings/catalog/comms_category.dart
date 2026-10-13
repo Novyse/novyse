@@ -1,4 +1,5 @@
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/comms/devices/comms_bitrate_options.dart';
 import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
 import 'package:novyse/core/comms/devices/comms_quality_options.dart';
@@ -43,6 +44,15 @@ final List<SettingCategory> commsCategory = [
                 defaultValue: 'default',
                 optionsLoader: loadSpeakerOptions,
                 onOptionPicked: saveSpeakerOption,
+              ),
+              SettingItem(
+                id: 'mute_mic_with_speaker',
+                title: (l) => l.settingsItemMuteMicWithSpeakerTitle,
+                subtitle: (l) => l.settingsItemMuteMicWithSpeakerSubtitle,
+                component: SettingComponent.switchToggle,
+                settingKey: CommsNotifier.muteMicWithSpeakerSettingsKey,
+                scope: SettingScope.local,
+                defaultValue: true,
               ),
               SettingItem(
                 id: 'mic_test',

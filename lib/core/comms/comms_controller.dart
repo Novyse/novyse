@@ -46,6 +46,9 @@ class CommsNotifier extends Notifier<CommsState>
   static const maxPersistedVolumes = 200;
   static const volumesPersistDebounce = Duration(milliseconds: 500);
 
+  /// Settings key for auto-muting microphone when speaker is muted.
+  static const muteMicWithSpeakerSettingsKey = 'comms.muteMicWithSpeaker';
+
   @override
   CommsState build() {
     _isDisposed = false;

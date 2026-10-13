@@ -309,7 +309,33 @@ mixin CommsDevicesLiveMixin on Notifier<CommsState>, CommsMediaSettingsMixin {
   /// Toggles remote audio output (deafen mode).
   Future<void> toggleAudioOutput() async {
     final next = !state.isAudioOutputEnabled;
-    state = state.copyWith(isAudioOutputEnabled: next);
+    final isMutingSpeaker = !next;
+    final wasMicEnabled = state.isAudioEnabled;
+    final syncMic = isMuteMicWithSpeakerEnabled;
+
+    if (isMutingSpeaker) {
+      // Muting the speaker (deafening).
+      // Track microphone's prior state: was it already muted or enabled?
+      state = state.copyWith(
+        isAudioOutputEnabled: false,
+        wasMicEnabledBeforeSpeakerMute: () => wasMicEnabled,
+      );
+      if (syncMic && wasMicEnabled) {
+        await (this as CommsNotifier).setAudioEnabled(false);
+      }
+    } else {
+      // Unmuting the speaker (undeafening).
+      // If mic was already muted before speaker was muted, keep it muted.
+      // If mic was enabled before speaker was muted, automatically unmute it.
+      final priorMic = state.wasMicEnabledBeforeSpeakerMute;
+      state = state.copyWith(
+        isAudioOutputEnabled: true,
+        wasMicEnabledBeforeSpeakerMute: () => null,
+      );
+      if (syncMic && priorMic == true) {
+        await (this as CommsNotifier).setAudioEnabled(true);
+      }
+    }
 
     final room = state.room;
     if (room == null) return;

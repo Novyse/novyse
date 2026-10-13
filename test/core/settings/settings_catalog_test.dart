@@ -73,6 +73,7 @@ void main() {
         'surface_mode',
         'input_device',
         'output_device',
+        'mute_mic_with_speaker',
         'webcam',
         'video_quality',
         'video_fps',
