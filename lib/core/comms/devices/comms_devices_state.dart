@@ -14,6 +14,11 @@ class CommsDevicesState {
   final String selectedAudioInputId;
   final String selectedAudioOutputId;
   final String selectedVideoInputId;
+
+  /// Concrete device behind the `Default` input/output options, if known.
+  final SystemDefaultDevice systemDefaultAudioInput;
+  final SystemDefaultDevice systemDefaultAudioOutput;
+
   final bool loading;
   final bool permissionRequested;
   final String? errorMessage;
@@ -25,6 +30,8 @@ class CommsDevicesState {
     this.selectedAudioInputId = CommsDevicesDefaults.kDefaultId,
     this.selectedAudioOutputId = CommsDevicesDefaults.kDefaultId,
     this.selectedVideoInputId = CommsDevicesDefaults.kDefaultId,
+    this.systemDefaultAudioInput = const SystemDefaultDevice(),
+    this.systemDefaultAudioOutput = const SystemDefaultDevice(),
     this.loading = true,
     this.permissionRequested = false,
     this.errorMessage,
@@ -45,7 +52,15 @@ class CommsDevicesState {
   /// Display label for the current selection (`Default` fallback included).
   String displayLabelFor(CommsDeviceKind kind) {
     final id = selectedIdFor(kind);
-    if (id == CommsDevicesDefaults.kDefaultId) return 'Default';
+    if (id == CommsDevicesDefaults.kDefaultId) {
+      return CommsDevicesDefaults.defaultOptionLabel(
+        switch (kind) {
+          CommsDeviceKind.audioInput => systemDefaultAudioInput.label,
+          CommsDeviceKind.audioOutput => systemDefaultAudioOutput.label,
+          CommsDeviceKind.videoInput => null,
+        },
+      );
+    }
     final match = devicesFor(kind).where((d) => d.id == id).firstOrNull;
     return match?.label ?? 'Default';
   }
@@ -57,6 +72,8 @@ class CommsDevicesState {
     String? selectedAudioInputId,
     String? selectedAudioOutputId,
     String? selectedVideoInputId,
+    SystemDefaultDevice? systemDefaultAudioInput,
+    SystemDefaultDevice? systemDefaultAudioOutput,
     bool? loading,
     bool? permissionRequested,
     String? Function()? errorMessage,
@@ -69,6 +86,10 @@ class CommsDevicesState {
       selectedAudioOutputId:
           selectedAudioOutputId ?? this.selectedAudioOutputId,
       selectedVideoInputId: selectedVideoInputId ?? this.selectedVideoInputId,
+      systemDefaultAudioInput:
+          systemDefaultAudioInput ?? this.systemDefaultAudioInput,
+      systemDefaultAudioOutput:
+          systemDefaultAudioOutput ?? this.systemDefaultAudioOutput,
       loading: loading ?? this.loading,
       permissionRequested: permissionRequested ?? this.permissionRequested,
       errorMessage: errorMessage != null

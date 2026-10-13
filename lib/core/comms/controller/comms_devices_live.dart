@@ -7,21 +7,29 @@ mixin CommsDevicesLiveMixin on Notifier<CommsState>, CommsMediaSettingsMixin {
     await ref.read(commsDevicesProvider.notifier).setAudioInput(deviceId);
     final local = state.room?.localParticipant;
     if (local == null) return;
-    final target = CommsDevicesDefaults.resolveLiveKitDeviceId(deviceId);
+    final target = deviceId == CommsDevicesDefaults.kDefaultId
+        ? _microphoneDeviceId()
+        : CommsDevicesDefaults.resolveLiveKitDeviceId(deviceId);
     try {
-      if (target != null) {
-        for (final pub in local.audioTrackPublications.toList()) {
-          final track = pub.track;
-          if (track is LocalAudioTrack &&
-              track.source == TrackSource.microphone) {
-            await track.setDeviceId(target);
-          }
+      var switched = false;
+      for (final pub in local.audioTrackPublications.toList()) {
+        final track = pub.track;
+        if (track is! LocalAudioTrack ||
+            track.source != TrackSource.microphone) {
+          continue;
         }
-      } else {
-        if (state.isAudioEnabled) {
-          await local.setMicrophoneEnabled(false);
-          await local.setMicrophoneEnabled(true);
+        if (target != null) {
+          await track.setDeviceId(target);
+        } else if (track.currentOptions.deviceId != null) {
+          await track.restartTrack(const AudioCaptureOptions());
         }
+        switched = true;
+      }
+      if (!switched && state.isAudioEnabled) {
+        await local.setMicrophoneEnabled(
+          true,
+          audioCaptureOptions: AudioCaptureOptions(deviceId: target),
+        );
       }
     } catch (e) {
       debugPrint('[CommsController] Failed to switch microphone: $e');

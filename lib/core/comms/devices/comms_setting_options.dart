@@ -8,14 +8,24 @@ import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/core/settings/settings_models.dart';
 
 /// Lazy select loaders/savers for the comms device rows.
-List<SettingOption> _withDefault(List<CommsDevice> devices) => [
-  SettingOption(CommsDevicesDefaults.kDefaultId, (_) => 'Default'),
+List<SettingOption> _withDefault(
+  List<CommsDevice> devices, {
+  String? systemDefaultLabel,
+}) => [
+  SettingOption(
+    CommsDevicesDefaults.kDefaultId,
+    (_) => CommsDevicesDefaults.defaultOptionLabel(systemDefaultLabel),
+  ),
   for (final d in devices) SettingOption(d.id, (_) => d.label),
 ];
 
 Future<List<SettingOption>> loadMicOptions(WidgetRef ref) async {
   await ref.read(commsDevicesProvider.notifier).refresh();
-  return _withDefault(ref.read(commsDevicesProvider).audioInputs);
+  final devices = ref.read(commsDevicesProvider);
+  return _withDefault(
+    devices.audioInputs,
+    systemDefaultLabel: devices.systemDefaultAudioInput.label,
+  );
 }
 
 Future<void> saveMicOption(WidgetRef ref, String value) =>
@@ -23,7 +33,11 @@ Future<void> saveMicOption(WidgetRef ref, String value) =>
 
 Future<List<SettingOption>> loadSpeakerOptions(WidgetRef ref) async {
   await ref.read(commsDevicesProvider.notifier).refresh();
-  return _withDefault(ref.read(commsDevicesProvider).audioOutputs);
+  final devices = ref.read(commsDevicesProvider);
+  return _withDefault(
+    devices.audioOutputs,
+    systemDefaultLabel: devices.systemDefaultAudioOutput.label,
+  );
 }
 
 Future<void> saveSpeakerOption(WidgetRef ref, String value) =>

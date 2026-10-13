@@ -40,6 +40,19 @@ mixin CommsMediaSettingsMixin on Notifier<CommsState> {
     return null;
   }
 
+  /// Capture device id. On desktop `default` resolves to the concrete OS
+  /// default device — an empty id opens a silent virtual entry instead.
+  String? _microphoneDeviceId() {
+    final saved = _savedDeviceId(CommsDevicesDefaults.kAudioInputKey);
+    if (saved != CommsDevicesDefaults.kDefaultId) return saved;
+    if (currentPlatform != AppPlatform.desktop) return null;
+    try {
+      return ref.read(commsDevicesProvider).systemDefaultAudioInput.id;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Camera capture options resolved from the settings JSON
   CameraCaptureOptions _cameraCaptureOptions() {
     return CommsMediaConstraints.cameraCapture(
