@@ -79,31 +79,42 @@ class FcmService {
     }
   }
 
-  Future<void> saveToken(String token) async {
+  /// Sends [token] to the backend and records it as the last confirmed one.
+  Future<bool> saveToken(String token) async {
     final authToken = await auth_service.auth.token.get();
     if (authToken == null || authToken.isEmpty) {
       debugPrint('[FcmService] Not logged in, skip token sync');
-      return;
+      return false;
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getString(_kFcmTokenKey);
-    if (saved == token) return;
+    final confirmed = prefs.getString(_kFcmTokenKey);
+    if (confirmed == token) return true;
 
     final ok = await Gateway.instance.notification.setFCMToken(token);
     if (ok) {
       await prefs.setString(_kFcmTokenKey, token);
       debugPrint('[FcmService] Push token synced');
+    } else {
+      debugPrint('[FcmService] Push token sync rejected by server');
     }
+    return ok;
   }
 
-  Future<void> unregister() async {
+  /// Forgets the last server-confirmed token, so the next sync re-sends it.
+  /// Called on login (a fresh session must always re-register) and on
+  /// logout (via [unregister]).
+  Future<void> clearConfirmedToken() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_kFcmTokenKey);
     } catch (e) {
-      debugPrint('[FcmService] token pref clear failed: $e');
+      debugPrint('[FcmService] confirmed token clear failed: $e');
     }
+  }
+
+  Future<void> unregister() async {
+    await clearConfirmedToken();
     if (!isSupported) return;
     try {
       await FirebaseMessaging.instance.deleteToken();
