@@ -30,14 +30,6 @@ class FcmService {
     try {
       await FirebaseMessaging.instance.setAutoInitEnabled(true);
 
-      final settings = await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
-      );
-      debugPrint('[FcmService] Permission: ${settings.authorizationStatus}');
-
       FirebaseMessaging.onMessage.listen((message) {
         debugPrint('[FcmService] Foreground FCM: ${message.messageId}');
         onForegroundMessage?.call(message);
@@ -55,6 +47,23 @@ class FcmService {
       await updateToken();
     } catch (e, st) {
       debugPrint('[FcmService] init failed: $e\n$st');
+    }
+  }
+
+  /// Explicit user-visible permission prompt.
+  /// Call only when logged in
+  Future<void> requestPermission() async {
+    if (!isSupported) return;
+    try {
+      final settings = await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+      );
+      debugPrint('[FcmService] Permission: ${settings.authorizationStatus}');
+    } catch (e, st) {
+      debugPrint('[FcmService] requestPermission failed: $e\n$st');
     }
   }
 

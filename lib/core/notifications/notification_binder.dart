@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/auth/onboarding_manager.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/comms/comms_state.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
@@ -28,6 +29,7 @@ class NotificationBinder extends ConsumerStatefulWidget {
 class _NotificationBinderState extends ConsumerState<NotificationBinder>
     with WidgetsBindingObserver {
   void Function(dynamic)? _onMessageNew;
+  bool _permissionRequestInFlight = false;
 
   @override
   void initState() {
@@ -76,8 +78,32 @@ class _NotificationBinderState extends ConsumerState<NotificationBinder>
 
   Future<void> _bootstrap() async {
     await NotificationManager.instance.init();
-    await NotificationManager.instance.requestPermissions();
     _wireManager();
+    _maybeRequestPermissions();
+  }
+
+  /// Only prompt for notifications when logged in
+  void _maybeRequestPermissions() {
+    bool loggedIn;
+    try {
+      loggedIn = ref.read(authProvider);
+    } catch (_) {
+      return;
+    }
+    if (!loggedIn || !mounted) return;
+    unawaited(_requestPermissionsOnce());
+  }
+
+  Future<void> _requestPermissionsOnce() async {
+    if (_permissionRequestInFlight) return;
+    _permissionRequestInFlight = true;
+    try {
+      await NotificationManager.instance.requestPermissions();
+    } catch (e) {
+      debugPrint('[NotificationBinder] permission request failed: $e');
+    } finally {
+      _permissionRequestInFlight = false;
+    }
   }
 
   void _wireManager() {
@@ -194,6 +220,11 @@ class _NotificationBinderState extends ConsumerState<NotificationBinder>
     });
     ref.listen<CommsState>(commsProvider, (prev, next) {
       ref.read(commsProvider.notifier).syncCommsNotification();
+    });
+    ref.listen<bool>(authProvider, (prev, next) {
+      if (next && prev != true) {
+        unawaited(_requestPermissionsOnce());
+      }
     });
     _wireManager();
     return widget.child;

@@ -9,7 +9,6 @@ import 'package:novyse/core/config/global.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/notifications/fcm_service.dart';
 import 'package:novyse/core/notifications/local_notification_service.dart';
-import 'package:novyse/core/utils/platform.dart';
 
 /// Top-level FCM background handler (must be a top-level or static function).
 @pragma('vm:entry-point')
@@ -77,7 +76,8 @@ class NotificationManager {
 
   Future<void> requestPermissions() async {
     await LocalNotificationService.instance.requestPermissions();
-    if (currentOS == AppOS.android || currentOS == AppOS.ios) {
+    if (FcmService.instance.isSupported) {
+      await FcmService.instance.requestPermission();
       await FcmService.instance.updateToken();
     }
   }
