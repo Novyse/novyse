@@ -8,6 +8,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/core/utils/platform.dart';
@@ -34,7 +35,7 @@ class CommsUserCard extends ConsumerStatefulWidget {
     required this.onPin,
     required this.onFullScreen,
     this.onStopShare,
-    this.onEditShare,
+    this.onEditShare
   });
 
   @override
@@ -135,8 +136,15 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
     // - mic-with-lock: local-only mute from this client's context menu.
     // - plain mic-off: remote self-mute broadcast by LiveKit (bottombar),
     //   or own mic state for the local tile when connected to comms.
+    final activeChat = ref.watch(activeChatProvider);
+    final targetChatUUID = activeChat.selectedChatUUID;
+    final targetSub = activeChat.selectedSub;
     final isCommsConnected = ref.watch(
-      commsProvider.select((s) => s.connected),
+      commsProvider.select(
+        (s) => targetChatUUID != null
+            ? s.isRoomMatch(targetChatUUID, targetSub)
+            : s.connected,
+      ),
     );
     final ownMicOff = tile.isLocal && !tile.isScreenShare && isCommsConnected
         ? !ref.watch(commsProvider.select((s) => s.isAudioEnabled))
@@ -145,11 +153,14 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
     final showRemoteSimple =
         !showLocalLock && (tile.isRemoteMuted || ownMicOff);
 
-    final controlsOpacity = widget.isFullScreen
-        ? (_overlayUiVisible ? 1.0 : 0.0)
-        : ((_isHovered || widget.isPinned) ? 1.0 : 0.0);
+    final controlsOpacity = !isCommsConnected
+        ? 0.0
+        : widget.isFullScreen
+            ? (_overlayUiVisible ? 1.0 : 0.0)
+            : ((_isHovered || widget.isPinned) ? 1.0 : 0.0);
 
     void openMenu(Offset anchor) {
+      if (!isCommsConnected) return;
       showCommsUserContextMenu(
         context: context,
         tile: tile,
@@ -170,10 +181,12 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: widget.isFullScreen ? _onCardTap : null,
-      onTapUp: widget.isFullScreen
+      onTapUp: widget.isFullScreen || !isCommsConnected
           ? null
           : (details) => openMenu(details.globalPosition),
-      onSecondaryTapUp: (details) => openMenu(details.globalPosition),
+      onSecondaryTapUp: !isCommsConnected
+          ? null
+          : (details) => openMenu(details.globalPosition),
       child: MouseRegion(
         onEnter: (_) {
           setState(() => _isHovered = true);
@@ -218,123 +231,131 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                 _buildAvatarFallback(context, pfpUUID, displayName),
 
               // Top-right controls (Pin, Fullscreen, Stop share)
-              Positioned(
-                top: 8,
-                right: 8,
-                child: AnimatedOpacity(
-                  opacity: controlsOpacity,
-                  duration: const Duration(milliseconds: 150),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                      child: Container(
-                        color: Colors.black.withValues(alpha: 0.45),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 2,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (!widget.isFullScreen)
-                              IconButton(
-                                icon: AppHugeIcon(
-                                  icon: widget.isPinned
-                                      ? HugeIcons.strokeRoundedPinOff
-                                      : HugeIcons.strokeRoundedPin,
-                                  color: widget.isPinned
-                                      ? colorScheme.primary
-                                      : Colors.white,
-                                  size: 18,
-                                ),
-                                visualDensity: VisualDensity.compact,
-                                padding: const EdgeInsets.all(6),
-                                tooltip: widget.isPinned
-                                    ? l10n.commsUnpin
-                                    : l10n.commsPin,
-                                onPressed: widget.onPin,
-                              ),
-                            IconButton(
-                              icon: AppHugeIcon(
-                                icon: widget.isFullScreen
-                                    ? HugeIcons.strokeRoundedArrowShrink01
-                                    : HugeIcons.strokeRoundedArrowExpand01,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                              visualDensity: VisualDensity.compact,
-                              padding: const EdgeInsets.all(6),
-                              tooltip: widget.isFullScreen
-                                  ? l10n.commsExitFullScreen
-                                  : l10n.commsFullScreen,
-                              onPressed: widget.onFullScreen,
-                            ),
-                            if (tile.isScreenShare &&
-                                !tile.isLocal &&
-                                tile.trackSid != null)
-                              Builder(
-                                builder: (btnContext) => IconButton(
-                                  icon: const AppHugeIcon(
-                                    icon:
-                                        HugeIcons.strokeRoundedSlidersVertical,
-                                    color: Colors.white,
+              // Hidden entirely when previewing the room from outside.
+              if (isCommsConnected)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: AnimatedOpacity(
+                    opacity: controlsOpacity,
+                    duration: const Duration(milliseconds: 150),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.45),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (!widget.isFullScreen)
+                                IconButton(
+                                  icon: AppHugeIcon(
+                                    icon: widget.isPinned
+                                        ? HugeIcons.strokeRoundedPinOff
+                                        : HugeIcons.strokeRoundedPin,
+                                    color: widget.isPinned
+                                        ? colorScheme.primary
+                                        : Colors.white,
                                     size: 18,
                                   ),
                                   visualDensity: VisualDensity.compact,
                                   padding: const EdgeInsets.all(6),
-                                  tooltip: l10n.screenShareQualityTooltip,
-                                  onPressed: () {
-                                    final box = btnContext.findRenderObject()
-                                        as RenderBox?;
-                                    final pos = box?.localToGlobal(
-                                          Offset(0, box.size.height + 4),
-                                        ) ??
-                                        Offset.zero;
-                                    showRemoteScreenShareQualityMenu(
-                                      context: context,
-                                      ref: ref,
-                                      trackSid: tile.trackSid!,
-                                      anchor: pos,
-                                    );
-                                  },
+                                  tooltip: widget.isPinned
+                                      ? l10n.commsUnpin
+                                      : l10n.commsPin,
+                                  onPressed: widget.onPin,
                                 ),
-                              ),
-                            if (tile.isScreenShare &&
-                                tile.isLocal &&
-                                widget.onEditShare != null)
                               IconButton(
-                                icon: const AppHugeIcon(
-                                  icon: HugeIcons.strokeRoundedPencilEdit02,
+                                icon: AppHugeIcon(
+                                  icon: widget.isFullScreen
+                                      ? HugeIcons.strokeRoundedArrowShrink01
+                                      : HugeIcons.strokeRoundedArrowExpand01,
                                   color: Colors.white,
                                   size: 18,
                                 ),
                                 visualDensity: VisualDensity.compact,
                                 padding: const EdgeInsets.all(6),
-                                tooltip: l10n.screenShareEditShare,
-                                onPressed: widget.onEditShare,
+                                tooltip: widget.isFullScreen
+                                    ? l10n.commsExitFullScreen
+                                    : l10n.commsFullScreen,
+                                onPressed: widget.onFullScreen,
                               ),
-                            if (tile.isScreenShare &&
-                                tile.isLocal &&
-                                widget.onStopShare != null)
-                              IconButton(
-                                icon: const AppHugeIcon(
-                                  icon: HugeIcons.strokeRoundedComputerRemove,
-                                  color: AppColors.danger,
-                                  size: 18,
+                              if (tile.isScreenShare &&
+                                  !tile.isLocal &&
+                                  tile.trackSid != null)
+                                Builder(
+                                  builder: (btnContext) => IconButton(
+                                    icon: const AppHugeIcon(
+                                      icon: HugeIcons
+                                          .strokeRoundedSlidersVertical,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                    visualDensity: VisualDensity.compact,
+                                    padding: const EdgeInsets.all(6),
+                                    tooltip: l10n.screenShareQualityTooltip,
+                                    onPressed: () {
+                                      final box =
+                                          btnContext.findRenderObject()
+                                              as RenderBox?;
+                                      final pos = box?.localToGlobal(
+                                            Offset(
+                                              0,
+                                              box.size.height + 4,
+                                            ),
+                                          ) ??
+                                          Offset.zero;
+                                      showRemoteScreenShareQualityMenu(
+                                        context: context,
+                                        ref: ref,
+                                        trackSid: tile.trackSid!,
+                                        anchor: pos,
+                                      );
+                                    },
+                                  ),
                                 ),
-                                visualDensity: VisualDensity.compact,
-                                padding: const EdgeInsets.all(6),
-                                tooltip: l10n.commsStopScreenShare,
-                                onPressed: widget.onStopShare,
-                              ),
-                          ],
+                              if (tile.isScreenShare &&
+                                  tile.isLocal &&
+                                  widget.onEditShare != null)
+                                IconButton(
+                                  icon: const AppHugeIcon(
+                                    icon:
+                                        HugeIcons.strokeRoundedPencilEdit02,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                  visualDensity: VisualDensity.compact,
+                                  padding: const EdgeInsets.all(6),
+                                  tooltip: l10n.screenShareEditShare,
+                                  onPressed: widget.onEditShare,
+                                ),
+                              if (tile.isScreenShare &&
+                                  tile.isLocal &&
+                                  widget.onStopShare != null)
+                                IconButton(
+                                  icon: const AppHugeIcon(
+                                    icon: HugeIcons
+                                        .strokeRoundedComputerRemove,
+                                    color: AppColors.danger,
+                                    size: 18,
+                                  ),
+                                  visualDensity: VisualDensity.compact,
+                                  padding: const EdgeInsets.all(6),
+                                  tooltip: l10n.commsStopScreenShare,
+                                  onPressed: widget.onStopShare,
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
 
               // Bottom-left name tag
               Positioned(
@@ -434,6 +455,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                                   ),
                                 ),
                               if (tile.isLocal &&
+                                  isCommsConnected &&
                                   !tile.isScreenShare &&
                                   videoTrack != null &&
                                   currentPlatform == AppPlatform.mobile)
