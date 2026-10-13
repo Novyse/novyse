@@ -111,4 +111,39 @@ void main() {
       'Default — Microfono (NVIDIA Broadcast)',
     );
   });
+
+  test('linux default with colon separator maps to physical device and collapses', () {
+    final normalized = CommsDevicesDefaults.collapseSystemDefault(
+      [
+        _mic('default: Microphone', 'default: Microphone'),
+        _mic('hw:0,0', 'Microphone'),
+        _mic('usb', 'USB Microphone'),
+      ],
+      osDefaultLabel: 'Microphone',
+    );
+
+    expect(normalized.devices.map((d) => d.id), ['usb']);
+    expect(normalized.systemDefault.id, 'hw:0,0');
+    expect(
+      CommsDevicesDefaults.defaultOptionLabel(normalized.systemDefault.label),
+      'Default — Microphone',
+    );
+  });
+
+  test('linux default device alone collapses into clean system default label', () {
+    final normalized = CommsDevicesDefaults.collapseSystemDefault(
+      [
+        _mic('default: HDA Intel PCH', 'default: HDA Intel PCH'),
+        _mic('usb', 'USB Microphone'),
+      ],
+      osDefaultLabel: 'HDA Intel PCH',
+    );
+
+    expect(normalized.devices.map((d) => d.id), ['usb']);
+    expect(normalized.systemDefault.id, 'default: HDA Intel PCH');
+    expect(
+      CommsDevicesDefaults.defaultOptionLabel(normalized.systemDefault.label),
+      'Default — HDA Intel PCH',
+    );
+  });
 }

@@ -1,6 +1,8 @@
 /// OS default capture and render endpoints.
 ///
-/// [inputId] / [outputId] are endpoint ids (a GUID on Windows).
+/// [inputId] / [outputId] are OS-specific endpoint identifiers
+/// (a GUID on Windows, a PulseAudio sink/source name on Linux, or a
+/// CoreAudio device ID on macOS).
 /// [input] / [output] are the friendly names in the system language.
 class OsDefaultAudioNames {
   final String? inputId;

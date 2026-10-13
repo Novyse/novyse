@@ -86,7 +86,8 @@ abstract final class CommsDevicesDefaults {
       osDefaultId: osDefaultId,
       osDefaultLabel: osDefaultLabel,
     );
-    final label = match?.label.trim();
+    final rawLabel = match?.label.trim() ?? _trimmedOrNull(osDefaultLabel);
+    final label = _nameAfterSeparator(rawLabel ?? '') ?? rawLabel;
     return (
       devices: [
         for (final device in concrete)
@@ -121,7 +122,8 @@ abstract final class CommsDevicesDefaults {
     final name = osDefaultLabel?.trim().toLowerCase();
     if (name != null && name.isNotEmpty) {
       for (final device in devices) {
-        if (device.label.trim().toLowerCase() == name) {
+        final label = device.label.trim().toLowerCase();
+        if (label == name || _nameAfterSeparator(device.label)?.toLowerCase() == name) {
           return _physicalDevice(device, devices);
         }
       }
@@ -148,7 +150,7 @@ abstract final class CommsDevicesDefaults {
     CommsDevice candidate,
     List<CommsDevice> devices,
   ) {
-    final wanted = _nameAfterSeparator(candidate.label);
+    final wanted = _nameAfterSeparator(candidate.label)?.toLowerCase();
     if (wanted == null) return candidate;
     for (final device in devices) {
       if (device.id == candidate.id) continue;
@@ -163,22 +165,25 @@ abstract final class CommsDevicesDefaults {
     return candidate;
   }
 
-  /// Text after the first ` - ` style separator, in any language.
+  /// Text after the first ` - ` or `default:` style separator, in any language.
   static String? _nameAfterSeparator(String label) {
     final trimmed = label.trim();
-    final separator = RegExp(r'\s[-–—:]\s').firstMatch(trimmed);
+    final separator = RegExp(r'(?:\s[-–—:]\s|:\s*)').firstMatch(trimmed);
     if (separator == null || separator.start > 40) return null;
-    final name = trimmed.substring(separator.end).trim().toLowerCase();
+    final name = trimmed.substring(separator.end).trim();
     return name.isEmpty ? null : name;
   }
 
-  /// Compares the device GUID. Windows endpoint ids also carry a role prefix
-  /// (`{0.0.1.00000000}`) that is not a device and must not match on its own.
+  /// Compares the device identifier across platforms (GUID on Windows, ID or name on other OSes).
   static bool _sameEndpoint(String deviceId, String endpointId) {
     final left = deviceId.trim().toLowerCase();
+    final right = endpointId.trim().toLowerCase();
+    if (left.isEmpty || right.isEmpty) return false;
+    if (left == right || left.contains(right) || right.contains(left)) return true;
+
     final guid = _endpointGuid(endpointId);
-    if (left.isEmpty || guid == null) return false;
-    return left == guid || left.contains(guid);
+    if (guid != null && (left == guid || left.contains(guid))) return true;
+    return false;
   }
 
   static final RegExp _endpointGuidPattern = RegExp(
@@ -197,10 +202,10 @@ abstract final class CommsDevicesDefaults {
     return trimmed == null || trimmed.isEmpty ? null : trimmed;
   }
 
-  /// `Default`, or `Default — Headset` when the OS default device is known.
+  /// `Default`, or `Default: Headset` when the OS default device is known.
   static String defaultOptionLabel(String? systemDefaultLabel) {
     final name = systemDefaultLabel?.trim();
     if (name == null || name.isEmpty) return 'Default';
-    return 'Default — $name';
+    return 'Default: $name';
   }
 }
