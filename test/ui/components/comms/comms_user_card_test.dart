@@ -8,9 +8,18 @@ import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/comms/comms_state.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/services/profile_picture_service.dart';
+import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/comms/comms_user_card.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+
+class _FakeActiveChatNotifier extends ActiveChatNotifier {
+  final ActiveChatState _initialState;
+  _FakeActiveChatNotifier(this._initialState);
+
+  @override
+  ActiveChatState build() => _initialState;
+}
 
 class _FakeCommsNotifier extends CommsNotifier {
   final CommsState _initialState;
@@ -59,14 +68,25 @@ void main() {
     Map<String, UserModel> users = const {},
     bool isPinned = false,
     bool isFullScreen = false,
+    bool connected = true,
+    CommsState? commsState,
     VoidCallback? onStopShare,
     VoidCallback? onPin,
     VoidCallback? onFullScreen,
     List<Override> overrides = const [],
   }) async {
+    final effectiveCommsState =
+        commsState ?? CommsState(connected: connected);
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [...avatarOverrides, ...userOverrides(users), ...overrides],
+        overrides: [
+          ...avatarOverrides,
+          ...userOverrides(users),
+          commsProvider.overrideWith(
+            () => _FakeCommsNotifier(effectiveCommsState),
+          ),
+          ...overrides,
+        ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -339,7 +359,12 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: avatarOverrides,
+          overrides: [
+            ...avatarOverrides,
+            commsProvider.overrideWith(
+              () => _FakeCommsNotifier(const CommsState(connected: true)),
+            ),
+          ],
           child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
@@ -442,7 +467,7 @@ void main() {
     testWidgets('no badge for local participant when not in comms', (
       tester,
     ) async {
-      await pump(tester, item: muteTile(isLocal: true));
+      await pump(tester, item: muteTile(isLocal: true), connected: false);
 
       expect(iconByType(HugeIcons.strokeRoundedMicOff02), findsNothing);
     });
@@ -453,13 +478,7 @@ void main() {
         await pump(
           tester,
           item: muteTile(isLocal: true),
-          overrides: [
-            commsProvider.overrideWith(
-              () => _FakeCommsNotifier(
-                const CommsState(connected: true, isAudioEnabled: false),
-              ),
-            ),
-          ],
+          commsState: const CommsState(connected: true, isAudioEnabled: false),
         );
 
         expect(iconByType(HugeIcons.strokeRoundedMicOff02), findsOneWidget);
@@ -472,13 +491,7 @@ void main() {
         await pump(
           tester,
           item: muteTile(isLocal: true),
-          overrides: [
-            commsProvider.overrideWith(
-              () => _FakeCommsNotifier(
-                const CommsState(connected: true, isAudioEnabled: true),
-              ),
-            ),
-          ],
+          commsState: const CommsState(connected: true, isAudioEnabled: true),
         );
 
         expect(iconByType(HugeIcons.strokeRoundedMicOff02), findsNothing);
@@ -625,5 +638,117 @@ void main() {
       expect(background.borderRadius, BorderRadius.zero);
       expect(foreground.borderRadius, BorderRadius.zero);
     });
+  });
+
+  group('outside voice chat (connected: false or room mismatch)', () {
+    testWidgets('top-right controls are hidden when disconnected', (tester) async {
+      final l10n = await pump(
+        tester,
+        item: tile(id: 'TR_1', isScreenShare: true, isLocal: true),
+        connected: false,
+        onStopShare: () {},
+      );
+
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await gesture.addPointer(location: Offset.zero);
+      await gesture.moveTo(tester.getCenter(find.byType(CommsUserCard)));
+      await tester.pumpAndSettle();
+
+      expect(find.byTooltip(l10n.commsPin), findsNothing);
+      expect(find.byTooltip(l10n.commsFullScreen), findsNothing);
+      expect(find.byTooltip(l10n.commsStopScreenShare), findsNothing);
+    });
+
+    testWidgets('tap and right-click do not open the context menu when disconnected', (tester) async {
+      final l10n = await pump(
+        tester,
+        item: tile(),
+        connected: false,
+      );
+
+      await tester.tap(find.byType(CommsUserCard));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.commsMuteUser), findsNothing);
+
+      await tester.tap(find.byType(CommsUserCard), buttons: kSecondaryButton);
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.commsMuteUser), findsNothing);
+    });
+
+    testWidgets(
+      'user connected to a different room cannot interact with other room cards',
+      (tester) async {
+        final l10n = await pump(
+          tester,
+          item: tile(id: 'tile-other', isLocal: false),
+          overrides: [
+            activeChatProvider.overrideWith(
+              () => _FakeActiveChatNotifier(
+                const ActiveChatState(selectedChatUUID: 'chat-room-B', selectedSub: 0),
+              ),
+            ),
+          ],
+          commsState: const CommsState(
+            connected: true,
+            currentChatUUID: 'chat-room-A',
+            currentSub: 0,
+          ),
+        );
+
+        // Hover should not reveal controls
+        final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+        await gesture.addPointer(location: Offset.zero);
+        await gesture.moveTo(tester.getCenter(find.byType(CommsUserCard)));
+        await tester.pumpAndSettle();
+
+        expect(find.byTooltip(l10n.commsPin), findsNothing);
+        expect(find.byTooltip(l10n.commsFullScreen), findsNothing);
+
+        // Tap or secondary tap should not open menu
+        await tester.tap(find.byType(CommsUserCard));
+        await tester.pumpAndSettle();
+        expect(find.text(l10n.commsMuteUser), findsNothing);
+
+        await tester.tap(find.byType(CommsUserCard), buttons: kSecondaryButton);
+        await tester.pumpAndSettle();
+        expect(find.text(l10n.commsMuteUser), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'user connected to the same room can interact with cards',
+      (tester) async {
+        final l10n = await pump(
+          tester,
+          item: tile(id: 'tile-room-A', isLocal: false),
+          overrides: [
+            activeChatProvider.overrideWith(
+              () => _FakeActiveChatNotifier(
+                const ActiveChatState(selectedChatUUID: 'chat-room-A', selectedSub: 0),
+              ),
+            ),
+          ],
+          commsState: const CommsState(
+            connected: true,
+            currentChatUUID: 'chat-room-A',
+            currentSub: 0,
+          ),
+        );
+
+        // Hover reveals controls
+        final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+        await gesture.addPointer(location: Offset.zero);
+        await gesture.moveTo(tester.getCenter(find.byType(CommsUserCard)));
+        await tester.pumpAndSettle();
+
+        expect(find.byTooltip(l10n.commsPin), findsOneWidget);
+        expect(find.byTooltip(l10n.commsFullScreen), findsOneWidget);
+
+        // Tap opens menu
+        await tester.tap(find.byType(CommsUserCard));
+        await tester.pumpAndSettle();
+        expect(find.text(l10n.commsMuteUser), findsOneWidget);
+      },
+    );
   });
 }

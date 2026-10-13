@@ -1,6 +1,7 @@
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/settings/settings_models.dart';
 import 'package:novyse/core/utils/platform.dart';
+import 'package:novyse/ui/components/window/desktop_startup_controller.dart';
 
 /// System settings.
 final List<SettingCategory> systemCategory = [
@@ -28,6 +29,7 @@ final List<SettingCategory> systemCategory = [
                 settingKey: 'system.openOnStartup',
                 scope: SettingScope.local,
                 defaultValue: false,
+                disabled: !DesktopStartupController.isSupported,
                 supportedOS: const [AppOS.linux, AppOS.windows, AppOS.macos],
               ),
               SettingItem(
@@ -38,6 +40,7 @@ final List<SettingCategory> systemCategory = [
                 settingKey: 'system.openInBackground',
                 scope: SettingScope.local,
                 defaultValue: false,
+                disabled: !DesktopStartupController.isSupported,
                 supportedOS: const [AppOS.linux, AppOS.windows, AppOS.macos],
               ),
               SettingItem(

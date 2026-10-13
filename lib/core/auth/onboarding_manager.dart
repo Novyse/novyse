@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:novyse_auth/novyse_auth.dart' show NovyseAuth;
 
+import '../chat/queue/queue_manager.dart';
+import '../notifications/fcm_service.dart';
 import '../services/api_gateway.dart';
 import '../services/auth.dart' as auth_service;
 import '../storage/database/database.dart';
@@ -85,6 +87,7 @@ class OnboardingManager extends StateNotifier<bool> {
       await _storage.write(key: 'sessionId', value: resolvedSessionId);
     }
     state = true;
+    await FcmService.instance.clearConfirmedToken();
     FileStorage.instance.setCurrentUser(userUUID);
   }
 
@@ -103,6 +106,7 @@ class OnboardingManager extends StateNotifier<bool> {
     await _storage.delete(key: 'userUUID');
     await _storage.delete(key: 'sessionID');
     await _storage.delete(key: 'sessionId');
+    QueueManager.instance.dispose();
     await AppDatabase.instance.close();
     FileStorage.instance.setCurrentUser(null);
     state = false;

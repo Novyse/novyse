@@ -237,7 +237,9 @@ class SyncService {
       // Open realtime socket
       await _socket.open();
 
-      // Sync FCM token once session + network are ready
+      // Sync FCM token once session + network are ready. Logout clears the
+      // last-confirmed token ([FcmService.unregister]), so after a login
+      // this always re-sends it.
       try {
         await NotificationManager.instance.syncPushToken();
       } catch (e) {

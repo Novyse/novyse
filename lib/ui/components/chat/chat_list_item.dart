@@ -127,10 +127,9 @@ class ChatListItem extends ConsumerWidget {
     final rawTime =
         msg?['createdAt'] ??
         msg?['created_at'] ??
-        chat.createdAt?.toIso8601String();
+        chat.createdAt;
     if (rawTime == null) return '';
-    final dt = DateTime.tryParse(rawTime.toString())?.toLocal();
-    if (dt == null) return '';
+    final dt = formatDateTime(rawTime);
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);

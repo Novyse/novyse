@@ -896,6 +896,8 @@
   "settingsItemMfaTitle": "Multi-Factor Authentication",
   "settingsItemMicTestSubtitle": "Waveform with loopback playback",
   "settingsItemMicTestTitle": "Interactive Mic Test",
+  "settingsItemMuteMicWithSpeakerSubtitle": "Automatically mute the microphone when muting the speaker",
+  "settingsItemMuteMicWithSpeakerTitle": "Mute Microphone with Speaker",
   "settingsItemMobileDownloadSubtitle": "Auto-download rules on cellular",
   "settingsItemMobileDownloadTitle": "When using Mobile Data",
   "settingsItemNameColorSubtitle": "Username accent color",

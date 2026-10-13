@@ -1,4 +1,5 @@
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/comms/devices/comms_bitrate_options.dart';
 import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
 import 'package:novyse/core/comms/devices/comms_quality_options.dart';
@@ -45,6 +46,15 @@ final List<SettingCategory> commsCategory = [
                 onOptionPicked: saveSpeakerOption,
               ),
               SettingItem(
+                id: 'mute_mic_with_speaker',
+                title: (l) => l.settingsItemMuteMicWithSpeakerTitle,
+                subtitle: (l) => l.settingsItemMuteMicWithSpeakerSubtitle,
+                component: SettingComponent.switchToggle,
+                settingKey: CommsNotifier.muteMicWithSpeakerSettingsKey,
+                scope: SettingScope.local,
+                defaultValue: true,
+              ),
+              SettingItem(
                 id: 'mic_test',
                 title: (l) => l.settingsItemMicTestTitle,
                 subtitle: (l) => l.settingsItemMicTestSubtitle,
@@ -80,7 +90,8 @@ final List<SettingCategory> commsCategory = [
                 component: SettingComponent.switchToggle,
                 settingKey: 'comms.noiseSuppression',
                 scope: SettingScope.local,
-                defaultValue: true,
+                defaultValue: false,
+                disabled: true,
               ),
               SettingItem(
                 id: 'expander',
@@ -111,7 +122,7 @@ final List<SettingCategory> commsCategory = [
                 component: SettingComponent.switchToggle,
                 settingKey: 'comms.keystrokeAttenuation',
                 scope: SettingScope.local,
-                defaultValue: true,
+                defaultValue: false,
                 disabled: true,
               ),
               SettingItem(
@@ -121,7 +132,8 @@ final List<SettingCategory> commsCategory = [
                 component: SettingComponent.switchToggle,
                 settingKey: 'comms.echoCancellation',
                 scope: SettingScope.local,
-                defaultValue: true,
+                defaultValue: false,
+                disabled: true,
               ),
             ],
           ),

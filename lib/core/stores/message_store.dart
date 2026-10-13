@@ -55,7 +55,9 @@ class MessageModel {
       chatUUID: MessageFieldParser.parseChatUUID(map) ?? '',
       subID: MessageFieldParser.parseSubID(map['subID']),
       userUUID: MessageFieldParser.parseSenderUUID(map) ?? '',
-      createdAt: MessageFieldParser.parseCreatedAtDateTime(map['created_at']),
+      createdAt: MessageFieldParser.parseCreatedAtDateTime(
+        map['created_at'] ?? map['createdAt'],
+      ),
       edited: MessageFieldParser.isEdited(map),
       pinned: MessageFieldParser.isPinned(map),
       favorited: MessageFieldParser.isFavorited(map),
@@ -78,7 +80,7 @@ class MessageModel {
       'subID': subID,
       'userUUID': userUUID,
       'senderUUID': userUUID,
-      'created_at': createdAt.toIso8601String(),
+      'created_at': createdAt.toUtc().toIso8601String(),
       'edited': edited,
       'pinned': pinned,
       'favorited': favorited,
@@ -256,7 +258,7 @@ class MessageListNotifier
     state = state.copyWith(loading: true);
 
     try {
-      final oldestTime = state.messages.last.createdAt.toIso8601String();
+      final oldestTime = state.messages.last.createdAt.toUtc().toIso8601String();
       final db = AppDatabase.instance;
       final rawOlder = await db.message.get.by.sub(
         arg.chatUUID,

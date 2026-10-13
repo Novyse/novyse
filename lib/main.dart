@@ -32,8 +32,8 @@ import 'core/router/router.dart';
 import 'core/settings/settings_controller.dart';
 import 'core/themes/themes.dart';
 
-Future<void> _initDesktopWindow() async {
-  await DesktopWindowController.init();
+Future<void> _initDesktopWindow({bool startHidden = false}) async {
+  await DesktopWindowController.init(startHidden: startHidden);
   await DesktopTrayController.init();
 }
 
@@ -51,7 +51,7 @@ Future<void> _initFirebase() async {
   }
 }
 
-void main() async {
+void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   if (!kIsWeb) {
     if (Platform.isLinux) {
@@ -63,7 +63,8 @@ void main() async {
     }
   }
   await initializeDateFormatting();
-  await _initDesktopWindow();
+  final startHidden = args.contains('--hidden');
+  await _initDesktopWindow(startHidden: startHidden);
   await recoverPendingDesktopInstall();
   await _initFirebase();
   if (kIsWeb) {

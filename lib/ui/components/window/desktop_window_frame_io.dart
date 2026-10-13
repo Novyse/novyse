@@ -4,21 +4,22 @@ import 'package:nativeapi_flutter/nativeapi_flutter.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/window/desktop_startup_controller.dart';
 import 'package:novyse/ui/components/window/desktop_window_controller.dart';
 import 'package:novyse/ui/components/window/window_style.dart';
 
 bool get showCustomTitleBar => DesktopWindowController.isCustomChromeEnabled;
 
-class DesktopWindowFrame extends StatefulWidget {
+class DesktopWindowFrame extends ConsumerStatefulWidget {
   const DesktopWindowFrame({super.key, required this.child});
 
   final Widget child;
 
   @override
-  State<DesktopWindowFrame> createState() => _DesktopWindowFrameState();
+  ConsumerState<DesktopWindowFrame> createState() => _DesktopWindowFrameState();
 }
 
-class _DesktopWindowFrameState extends State<DesktopWindowFrame> {
+class _DesktopWindowFrameState extends ConsumerState<DesktopWindowFrame> {
   bool _isMaximized = false;
   int? _listenerId;
 
@@ -31,6 +32,13 @@ class _DesktopWindowFrameState extends State<DesktopWindowFrame> {
         setState(() => _isMaximized = maximized);
       }
     });
+    if (DesktopStartupController.isSupported) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          DesktopStartupController.sync(ref);
+        }
+      });
+    }
   }
 
   @override
@@ -41,6 +49,19 @@ class _DesktopWindowFrameState extends State<DesktopWindowFrame> {
 
   @override
   Widget build(BuildContext context) {
+    if (DesktopStartupController.isSupported) {
+      ref.listen(settingValueProvider('system.openOnStartup'), (prev, next) {
+        if (prev != null && prev != next) {
+          DesktopStartupController.sync(ref);
+        }
+      });
+      ref.listen(settingValueProvider('system.openInBackground'), (prev, next) {
+        if (prev != null && prev != next) {
+          DesktopStartupController.sync(ref);
+        }
+      });
+    }
+
     if (!showCustomTitleBar) return widget.child;
     final style = WindowChromeStyle.resolve();
     // A maximized window cannot be resized: disable every handle so the

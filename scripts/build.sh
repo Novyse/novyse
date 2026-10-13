@@ -63,12 +63,18 @@ show_usage() {
   echo ""
 }
 
+HOST_OS="$(uname -s)"
+
 if [ -z "$1" ] || [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "help" ]; then
   show_usage
   exit 0
 fi
 
-PLATFORM="$(to_lower "$1")"
+if [[ "$1" == --platform=* ]]; then
+  PLATFORM="$(to_lower "${1#*=}")"
+else
+  PLATFORM="$(to_lower "$1")"
+fi
 shift
 
 CLEAN_BUILD=0
@@ -208,6 +214,38 @@ validate_compatibility() {
       exit 1
     fi
   fi
+
+  # 4. Validate host operating system compatibility
+  case "$PLATFORM" in
+    macos|ios)
+      if [ "$HOST_OS" != "Darwin" ]; then
+        echo "❌ [HOST COMPATIBILITY ERROR] Building for '$PLATFORM' requires macOS (Darwin) with Xcode installed."
+        echo "   Current host OS is: $HOST_OS"
+        echo "   Flutter cannot cross-compile macOS or iOS binaries on Linux or Windows."
+        echo "   Please run this build command directly on a Mac machine or macOS CI runner."
+        exit 1
+      fi
+      ;;
+    linux)
+      if [ "$HOST_OS" != "Linux" ]; then
+        echo "❌ [HOST COMPATIBILITY ERROR] Building for Linux desktop requires a Linux host."
+        echo "   Current host OS is: $HOST_OS"
+        exit 1
+      fi
+      ;;
+    windows)
+      case "$HOST_OS" in
+        MINGW*|MSYS*|CYGWIN*) ;;
+        *)
+          if [ "${OS:-}" != "Windows_NT" ]; then
+            echo "❌ [HOST COMPATIBILITY ERROR] Building for Windows requires a Windows host."
+            echo "   Current host OS is: $HOST_OS"
+            exit 1
+          fi
+          ;;
+      esac
+      ;;
+  esac
 }
 
 validate_compatibility
@@ -430,8 +468,6 @@ build_web() {
     fi
   fi
 }
-
-HOST_OS="$(uname -s)"
 
 case "$PLATFORM" in
   linux)

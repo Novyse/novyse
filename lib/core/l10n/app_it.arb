@@ -888,6 +888,8 @@
   "settingsItemMfaTitle": "Autenticazione a Due Fattori",
   "settingsItemMicTestSubtitle": "Forma d'onda con loopback",
   "settingsItemMicTestTitle": "Test Microfono Interattivo",
+  "settingsItemMuteMicWithSpeakerSubtitle": "Disattiva automaticamente il microfono quando disattivi l'altoparlante",
+  "settingsItemMuteMicWithSpeakerTitle": "Disattiva microfono con l'altoparlante",
   "settingsItemMobileDownloadSubtitle": "Download automatici su rete mobile",
   "settingsItemMobileDownloadTitle": "Con Dati Mobili",
   "settingsItemNameColorSubtitle": "Colore accento username",

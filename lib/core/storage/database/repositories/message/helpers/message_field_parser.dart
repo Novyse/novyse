@@ -69,25 +69,52 @@ class MessageFieldParser {
   ]) {
     final raw = map['created_at'] ?? map['createdAt'];
     if (raw != null) {
-      return raw.toString();
+      return parseCreatedAtDateTime(raw).toUtc().toIso8601String();
     }
-    return fallback ?? DateTime.now().toIso8601String();
+    return fallback ?? DateTime.now().toUtc().toIso8601String();
   }
 
-  /// Safely converts a dynamic value into a DateTime object.
+  /// Safely converts a dynamic value into a DateTime object in local device time.
+  /// All timestamps from server or DB are treated as UTC+0 based and converted to the device's timezone.
   static DateTime parseCreatedAtDateTime(dynamic rawCreatedAt) {
-    if (rawCreatedAt is DateTime) return rawCreatedAt;
-    if (rawCreatedAt is String && rawCreatedAt.isNotEmpty) {
-      try {
-        return DateTime.parse(rawCreatedAt);
-      } catch (_) {}
+    if (rawCreatedAt == null) return DateTime.now();
+    if (rawCreatedAt is DateTime) {
+      return rawCreatedAt.toLocal();
     }
     if (rawCreatedAt is int) {
       try {
-        return DateTime.fromMillisecondsSinceEpoch(
-          rawCreatedAt > 1000000000000 ? rawCreatedAt : rawCreatedAt * 1000,
-        );
+        final ms = rawCreatedAt > 1000000000000
+            ? rawCreatedAt
+            : rawCreatedAt * 1000;
+        return DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true).toLocal();
       } catch (_) {}
+    }
+    if (rawCreatedAt is String && rawCreatedAt.trim().isNotEmpty) {
+      final s = rawCreatedAt.trim();
+      final asInt = int.tryParse(s);
+      if (asInt != null) {
+        final ms = asInt > 1000000000000 ? asInt : asInt * 1000;
+        return DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true).toLocal();
+      }
+      try {
+        final hasTime = s.contains(':');
+        if (!hasTime) {
+          final parsed = DateTime.tryParse(s);
+          if (parsed != null) return parsed.toLocal();
+        }
+        final timePart = s.contains('T')
+            ? s.split('T').last
+            : (s.contains(' ') ? s.split(' ').last : '');
+        final hasTimezone = s.endsWith('Z') ||
+            s.endsWith('z') ||
+            RegExp(r'[+-]\d{2}:?\d{2}$').hasMatch(timePart);
+        final normalized = hasTimezone ? s : '${s.replaceFirst(' ', 'T')}Z';
+        return DateTime.parse(normalized).toLocal();
+      } catch (_) {
+        try {
+          return DateTime.parse(s).toLocal();
+        } catch (_) {}
+      }
     }
     return DateTime.now();
   }

@@ -10,16 +10,20 @@ mixin CommsLocalMediaMixin
 
     try {
       final next = !state.isAudioEnabled;
-      await localParticipant.setMicrophoneEnabled(
-        next,
-        audioCaptureOptions: _audioCaptureOptions(),
+      await localParticipant.setMicrophoneEnabled(next);
+      state = state.copyWith(
+        isAudioEnabled: next,
+        wasMicEnabledBeforeSpeakerMute:
+            (!state.isAudioOutputEnabled && !next)
+                ? () => false
+                : null,
       );
-      state = state.copyWith(isAudioEnabled: next);
       (this as CommsNotifier).syncCommsNotification();
     } catch (e) {
       debugPrint('[CommsController] Failed to toggle microphone: $e');
       state = state.copyWith(
-        errorMessageBuilder: () => (l10n) => l10n.commsMicAccessError,
+        errorMessageBuilder: () =>
+            (l10n) => l10n.commsMicAccessError,
       );
     }
   }
@@ -28,19 +32,20 @@ mixin CommsLocalMediaMixin
   Future<void> setAudioEnabled(bool enabled) async {
     if (state.isAudioEnabled == enabled) return;
     final localParticipant = state.room?.localParticipant;
-    if (localParticipant == null) return;
+    if (localParticipant == null) {
+      state = state.copyWith(isAudioEnabled: enabled);
+      return;
+    }
 
     try {
-      await localParticipant.setMicrophoneEnabled(
-        enabled,
-        audioCaptureOptions: _audioCaptureOptions(),
-      );
+      await localParticipant.setMicrophoneEnabled(enabled);
       state = state.copyWith(isAudioEnabled: enabled);
       (this as CommsNotifier).syncCommsNotification();
     } catch (e) {
       debugPrint('[CommsController] Failed to set microphone state: $e');
       state = state.copyWith(
-        errorMessageBuilder: () => (l10n) => l10n.commsMicAccessError,
+        errorMessageBuilder: () =>
+            (l10n) => l10n.commsMicAccessError,
       );
     }
   }
@@ -68,7 +73,8 @@ mixin CommsLocalMediaMixin
     } catch (e) {
       debugPrint('[CommsController] Failed to toggle camera: $e');
       state = state.copyWith(
-        errorMessageBuilder: () => (l10n) => l10n.commsCameraAccessError,
+        errorMessageBuilder: () =>
+            (l10n) => l10n.commsCameraAccessError,
       );
     }
   }
@@ -96,7 +102,8 @@ mixin CommsLocalMediaMixin
     } catch (e) {
       debugPrint('[CommsController] Failed to set camera state: $e');
       state = state.copyWith(
-        errorMessageBuilder: () => (l10n) => l10n.commsCameraAccessError,
+        errorMessageBuilder: () =>
+            (l10n) => l10n.commsCameraAccessError,
       );
     }
   }

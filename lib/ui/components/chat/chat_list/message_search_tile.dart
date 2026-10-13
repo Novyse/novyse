@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/storage/database/repositories/message/helpers/message_field_parser.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
@@ -133,8 +134,7 @@ class MessageSearchTile extends ConsumerWidget {
 
   String _formatTime(dynamic raw, String localeName) {
     if (raw == null) return '';
-    final dt = DateTime.tryParse(raw.toString())?.toLocal();
-    if (dt == null) return '';
+    final dt = MessageFieldParser.parseCreatedAtDateTime(raw);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final date = DateTime(dt.year, dt.month, dt.day);

@@ -78,12 +78,6 @@ IDI_APP_ICON            ICON                    "resources\\app_icon.ico"
 #define PRODUCT_NAME_STRING "Novyse"
 #endif
 
-#if defined(APP_DESCRIPTION)
-#define FILE_DESCRIPTION_STRING APP_DESCRIPTION
-#else
-#define FILE_DESCRIPTION_STRING "A desktop client for Novyse"
-#endif
-
 #if defined(LEGAL_COPYRIGHT)
 #define LEGAL_COPYRIGHT_STRING LEGAL_COPYRIGHT
 #else
@@ -108,7 +102,7 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "Novyse" "\0"
-            VALUE "FileDescription", FILE_DESCRIPTION_STRING "\0"
+            VALUE "FileDescription", PRODUCT_NAME_STRING "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "novyse" "\0"
             VALUE "LegalCopyright", LEGAL_COPYRIGHT_STRING "\0"

@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/storage/database/repositories/message/helpers/message_field_parser.dart';
 import 'package:novyse/core/storage/file/file_type.dart';
 import 'package:novyse/core/stores/message_store.dart';
 
@@ -346,18 +347,5 @@ String formatMessageDateTime(
 }
 
 DateTime formatDateTime(dynamic timestamp) {
-  if (timestamp == null) return DateTime.now();
-
-  DateTime date;
-  if (timestamp is DateTime) {
-    date = timestamp.toLocal();
-  } else if (timestamp is String) {
-    date = DateTime.parse(timestamp).toLocal();
-  } else if (timestamp is int) {
-    date = DateTime.fromMillisecondsSinceEpoch(timestamp).toLocal();
-  } else {
-    return DateTime.now();
-  }
-
-  return date;
+  return MessageFieldParser.parseCreatedAtDateTime(timestamp);
 }

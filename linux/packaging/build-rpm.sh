@@ -48,6 +48,9 @@ Release:        1
 Summary:        $APP_DESCRIPTION
 License:        $PROJECT_LICENSE
 URL:            $AUTHOR_URL
+Packager:       $AUTHOR_NAME <$AUTHOR_EMAIL>
+Vendor:         $AUTHOR_NAME
+BuildArch:      x86_64
 AutoReqProv:    no
 
 %description

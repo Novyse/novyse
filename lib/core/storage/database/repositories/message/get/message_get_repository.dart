@@ -88,7 +88,7 @@ class MessageGetByRepository {
       final List<dynamic> args = [chatUUID, subID];
       String timeClause = '';
       if (beforeTime != null && beforeTime.isNotEmpty) {
-        timeClause = 'AND m.created_at < ? ';
+        timeClause = 'AND datetime(m.created_at) < datetime(?) ';
         args.add(beforeTime);
       }
       args.add(limit);

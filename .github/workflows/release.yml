@@ -73,6 +73,17 @@ jobs:
     needs: git-flow
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_type }}
+
+      - name: Format Patch Notes
+        env:
+          RAW_NOTES: ${{ inputs.patch_notes }}
+        run: |
+          bash scripts/ci/format-patch-notes.sh "$RAW_NOTES" draft-notes.md
+
       - name: Create Draft Release
         uses: softprops/action-gh-release@v2
         with:
@@ -80,7 +91,7 @@ jobs:
           name: Version ${{ inputs.version }}
           prerelease: ${{ inputs.release_type == 'preview' }}
           draft: true
-          body: ${{ inputs.patch_notes }}
+          body_path: draft-notes.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -239,8 +250,14 @@ jobs:
             ANDROID_FINGERPRINT=$(openssl x509 -in release-assets/novyse-release-cert.pem -noout -fingerprint -sha256 2>/dev/null | cut -d'=' -f2 || true)
           fi
 
-          # Start release notes with original user patch notes
-          printf "%s\n\n" "$PATCH_NOTES" > release-notes.md
+          # Retrieve formatted notes from draft release or format original inputs
+          DRAFT_NOTES=$(gh release view "v${{ inputs.version }}" --json body -q .body 2>/dev/null || true)
+          if [ -n "$DRAFT_NOTES" ]; then
+            printf "%s\n\n" "$DRAFT_NOTES" > release-notes.md
+          else
+            bash scripts/ci/format-patch-notes.sh "$PATCH_NOTES" release-notes.md
+            printf "\n\n" >> release-notes.md
+          fi
 
           # Append verification section
           echo "---" >> release-notes.md
@@ -260,18 +277,18 @@ jobs:
           echo "| :--- | :--- | :--- |" >> release-notes.md
 
           # Append each binary asset to table
-          find release-assets -maxdepth 1 -type f ! -name "*.txt" ! -name "*.md" | sort | while read -r filepath; do
+          find release-assets -maxdepth 1 -type f ! -name "*.txt" ! -name "*.md" ! -name "*.wixpdb" | sort | while read -r filepath; do
             filename=$(basename "$filepath")
             hash=$(sha256sum "$filepath" | awk '{print $1}')
 
             platform="Other"
             case "$filename" in
-              *.apk|*.aab|*.pem) platform="Android" ;;
-              *.exe|*.msi) platform="Windows" ;;
-              *.deb|*.rpm|*.AppImage|*.snap|*.flatpak|*.tar.gz) platform="Linux" ;;
-              *.dmg) platform="macOS" ;;
-              *macos*.zip|*mac*.zip) platform="macOS" ;;
+              app-archive.json) platform="Updater" ;;
               *web*.zip) platform="Web" ;;
+              *android*|*.apk|*.aab|*.pem) platform="Android" ;;
+              *windows*|*win32*|*win64*|*.exe|*.msi) platform="Windows" ;;
+              *linux*|*.deb|*.rpm|*.AppImage|*.snap|*.flatpak|*.tar.gz) platform="Linux" ;;
+              *macos*|*mac*|*.dmg) platform="macOS" ;;
             esac
 
             echo "| **$platform** | \`$filename\` | \`$hash\` |" >> release-notes.md

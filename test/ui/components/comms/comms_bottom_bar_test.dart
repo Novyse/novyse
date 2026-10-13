@@ -209,6 +209,21 @@ void main() {
       expect(tooltips(tester), contains(l10n.commsUndeafen));
     });
 
+    testWidgets('reflects both a deafened speaker and muted microphone', (tester) async {
+      final l10n = await pump(
+        tester,
+        const CommsState(
+          connected: true,
+          currentChatUUID: 'chat-1',
+          isAudioOutputEnabled: false,
+          isAudioEnabled: false,
+        ),
+      );
+
+      expect(tooltips(tester), contains(l10n.commsUndeafen));
+      expect(tooltips(tester), contains(l10n.commsUnmuteMic));
+    });
+
     testWidgets('the mic button toggles audio', (tester) async {
       final l10n = await pump(tester, connected);
 

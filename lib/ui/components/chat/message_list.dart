@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:novyse/core/chat/chat_permission_helpers.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
@@ -178,15 +179,6 @@ class _MessageListState extends ConsumerState<MessageList>
         }
       },
     );
-    // Builder index of the unread divider (list is newest-first, so the
-    // divider sits right above the first unread, toward the older side).
-    var dividerAt = -1;
-    if (firstUnreadId != null) {
-      final k = messages.indexWhere(
-        (m) => m.id.toString() == firstUnreadId.toString(),
-      );
-      if (k >= 0) dividerAt = k + 1;
-    }
     if (messagesState.loading && messages.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -208,6 +200,28 @@ class _MessageListState extends ConsumerState<MessageList>
       subID: subID,
     );
 
+    // Build flat list of entries for newest-first (reverse: true) ListView.
+    // 1) Messages
+    // 2) Unread messages divider
+    // 3) Date separator pill
+    final items = <_MessageListItemEntry>[];
+    for (var i = 0; i < messages.length; i++) {
+      final msg = messages[i];
+      items.add(_MessageItemEntry(msg));
+
+      if (firstUnreadId != null &&
+          msg.id.toString() == firstUnreadId.toString()) {
+        items.add(const _UnreadDividerEntry());
+      }
+
+      final msgDate = msg.createdAt.toLocal();
+      final isFirstOfDay = (i == messages.length - 1) ||
+          !_isSameDay(msgDate, messages[i + 1].createdAt.toLocal());
+      if (isFirstOfDay) {
+        items.add(_DateSeparatorEntry(msgDate));
+      }
+    }
+
     return NotificationListener<ScrollNotification>(
       onNotification: onScrollNotification,
       child: ListView.builder(
@@ -215,111 +229,153 @@ class _MessageListState extends ConsumerState<MessageList>
         controller: effectiveController,
         reverse: true,
         padding: EdgeInsets.fromLTRB(16, 12, 16, widget.bottomInset),
-        itemCount: messages.length + (dividerAt >= 0 ? 1 : 0),
+        itemCount: items.length,
         itemBuilder: (context, index) {
-          if (dividerAt >= 0 && index == dividerAt) {
-            return KeyedSubtree(
-              key: unreadDividerKey,
-              child: Padding(
+          final entry = items[index];
+          switch (entry) {
+            case _UnreadDividerEntry():
+              return KeyedSubtree(
+                key: unreadDividerKey,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: MessageSystem(
+                    type: 'separator-with-lines',
+                    data: context.l10n.unreadMessages,
+                  ),
+                ),
+              );
+            case _DateSeparatorEntry(date: final date):
+              final localeName = context.l10n.localeName;
+              String dateStr;
+              try {
+                dateStr = DateFormat.yMd(localeName).format(date);
+              } catch (_) {
+                dateStr = DateFormat('dd/MM/yyyy').format(date);
+              }
+              return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: MessageSystem(
-                  type: 'separator-with-lines',
-                  data: context.l10n.unreadMessages,
+                  key: ValueKey('date_${date.year}_${date.month}_${date.day}'),
+                  type: 'date',
+                  data: dateStr,
                 ),
-              ),
-            );
-          }
-          final message =
-              messages[dividerAt >= 0 && index > dividerAt ? index - 1 : index];
-          final isSender = message.userUUID == localUserUUID;
-          final senderUser = users[message.userUUID];
-          final isSearchMatch =
-              widget.highlightedMessageId != null &&
-              message.id.toString() == widget.highlightedMessageId.toString();
-          final isJumpMatch =
-              jumpHighlightedMessageId != null &&
-              message.id.toString() == jumpHighlightedMessageId.toString();
-          final isCurrentMatch = isSearchMatch || isJumpMatch;
+              );
+            case _MessageItemEntry(message: final message):
+              final isSender = message.userUUID == localUserUUID;
+              final senderUser = users[message.userUUID];
+              final isSearchMatch =
+                  widget.highlightedMessageId != null &&
+                  message.id.toString() ==
+                      widget.highlightedMessageId.toString();
+              final isJumpMatch =
+                  jumpHighlightedMessageId != null &&
+                  message.id.toString() == jumpHighlightedMessageId.toString();
+              final isCurrentMatch = isSearchMatch || isJumpMatch;
 
-          final isMsgSelected =
-              isCurrentMatch ||
-              selectedMessages.any(
-                (m) => m.id.toString() == message.id.toString(),
+              final isMsgSelected =
+                  isCurrentMatch ||
+                  selectedMessages.any(
+                    (m) => m.id.toString() == message.id.toString(),
+                  );
+
+              final itemKey = _itemKeys.putIfAbsent(
+                message.id.toString(),
+                () => GlobalKey(),
               );
 
-          final itemKey = _itemKeys.putIfAbsent(
-            message.id.toString(),
-            () => GlobalKey(),
-          );
+              final quoteHighlightRange =
+                  isJumpMatch && jumpRangeStart != null && jumpRangeEnd != null
+                  ? TextRange(start: jumpRangeStart!, end: jumpRangeEnd!)
+                  : null;
 
-          final quoteHighlightRange =
-              isJumpMatch && jumpRangeStart != null && jumpRangeEnd != null
-              ? TextRange(start: jumpRangeStart!, end: jumpRangeEnd!)
-              : null;
-
-          return MessageListItem(
-            itemKey: itemKey,
-            message: message,
-            isSender: isSender,
-            isSelected: isMsgSelected,
-            isSelectionMode: isSelectionMode,
-            showAvatar: isGroup && !isSender,
-            showSenderName: isGroup && !isSender,
-            senderUser: senderUser,
-            searchHighlight: widget.searchQuery,
-            isCurrentSearchMatch: isCurrentMatch,
-            quoteHighlightRange: quoteHighlightRange,
-            canReply: canReplyChat,
-            onReply: () {
-              ref.read(chatDraftProvider(chatUUID).notifier).addReply(message);
-            },
-            onReplyTap:
-                ({
-                  required String chatUUID,
-                  required int subID,
-                  required int messageID,
-                  int? rangeStart,
-                  int? rangeEnd,
-                }) {
-                  if (chatUUID.isEmpty || chatUUID == widget.chatUUID) {
-                    ref
-                        .read(activeChatProvider.notifier)
-                        .jumpToMessage(
-                          messageID,
-                          subID: subID,
-                          rangeStart: rangeStart,
-                          rangeEnd: rangeEnd,
-                        );
+              return MessageListItem(
+                itemKey: itemKey,
+                message: message,
+                isSender: isSender,
+                isSelected: isMsgSelected,
+                isSelectionMode: isSelectionMode,
+                showAvatar: isGroup && !isSender,
+                showSenderName: isGroup && !isSender,
+                senderUser: senderUser,
+                searchHighlight: widget.searchQuery,
+                isCurrentSearchMatch: isCurrentMatch,
+                quoteHighlightRange: quoteHighlightRange,
+                canReply: canReplyChat,
+                onReply: () {
+                  ref
+                      .read(chatDraftProvider(chatUUID).notifier)
+                      .addReply(message);
+                },
+                onReplyTap:
+                    ({
+                      required String chatUUID,
+                      required int subID,
+                      required int messageID,
+                      int? rangeStart,
+                      int? rangeEnd,
+                    }) {
+                      if (chatUUID.isEmpty || chatUUID == widget.chatUUID) {
+                        ref
+                            .read(activeChatProvider.notifier)
+                            .jumpToMessage(
+                              messageID,
+                              subID: subID,
+                              rangeStart: rangeStart,
+                              rangeEnd: rangeEnd,
+                            );
+                      }
+                    },
+                onSelectionToggle: () {
+                  ref
+                      .read(chatDraftProvider(chatUUID).notifier)
+                      .toggleSelectMessage(message);
+                },
+                onOpenContextMenu: (position, selectedText) {
+                  _openContextMenu(message, position, selectedText);
+                },
+                getMessage: (lookupChatUUID, lookupSubID, lookupMessageID) {
+                  try {
+                    final state = ref.read(
+                      chatMessagesProvider((
+                        chatUUID: lookupChatUUID,
+                        subID: lookupSubID,
+                      )),
+                    );
+                    return state.messages.firstWhere(
+                      (m) => m.id == lookupMessageID,
+                      orElse: () => throw Exception('Message not found'),
+                    );
+                  } catch (_) {
+                    return null;
                   }
                 },
-            onSelectionToggle: () {
-              ref
-                  .read(chatDraftProvider(chatUUID).notifier)
-                  .toggleSelectMessage(message);
-            },
-            onOpenContextMenu: (position, selectedText) {
-              _openContextMenu(message, position, selectedText);
-            },
-            getMessage: (lookupChatUUID, lookupSubID, lookupMessageID) {
-              try {
-                final state = ref.read(
-                  chatMessagesProvider((
-                    chatUUID: lookupChatUUID,
-                    subID: lookupSubID,
-                  )),
-                );
-                return state.messages.firstWhere(
-                  (m) => m.id == lookupMessageID,
-                  orElse: () => throw Exception('Message not found'),
-                );
-              } catch (_) {
-                return null;
-              }
-            },
-            getUser: (uuid) => users[uuid],
-          );
+                getUser: (uuid) => users[uuid],
+              );
+          }
         },
       ),
     );
   }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+}
+
+sealed class _MessageListItemEntry {
+  const _MessageListItemEntry();
+}
+
+class _MessageItemEntry extends _MessageListItemEntry {
+  final MessageModel message;
+  const _MessageItemEntry(this.message);
+}
+
+class _DateSeparatorEntry extends _MessageListItemEntry {
+  final DateTime date;
+  const _DateSeparatorEntry(this.date);
+}
+
+class _UnreadDividerEntry extends _MessageListItemEntry {
+  const _UnreadDividerEntry();
 }

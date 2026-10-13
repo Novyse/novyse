@@ -24,6 +24,11 @@ on:
           - development
           - preview
           - production
+      upload_all_builds:
+        description: Package and upload all build files into a single unified ZIP artifact
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -87,3 +92,26 @@ jobs:
           echo ""
           echo "SHA-256:" | tee -a "$GITHUB_STEP_SUMMARY"
           find all-dist/desktop_updater -name "*.zip" -exec sha256sum {} \; 2>/dev/null | tee -a "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Package all builds into unified ZIP
+        if: ${{ inputs.upload_all_builds && always() }}
+        run: |
+          if [ -d all-dist ] && [ -n "$(ls -A all-dist 2>/dev/null)" ]; then
+            mkdir -p bundle
+            (cd all-dist && zip -r -q "../bundle/novyse-all-builds-${{ inputs.ref }}.zip" .)
+            echo "✅ Created unified zip bundle: novyse-all-builds-${{ inputs.ref }}.zip"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "### 📦 Unified Build Artifact" >> "$GITHUB_STEP_SUMMARY"
+            echo "Unified ZIP artifact generated: \`novyse-all-builds-${{ inputs.ref }}.zip\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "⚠️ No artifacts found in all-dist to package." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload unified builds artifact
+        if: ${{ inputs.upload_all_builds && always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: novyse-all-builds-${{ inputs.ref }}
+          path: bundle/
+          if-no-files-found: warn
+          retention-days: 14

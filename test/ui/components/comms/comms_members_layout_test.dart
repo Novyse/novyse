@@ -76,10 +76,14 @@ void main() {
   Future<void> pump(
     WidgetTester tester, {
     CommsState? state,
+    bool connected = true,
     required List<CommsTileItem> tiles,
     Size size = const Size(800, 600),
   }) async {
-    notifier = _StubCommsNotifier(state ?? const CommsState());
+    final effectiveState = (state ?? const CommsState()).copyWith(
+      connected: connected,
+    );
+    notifier = _StubCommsNotifier(effectiveState);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [

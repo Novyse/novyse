@@ -50,10 +50,11 @@ if [ -n "$CANDLE_CMD" ] && [ -n "$LIGHT_CMD" ] && [ -n "$HEAT_CMD" ]; then
   "$CANDLE_CMD" -arch x64 -dSourceDir="$BUNDLE_DIR" "$STAGING_DIR/novyse.wxs" "$STAGING_DIR/NovyseFiles.wxs" -out "$STAGING_DIR/" >/dev/null 2>&1 || true
 
   # Link
-  "$LIGHT_CMD" "$STAGING_DIR/novyse.wixobj" "$STAGING_DIR/NovyseFiles.wixobj" -out "$OUTPUT_MSI" -ext WixUIExtension >/dev/null 2>&1 || \
-  "$LIGHT_CMD" "$STAGING_DIR/novyse.wixobj" "$STAGING_DIR/NovyseFiles.wixobj" -out "$OUTPUT_MSI" >/dev/null 2>&1 || true
+  "$LIGHT_CMD" "$STAGING_DIR/novyse.wixobj" "$STAGING_DIR/NovyseFiles.wixobj" -out "$OUTPUT_MSI" -ext WixUIExtension -spdb >/dev/null 2>&1 || \
+  "$LIGHT_CMD" "$STAGING_DIR/novyse.wixobj" "$STAGING_DIR/NovyseFiles.wixobj" -out "$OUTPUT_MSI" -spdb >/dev/null 2>&1 || true
 
   rm -rf "$STAGING_DIR"
+  rm -f "$DIST_DIR"/*.wixpdb
 
   if [ -f "$OUTPUT_MSI" ]; then
     echo "✅ [MSI] Created: $OUTPUT_MSI"

@@ -16,6 +16,7 @@ class CommsState {
   final bool isAudioEnabled; // Local microphone
   final bool isVideoEnabled; // Local camera
   final bool isAudioOutputEnabled; // Remote audio output (deafen toggle)
+  final bool? wasMicEnabledBeforeSpeakerMute; // Prior mic state when speaker was muted
 
   /// View states
   final String? pinnedStreamId;
@@ -64,6 +65,7 @@ class CommsState {
     this.isAudioEnabled = false,
     this.isVideoEnabled = false,
     this.isAudioOutputEnabled = true,
+    this.wasMicEnabledBeforeSpeakerMute,
     this.pinnedStreamId,
     this.fullscreenStreamId,
     this.activeScreenShareTrackSids = const {},
@@ -100,6 +102,7 @@ class CommsState {
     bool? isAudioEnabled,
     bool? isVideoEnabled,
     bool? isAudioOutputEnabled,
+    bool? Function()? wasMicEnabledBeforeSpeakerMute,
     String? Function()? pinnedStreamId,
     String? Function()? fullscreenStreamId,
     Set<String>? activeScreenShareTrackSids,
@@ -124,6 +127,9 @@ class CommsState {
       isAudioEnabled: isAudioEnabled ?? this.isAudioEnabled,
       isVideoEnabled: isVideoEnabled ?? this.isVideoEnabled,
       isAudioOutputEnabled: isAudioOutputEnabled ?? this.isAudioOutputEnabled,
+      wasMicEnabledBeforeSpeakerMute: wasMicEnabledBeforeSpeakerMute != null
+          ? wasMicEnabledBeforeSpeakerMute()
+          : this.wasMicEnabledBeforeSpeakerMute,
       pinnedStreamId: pinnedStreamId != null
           ? pinnedStreamId()
           : this.pinnedStreamId,

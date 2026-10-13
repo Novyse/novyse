@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:intl/intl.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/chat/message/message_timestamp.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
@@ -81,5 +82,30 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('MessageTimestamp adapts UTC timestamp to device local time', (
+    tester,
+  ) async {
+    final utcTime = DateTime.utc(2026, 8, 31, 14, 30);
+    final expectedLocal = DateFormat('HH:mm').format(utcTime.toLocal());
+
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: localizationsDelegates,
+        supportedLocales: supportedLocales,
+        locale: const Locale('it'),
+        home: Scaffold(
+          body: MessageTimestamp(
+            createdAt: utcTime,
+            isSender: true,
+            isPending: false,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text(expectedLocal), findsOneWidget);
   });
 }

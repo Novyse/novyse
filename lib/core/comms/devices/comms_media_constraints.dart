@@ -15,8 +15,6 @@ export 'package:novyse/core/comms/devices/screen_share_preset.dart';
 ///   `custom` (user quality + fps, clamped to 1080p60 max).
 abstract final class CommsMediaConstraints {
   // Setting keys (mirror the `comms.*` catalog entries).
-  static const noiseSuppressionKey = 'comms.noiseSuppression';
-  static const echoCancellationKey = 'comms.echoCancellation';
   static const videoQualityKey = 'comms.videoQuality';
   static const videoFramerateKey = 'comms.videoFramerate';
   static const videoBitrateKey = 'comms.videoBitrate';
@@ -55,8 +53,6 @@ abstract final class CommsMediaConstraints {
   static const shareClarity = shareText;
 
   // Defaults (maximum free-tier quality).
-  static const defaultNoiseSuppression = true;
-  static const defaultEchoCancellation = true;
   static const defaultVideoQuality = video1080p;
   static const defaultVideoFramerate = fps60;
   static const defaultShareMode = shareSmooth;
@@ -74,51 +70,12 @@ abstract final class CommsMediaConstraints {
     return fb;
   }
 
-  /// Audio capture driven purely by the settings JSON.
-  static AudioCaptureOptions audioCapture({
-    required String? deviceId,
-    required bool noiseSuppression,
-    required bool echoCancellation,
-  }) {
-    return AudioCaptureOptions(
-      deviceId: deviceId,
-      noiseSuppression: noiseSuppression,
-      echoCancellation: echoCancellation,
-      // Max-quality helpers: always on, not exposed in settings UI.
-      autoGainControl: true,
-      highPassFilter: true,
-      // Apple voice isolation follows the noise-suppression switch so a
-      // single toggle controls all noise filtering.
-      voiceIsolation: noiseSuppression,
-      // Keystroke attenuation is custom DSP (WIP setting) → keep off so the
-      // only active processing is the two native WebRTC constraints.
-      typingNoiseDetection: false,
-    );
-  }
-
-  /// Runtime processing update applied live without restarting capture.
-  // ignore: experimental_member_use
-  static AudioProcessingOptions audioProcessing({
-    required bool noiseSuppression,
-    required bool echoCancellation,
-  }) {
-    // ignore: experimental_member_use
-    return AudioProcessingOptions(
-      echoCancellation: echoCancellation,
-      noiseSuppression: noiseSuppression,
-      autoGainControl: true,
-      highPassFilter: true,
-    );
-  }
-
   /// Voice publish encoding: maximum quality (stereo music preset).
-  static const AudioPublishOptions maxQualityAudioPublish =
-      AudioPublishOptions(
-        encoding: AudioEncoding.presetMusicHighQualityStereo,
-        dtx: true,
-      );
+  static const AudioPublishOptions maxQualityAudioPublish = AudioPublishOptions(
+    encoding: AudioEncoding.presetMusicHighQualityStereo,
+    dtx: true,
+  );
 
-// __PART2__
   /// Custom 720p60 capture preset (LiveKit only ships 720p30 for cameras).
   static const VideoParameters video720p60 = VideoParameters(
     dimensions: VideoDimensionsPresets.h720_169,
@@ -285,10 +242,7 @@ abstract final class CommsMediaConstraints {
         : bitrateFor(normalized, fps);
     return VideoParameters(
       dimensions: dimensionsFor(normalized),
-      encoding: VideoEncoding(
-        maxBitrate: bitrateBps,
-        maxFramerate: fps,
-      ),
+      encoding: VideoEncoding(maxBitrate: bitrateBps, maxFramerate: fps),
     );
   }
 
@@ -311,10 +265,7 @@ abstract final class CommsMediaConstraints {
     int fps,
   ) {
     final (medQuality, lowQuality) = simulcastSubLayersFor(qualityId);
-    return [
-      shareParamsFor(lowQuality, fps),
-      shareParamsFor(medQuality, fps),
-    ];
+    return [shareParamsFor(lowQuality, fps), shareParamsFor(medQuality, fps)];
   }
 
   /// Safety clamping: the effective streaming resolution cannot exceed the
@@ -348,7 +299,9 @@ abstract final class CommsMediaConstraints {
   /// Effective share capture params from the full settings map.
   /// Non-custom modes ignore the custom rows; custom combines them.
   static VideoParameters resolveShareParamsFrom(Map<String, Object?> s) {
-    final mode = resolveShareMode(readString(s, shareModeKey, defaultShareMode));
+    final mode = resolveShareMode(
+      readString(s, shareModeKey, defaultShareMode),
+    );
     final preset = ScreenSharePreset.fromId(mode);
     return switch (preset) {
       ScreenSharePreset.smooth => share1080p60,
@@ -377,7 +330,9 @@ abstract final class CommsMediaConstraints {
   }
 
   static double resolveShareMaxFrameRateFrom(Map<String, Object?> s) {
-    final mode = resolveShareMode(readString(s, shareModeKey, defaultShareMode));
+    final mode = resolveShareMode(
+      readString(s, shareModeKey, defaultShareMode),
+    );
     final preset = ScreenSharePreset.fromId(mode);
     return switch (preset) {
       ScreenSharePreset.custom => resolveVideoFps(
@@ -443,10 +398,7 @@ abstract final class CommsMediaConstraints {
     int fps,
   ) {
     final (medQuality, lowQuality) = simulcastSubLayersFor(qualityId);
-    return [
-      videoParamsFor(lowQuality, fps),
-      videoParamsFor(medQuality, fps),
-    ];
+    return [videoParamsFor(lowQuality, fps), videoParamsFor(medQuality, fps)];
   }
 
   /// Camera simulcast encodings (low, medium, high) matching the cascade.
@@ -459,11 +411,7 @@ abstract final class CommsMediaConstraints {
     final (medQuality, lowQuality) = simulcastSubLayersFor(quality);
     final low = videoParamsFor(lowQuality, fps);
     final med = videoParamsFor(medQuality, fps);
-    return [
-      low.encoding!,
-      med.encoding!,
-      top,
-    ];
+    return [low.encoding!, med.encoding!, top];
   }
 
   /// Explicit screen-share publish options derived from the settings map.
@@ -490,4 +438,3 @@ abstract final class CommsMediaConstraints {
     debugPrint('[CommsMedia] $message');
   }
 }
-

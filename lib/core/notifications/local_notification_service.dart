@@ -134,10 +134,6 @@ class LocalNotificationService {
           ),
         );
       }
-
-      if (kIsWeb) {
-        await _ensureWebPermission();
-      }
     } catch (e) {
       debugPrint('[LocalNotificationService] init skipped: $e');
     }

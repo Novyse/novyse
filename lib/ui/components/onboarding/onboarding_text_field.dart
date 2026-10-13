@@ -12,6 +12,8 @@ class OnboardingTextField extends StatefulWidget {
     this.obscureText = false,
     this.prefixIcon,
     this.suffixIcon,
+    this.liveSuffix,
+    this.liveSuffixBuilder,
     this.validator,
     this.onChanged,
     this.autofillHints,
@@ -28,6 +30,9 @@ class OnboardingTextField extends StatefulWidget {
   final bool obscureText;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
+  /// Rebuilt without touching the text field, so the keyboard stays open.
+  final Listenable? liveSuffix;
+  final Widget? Function()? liveSuffixBuilder;
   final String? Function(String?)? validator;
   final ValueChanged<String>? onChanged;
   final Iterable<String>? autofillHints;
@@ -46,8 +51,7 @@ class _OnboardingTextFieldState extends State<OnboardingTextField> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    final Widget? effectiveSuffixIcon = widget.obscureText
+    final suffix = widget.obscureText
         ? Padding(
             padding: const EdgeInsets.only(right: 5),
             child: IconButton(
@@ -72,7 +76,13 @@ class _OnboardingTextFieldState extends State<OnboardingTextField> {
           ),
         ),
         const SizedBox(height: 8),
-        TextFormField(
+        _input(theme, suffix),
+      ],
+    );
+  }
+
+  Widget _input(ThemeData theme, Widget? suffix) {
+    final field = TextFormField(
           controller: widget.controller,
           keyboardType: widget.keyboardType,
           obscureText: _obscured,
@@ -83,13 +93,15 @@ class _OnboardingTextFieldState extends State<OnboardingTextField> {
           onEditingComplete: widget.onEditingComplete,
           onFieldSubmitted: widget.onFieldSubmitted,
           autovalidateMode: widget.autovalidateMode,
+          enableSuggestions: !widget.obscureText,
+          autocorrect: !widget.obscureText,
           style: TextStyle(color: theme.colorScheme.onSurface),
           decoration: InputDecoration(
             hintText: widget.hint,
             hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
             errorStyle: TextStyle(color: theme.colorScheme.error),
             prefixIcon: widget.prefixIcon,
-            suffixIcon: effectiveSuffixIcon,
+            suffixIcon: suffix,
             filled: true,
             fillColor: theme.colorScheme.surfaceContainerHighest,
             contentPadding: const EdgeInsets.symmetric(
@@ -123,8 +135,23 @@ class _OnboardingTextFieldState extends State<OnboardingTextField> {
               ),
             ),
           ),
-        ),
-      ],
+        );
+
+    final live = widget.liveSuffix;
+    if (live == null) return field;
+
+    return ListenableBuilder(
+      listenable: live,
+      builder: (context, child) {
+        final icon = widget.liveSuffixBuilder?.call();
+        return Stack(
+          children: [
+            child!,
+            if (icon != null) Positioned(top: 14, right: 14, child: icon),
+          ],
+        );
+      },
+      child: field,
     );
   }
 }

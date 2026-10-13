@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:novyse/core/chat/queue/queue_job.dart';
 import 'package:sqflite/sqflite.dart';
 
 /// Repository for persisting and managing queued jobs across app restarts.
@@ -27,7 +28,7 @@ class QueueJobRepository {
     try {
       final payloadStr = job['payload'] is String
           ? job['payload'] as String
-          : jsonEncode(job['payload'] ?? {});
+          : jsonEncode(QueueJob.sanitizePayload(job['payload'] ?? {}));
 
       await db.insert('queue_job', {
         'id': job['id'],
@@ -80,7 +81,7 @@ class QueueJobRepository {
       await db.update(
         'queue_job',
         {
-          'payload': jsonEncode(payload),
+          'payload': jsonEncode(QueueJob.sanitizePayload(payload)),
           'updated_at': DateTime.now().toIso8601String(),
         },
         where: 'id = ?',
