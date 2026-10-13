@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -69,8 +70,6 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
   bool _acceptLegal = false;
   bool _isOldEnough = false;
   bool _isLoading = false;
-  bool _isCheckingHandle = false;
-  bool? _isHandleAvailable;
   String? _statusError;
   String? _statusSuccess;
   bool _dismissedSuccess = false;
@@ -80,9 +79,13 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  late final Listenable _fields;
 
+  /// checking, available, error — updated without rebuilding the text fields.
+  final _handle = ValueNotifier<(bool, bool, String?)>((false, false, null));
   Timer? _handleDebounceTimer;
-  String? _handleApiError;
+
+  bool get _isAndroid => defaultTargetPlatform == TargetPlatform.android;
 
   @override
   void initState() {
@@ -92,15 +95,86 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
     );
     _statusSuccess = widget.successMessage;
     _statusError = widget.errorMessage;
-
-    _usernameController.addListener(_onFormUpdated);
-    _passwordController.addListener(_onFormUpdated);
-    _nameController.addListener(_onFormUpdated);
-    _confirmPasswordController.addListener(_onFormUpdated);
+    _fields = Listenable.merge([
+      _usernameController,
+      _passwordController,
+      _nameController,
+      _confirmPasswordController,
+      _handle,
+    ]);
+    _usernameController.addListener(_onUsernameChanged);
   }
 
-  void _onFormUpdated() {
-    setState(() {});
+  Widget? _handleStatusIcon() {
+    final theme = Theme.of(context);
+    final (checking, available, error) = _handle.value;
+    if (checking) {
+      return SizedBox(
+        width: 18,
+        height: 18,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: theme.colorScheme.primary,
+        ),
+      );
+    }
+    if (available && error == null) {
+      return AppHugeIcon(
+        icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+        color: theme.colorScheme.primary,
+        size: 20,
+      );
+    }
+    if (error != null) {
+      return AppHugeIcon(
+        icon: HugeIcons.strokeRoundedAlertCircle,
+        color: theme.colorScheme.error,
+        size: 20,
+      );
+    }
+    return null;
+  }
+
+  void _onUsernameChanged() {
+    _handleDebounceTimer?.cancel();
+    if (_isLoginMode) return;
+
+    final trimmed = _usernameController.text.trim().toLowerCase();
+    if (trimmed.isEmpty ||
+        Validator.validateHandle(trimmed, AppLocalizations.of(context)) !=
+            null) {
+      _handle.value = (false, false, null);
+      return;
+    }
+
+    _handle.value = (true, false, null);
+    _handleDebounceTimer = Timer(const Duration(milliseconds: 600), () async {
+      try {
+        final res = await ref.read(chatServiceProvider).checkHandle(trimmed);
+        if (!mounted) return;
+        final l10n = AppLocalizations.of(context);
+        if (res.success && res.available == true) {
+          _handle.value = (false, true, null);
+        } else if (res.success && res.available == false) {
+          _handle.value = (
+            false,
+            false,
+            l10n?.handleAlreadyInUse ?? 'Username is already in use',
+          );
+        } else {
+          _handle.value = (false, false, null);
+        }
+      } catch (e) {
+        debugPrint('[Onboarding] Handle availability check failed: $e');
+        if (!mounted) return;
+        _handle.value = (
+          false,
+          false,
+          AppLocalizations.of(context)?.availabilityError ??
+              'Unable to verify username availability',
+        );
+      }
+    });
   }
 
   @override
@@ -124,10 +198,8 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
   @override
   void dispose() {
     _handleDebounceTimer?.cancel();
-    _usernameController.removeListener(_onFormUpdated);
-    _passwordController.removeListener(_onFormUpdated);
-    _nameController.removeListener(_onFormUpdated);
-    _confirmPasswordController.removeListener(_onFormUpdated);
+    _usernameController.removeListener(_onUsernameChanged);
+    _handle.dispose();
 
     _usernameController.dispose();
     _passwordController.dispose();
@@ -143,85 +215,12 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
       _mode = _isLoginMode
           ? OnboardingAuthMode.signup
           : OnboardingAuthMode.login;
-      _handleApiError = null;
-      _isHandleAvailable = null;
-      _isCheckingHandle = false;
+      _handle.value = (false, false, null);
       _statusError = null;
       _statusSuccess = null;
       _dismissedSuccess = false;
     });
     widget.onToggleMode?.call(_mode);
-  }
-
-  void _onUsernameChanged(String value) {
-    _handleDebounceTimer?.cancel();
-    if (_statusError != null) {
-      setState(() => _statusError = null);
-    }
-    if (_handleApiError != null) {
-      setState(() => _handleApiError = null);
-    }
-    final trimmed = value.trim().toLowerCase();
-    if (_isLoginMode || trimmed.isEmpty) {
-      setState(() {
-        _isCheckingHandle = false;
-        _isHandleAvailable = null;
-      });
-      return;
-    }
-
-    final basicError = Validator.validateHandle(
-      trimmed,
-      AppLocalizations.of(context),
-    );
-    if (basicError != null) {
-      setState(() {
-        _isCheckingHandle = false;
-        _isHandleAvailable = false;
-      });
-      return;
-    }
-
-    setState(() {
-      _isCheckingHandle = true;
-      _isHandleAvailable = null;
-    });
-
-    _handleDebounceTimer = Timer(const Duration(milliseconds: 600), () async {
-      try {
-        final res = await ref.read(chatServiceProvider).checkHandle(trimmed);
-        if (mounted) {
-          setState(() {
-            _isCheckingHandle = false;
-            if (res.success && res.available == false) {
-              _isHandleAvailable = false;
-              _handleApiError =
-                  AppLocalizations.of(context)?.handleAlreadyInUse ??
-                  'Username is already in use';
-            } else if (res.success && res.available == true) {
-              _isHandleAvailable = true;
-              _handleApiError = null;
-            } else {
-              _isHandleAvailable = null;
-              _handleApiError = null;
-            }
-          });
-          _formKey.currentState?.validate();
-        }
-      } catch (e) {
-        debugPrint('[Onboarding] Handle availability check failed: $e');
-        if (mounted) {
-          setState(() {
-            _isCheckingHandle = false;
-            _isHandleAvailable = false;
-            _handleApiError =
-                AppLocalizations.of(context)?.availabilityError ??
-                'Unable to verify username availability';
-          });
-          _formKey.currentState?.validate();
-        }
-      }
-    });
   }
 
   bool _isSubmitEnabled(AppLocalizations? l10n) {
@@ -234,6 +233,8 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
       return hasUsername && hasPassword && hasTurnstile;
     }
 
+    final handle = _handle.value;
+
     // Signup validation
     final nameValid =
         _nameController.text.trim().isNotEmpty &&
@@ -245,9 +246,9 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
         Validator.validateHandle(handleText, l10n) == null;
     final handleValid =
         handleFormatValid &&
-        !_isCheckingHandle &&
-        _handleApiError == null &&
-        _isHandleAvailable == true;
+        !handle.$1 &&
+        handle.$3 == null &&
+        handle.$2;
 
     final passwordValid =
         _passwordController.text.isNotEmpty &&
@@ -272,9 +273,7 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
 
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context);
-    setState(() {
-      _statusError = null;
-    });
+    setState(() => _statusError = null);
 
     if (!_isSubmitEnabled(l10n)) {
       return;
@@ -356,64 +355,18 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
     );
   }
 
-  Widget? _buildUsernameSuffix(BuildContext context) {
-    if (_isLoginMode) return null;
-    final theme = Theme.of(context);
-
-    if (_isCheckingHandle) {
-      return Padding(
-        padding: const EdgeInsets.all(14),
-        child: SizedBox(
-          width: 16,
-          height: 16,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: theme.colorScheme.primary,
-          ),
-        ),
-      );
-    }
-
-    if (_isHandleAvailable == true && _handleApiError == null) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: AppHugeIcon(
-          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-          color: theme.colorScheme.primary,
-          size: 20,
-        ),
-      );
-    }
-
-    if (_handleApiError != null) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: AppHugeIcon(
-          icon: HugeIcons.strokeRoundedAlertCircle,
-          color: theme.colorScheme.error,
-          size: 20,
-        ),
-      );
-    }
-
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final title = _isLoginMode ? l10n.login : l10n.createAccount;
     final subtitle = _isLoginMode ? l10n.loginSubtitle : l10n.signupSubtitle;
-
     final displaySuccess = !_dismissedSuccess
         ? (_statusSuccess ?? widget.successMessage)
         : null;
     final displayError = _statusError ?? widget.errorMessage;
-    final canSubmit = _isSubmitEnabled(l10n);
 
-    final content = AutofillGroup(
-      child: Form(
+    final form = Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: widget.embedded
@@ -464,9 +417,8 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
                 hint: l10n.nameHint,
                 controller: _nameController,
                 keyboardType: TextInputType.name,
-                autofillHints: const [AutofillHints.name],
+                autofillHints: _isAndroid ? null : const [AutofillHints.name],
                 textInputAction: TextInputAction.next,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: (value) => Validator.validateName(value, l10n),
               ),
               const SizedBox(height: 16),
@@ -475,33 +427,47 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
               label: l10n.username,
               hint: l10n.usernameHint,
               controller: _usernameController,
-              keyboardType: TextInputType.text,
-              onChanged: _onUsernameChanged,
-              suffixIcon: _buildUsernameSuffix(context),
-              autofillHints: const [
-                AutofillHints.username,
-                AutofillHints.email,
-              ],
+              autofillHints: _isAndroid
+                  ? null
+                  : const [AutofillHints.username, AutofillHints.email],
               textInputAction: TextInputAction.next,
               autovalidateMode: _isLoginMode
                   ? AutovalidateMode.disabled
                   : AutovalidateMode.onUserInteraction,
               validator: _isLoginMode
                   ? null
-                  : (value) =>
-                        Validator.validateHandle(value, l10n) ??
-                        _handleApiError,
+                  : (value) => Validator.validateHandle(value, l10n),
+              liveSuffix: _isLoginMode ? null : _handle,
+              liveSuffixBuilder: _isLoginMode ? null : _handleStatusIcon,
             ),
+            if (!_isLoginMode)
+              ValueListenableBuilder<(bool, bool, String?)>(
+                valueListenable: _handle,
+                builder: (context, handle, _) {
+                  final message = handle.$3;
+                  if (message == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 6, left: 12),
+                    child: Text(
+                      message,
+                      style: TextStyle(color: theme.colorScheme.error),
+                    ),
+                  );
+                },
+              ),
             const SizedBox(height: 16),
             OnboardingTextField(
               label: l10n.password,
               hint: l10n.passwordHint,
               controller: _passwordController,
-              keyboardType: TextInputType.visiblePassword,
               obscureText: true,
-              autofillHints: _isLoginMode
-                  ? const [AutofillHints.password]
-                  : const [AutofillHints.newPassword],
+              autofillHints: _isAndroid
+                  ? null
+                  : [
+                      _isLoginMode
+                          ? AutofillHints.password
+                          : AutofillHints.newPassword,
+                    ],
               textInputAction: _isLoginMode
                   ? TextInputAction.done
                   : TextInputAction.next,
@@ -520,9 +486,7 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
                 label: l10n.confirmPassword,
                 hint: l10n.confirmPasswordHint,
                 controller: _confirmPasswordController,
-                keyboardType: TextInputType.visiblePassword,
                 obscureText: true,
-                autofillHints: const [AutofillHints.newPassword],
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: (_) => _submit(),
                 autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -582,24 +546,30 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
               ),
             ],
             const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: OnboardingSecondaryButton(
-                    label: l10n.back,
-                    onPressed:
-                        widget.onBack ?? () => Navigator.of(context).maybePop(),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OnboardingPrimaryButton(
-                    label: _isLoginMode ? l10n.login : l10n.register,
-                    isLoading: _isLoading,
-                    onPressed: canSubmit ? _submit : null,
-                  ),
-                ),
-              ],
+            ListenableBuilder(
+              listenable: _fields,
+              builder: (context, _) {
+                final canSubmit = _isSubmitEnabled(l10n);
+                return Row(
+                  children: [
+                    Expanded(
+                      child: OnboardingSecondaryButton(
+                        label: l10n.back,
+                        onPressed: widget.onBack ??
+                            () => Navigator.of(context).maybePop(),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OnboardingPrimaryButton(
+                        label: _isLoginMode ? l10n.login : l10n.register,
+                        isLoading: _isLoading,
+                        onPressed: canSubmit ? _submit : null,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 20),
             Align(
@@ -613,8 +583,11 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
             ),
           ],
         ),
-      ),
-    );
+      );
+
+    final content = defaultTargetPlatform == TargetPlatform.android
+        ? form
+        : AutofillGroup(child: form);
 
     if (widget.embedded) return content;
 
