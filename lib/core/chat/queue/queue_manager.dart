@@ -8,6 +8,7 @@ import 'package:novyse/core/chat/queue/queue_job.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/storage/database/database.dart';
 import 'package:novyse/core/stores/network_store.dart';
+import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/core/stores/status_store.dart';
 
 /// Central manager orchestrating per-chat queues, app startup recovery, and network state.
@@ -21,7 +22,20 @@ class QueueManager {
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   Ref? _ref;
 
+  // Circuit breaker state
+  bool _isGlobalPaused = false;
+  int _serverErrorCount = 0;
+  DateTime? _windowStart;
+  Timer? _cooldownTimer;
+
+  int serverErrorThreshold = 3;
+  Duration serverErrorWindow = const Duration(seconds: 60);
+  Duration serverErrorCooldown = const Duration(seconds: 30);
+
   bool get isConnected => _isConnected;
+  bool get isInitialized => _initialized;
+  bool get isGlobalPaused => _isGlobalPaused;
+  int get serverErrorCount => _serverErrorCount;
   Ref? get ref => _ref;
 
   /// Attaches Riverpod [Ref] for accessing global providers such as [statusProvider].
@@ -52,10 +66,106 @@ class QueueManager {
     }
   }
 
+  /// Records a server error (HTTP 5xx). If errors exceed [serverErrorThreshold]
+  /// within [serverErrorWindow], trips the circuit breaker and halts all active queues across the app.
+  void recordServerError(int? statusCode) {
+    if (statusCode == null || statusCode < 500) return;
+
+    final now = DateTime.now();
+    if (_windowStart == null || now.difference(_windowStart!) > serverErrorWindow) {
+      _windowStart = now;
+      _serverErrorCount = 0;
+    }
+
+    _serverErrorCount++;
+    debugPrint(
+      '[QueueManager] Server error recorded ($statusCode). Count: $_serverErrorCount/$serverErrorThreshold',
+    );
+
+    if (_serverErrorCount >= serverErrorThreshold && !_isGlobalPaused) {
+      pauseAll();
+    }
+  }
+
+  /// Records a successful message/file operation, resetting the consecutive server error counter.
+  void recordSuccess() {
+    _serverErrorCount = 0;
+    _windowStart = null;
+  }
+
+  /// Halts all active queues across the entire application due to critical server errors.
+  void pauseAll() {
+    if (_isGlobalPaused) return;
+    _isGlobalPaused = true;
+    debugPrint(
+      '[QueueManager] Critical server errors: halting all queues across the application.',
+    );
+
+    for (final processor in _processors.values) {
+      processor.pauseProcessing();
+    }
+
+    if (_ref != null) {
+      try {
+        _ref!.read(statusProvider.notifier).showStatus(
+          StatusItem(
+            id: 'server_degraded',
+            source: StatusSource.apiGateway,
+            type: StatusMessageType.danger,
+            title: 'Server Error',
+            content: const [
+              'Multiple server errors detected. Message sending paused.',
+            ],
+            actionLabel: 'Retry',
+            onAction: resumeAll,
+            closable: true,
+            timeout: serverErrorCooldown,
+          ),
+        );
+      } catch (e) {
+        debugPrint('[QueueManager] Could not show server error status: $e');
+      }
+    }
+
+    // Auto-resume after cooldown period
+    _cooldownTimer?.cancel();
+    _cooldownTimer = Timer(serverErrorCooldown, () {
+      debugPrint(
+        '[QueueManager] Cooldown timer elapsed, attempting auto-resume of queues.',
+      );
+      resumeAll();
+    });
+  }
+
+  /// Resumes all paused chat queues and clears degraded server status.
+  void resumeAll() {
+    _cooldownTimer?.cancel();
+    _cooldownTimer = null;
+    _serverErrorCount = 0;
+    _windowStart = null;
+    _isGlobalPaused = false;
+
+    if (_ref != null) {
+      try {
+        _ref!.read(statusProvider.notifier).dismissStatus('server_degraded');
+      } catch (_) {}
+    }
+
+    debugPrint('[QueueManager] Resuming all chat queues.');
+    _triggerAllProcessors();
+  }
+
   /// Initializes the QueueManager, recovering unfinished jobs from SQLite.
   Future<void> initialize({Ref? ref, bool listenToConnectivity = true}) async {
     if (_initialized) return;
+    if (!AppDatabase.instance.isOpen) {
+      debugPrint('[QueueManager] Cannot initialize: AppDatabase not open');
+      return;
+    }
     _initialized = true;
+    if (ref != null) {
+      _ref = ref;
+    }
 
     // 1. Reset interrupted processing jobs back to pending
     await AppDatabase.instance.job.resetProcessingToPending();
@@ -378,9 +488,20 @@ class QueueManager {
     }
   }
 
+  /// Clears in-memory processors without unregistering connectivity listeners.
+  void clear() {
+    for (final processor in _processors.values) {
+      processor.dispose();
+    }
+    _processors.clear();
+  }
+
   /// Disposes background listeners and processors.
   void dispose() {
     _connectivitySubscription?.cancel();
+    _connectivitySubscription = null;
+    _cooldownTimer?.cancel();
+    _cooldownTimer = null;
     GlobalEventEmitter.instance.off('message:new', _handleNewInboundMessage);
     GlobalEventEmitter.instance.off(
       'message:update',
@@ -391,6 +512,9 @@ class QueueManager {
     }
     _processors.clear();
     _initialized = false;
+    _isGlobalPaused = false;
+    _serverErrorCount = 0;
+    _windowStart = null;
   }
 }
 

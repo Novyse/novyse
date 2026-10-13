@@ -644,11 +644,102 @@ void main() {
       expect(processor.isDisposed, isTrue);
       expect(manager.getProcessor('chat-1'), isNull);
     });
+
+    test('clear removes in-memory processors without disposing the manager', () async {
+      await manager.addOutgoingMessageJob(
+        id: 'm1',
+        chatUUID: 'chat-1',
+        message: message(),
+      );
+      expect(manager.getProcessor('chat-1'), isNotNull);
+
+      manager.clear();
+
+      expect(manager.getProcessor('chat-1'), isNull);
+      expect(manager.isInitialized, isTrue);
+    });
   });
 
   group('showStatusError', () {
     test('is a no-op without an attached ref', () {
       expect(() => manager.showStatusError('boom'), returnsNormally);
+    });
+  });
+
+  group('circuit breaker (global error halting)', () {
+    test('ignores non-server status codes', () {
+      manager.recordServerError(400);
+      manager.recordServerError(404);
+      manager.recordServerError(null);
+
+      expect(manager.serverErrorCount, 0);
+      expect(manager.isGlobalPaused, isFalse);
+    });
+
+    test('increments counter on 5xx status codes', () {
+      manager.recordServerError(500);
+      manager.recordServerError(502);
+
+      expect(manager.serverErrorCount, 2);
+      expect(manager.isGlobalPaused, isFalse);
+    });
+
+    test('trips circuit breaker when threshold is reached', () {
+      manager.serverErrorThreshold = 3;
+
+      manager.recordServerError(500);
+      manager.recordServerError(500);
+      expect(manager.isGlobalPaused, isFalse);
+
+      manager.recordServerError(503);
+      expect(manager.isGlobalPaused, isTrue);
+    });
+
+    test('pauseAll pauses active processing across all processors', () async {
+      await manager.addOutgoingMessageJob(
+        id: 'm1',
+        chatUUID: 'chat-1',
+        message: message(),
+      );
+      final processor = manager.getProcessor('chat-1')!;
+
+      manager.pauseAll();
+
+      expect(manager.isGlobalPaused, isTrue);
+      // While paused, triggerProcess is a no-op
+      processor.triggerProcess();
+      expect(processor.isProcessing, isFalse);
+    });
+
+    test('resumeAll clears paused state and server error count', () {
+      manager.serverErrorThreshold = 1;
+      manager.recordServerError(500);
+      expect(manager.isGlobalPaused, isTrue);
+
+      manager.resumeAll();
+
+      expect(manager.isGlobalPaused, isFalse);
+      expect(manager.serverErrorCount, 0);
+    });
+
+    test('recordSuccess resets the error counter', () {
+      manager.recordServerError(500);
+      manager.recordServerError(500);
+      expect(manager.serverErrorCount, 2);
+
+      manager.recordSuccess();
+
+      expect(manager.serverErrorCount, 0);
+    });
+
+    test('auto-resumes when cooldown timer fires', () async {
+      manager.serverErrorCooldown = const Duration(milliseconds: 50);
+      manager.pauseAll();
+      expect(manager.isGlobalPaused, isTrue);
+
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+
+      expect(manager.isGlobalPaused, isFalse);
     });
   });
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -17,6 +18,7 @@ class ChatQueueProcessor {
   final List<QueueJob> _jobs = [];
   bool _isProcessing = false;
   QueueJob? _currentJob;
+  Timer? _retryTimer;
 
   /// Global network connection state provider reference.
   bool isConnected = true;
@@ -25,16 +27,31 @@ class ChatQueueProcessor {
   ChatQueueProcessor({required this.chatUUID});
 
   bool get isDisposed => _disposed;
+  bool get isWaitingRetry => _retryTimer?.isActive ?? false;
   List<QueueJob> get jobs => List.unmodifiable(_jobs);
   QueueJob? get currentJob => _currentJob;
   bool get isProcessing => _isProcessing;
 
-  /// Disposes this processor and cancels any active jobs.
+  /// Disposes this processor and cancels any active jobs and retry timers.
   void dispose() {
     _disposed = true;
+    _retryTimer?.cancel();
+    _retryTimer = null;
     _currentJob?.cancelToken?.cancel('Processor disposed');
     _currentJob = null;
     _jobs.clear();
+  }
+
+  /// Pauses active processing and cancels pending retry timers when the queue is paused globally.
+  void pauseProcessing() {
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    if (_currentJob != null) {
+      _currentJob?.cancelToken?.cancel('Queue paused globally');
+      _currentJob?.status = JobStatus.pending;
+      _currentJob = null;
+    }
+    _isProcessing = false;
   }
 
   /// Adds a job to the chat's queue, sorting by priority and creation time.
@@ -134,11 +151,24 @@ class ChatQueueProcessor {
     }
   }
 
-  /// Triggers processing loop if not already running.
+  /// Triggers processing loop if not already running and queues are not globally paused.
   void triggerProcess() {
-    if (!_disposed && !_isProcessing) {
+    if (_disposed || QueueManager.instance.isGlobalPaused) return;
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    if (!_isProcessing) {
       _processNext();
     }
+  }
+
+  void _scheduleRetry(Duration delay) {
+    _retryTimer?.cancel();
+    _retryTimer = Timer(delay, () {
+      _retryTimer = null;
+      if (!_disposed && isConnected && !QueueManager.instance.isGlobalPaused) {
+        _processNext();
+      }
+    });
   }
 
   QueueJob? _findJob(String jobId) {
@@ -176,7 +206,7 @@ class ChatQueueProcessor {
   }
 
   Future<void> _processNext() async {
-    if (_disposed || _isProcessing) return;
+    if (_disposed || _isProcessing || QueueManager.instance.isGlobalPaused) return;
 
     final pendingJobs = _jobs
         .where((j) => j.status == JobStatus.pending)
@@ -194,6 +224,7 @@ class ChatQueueProcessor {
     try {
       if (_disposed) return;
       await _executeJob(job);
+      QueueManager.instance.recordSuccess();
     } catch (e, stack) {
       if (_disposed || !AppDatabase.instance.isOpen) {
         return;
@@ -218,13 +249,17 @@ class ChatQueueProcessor {
         formattedErrorMessage = e.toString();
       }
 
+      final statusCode = e is DioException ? e.response?.statusCode : null;
+      if (statusCode != null && statusCode >= 500) {
+        QueueManager.instance.recordServerError(statusCode);
+      }
+
       final isFatalClientError =
-          e is DioException &&
-          e.response?.statusCode != null &&
-          e.response!.statusCode! >= 400 &&
-          e.response!.statusCode! < 500 &&
-          e.response!.statusCode != 408 &&
-          e.response!.statusCode != 429;
+          statusCode != null &&
+          statusCode >= 400 &&
+          statusCode < 500 &&
+          statusCode != 408 &&
+          statusCode != 429;
 
       if (job.attempts >= job.maxRetries || isFatalClientError) {
         job.status = JobStatus.failed;
@@ -276,13 +311,21 @@ class ChatQueueProcessor {
             attempts: job.attempts,
           );
         }
+
+        // Exponential backoff with jitter (2^attempts * 1000ms + random jitter up to 500ms, max 30s)
+        final jitter = Random().nextInt(500);
+        final exponentialDelayMs = (pow(2, job.attempts) * 1000).toInt() + jitter;
+        final backoffDelay = Duration(milliseconds: min(exponentialDelayMs, 30000));
+        _scheduleRetry(backoffDelay);
       }
     } finally {
       _isProcessing = false;
       _currentJob = null;
-      // Only continue to next job if online and more pending jobs exist
+      // Only continue to next job if online, not paused globally, no retry timer pending, and pending jobs exist
       if (!_disposed &&
           isConnected &&
+          !QueueManager.instance.isGlobalPaused &&
+          _retryTimer == null &&
           _jobs.any((j) => j.status == JobStatus.pending)) {
         unawaited(Future.microtask(_processNext));
       }

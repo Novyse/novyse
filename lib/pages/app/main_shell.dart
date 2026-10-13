@@ -8,9 +8,12 @@ import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
+import '../../core/auth/onboarding_manager.dart';
+import '../../core/chat/queue/queue_manager.dart';
 import '../../core/l10n/l10n.dart';
 import '../../core/router/navigator_keys.dart';
 import '../../core/services/sync_service.dart';
+import '../../core/storage/database/database.dart';
 import '../../core/stores/active_chat_store.dart';
 import 'adaptive.dart';
 import 'chat_list_page.dart';
@@ -83,9 +86,12 @@ class _HomeShellState extends ConsumerState<HomeShell>
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_syncUrlWhenNoChat);
 
-    // Trigger account initialization / delta sync
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(syncServiceProvider).ensureInitialized();
+    // Trigger account initialization / delta sync and resume persistent message queue
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(syncServiceProvider).ensureInitialized();
+      if (mounted && ref.read(authProvider) && AppDatabase.instance.isOpen) {
+        await ref.read(queueManagerProvider).initialize();
+      }
     });
   }
 

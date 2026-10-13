@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/chat/queue/chat_queue_processor.dart';
@@ -540,6 +542,47 @@ void main() {
       expect(job(id: 'a', status: JobStatus.paused).isPaused, isTrue);
       expect(job(id: 'a', status: JobStatus.processing).isProcessing, isTrue);
       expect(job(id: 'a', status: JobStatus.pending).isPending, isTrue);
+    });
+
+    test('sanitizes Uint8List bytes in toMap without throwing', () {
+      final binaryPayload = {
+        'message': {'content': 'has bytes'},
+        'bytes': Uint8List.fromList([1, 2, 3, 4]),
+        'files': [
+          {
+            'name': 'img.png',
+            'uri': '/path/to/img.png',
+            'bytes': Uint8List.fromList([5, 6, 7]),
+          }
+        ],
+      };
+
+      final job = QueueJob(
+        id: 'bin-job',
+        chatUUID: 'chat-1',
+        type: JobType.outgoingMessage,
+        payload: binaryPayload,
+      );
+
+      // Must not throw JsonUnsupportedObjectError
+      final map = job.toMap();
+      expect(map['payload'], isA<String>());
+
+      final restored = QueueJob.fromMap(map);
+      expect(restored.id, 'bin-job');
+      expect((restored.payload['files'] as List)[0]['uri'], '/path/to/img.png');
+      expect((restored.payload['files'] as List)[0]['bytes'], isNull);
+    });
+  });
+
+  group('pauseProcessing and retry timer', () {
+    test('pauseProcessing resets active processing state', () {
+      final processor = ChatQueueProcessor(chatUUID: 'chat-1');
+      processor.pauseProcessing();
+
+      expect(processor.isProcessing, isFalse);
+      expect(processor.currentJob, isNull);
+      expect(processor.isWaitingRetry, isFalse);
     });
   });
 }

@@ -94,6 +94,29 @@ class QueueJob {
   bool get isProcessing => status == JobStatus.processing;
   bool get isPending => status == JobStatus.pending;
 
+  /// Sanitizes payload values for JSON encoding by stripping non-encodable binary data
+  /// (e.g. [Uint8List]) when a local file URI is present, avoiding database bloat or crashes.
+  static dynamic sanitizePayload(dynamic value) {
+    if (value is Map) {
+      final sanitized = <String, dynamic>{};
+      for (final entry in value.entries) {
+        final k = entry.key.toString();
+        final v = entry.value;
+        if (k == 'bytes' && (value['uri'] != null || value['path'] != null)) {
+          sanitized[k] = null;
+        } else {
+          sanitized[k] = sanitizePayload(v);
+        }
+      }
+      return sanitized;
+    } else if (value is List) {
+      return value.map(sanitizePayload).toList();
+    } else if (value is Uint8List) {
+      return null;
+    }
+    return value;
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -102,7 +125,7 @@ class QueueJob {
       'job_type': type.value,
       'priority': priority,
       'status': status.value,
-      'payload': jsonEncode(payload),
+      'payload': jsonEncode(sanitizePayload(payload)),
       'progress': progress,
       'attempts': attempts,
       'max_retries': maxRetries,
