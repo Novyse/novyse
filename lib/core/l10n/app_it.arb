@@ -398,6 +398,7 @@
     }
   },
   "pinnedMessage": "Messaggio fissato",
+  "activeVoiceSpeedTitle": "Velocità di riproduzione",
   "attachMenuMedia": "Media",
   "attachMenuCamera": "Fotocamera",
   "attachMenuFile": "File",
