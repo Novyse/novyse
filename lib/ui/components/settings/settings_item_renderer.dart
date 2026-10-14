@@ -50,7 +50,17 @@ class SettingsItemRenderer extends ConsumerWidget {
         return const SizedBox.shrink();
       }
     }
-    final bool isDisabled = item.disabled;
+    bool isDisabled = item.disabled;
+    final disabledWhen = item.disabledWhen;
+    if (!isDisabled && disabledWhen != null) {
+      final rawDisabled = ref.watch(
+        settingValueProvider(disabledWhen.settingKey),
+      );
+      final currentDisabled = rawDisabled ?? disabledWhen.defaultValue;
+      if (currentDisabled == disabledWhen.equals) {
+        isDisabled = true;
+      }
+    }
     final title = context.settingsText(item.title);
     final subtitle = context.settingsText(item.subtitle);
     final subtitleOrNull = subtitle.isEmpty ? null : subtitle;
