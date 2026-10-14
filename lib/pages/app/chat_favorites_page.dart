@@ -68,7 +68,7 @@ class _ChatFavoritesPageState extends ConsumerState<ChatFavoritesPage> {
     final currentPath = GoRouterState.of(context).uri.path;
     final target = chatSubPath(chatUUID, subID);
     if (currentPath == target) return;
-    context.push(target);
+    context.go(target);
   }
 
   @override

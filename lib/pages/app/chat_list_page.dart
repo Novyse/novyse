@@ -193,7 +193,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     ref
         .read(activeChatProvider.notifier)
         .setSelectedChatUUID(chatUUID, subOverride: sub);
-    context.push(target);
+    context.go(target);
   }
 
   void _onChatSelected(ChatModel chat) {
@@ -227,7 +227,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     final currentPath = GoRouterState.of(context).uri.path;
     final target = chatSubPath(chatUUID, subID);
     if (currentPath == target) return;
-    context.push(target);
+    context.go(target);
   }
 
   @override
