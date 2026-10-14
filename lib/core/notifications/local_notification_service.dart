@@ -14,6 +14,7 @@ import 'package:novyse/core/notifications/notification_paths_stub.dart'
     as paths;
 import 'package:novyse/core/router/navigator_keys.dart';
 import 'package:novyse/core/router/router.dart';
+import 'package:novyse/core/stores/active_chat_store.dart';
 
 typedef NotificationTapCallback = void Function(String? chatUUID, int subID);
 
@@ -247,7 +248,8 @@ class LocalNotificationService {
     // Default tap -> open chat (with subID so we land on the right sub).
     final tappedUUID = chatUUID.isEmpty ? null : chatUUID;
     instance.onTap?.call(tappedUUID, subID);
-    _navigateToChat(tappedUUID, subID);
+    final isComms = payload['type'] == 'comms';
+    _navigateToChat(tappedUUID, subID, vocal: isComms);
   }
 
   static Map<String, String> _parsePayload(String? payload) {
@@ -260,12 +262,22 @@ class LocalNotificationService {
     }
   }
 
-  static void _navigateToChat(String? chatUUID, int subID) {
+  static void _navigateToChat(
+    String? chatUUID,
+    int subID, {
+    bool vocal = false,
+  }) {
     if (chatUUID == null || chatUUID.isEmpty) return;
     final context = rootNavigatorKey.currentContext;
     if (context == null) return;
     try {
       final container = ProviderScope.containerOf(context, listen: false);
+      if (vocal) {
+        container
+            .read(activeChatProvider.notifier)
+            .setSelectedChatUUID(chatUUID, subOverride: subID);
+        container.read(activeChatProvider.notifier).setContentView('vocal');
+      }
       container.read(routerProvider).go('/chats/$chatUUID/$subID');
     } catch (e) {
       debugPrint('[Notifications] navigate to chat failed: $e');

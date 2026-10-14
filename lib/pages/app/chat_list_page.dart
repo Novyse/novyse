@@ -12,6 +12,7 @@ import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_list_app_bar.dart';
+import 'package:novyse/ui/components/chat/chat_list/chat_list_aux_bars.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_list_empty_view.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_list_view.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_search.dart';
@@ -262,7 +263,13 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
                   onOpenSearch: _openSearch,
                   onCloseSearch: _closeSearch,
                   onNewChat: () => showCreateChatModal(context),
-                  footer: const GlobalStatusBar(padding: _statusBarPadding),
+                  footer: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GlobalStatusBar(padding: _statusBarPadding),
+                      ChatListAuxBars(),
+                    ],
+                  ),
                 ),
               ),
             ),
