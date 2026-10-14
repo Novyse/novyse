@@ -97,6 +97,20 @@ void main() {
       },
     );
 
+    test('setSelectedChatUUID restores per-chat contentView from draft', () {
+      final activeNotifier = container.read(activeChatProvider.notifier);
+      final draft = container.read(chatDraftProvider('chat-v').notifier);
+      draft.setContentView('vocal');
+      draft.setSelectedSub(3);
+
+      activeNotifier.setSelectedChatUUID('chat-v');
+
+      final state = container.read(activeChatProvider);
+      expect(state.selectedChatUUID, equals('chat-v'));
+      expect(state.contentView, equals('vocal'));
+      expect(state.selectedSub, equals(3));
+    });
+
     test('setScrollToMessageID stores quote range and clears it on null', () {
       final activeNotifier = container.read(activeChatProvider.notifier);
 
