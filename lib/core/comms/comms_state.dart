@@ -86,11 +86,12 @@ class CommsState {
 
   bool get isScreenSharing => activeScreenShareTrackSids.isNotEmpty;
 
-  /// Total number of participants currently in the room (local + remote).
+  /// Number of participants currently in the room.
+  /// Counts remote participants plus the local user.
   int get participantCount {
     final r = room;
     if (r == null) return 0;
-    return (r.localParticipant != null ? 1 : 0) + r.remoteParticipants.length;
+    return r.remoteParticipants.length + 1;
   }
 
   CommsState copyWith({
