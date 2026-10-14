@@ -52,12 +52,16 @@ void main() {
     bool isScreenShare = false,
     bool isLocal = false,
     bool isSpeaking = false,
+    bool isRemoteMuted = false,
+    bool isLocallyMuted = false,
   }) => CommsTileItem(
     id: id,
     userUUID: userUUID,
     isScreenShare: isScreenShare,
     isLocal: isLocal,
     isSpeaking: isSpeaking,
+    isRemoteMuted: isRemoteMuted,
+    isLocallyMuted: isLocallyMuted,
     trackSid: isScreenShare ? id : null,
   );
 
@@ -605,6 +609,26 @@ void main() {
 
     testWidgets('a screen share never counts as speaking', (tester) async {
       await pump(tester, item: tile(isSpeaking: true, isScreenShare: true));
+
+      expect(borderColor(tester).a, lessThan(1));
+    });
+
+    testWidgets('a remote self-muted participant is not speaking', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        item: tile(isSpeaking: true, isRemoteMuted: true),
+      );
+
+      expect(borderColor(tester).a, lessThan(1));
+    });
+
+    testWidgets('a locally muted participant is not speaking', (tester) async {
+      await pump(
+        tester,
+        item: tile(isSpeaking: true, isLocallyMuted: true),
+      );
 
       expect(borderColor(tester).a, lessThan(1));
     });

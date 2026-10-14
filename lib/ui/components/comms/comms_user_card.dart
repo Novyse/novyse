@@ -133,7 +133,6 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
     }
 
     final videoTrack = tile.hasActiveVideo ? tile.videoTrack : null;
-    final isSpeaking = tile.isSpeaking && !tile.isScreenShare;
     final status = context.statusColors;
 
     // Mute badges (bottom-right):
@@ -156,6 +155,10 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
     final showLocalLock = tile.isLocallyMuted && !tile.isLocal;
     final showRemoteSimple =
         !showLocalLock && (tile.isRemoteMuted || ownMicOff);
+
+    final isMuted = tile.isRemoteMuted || tile.isLocallyMuted || ownMicOff;
+    final isSpeaking =
+        tile.isSpeaking && !tile.isScreenShare && !isMuted;
 
     final controlsOpacity = !isCommsConnected
         ? 0.0
