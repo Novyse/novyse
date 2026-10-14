@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 /// stay grabbable at the window edge with no inset needed.
 abstract final class AppScrollbarTokens {
   /// Resting thumb thickness (visually unchanged vs stock).
-  static const double thickness = 8;
+  static const double thickness = 4;
 
   static const Radius radius = Radius.circular(8);
 

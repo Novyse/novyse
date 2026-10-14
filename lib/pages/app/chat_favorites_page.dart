@@ -77,6 +77,7 @@ class _ChatFavoritesPageState extends ConsumerState<ChatFavoritesPage> {
     final colorScheme = Theme.of(context).colorScheme;
     final state = ref.watch(favoriteMessagesProvider(widget.chatUUID));
     final topInset = MediaQuery.paddingOf(context).top;
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -114,7 +115,7 @@ class _ChatFavoritesPageState extends ConsumerState<ChatFavoritesPage> {
                     .read(favoriteMessagesProvider(widget.chatUUID).notifier)
                     .reload(),
                 child: ListView.separated(
-                  padding: EdgeInsets.fromLTRB(16, topInset + 74 + 12, 16, 32),
+                  padding: EdgeInsets.fromLTRB(12, topInset + 74 + 12, 12, bottomInset),
                   itemCount: state.favorites.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {

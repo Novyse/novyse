@@ -119,7 +119,7 @@ class SubList extends ConsumerWidget {
             child: Stack(
               children: [
                 ListView.separated(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   itemCount: chat.subs.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {

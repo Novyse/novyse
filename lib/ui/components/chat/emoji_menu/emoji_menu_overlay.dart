@@ -64,7 +64,7 @@ class _EmojiMenuPanelState extends ConsumerState<EmojiMenuPanel> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
             child: SegmentedButton<EmojiMenuTab>(
               segments: [
                 for (final t in EmojiMenuTab.values)

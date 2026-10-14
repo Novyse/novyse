@@ -32,7 +32,7 @@ class ChatSearchResults extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    const emptyPadding = EdgeInsets.fromLTRB(16, 12, 16, 4);
+    const emptyPadding = EdgeInsets.fromLTRB(12, 12, 12, 4);
 
     final hasNoResultsOverall =
         localChats.isEmpty &&
