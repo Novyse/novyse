@@ -1256,5 +1256,14 @@
         "type": "String"
       }
     }
-  }
+  },
+  "updaterSystemPackageManaged": "This install is managed by your system package manager (RPM, DEB, AppImage). Download the new package from the website and install it manually.",
+  "updaterCheckFailed": "Update check failed. Please try again later.",
+  "updaterCopyCommand": "Copy update command",
+  "updaterCommandCopied": "Copied",
+  "updaterMacOSUncertified": "This version of the app is not certified and does not support automatic updates. Please download the new version from the website.",
+  "updaterLinuxRpm": "This install uses an RPM package, which does not support in-app updates. Download the new .rpm from the website and install it with your package manager (e.g. sudo dnf install ./novyse-*.rpm).",
+  "updaterLinuxDeb": "This install uses a DEB package, which does not support in-app updates. Download the new .deb from the website and install it with your package manager (e.g. sudo apt install ./novyse-*.deb).",
+  "updaterLinuxAppImage": "This install is an AppImage, which does not support in-app updates. Download the new .AppImage from the website and replace the old file (then chmod +x).",
+  "updaterReadOnlyInstall": "This install location is not writable, so in-app updates are unavailable. Please download the new version from the website."
 }
