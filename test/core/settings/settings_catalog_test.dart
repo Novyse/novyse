@@ -63,6 +63,7 @@ void main() {
         'app_language',
         'version',
         'release_channel',
+        'check_updates',
         'resource_links',
         'roadmap',
         'patchnotes',
