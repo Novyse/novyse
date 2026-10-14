@@ -314,12 +314,35 @@ build_desktop_updater_zip() {
   fi
 }
 
+# Seeds the desktop-updater install identity marker
+seed_install_identity_marker() {
+  local bundle_dir="$1"
+  if [ -z "${APP_ID:-}" ]; then
+    echo "⚠️  [DESKTOP-UPDATER WARNING] APP_ID empty; skipping identity marker."
+    return 0
+  fi
+  if [ ! -d "$bundle_dir" ]; then
+    echo "⚠️  [DESKTOP-UPDATER WARNING] Bundle not found: $bundle_dir; skipping identity marker."
+    return 0
+  fi
+  printf '{"packageId":"%s","schemaVersion":1}' "$APP_ID" > "$bundle_dir/.desktop_updater_install_identity.json"
+  echo "✅ [DESKTOP-UPDATER] Seeded install identity marker (packageId=$APP_ID)."
+}
+
 build_linux() {
   echo "🐧 Building Linux for $APP_NAME..."
   flutter build linux --release
 
+  # Ensure helper binaries retain executable permissions
+  find "$ROOT_DIR/build/linux/x64/release/bundle" -type f -name "desktop-updater-helper" -exec chmod 755 {} + 2>/dev/null || true
+
   if [ "$SKIP_PACKAGING" -eq 0 ]; then
     echo "📦 Packaging Linux distributables..."
+    # Updater zip first: the packager rejects inputs already containing the
+    # identity marker, then seed the marker for the remaining formats.
+    build_desktop_updater_zip "linux" "$ROOT_DIR/build/linux/x64/release/bundle" "$APP_ID"
+    seed_install_identity_marker "$ROOT_DIR/build/linux/x64/release/bundle"
+
     if is_format_selected "tarball"; then
       bash "$ROOT_DIR/linux/packaging/build-tarball.sh" || true
     fi
@@ -338,9 +361,6 @@ build_linux() {
     if is_format_selected "flatpak"; then
       bash "$ROOT_DIR/linux/packaging/build-flatpak.sh" || true
     fi
-    if [ "$SKIP_PACKAGING" -eq 0 ]; then
-      build_desktop_updater_zip "linux" "$ROOT_DIR/build/linux/x64/release/bundle" "$APP_ID"
-    fi
   fi
 }
 
@@ -350,6 +370,11 @@ build_windows() {
 
   if [ "$SKIP_PACKAGING" -eq 0 ]; then
     echo "📦 Packaging Windows distributables..."
+    # Updater zip first (packager rejects seeded inputs), then seed the
+    # marker for the installer formats.
+    build_desktop_updater_zip "windows" "$ROOT_DIR/build/windows/x64/runner/Release" "$APP_ID"
+    seed_install_identity_marker "$ROOT_DIR/build/windows/x64/runner/Release"
+
     if is_format_selected "exe"; then
       if ! bash "$ROOT_DIR/windows/packaging/build-inno.sh"; then
         echo "⚠️  [WINDOWS WARNING] Inno Setup packaging failed; continuing with other formats."
@@ -360,9 +385,6 @@ build_windows() {
     fi
     if is_format_selected "msi"; then
       bash "$ROOT_DIR/windows/packaging/build-msi.sh" || true
-    fi
-    if [ "$SKIP_PACKAGING" -eq 0 ]; then
-      build_desktop_updater_zip "windows" "$ROOT_DIR/build/windows/x64/runner/Release" "$APP_ID"
     fi
   fi
 }

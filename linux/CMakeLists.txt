@@ -140,9 +140,12 @@ install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
+  # Preserve source permissions: built executables (e.g.
+  # desktop-updater-helper) keep +x, shared libs keep their modes.
   install(FILES "${bundled_library}"
     DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-    COMPONENT Runtime)
+    COMPONENT Runtime
+    USE_SOURCE_PERMISSIONS)
 endforeach(bundled_library)
 
 # Copy the native assets provided by the build.dart from all packages.
