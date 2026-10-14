@@ -5,6 +5,7 @@ import 'package:novyse/core/storage/file/file_utils.dart';
 import 'package:novyse/core/storage/file/playable_uri.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/slider/app_progress_slider.dart';
 
 /// Displays an audio file message with playback controls and progress slider.
 class MessageAudio extends StatefulWidget {
@@ -16,6 +17,10 @@ class MessageAudio extends StatefulWidget {
     this.size,
     this.duration,
     this.isPending = false,
+    this.messageID,
+    this.chatUUID,
+    this.subID,
+    this.senderUUID,
   });
 
   final String? fileRef;
@@ -24,6 +29,12 @@ class MessageAudio extends StatefulWidget {
   final int? size;
   final int? duration;
   final bool isPending;
+
+  /// Chat context, stored in [ChatAudioService] for the global voice bar.
+  final dynamic messageID;
+  final String? chatUUID;
+  final int? subID;
+  final String? senderUUID;
 
   @override
   State<MessageAudio> createState() => _MessageAudioState();
@@ -39,6 +50,10 @@ class _MessageAudioState extends State<MessageAudio> {
       initialDuration: widget.duration != null
           ? Duration(seconds: widget.duration!)
           : null,
+      chatUUID: widget.chatUUID,
+      subID: widget.subID,
+      messageID: widget.messageID,
+      senderUUID: widget.senderUUID,
     );
   }
 
@@ -104,27 +119,10 @@ class _MessageAudioState extends State<MessageAudio> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SliderTheme(
-                  data: SliderThemeData(
-                    trackHeight: 3,
-                    thumbShape: const RoundSliderThumbShape(
-                      enabledThumbRadius: 6,
-                    ),
-                    overlayShape: const RoundSliderOverlayShape(
-                      overlayRadius: 14,
-                    ),
-                    activeTrackColor: colorScheme.primary,
-                    inactiveTrackColor: colorScheme.surfaceContainerHighest,
-                    thumbColor: colorScheme.primary,
-                  ),
-                  child: Slider(
-                    value: currentPosition.inMilliseconds.toDouble().clamp(
-                      0,
-                      totalMs > 0 ? totalMs.toDouble() : 1.0,
-                    ),
-                    max: totalMs > 0 ? totalMs.toDouble() : 1.0,
-                    onChanged: isItemActive ? _seek : null,
-                  ),
+                AppProgressSlider(
+                  positionMs: currentPosition.inMilliseconds.toDouble(),
+                  totalMs: totalMs.toDouble(),
+                  onSeek: isItemActive ? _seek : null,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

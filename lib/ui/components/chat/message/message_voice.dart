@@ -7,6 +7,7 @@ import 'package:novyse/core/storage/file/media_utils.dart';
 import 'package:novyse/core/storage/file/playable_uri.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/slider/app_progress_slider.dart';
 
 /// Displays a voice message with waveform visualization and playback controls.
 class MessageVoice extends StatefulWidget {
@@ -18,6 +19,10 @@ class MessageVoice extends StatefulWidget {
     this.duration,
     this.isPending = false,
     this.waveform,
+    this.messageID,
+    this.chatUUID,
+    this.subID,
+    this.senderUUID,
   });
 
   final String? fileRef;
@@ -26,6 +31,12 @@ class MessageVoice extends StatefulWidget {
   final int? duration;
   final bool isPending;
   final List<double>? waveform;
+
+  /// Chat context, stored in [ChatAudioService] for the global voice bar.
+  final dynamic messageID;
+  final String? chatUUID;
+  final int? subID;
+  final String? senderUUID;
 
   @override
   State<MessageVoice> createState() => _MessageVoiceState();
@@ -41,6 +52,11 @@ class _MessageVoiceState extends State<MessageVoice> {
       initialDuration: widget.duration != null
           ? Duration(seconds: widget.duration!)
           : null,
+      chatUUID: widget.chatUUID,
+      subID: widget.subID,
+      messageID: widget.messageID,
+      senderUUID: widget.senderUUID,
+      isVoice: true,
     );
   }
 
@@ -97,18 +113,15 @@ class _MessageVoiceState extends State<MessageVoice> {
           Expanded(
             child: Column(
               children: [
-                SizedBox(
-                  height: 35,
-                  child: _WaveformPainter(
-                    waveformData: waveformData,
-                    currentValue: currentPosition.inMilliseconds.toDouble(),
-                    maxValue: totalMs.toDouble(),
-                    activeColor: colorScheme.primary,
-                    inactiveColor: colorScheme.onSurfaceVariant.withValues(
-                      alpha: 0.4,
-                    ),
-                    isPlaying: isPlaying,
-                  ),
+                AppProgressSlider(
+                  waveform: waveformData,
+                  positionMs: currentPosition.inMilliseconds.toDouble(),
+                  totalMs: totalMs.toDouble(),
+                  onSeek: isItemActive
+                      ? (v) => ChatAudioService.instance.seek(
+                          Duration(milliseconds: v.toInt()),
+                        )
+                      : null,
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -191,106 +204,5 @@ class _MessageVoiceState extends State<MessageVoice> {
               ),
       ),
     );
-  }
-}
-
-class _WaveformPainter extends StatelessWidget {
-  const _WaveformPainter({
-    required this.waveformData,
-    required this.currentValue,
-    required this.maxValue,
-    required this.activeColor,
-    required this.inactiveColor,
-    this.isPlaying = false,
-  });
-
-  final List<double> waveformData;
-  final double currentValue;
-  final double maxValue;
-  final Color activeColor;
-  final Color inactiveColor;
-  final bool isPlaying;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final w = constraints.maxWidth.isFinite && constraints.maxWidth > 0
-            ? constraints.maxWidth
-            : 160.0;
-        return CustomPaint(
-          size: Size(w, 35),
-          painter: _WaveformCustomPainter(
-            waveformData: waveformData,
-            currentValue: currentValue,
-            maxValue: maxValue,
-            activeColor: activeColor,
-            inactiveColor: inactiveColor,
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _WaveformCustomPainter extends CustomPainter {
-  _WaveformCustomPainter({
-    required this.waveformData,
-    required this.currentValue,
-    required this.maxValue,
-    required this.activeColor,
-    required this.inactiveColor,
-  });
-
-  final List<double> waveformData;
-  final double currentValue;
-  final double maxValue;
-  final Color activeColor;
-  final Color inactiveColor;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (!size.width.isFinite ||
-        !size.height.isFinite ||
-        size.width <= 0 ||
-        size.height <= 0 ||
-        waveformData.isEmpty) {
-      return;
-    }
-
-    final barWidth = size.width / waveformData.length;
-    final gap = barWidth * 0.2;
-    final actualBarWidth = barWidth - gap;
-    final centerY = size.height / 2;
-    final maxBarHeight = size.height * 0.85;
-
-    final progress = maxValue > 0
-        ? (currentValue / maxValue).clamp(0.0, 1.0)
-        : 0.0;
-    final activeBars = (progress * waveformData.length).floor();
-
-    final paint = Paint()..strokeCap = StrokeCap.round;
-
-    for (var i = 0; i < waveformData.length; i++) {
-      final x = i * barWidth + gap / 2;
-      final amplitude = waveformData[i].clamp(0.05, 1.0);
-      final barHeight = amplitude * maxBarHeight;
-
-      paint.color = i < activeBars ? activeColor : inactiveColor;
-      paint.strokeWidth = actualBarWidth.clamp(1.5, 4.0);
-
-      canvas.drawLine(
-        Offset(x + actualBarWidth / 2, centerY - barHeight / 2),
-        Offset(x + actualBarWidth / 2, centerY + barHeight / 2),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _WaveformCustomPainter oldDelegate) {
-    return oldDelegate.currentValue != currentValue ||
-        oldDelegate.maxValue != maxValue ||
-        oldDelegate.waveformData != waveformData;
   }
 }
