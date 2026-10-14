@@ -260,7 +260,7 @@ class SettingsItemRenderer extends ConsumerWidget {
         );
 
       case SettingComponent.action:
-        const directActions = {'openLicenses', 'openAppLicense'};
+        const directActions = {'openLicenses', 'openAppLicense', 'checkUpdates'};
         if (directActions.contains(item.actionId)) {
           return wrapDisabled(
             SettingsNavigationRow(

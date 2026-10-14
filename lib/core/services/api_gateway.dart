@@ -10,6 +10,7 @@ import 'api/modules/gather_module.dart';
 import 'api/modules/message_module.dart';
 import 'api/modules/notification_module.dart';
 import 'api/modules/search_module.dart';
+import 'api/modules/system_module.dart';
 import 'api/modules/user_module.dart';
 import 'api/modules/watch_together_module.dart';
 
@@ -36,7 +37,8 @@ class Gateway {
       file = FileModule(dio),
       comms = CommsModule(dio),
       watchTogether = WatchTogetherModule(dio),
-      notification = NotificationModule(dio);
+      notification = NotificationModule(dio),
+      system = SystemModule(dio);
 
   final CheckModule check;
   final UserModule user;
@@ -48,4 +50,5 @@ class Gateway {
   final CommsModule comms;
   final WatchTogetherModule watchTogether;
   final NotificationModule notification;
+  final SystemModule system;
 }
