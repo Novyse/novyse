@@ -318,6 +318,8 @@
   "commsExitFullScreen": "Riduci",
   "commsFullScreen": "Schermo intero",
   "commsStopScreenShare": "Interrompi condivisione",
+  "commsPreviousShare": "Condivisione precedente",
+  "commsNextShare": "Condivisione successiva",
   "commsMuteUser": "Silenzia per me",
   "commsUnmuteUser": "Riattiva per me",
   "commsVolume": "Volume",

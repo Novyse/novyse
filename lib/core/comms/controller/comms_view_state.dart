@@ -21,6 +21,16 @@ mixin CommsViewStateMixin on Notifier<CommsState> {
     );
   }
 
+  /// Pin a specific stream tile.
+  void setPinned(String streamId) {
+    state = state.copyWith(pinnedStreamId: () => streamId);
+  }
+
+  /// Fullscreen a specific stream tile.
+  void setFullscreen(String streamId) {
+    state = state.copyWith(fullscreenStreamId: () => streamId);
+  }
+
   /// Explicitly exit fullscreen (e.g. ESC pressed, tile gone, dispose).
   void exitFullscreen() {
     if (state.fullscreenStreamId == null) return;
