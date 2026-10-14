@@ -92,6 +92,12 @@ class SubList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
+
+    final measuredTop =
+        ref.watch(activeChatProvider.select((s) => s.headerHeight)) + 12;
+    final effectiveTopPadding = measuredTop > topPadding
+        ? measuredTop
+        : topPadding;
     final localUserUUID = ref.watch(
       userStoreProvider.select((s) => s.localUserUUID),
     );
@@ -102,7 +108,7 @@ class SubList extends ConsumerWidget {
     );
 
     return Padding(
-      padding: EdgeInsets.only(top: topPadding, left: 10, bottom: 10),
+      padding: EdgeInsets.only(top: effectiveTopPadding, left: 10, bottom: 10),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(25),
         child: BackdropFilter(

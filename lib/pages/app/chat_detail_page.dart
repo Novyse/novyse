@@ -45,7 +45,6 @@ class ChatDetailPage extends ConsumerStatefulWidget {
 }
 
 class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
-  bool _callOpen = false;
   bool _searching = false;
   bool _isAttachMenuOpen = false;
   bool _isEmojiMenuOpen = false;
@@ -56,6 +55,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   int _searchIndex = 0;
   double _subListWidth = kSubListDefaultWidth;
   final _bottomBarKey = GlobalKey();
+  final _headerBarKey = GlobalKey();
   // Stima iniziale bottombar a una riga (48 pill + 24 padding + safe + fade).
   // Aggiornata alla misura reale via SizeChangedLayoutNotifier (altezza variabile).
   double _bottomInset = 132;
@@ -108,7 +108,6 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     if (oldWidget.chatUUID != widget.chatUUID) {
       _isAttachMenuOpen = false;
       _isEmojiMenuOpen = false;
-      _callOpen = false;
       _closeSearch(resetText: true);
     }
     if (oldWidget.chatUUID != widget.chatUUID ||
@@ -128,14 +127,14 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
       ref.read(activeChatProvider.select((s) => s.selectedSub));
 
   void _openCall() {
-    if (_callOpen) return;
+    if (ref.read(activeChatProvider).contentView == 'vocal') return;
     _closeSearch(resetText: true);
-    setState(() => _callOpen = true);
+    ref.read(activeChatProvider.notifier).setContentView('vocal');
   }
 
   void _closeCall() {
-    if (!_callOpen) return;
-    setState(() => _callOpen = false);
+    if (ref.read(activeChatProvider).contentView != 'vocal') return;
+    ref.read(activeChatProvider.notifier).setContentView('chat');
   }
 
   void _openSearch() {
@@ -251,7 +250,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
       _closeSearch();
       return;
     }
-    if (_callOpen) {
+    if (ref.read(activeChatProvider).contentView == 'vocal') {
       _closeCall();
       return;
     }
@@ -362,20 +361,23 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     );
 
     // VOCAL -> only vocal UI. TEXT/ANNOUNCE -> only chat. MIXED -> toggle.
+    final callOpen = ref.watch(
+      activeChatProvider.select((s) => s.contentView == 'vocal'),
+    );
     final showViewToggle = subType == null || subType == 'MIXED';
     final showSearch =
         subType == null ||
         subType == 'MIXED' ||
         subType == 'TEXT' ||
         subType == 'ANNOUNCE';
-    final showVocal = subType == 'VOCAL' || (showViewToggle && _callOpen);
+    final showVocal = subType == 'VOCAL' || (showViewToggle && callOpen);
 
     if (subType == 'VOCAL' && _searching) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _closeSearch();
       });
     }
-    if ((subType == 'TEXT' || subType == 'ANNOUNCE') && _callOpen) {
+    if ((subType == 'TEXT' || subType == 'ANNOUNCE') && callOpen) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _closeCall();
       });
@@ -434,7 +436,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
               .read(chatDraftProvider(chatUUID).notifier)
               .clearSelectedMessages();
         },
-        bottom: ChatSubHeader(chatUUID: chatUUID),
+        bottom: ChatSubHeader(chatUUID: chatUUID, showAuxBars: false),
       );
     } else if (_searching) {
       floatingBar = ChatDetailSearchAppBar(
@@ -446,7 +448,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         currentIndex: displayIndex,
         onNext: () => _goToNextResult(searchTotal),
         onPrevious: () => _goToPreviousResult(searchTotal),
-        bottom: ChatSubHeader(chatUUID: chatUUID),
+        bottom: ChatSubHeader(chatUUID: chatUUID, showAuxBars: false),
       );
     } else {
       floatingBar = ChatDetailAppBar(
@@ -463,7 +465,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         showViewToggle: showViewToggle,
         onBack: _handleBack,
         onOpenSearch: _openSearch,
-        onToggleView: _callOpen ? _closeCall : _openCall,
+        onToggleView: callOpen ? _closeCall : _openCall,
         onOpenOverview: () =>
             context.push(chatOverviewPath(chatUUID, selectedSub)),
         bottom: ChatSubHeader(chatUUID: chatUUID),
@@ -564,7 +566,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
 
     return PopScope(
       canPop:
-          !_callOpen &&
+          !callOpen &&
           !_searching &&
           !hasSelection &&
           !_isAttachMenuOpen &&
@@ -589,7 +591,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
           _closeSearch();
           return;
         }
-        if (_callOpen) {
+        if (ref.read(activeChatProvider).contentView == 'vocal') {
           _closeCall();
         }
       },
@@ -621,7 +623,33 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
                   value: colorScheme.brightness == Brightness.dark
                       ? SystemUiOverlayStyle.light
                       : SystemUiOverlayStyle.dark,
-                  child: floatingBar,
+                  child: NotificationListener<SizeChangedLayoutNotification>(
+                    onNotification: (_) {
+                      final height =
+                          _headerBarKey.currentContext?.size?.height;
+                      if (height != null) {
+                        final current = ref.read(
+                          activeChatProvider.select((s) => s.headerHeight),
+                        );
+                        if ((height - current).abs() > 1) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) {
+                              ref
+                                  .read(activeChatProvider.notifier)
+                                  .setHeaderHeight(height);
+                            }
+                          });
+                        }
+                      }
+                      return true;
+                    },
+                    child: SizeChangedLayoutNotifier(
+                      child: Container(
+                        key: _headerBarKey,
+                        child: floatingBar,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
