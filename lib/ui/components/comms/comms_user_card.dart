@@ -193,6 +193,9 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
       onTapUp: widget.isFullScreen || !isCommsConnected
           ? null
           : (details) => openMenu(details.globalPosition),
+      onDoubleTap: widget.isFullScreen || !isCommsConnected
+          ? null
+          : widget.onPin,
       onSecondaryTapUp: !isCommsConnected
           ? null
           : (details) => openMenu(details.globalPosition),
