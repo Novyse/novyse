@@ -7,6 +7,7 @@ import 'package:novyse/core/chat/message_file.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/storage/file/file_storage.dart';
 import 'package:novyse/core/storage/file/file_type.dart';
+import 'package:novyse/core/storage/file/file_uri.dart';
 import 'package:novyse/core/storage/file/playable_uri.dart';
 import 'package:novyse/core/storage/file/web_blob_url_stub.dart'
     if (dart.library.html) 'package:novyse/core/storage/file/web_blob_url_web.dart'
@@ -208,10 +209,7 @@ Future<void> openDraftFileWithSystem(
       if (isRemote) {
         await launchUrl(Uri.parse(uri));
       } else {
-        final cleanPath = uri.startsWith('file://')
-            ? uri.replaceFirst('file://', '')
-            : uri;
-        await OpenFile.open(cleanPath);
+        await OpenFile.open(filePathFromUri(uri));
       }
     }
   } catch (e) {

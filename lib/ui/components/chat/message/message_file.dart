@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/services/file_download_service.dart';
 import 'package:novyse/core/storage/file/file_type.dart';
+import 'package:novyse/core/storage/file/file_uri.dart';
 import 'package:novyse/core/storage/file/file_utils.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
 import 'package:novyse/core/storage/file/web_blob_url.dart' as web_file;
@@ -126,10 +127,7 @@ class _MessageFileAttachmentState extends State<MessageFileAttachment> {
         if (uri.startsWith('http://') || uri.startsWith('https://')) {
           await launchUrl(Uri.parse(uri));
         } else {
-          final cleanUri = uri.startsWith('file://')
-              ? uri.replaceFirst('file://', '')
-              : uri;
-          await OpenFile.open(cleanUri);
+          await OpenFile.open(filePathFromUri(uri));
         }
       }
     } catch (e) {

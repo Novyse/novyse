@@ -64,7 +64,7 @@ class AppMenuShell extends StatelessWidget {
 abstract final class AppMenuTokens {
   static const double borderRadius = 25.0;
   static const double padding = 10.0;
-  static const double blurSigma = 20.0;
+  static const double blurSigma = 18.0;
   static const double cardOpacity = 0.88;
   static const double borderOpacity = 0.35;
   static const double edgePadding = 10.0;

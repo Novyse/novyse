@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/chat/message_file.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/services/file_download_service.dart';
+import 'package:novyse/core/storage/file/file_uri.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/core/stores/status_store.dart';
@@ -125,15 +126,12 @@ class MessageShareService {
   ) async {
     final direct = file.playableUri;
     if (direct != null && !kIsWeb) {
-      final cleaned = direct.replaceFirst('file://', '');
-      if (cleaned.startsWith('/')) {
-        try {
-          final local = File(cleaned);
-          if (await local.exists()) {
-            return (xfile: XFile(local.path, name: file.name), tempFile: null);
-          }
-        } catch (_) {}
-      }
+      try {
+        final local = fileFromUri(direct);
+        if (await local.exists()) {
+          return (xfile: XFile(local.path, name: file.name), tempFile: null);
+        }
+      } catch (_) {}
     }
     try {
       final service = ref.read(fileDownloadServiceProvider);
@@ -159,7 +157,7 @@ class MessageShareService {
     try {
       String? sourcePath;
       if (uri.startsWith('file://')) {
-        sourcePath = uri.replaceFirst('file://', '');
+        sourcePath = filePathFromUri(uri);
       } else if (!kIsWeb && uri.startsWith('/')) {
         sourcePath = uri;
       } else {

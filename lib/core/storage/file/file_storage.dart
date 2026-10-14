@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/storage/file/file_uri.dart';
 import 'package:novyse/core/storage/file/web_blob_url.dart' as web_blob;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -110,8 +111,7 @@ class FileStorage {
 
     // If already a full file path that exists
     if (ref.startsWith('file://') || p.isAbsolute(ref)) {
-      final cleanPath = ref.replaceFirst('file://', '');
-      final file = io.File(cleanPath);
+      final file = fileFromUri(ref);
       if (await file.exists()) return file.uri.toString();
     }
 
@@ -159,7 +159,7 @@ class FileStorage {
     try {
       String path;
       if (uriOrRef.startsWith('file://')) {
-        path = uriOrRef.replaceFirst('file://', '');
+        path = filePathFromUri(uriOrRef);
       } else if (p.isAbsolute(uriOrRef)) {
         path = uriOrRef;
       } else {
@@ -201,8 +201,7 @@ class FileStorage {
     try {
       final fileUri = await read(ref);
       if (fileUri != null) {
-        final file = io.File(fileUri.replaceFirst('file://', ''));
-        return await file.length();
+        return await fileFromUri(fileUri).length();
       }
       return null;
     } catch (e) {
@@ -220,7 +219,7 @@ class FileStorage {
     try {
       final fileUri = await read(ref);
       if (fileUri != null) {
-        final file = io.File(fileUri.replaceFirst('file://', ''));
+        final file = fileFromUri(fileUri);
         if (await file.exists()) {
           await file.delete();
           return true;
@@ -302,8 +301,7 @@ class FileSaveService {
     }
 
     try {
-      final cleanSourcePath = uri.replaceFirst('file://', '');
-      final sourceFile = io.File(cleanSourcePath);
+      final sourceFile = fileFromUri(uri);
 
       if (!await sourceFile.exists()) {
         throw io.FileSystemException('Source file does not exist: $uri');

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/storage/file/file_uri.dart';
 
 /// Centralized audio service for chat voice and audio messages.
 /// Ensures that ONLY ONE audio or voice message can be played at any given time.
@@ -161,10 +162,7 @@ class ChatAudioService extends ChangeNotifier {
 
     Source source;
     if (!kIsWeb && (uri.startsWith('file://') || uri.startsWith('/'))) {
-      final cleanPath = uri.startsWith('file://')
-          ? uri.replaceFirst('file://', '')
-          : uri;
-      source = DeviceFileSource(cleanPath);
+      source = DeviceFileSource(filePathFromUri(uri));
     } else {
       source = UrlSource(uri);
     }
