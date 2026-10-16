@@ -294,7 +294,7 @@ class ChatListItem extends ConsumerWidget {
                                       fontWeight: formattedMessageData.isDraft
                                           ? FontWeight.w700
                                           : FontWeight.w600,
-                                      fontSize: 13.5,
+                                      fontSize: 13,
                                     ),
                                   ),
                                 TextSpan(
@@ -311,7 +311,7 @@ class ChatListItem extends ConsumerWidget {
                                             : Theme.of(context)
                                                   .colorScheme
                                                   .onSurfaceVariant,
-                                        fontSize: 13.5,
+                                        fontSize: 13,
                                       ),
                                 ),
                               ],

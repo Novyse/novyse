@@ -358,7 +358,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                             style: TextStyle(
                               color: colorScheme.onSurface,
                               fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),

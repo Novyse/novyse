@@ -118,7 +118,7 @@ class MessageSearchTile extends ConsumerWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontSize: 13.5,
+                        fontSize: 13,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),

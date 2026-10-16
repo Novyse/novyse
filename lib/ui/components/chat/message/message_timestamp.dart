@@ -57,7 +57,7 @@ class MessageTimestamp extends StatelessWidget {
             Text(
               '$replyCount',
               style: TextStyle(
-                fontSize: 10.5,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: textColor,
               ),
