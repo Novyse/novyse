@@ -285,6 +285,7 @@ class _ImageViewerPage extends StatelessWidget {
         imageProvider: _getImageProvider(),
         minScale: PhotoViewComputedScale.contained,
         maxScale: PhotoViewComputedScale.covered * 3,
+        filterQuality: FilterQuality.high,
         heroAttributes: PhotoViewHeroAttributes(tag: heroTag),
         loadingBuilder: (context, event) => Center(
           child: CircularProgressIndicator(

@@ -284,6 +284,7 @@ class _ViewerPage extends StatelessWidget {
           imageProvider: _imageProviderFor(uri),
           minScale: PhotoViewComputedScale.contained,
           maxScale: PhotoViewComputedScale.covered * 3,
+          filterQuality: FilterQuality.high,
           loadingBuilder: (context, event) => const Center(
             child: CircularProgressIndicator(color: Colors.white),
           ),

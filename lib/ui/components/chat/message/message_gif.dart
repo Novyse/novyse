@@ -120,6 +120,7 @@ class _MessageGifState extends State<MessageGif> {
             imageProvider: CachedNetworkImageProvider(url),
             minScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.covered * 3,
+            filterQuality: FilterQuality.high,
             loadingBuilder: (context, event) => Center(
               child: CircularProgressIndicator(
                 value: event == null
