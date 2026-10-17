@@ -7,6 +7,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/layout/pane_resizer.dart';
 
 import '../../core/auth/onboarding_manager.dart';
 import '../../core/chat/queue/queue_manager.dart';
@@ -232,7 +233,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
       body = Row(
         children: [
           SizedBox(width: masterPaneWidth, child: master),
-          _MasterPaneResizer(
+          PaneResizer(
             onDrag: (delta) => _resizeMasterPane(delta, screenWidth),
           ),
           Expanded(child: detail),
@@ -290,73 +291,6 @@ class EmptyDetailPane extends StatelessWidget {
         child: Text(
           context.l10n.selectChatFromList,
           style: const TextStyle(color: Colors.grey, fontSize: 16),
-        ),
-      ),
-    );
-  }
-}
-
-class _MasterPaneResizer extends StatefulWidget {
-  const _MasterPaneResizer({required this.onDrag});
-
-  final ValueChanged<double> onDrag;
-
-  /// Width of the in-flow strip separating master and detail.
-  static const double stripWidth = 12;
-
-  /// Height of the interactive pill hit area (centered vertically).
-  static const double hitHeight = 72;
-
-  /// Height of the visible pill (same as `SubListResizeHandle`).
-  static const double pillHeight = 36;
-
-  @override
-  State<_MasterPaneResizer> createState() => _MasterPaneResizerState();
-}
-
-class _MasterPaneResizerState extends State<_MasterPaneResizer> {
-  bool _hovered = false;
-  bool _dragging = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final active = _hovered || _dragging;
-    final pillColor = active
-        ? scheme.primary.withValues(alpha: 0.55)
-        : scheme.outlineVariant.withValues(alpha: 0.65);
-
-    return SizedBox(
-      width: _MasterPaneResizer.stripWidth,
-      height: double.infinity,
-      child: Center(
-        child: MouseRegion(
-          cursor: SystemMouseCursors.resizeColumn,
-          onEnter: (_) => setState(() => _hovered = true),
-          onExit: (_) => setState(() => _hovered = false),
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onHorizontalDragStart: (_) => setState(() => _dragging = true),
-            onHorizontalDragUpdate: (details) =>
-                widget.onDrag(details.delta.dx),
-            onHorizontalDragEnd: (_) => setState(() => _dragging = false),
-            onHorizontalDragCancel: () => setState(() => _dragging = false),
-            child: SizedBox(
-              width: _MasterPaneResizer.stripWidth,
-              height: _MasterPaneResizer.hitHeight,
-              child: Center(
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 120),
-                  width: 3,
-                  height: _MasterPaneResizer.pillHeight,
-                  decoration: BoxDecoration(
-                    color: pillColor,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-              ),
-            ),
-          ),
         ),
       ),
     );
