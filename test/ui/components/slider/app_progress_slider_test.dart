@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/ui/components/slider/app_progress_slider.dart';
+import 'package:novyse/ui/components/waveform/waveform_view.dart';
 
 Widget _wrap(Widget child) => MaterialApp(
   home: Scaffold(body: Center(child: child)),
@@ -101,6 +102,7 @@ void main() {
       );
 
       expect(find.byType(CustomPaint), findsWidgets);
+      expect(find.byType(WaveformView), findsOneWidget);
 
       final box = tester.getRect(find.byType(AppProgressSlider));
       // Tap at ~75% width → ~750ms.

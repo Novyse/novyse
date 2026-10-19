@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:novyse/ui/components/waveform/waveform_view.dart';
 
 /// Generic seekable progress control used by the active-voice bar and by
 /// voice/audio message bubbles.
@@ -127,83 +128,22 @@ class _SeekableWaveform extends StatelessWidget {
                 _seekAt(details.localPosition, w),
             onHorizontalDragUpdate: (details) =>
                 _seekAt(details.localPosition, w),
-            child: CustomPaint(
-              size: Size(w, height),
-              painter: _WaveformProgressPainter(
-                waveformData: waveformData,
-                currentValue: positionMs,
-                maxValue: totalMs,
+            child: SizedBox(
+              width: w,
+              height: height,
+              child: WaveformView(
+                samples: waveformData,
+                progress: totalMs > 0
+                    ? (positionMs / totalMs).clamp(0.0, 1.0)
+                    : 0.0,
                 activeColor: activeColor,
                 inactiveColor: inactiveColor,
+                height: height,
               ),
             ),
           ),
         );
       },
     );
-  }
-}
-
-class _WaveformProgressPainter extends CustomPainter {
-  _WaveformProgressPainter({
-    required this.waveformData,
-    required this.currentValue,
-    required this.maxValue,
-    required this.activeColor,
-    required this.inactiveColor,
-  });
-
-  final List<double> waveformData;
-  final double currentValue;
-  final double maxValue;
-  final Color activeColor;
-  final Color inactiveColor;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (!size.width.isFinite ||
-        !size.height.isFinite ||
-        size.width <= 0 ||
-        size.height <= 0 ||
-        waveformData.isEmpty) {
-      return;
-    }
-
-    final barWidth = size.width / waveformData.length;
-    final gap = barWidth * 0.2;
-    final actualBarWidth = barWidth - gap;
-    final centerY = size.height / 2;
-    final maxBarHeight = size.height * 0.85;
-
-    final progress = maxValue > 0
-        ? (currentValue / maxValue).clamp(0.0, 1.0)
-        : 0.0;
-    final activeBars = (progress * waveformData.length).floor();
-
-    final paint = Paint()..strokeCap = StrokeCap.round;
-
-    for (var i = 0; i < waveformData.length; i++) {
-      final x = i * barWidth + gap / 2;
-      final amplitude = waveformData[i].clamp(0.05, 1.0);
-      final barHeight = amplitude * maxBarHeight;
-
-      paint.color = i < activeBars ? activeColor : inactiveColor;
-      paint.strokeWidth = actualBarWidth.clamp(1.5, 4.0);
-
-      canvas.drawLine(
-        Offset(x + actualBarWidth / 2, centerY - barHeight / 2),
-        Offset(x + actualBarWidth / 2, centerY + barHeight / 2),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _WaveformProgressPainter oldDelegate) {
-    return oldDelegate.currentValue != currentValue ||
-        oldDelegate.maxValue != maxValue ||
-        oldDelegate.waveformData != waveformData ||
-        oldDelegate.activeColor != activeColor ||
-        oldDelegate.inactiveColor != inactiveColor;
   }
 }
