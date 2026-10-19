@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/chat/chat_audio_service.dart';
@@ -7,6 +5,7 @@ import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/storage/file/playable_uri.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_pinned_messages_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/sub_header/comms/chat_comms_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/sub_header/voice/chat_active_voice_bar.dart';
@@ -62,34 +61,22 @@ class ChatSubHeader extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: colorScheme.surface.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.25),
+    return FloatingPill(
+      radius: FloatingAppBarConsts.subHeaderRadius,
+      padding: FloatingAppBarConsts.subHeaderPadding,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: FloatingAppBarConsts.subHeaderGap,
+        children: [
+          if (hasPinnedMessages) ChatPinnedMessagesBar(chatUUID: chatUUID),
+          if (hasVoice)
+            ChatActiveVoiceBar(
+              currentChatUUID: chatUUID,
+              currentSub: selectedSub,
             ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (hasPinnedMessages) ChatPinnedMessagesBar(chatUUID: chatUUID),
-              if (hasVoice)
-                ChatActiveVoiceBar(
-                  currentChatUUID: chatUUID,
-                  currentSub: selectedSub,
-                ),
-              if (hasComms) const ChatCommsBar(),
-            ],
-          ),
-        ),
+          if (hasComms) const ChatCommsBar(),
+        ],
       ),
     );
   }

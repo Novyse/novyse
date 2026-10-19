@@ -7,14 +7,17 @@ import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/themes/themes.dart';
 
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+
 import 'comms_control_button.dart';
 
 /// Mic / webcam / leave actions of the comms bar.
 /// Same icons, tooltips and colors as [CommsBottomBar]; errors are ignored.
+///
+/// Sizes come straight from [FloatingAppBarConsts]: 42 box + 24 glyph,
+/// like every app bar icon — no per-call-site overrides.
 class CommsBarActions extends ConsumerWidget {
-  const CommsBarActions({super.key, this.buttonSize = 34});
-
-  final double buttonSize;
+  const CommsBarActions({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,9 +45,10 @@ class CommsBarActions extends ConsumerWidget {
               : idleBg,
           iconColor: !commsState.isAudioEnabled ? Colors.white : idleIcon,
           onPressed: () => unawaited(controller.toggleAudio()),
-          size: buttonSize,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(
+          width: FloatingAppBarConsts.subHeaderActionsGap,
+        ),
         CommsControlButton(
           icon: commsState.isVideoEnabled
               ? HugeIcons.strokeRoundedVideo02
@@ -59,16 +63,16 @@ class CommsBarActions extends ConsumerWidget {
               ? scheme.onPrimary
               : idleIcon,
           onPressed: () => unawaited(controller.toggleVideo()),
-          size: buttonSize,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(
+          width: FloatingAppBarConsts.subHeaderActionsGap,
+        ),
         CommsControlButton(
           icon: HugeIcons.strokeRoundedCall02,
           tooltip: l10n.commsLeaveRoom,
           backgroundColor: status.danger,
           iconColor: Colors.white,
           onPressed: () => unawaited(controller.leave()),
-          size: buttonSize,
         ),
       ],
     );

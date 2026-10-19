@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:novyse/core/chat/chat_audio_service.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 
 import 'voice_speed_menu.dart';
 
@@ -31,27 +32,38 @@ class VoiceBarSpeedControl extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
+    // Same 42 circle container as the X next to it (and every app bar
+    // icon): no filled chip anymore, so hover/ink is identical.
     return Tooltip(
       message: l10n.activeVoiceSpeedTitle,
-      child: Material(
-        color: scheme.primary.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-        clipBehavior: Clip.antiAlias,
-        child: Builder(
-          builder: (chipContext) => InkWell(
-            borderRadius: BorderRadius.circular(999),
-            onTap: () => _openMenu(chipContext),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              child: Text(
-                formatSpeed(speed),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: scheme.primary,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
+      child: Builder(
+        builder: (chipContext) => IconButton(
+          style: const ButtonStyle(
+            minimumSize: WidgetStatePropertyAll(
+              Size(
+                FloatingAppBarConsts.barContentSize,
+                FloatingAppBarConsts.barContentSize,
               ),
+            ),
+            maximumSize: WidgetStatePropertyAll(
+              Size(
+                FloatingAppBarConsts.barContentSize,
+                FloatingAppBarConsts.barContentSize,
+              ),
+            ),
+            padding: WidgetStatePropertyAll(EdgeInsets.all(4)),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          onPressed: () => _openMenu(chipContext),
+          icon: Text(
+            formatSpeed(speed),
+            maxLines: 1,
+            overflow: TextOverflow.clip,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: scheme.onSurfaceVariant,
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
         ),

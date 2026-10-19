@@ -7,6 +7,8 @@ import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+
 import 'comms_bar_actions.dart';
 import 'comms_bar_info.dart';
 
@@ -16,9 +18,7 @@ import 'comms_bar_info.dart';
 /// mic / webcam / leave actions. Tapping the info navigates to the room's
 /// chat/sub and opens the vocal view. Hidden when not connected.
 class ChatCommsBar extends ConsumerWidget {
-  const ChatCommsBar({super.key, this.compact = false});
-
-  final bool compact;
+  const ChatCommsBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -41,21 +41,31 @@ class ChatCommsBar extends ConsumerWidget {
 
     final l10n = context.l10n;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: () {
-          final notifier = ref.read(activeChatProvider.notifier);
-          notifier.setSelectedChatUUID(targetChatUUID, subOverride: targetSub);
-          notifier.setContentView('vocal');
-          context.go(chatSubPath(targetChatUUID, targetSub));
-        },
-        child: SizedBox(
-          height: compact ? 48 : 52,
+    return SizedBox(
+      height: FloatingAppBarConsts.barOuterSize,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(
+          FloatingAppBarConsts.subHeaderInnerRadius,
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(
+            FloatingAppBarConsts.subHeaderInnerRadius,
+          ),
+          onTap: () {
+            final notifier = ref.read(activeChatProvider.notifier);
+            notifier.setSelectedChatUUID(
+              targetChatUUID,
+              subOverride: targetSub,
+            );
+            notifier.setContentView('vocal');
+            context.go(chatSubPath(targetChatUUID, targetSub));
+          },
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            padding: FloatingAppBarConsts.subHeaderInnerPadding,
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: CommsBarInfo(
@@ -64,8 +74,10 @@ class ChatCommsBar extends ConsumerWidget {
                     participantsLabel: l10n.notifCommsParticipants(remoteCount),
                   ),
                 ),
-                const SizedBox(width: 8),
-                CommsBarActions(buttonSize: compact ? 32 : 34),
+                const SizedBox(
+                  width: FloatingAppBarConsts.subHeaderActionsGap,
+                ),
+                const CommsBarActions(),
               ],
             ),
           ),

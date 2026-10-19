@@ -10,9 +10,8 @@ import 'package:novyse/ui/components/chat/chat_detail/sub_header/voice/chat_acti
 
 /// Shared voice + comms bars column, each bar self-hides when inactive.
 class SubHeaderAuxBars extends ConsumerWidget {
-  const SubHeaderAuxBars({super.key, this.compact = true, this.framed = false});
+  const SubHeaderAuxBars({super.key, this.framed = false});
 
-  final bool compact;
   final bool framed;
 
   @override
@@ -29,8 +28,8 @@ class SubHeaderAuxBars extends ConsumerWidget {
     final column = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (hasVoice) ChatActiveVoiceBar(compact: compact),
-        if (hasComms) ChatCommsBar(compact: compact),
+        if (hasVoice) const ChatActiveVoiceBar(),
+        if (hasComms) const ChatCommsBar(),
       ],
     );
 
