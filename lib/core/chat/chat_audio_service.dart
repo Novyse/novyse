@@ -23,6 +23,9 @@ class ChatAudioService extends ChangeNotifier {
   String? _activeId;
   String? _activeUri;
   bool _isPlaying = false;
+  bool _isSeeking = false;
+  bool _resumeAfterSeek = false;
+  Future<void>? _pauseForSeek;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
   double _speed = 1.0;
@@ -152,6 +155,12 @@ class ChatAudioService extends ChangeNotifier {
     if (uri.isEmpty) return;
 
     try {
+      if (_activeId != id) {
+        _isSeeking = false;
+        _resumeAfterSeek = false;
+        _pauseForSeek = null;
+      }
+
       if (_activeId == id) {
         if (!_isPlaying) {
           if (_position == Duration.zero) {
@@ -249,6 +258,9 @@ class ChatAudioService extends ChangeNotifier {
 
   /// Stops current playback and resets position.
   Future<void> stop() async {
+    _isSeeking = false;
+    _resumeAfterSeek = false;
+    _pauseForSeek = null;
     if (_activeId != null || _isPlaying) {
       try {
         await _player.stop().timeout(
@@ -268,6 +280,54 @@ class ChatAudioService extends ChangeNotifier {
     _activeSenderUUID = null;
     _activeIsVoice = false;
     notifyListeners();
+  }
+
+  /// Pauses playback while the user is dragging a seek control.
+  ///
+  /// Remembers whether playback was active so [endSeek] can resume it.
+  Future<void> beginSeek() async {
+    if (_isSeeking) return;
+    _isSeeking = true;
+    _resumeAfterSeek = _isPlaying;
+    if (!_isPlaying) return;
+
+    _isPlaying = false;
+    notifyListeners();
+    _pauseForSeek = _player
+        .pause()
+        .timeout(const Duration(milliseconds: 500), onTimeout: () {})
+        .catchError((Object e) {
+          debugPrint('[ChatAudioService] pause before seek error: $e');
+        });
+  }
+
+  /// Resumes playback after a seek if it was playing when the seek started.
+  Future<void> endSeek() async {
+    if (!_isSeeking) return;
+    _isSeeking = false;
+
+    final pauseFuture = _pauseForSeek;
+    _pauseForSeek = null;
+    final shouldResume = _resumeAfterSeek;
+    _resumeAfterSeek = false;
+
+    if (pauseFuture != null) {
+      try {
+        await pauseFuture;
+      } catch (_) {}
+    }
+
+    if (!shouldResume || _activeId == null || _isPlaying) return;
+
+    try {
+      await _player.resume();
+      _isPlaying = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[ChatAudioService] resume after seek error: $e');
+      _isPlaying = false;
+      notifyListeners();
+    }
   }
 
   /// Seeks to [targetPosition] in the active audio.
@@ -315,6 +375,9 @@ class ChatAudioService extends ChangeNotifier {
     _activeId = null;
     _activeUri = null;
     _isPlaying = false;
+    _isSeeking = false;
+    _resumeAfterSeek = false;
+    _pauseForSeek = null;
     _position = Duration.zero;
     _duration = Duration.zero;
     _speed = 1.0;
@@ -366,8 +429,7 @@ class ChatAudioService extends ChangeNotifier {
 
   @override
   // ignore: must_call_super — process-lifetime singleton, see above.
-  void dispose() {
-  }
+  void dispose() {}
 
   @visibleForTesting
   void disposeForTesting() {

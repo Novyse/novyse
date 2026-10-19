@@ -141,6 +141,8 @@ class ChatActiveVoiceBar extends ConsumerWidget {
                   positionMs: positionMs,
                   totalMs: totalMs.toDouble(),
                   onSeek: (v) => audio.seek(Duration(milliseconds: v.toInt())),
+                  onSeekStart: audio.beginSeek,
+                  onSeekEnd: audio.endSeek,
                 ),
               ],
             ),

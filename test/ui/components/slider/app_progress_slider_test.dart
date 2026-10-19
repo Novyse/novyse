@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/ui/components/slider/app_progress_slider.dart';
 
-Widget _wrap(Widget child) =>
-    MaterialApp(home: Scaffold(body: Center(child: child)));
+Widget _wrap(Widget child) => MaterialApp(
+  home: Scaffold(body: Center(child: child)),
+);
 
 void main() {
   group('AppProgressSlider linear mode', () {
@@ -50,11 +51,40 @@ void main() {
       expect(slider.value, 1000);
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('reports seek start and end around a drag', (tester) async {
+      var started = 0;
+      var ended = 0;
+      await tester.pumpWidget(
+        _wrap(
+          SizedBox(
+            width: 240,
+            child: AppProgressSlider(
+              positionMs: 250,
+              totalMs: 1000,
+              onSeek: (_) {},
+              onSeekStart: () => started++,
+              onSeekEnd: () => ended++,
+            ),
+          ),
+        ),
+      );
+
+      final slider = tester.widget<Slider>(find.byType(Slider));
+      slider.onChangeStart!(250);
+      expect(started, 1);
+      expect(ended, 0);
+
+      slider.onChangeEnd!(500);
+      expect(ended, 1);
+      expect(tester.takeException(), isNull);
+    });
   });
 
   group('AppProgressSlider waveform mode', () {
-    testWidgets('renders CustomPaint and tap seeks proportionally',
-        (tester) async {
+    testWidgets('renders CustomPaint and tap seeks proportionally', (
+      tester,
+    ) async {
       double? seeked;
       await tester.pumpWidget(
         _wrap(
@@ -74,13 +104,50 @@ void main() {
 
       final box = tester.getRect(find.byType(AppProgressSlider));
       // Tap at ~75% width → ~750ms.
-      await tester.tapAt(
-        Offset(box.left + box.width * 0.75, box.center.dy),
-      );
+      await tester.tapAt(Offset(box.left + box.width * 0.75, box.center.dy));
       await tester.pump();
 
       expect(seeked, isNotNull);
       expect(seeked!, closeTo(750, 50));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('reports seek start and end around a pointer gesture', (
+      tester,
+    ) async {
+      var started = 0;
+      var ended = 0;
+      await tester.pumpWidget(
+        _wrap(
+          SizedBox(
+            width: 200,
+            child: AppProgressSlider(
+              waveform: const [0.1, 0.4, 0.9, 0.6, 0.3],
+              positionMs: 0,
+              totalMs: 1000,
+              onSeek: (_) {},
+              onSeekStart: () => started++,
+              onSeekEnd: () => ended++,
+            ),
+          ),
+        ),
+      );
+
+      final box = tester.getRect(find.byType(AppProgressSlider));
+      final gesture = await tester.startGesture(
+        Offset(box.left + box.width * 0.25, box.center.dy),
+      );
+      await tester.pump();
+      expect(started, 1);
+      expect(ended, 0);
+
+      await gesture.moveTo(Offset(box.left + box.width * 0.75, box.center.dy));
+      await tester.pump();
+      expect(started, 1);
+
+      await gesture.up();
+      await tester.pump();
+      expect(ended, 1);
       expect(tester.takeException(), isNull);
     });
 

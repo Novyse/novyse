@@ -3,15 +3,17 @@ import 'package:flutter/material.dart';
 /// Generic seekable progress control used by the active-voice bar and by
 /// voice/audio message bubbles.
 ///
-/// - [waveform] null → linear [Slider] (same look as message audio bubbles).
-/// - [waveform] set → seekable waveform bars (same look as voice bubbles).
-/// - [onSeek] null → display only (slider disabled, waveform not interactive).
+/// - [waveform] null → linear [Slider]
+/// - [waveform] set → seekable waveform bars
+/// - [onSeek] null → display only (slider disabled).
 class AppProgressSlider extends StatelessWidget {
   const AppProgressSlider({
     super.key,
     required this.positionMs,
     required this.totalMs,
     this.onSeek,
+    this.onSeekStart,
+    this.onSeekEnd,
     this.waveform,
     this.height = 20,
     this.waveformHeight = 35,
@@ -23,6 +25,8 @@ class AppProgressSlider extends StatelessWidget {
   final double positionMs;
   final double totalMs;
   final ValueChanged<double>? onSeek;
+  final VoidCallback? onSeekStart;
+  final VoidCallback? onSeekEnd;
   final List<double>? waveform;
   final double height;
   final double waveformHeight;
@@ -39,6 +43,8 @@ class AppProgressSlider extends StatelessWidget {
         positionMs: positionMs,
         totalMs: totalMs,
         onSeek: onSeek,
+        onSeekStart: onSeekStart,
+        onSeekEnd: onSeekEnd,
         height: waveformHeight,
         activeColor: activeColor ?? scheme.primary,
         inactiveColor:
@@ -52,19 +58,18 @@ class AppProgressSlider extends StatelessWidget {
       child: SliderTheme(
         data: SliderThemeData(
           trackHeight: 3,
-          thumbShape: RoundSliderThumbShape(
-            enabledThumbRadius: thumbRadius,
-          ),
+          thumbShape: RoundSliderThumbShape(enabledThumbRadius: thumbRadius),
           overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
           activeTrackColor: activeColor ?? scheme.primary,
-          inactiveTrackColor:
-              inactiveColor ?? scheme.surfaceContainerHighest,
+          inactiveTrackColor: inactiveColor ?? scheme.surfaceContainerHighest,
           thumbColor: activeColor ?? scheme.primary,
         ),
         child: Slider(
           value: positionMs.clamp(0, max),
           max: max,
+          onChangeStart: onSeek == null ? null : (_) => onSeekStart?.call(),
           onChanged: onSeek,
+          onChangeEnd: onSeek == null ? null : (_) => onSeekEnd?.call(),
         ),
       ),
     );
@@ -78,6 +83,8 @@ class _SeekableWaveform extends StatelessWidget {
     required this.positionMs,
     required this.totalMs,
     required this.onSeek,
+    required this.onSeekStart,
+    required this.onSeekEnd,
     required this.height,
     required this.activeColor,
     required this.inactiveColor,
@@ -87,6 +94,8 @@ class _SeekableWaveform extends StatelessWidget {
   final double positionMs;
   final double totalMs;
   final ValueChanged<double>? onSeek;
+  final VoidCallback? onSeekStart;
+  final VoidCallback? onSeekEnd;
   final double height;
   final Color activeColor;
   final Color inactiveColor;
@@ -105,21 +114,28 @@ class _SeekableWaveform extends StatelessWidget {
         final w = constraints.maxWidth.isFinite && constraints.maxWidth > 0
             ? constraints.maxWidth
             : 160.0;
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapDown: (details) => _seekAt(details.localPosition, w),
-          onHorizontalDragStart: (details) =>
-              _seekAt(details.localPosition, w),
-          onHorizontalDragUpdate: (details) =>
-              _seekAt(details.localPosition, w),
-          child: CustomPaint(
-            size: Size(w, height),
-            painter: _WaveformProgressPainter(
-              waveformData: waveformData,
-              currentValue: positionMs,
-              maxValue: totalMs,
-              activeColor: activeColor,
-              inactiveColor: inactiveColor,
+        return Listener(
+          onPointerDown: (_) {
+            if (onSeek != null) onSeekStart?.call();
+          },
+          onPointerUp: (_) => onSeekEnd?.call(),
+          onPointerCancel: (_) => onSeekEnd?.call(),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (details) => _seekAt(details.localPosition, w),
+            onHorizontalDragStart: (details) =>
+                _seekAt(details.localPosition, w),
+            onHorizontalDragUpdate: (details) =>
+                _seekAt(details.localPosition, w),
+            child: CustomPaint(
+              size: Size(w, height),
+              painter: _WaveformProgressPainter(
+                waveformData: waveformData,
+                currentValue: positionMs,
+                maxValue: totalMs,
+                activeColor: activeColor,
+                inactiveColor: inactiveColor,
+              ),
             ),
           ),
         );
@@ -186,6 +202,8 @@ class _WaveformProgressPainter extends CustomPainter {
   bool shouldRepaint(covariant _WaveformProgressPainter oldDelegate) {
     return oldDelegate.currentValue != currentValue ||
         oldDelegate.maxValue != maxValue ||
-        oldDelegate.waveformData != waveformData;
+        oldDelegate.waveformData != waveformData ||
+        oldDelegate.activeColor != activeColor ||
+        oldDelegate.inactiveColor != inactiveColor;
   }
 }
