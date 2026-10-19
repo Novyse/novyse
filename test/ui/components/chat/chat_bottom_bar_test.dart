@@ -13,11 +13,11 @@ import 'package:novyse/ui/components/chat/bottom_bar/chat_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/left_button_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/middle_bar_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/right_button_bottom_bar.dart';
-import 'package:novyse/ui/components/chat/bottom_bar/recording/recording_dot.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/recording/speech_indicator.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/recording/voice_recorder_controller.dart';
 import 'package:novyse/ui/components/chat/chat_drop_zone.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/waveform/waveform_view.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 
@@ -205,54 +205,112 @@ void main() {
       expect(find.text('first.jpg'), findsNothing);
     });
 
-    testWidgets(
-      'Voice recording state shows RecordingDot, SpeechIndicator and duration',
-      (tester) async {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+    testWidgets('Voice recording state shows SpeechIndicator and duration', (
+      tester,
+    ) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
 
-        await tester.pumpWidget(
-          UncontrolledProviderScope(
-            container: container,
-            child: const MaterialApp(
-              localizationsDelegates: localizationsDelegates,
-              supportedLocales: supportedLocales,
-              locale: Locale('en'),
-              home: Scaffold(
-                body: Column(
-                  children: [
-                    Spacer(),
-                    ChatBottomBar(chatUUID: 'chat-test-1'),
-                  ],
-                ),
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            localizationsDelegates: localizationsDelegates,
+            supportedLocales: supportedLocales,
+            locale: Locale('en'),
+            home: Scaffold(
+              body: Column(
+                children: [
+                  Spacer(),
+                  ChatBottomBar(chatUUID: 'chat-test-1'),
+                ],
               ),
             ),
           ),
-        );
-        await tester.pumpAndSettle();
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        // Trigger recording state manually in provider
-        container
-            .read(voiceRecorderProvider('chat-test-1').notifier)
-            .state = const VoiceRecorderState(
-          isRecording: true,
-          isPaused: false,
-          duration: Duration(seconds: 5, milliseconds: 320),
-          amplitude: -18.5,
-        );
-        await tester.pump();
+      // Trigger recording state manually in provider
+      container
+          .read(voiceRecorderProvider('chat-test-1').notifier)
+          .state = const VoiceRecorderState(
+        isRecording: true,
+        isPaused: false,
+        duration: Duration(seconds: 5, milliseconds: 320),
+        amplitude: -18.5,
+        waveform: [0.2, 0.5, 0.9, 0.6, 0.3],
+      );
+      await tester.pump();
 
-        expect(find.byType(RecordingDot), findsOneWidget);
-        expect(find.byType(SpeechIndicator), findsOneWidget);
-        expect(find.text('0:05.320'), findsOneWidget);
+      expect(find.byType(SpeechIndicator), findsOneWidget);
+      expect(find.byType(WaveformView), findsOneWidget);
+      expect(
+        tester.widget<WaveformView>(find.byType(WaveformView)).fit,
+        isFalse,
+      );
+      expect(find.text('0:05.320'), findsOneWidget);
 
-        // Right button shows Sent icon to stop & send
-        final sendIcon = find.byWidgetPredicate(
-          (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedSent,
-        );
-        expect(sendIcon, findsOneWidget);
-      },
-    );
+      // Right button shows Sent icon to stop & send
+      final sendIcon = find.byWidgetPredicate(
+        (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedSent,
+      );
+      expect(sendIcon, findsOneWidget);
+    });
+
+    testWidgets('Voice recording uses compact timer on narrow screens', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            localizationsDelegates: localizationsDelegates,
+            supportedLocales: supportedLocales,
+            locale: Locale('en'),
+            home: Scaffold(
+              body: Column(
+                children: [
+                  Spacer(),
+                  ChatBottomBar(chatUUID: 'chat-test-1'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      container
+          .read(voiceRecorderProvider('chat-test-1').notifier)
+          .state = const VoiceRecorderState(
+        isRecording: true,
+        isPaused: false,
+        duration: Duration(seconds: 5, milliseconds: 320),
+        amplitude: -18.5,
+        waveform: [0.2, 0.5, 0.9, 0.6, 0.3],
+      );
+      await tester.pump();
+
+      final waveformRect = tester.getRect(find.byType(SpeechIndicator));
+      final durationRect = tester.getRect(find.text('0:05'));
+
+      expect(find.text('0:05.320'), findsNothing);
+      expect(waveformRect.top, lessThan(durationRect.bottom));
+      expect(
+        (waveformRect.center.dy - durationRect.center.dy).abs(),
+        lessThan(8),
+      );
+      expect(tester.takeException(), isNull);
+    });
 
     testWidgets(
       'Sending text message with files delegates to queue and clears draft',

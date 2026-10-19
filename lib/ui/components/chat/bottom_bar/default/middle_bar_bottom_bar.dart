@@ -9,7 +9,6 @@ import 'package:novyse/core/shortcuts/chat_shortcuts.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/context_menu.dart';
-import 'package:novyse/ui/components/chat/bottom_bar/recording/recording_dot.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/recording/speech_indicator.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/recording/voice_recorder_controller.dart';
 import 'package:novyse/ui/components/chat/paste/chat_paste_helper.dart';
@@ -48,6 +47,8 @@ class MiddleBarBottomBar extends ConsumerStatefulWidget {
 }
 
 class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
+  static const double _compactTimerBreakpoint = 300.0;
+
   FocusNode? _internalFocusNode;
 
   FocusNode get _effectiveFocusNode =>
@@ -93,6 +94,12 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
     final seconds = d.inSeconds % 60;
     final millis = (d.inMilliseconds % 1000).toString().padLeft(3, '0');
     return '$minutes:${seconds.toString().padLeft(2, '0')}.$millis';
+  }
+
+  String _formatShortDuration(Duration d) {
+    final minutes = d.inMinutes;
+    final seconds = d.inSeconds % 60;
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
   Future<bool> _handlePaste() async {
@@ -154,8 +161,6 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
     final colorScheme = theme.colorScheme;
 
     if (!widget.isRecording) {
-      // Padding orizzontale 0: gli inset 16/4 restano nel contentPadding
-      // del TextField; verticale 2px => 2 + ~42 + 2 = 46 + border = 48
       return FloatingPill(
         radius: FloatingAppBarConsts.centralRadius,
         padding: const EdgeInsets.symmetric(vertical: 2),
@@ -232,84 +237,105 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
       );
     }
 
-    // Recording Mode: stessa pill centrale, altezza adattiva con
-    // min 42 di contenuto (=> 48 outer come le appbar).
+    // Recording Mode
     return FloatingPill(
       radius: FloatingAppBarConsts.centralRadius,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          minHeight: FloatingAppBarConsts.centralMinHeight,
-        ),
-        child: Row(
-          children: [
-            // Recording Dot + Duration
-            Row(
-              mainAxisSize: MainAxisSize.min,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compactTimer = constraints.maxWidth < _compactTimerBreakpoint;
+          final duration = _buildRecordingDuration(
+            colorScheme,
+            compact: compactTimer,
+          );
+          final waveform = _buildRecordingWaveform();
+          final actions = _buildRecordingActions(l10n, colorScheme);
+
+          return ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: FloatingAppBarConsts.centralMinHeight,
+            ),
+            child: Row(
               children: [
-                RecordingDot(isRecording: !widget.recorderState.isPaused),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 72,
-                  child: Text(
-                    _formatDuration(widget.recorderState.duration),
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurface,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
+                duration,
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: waveform,
                   ),
                 ),
+                actions,
               ],
             ),
+          );
+        },
+      ),
+    );
+  }
 
-            // Speech Indicator Visualizer
-            Expanded(
-              child: Center(
-                child: SpeechIndicator(
-                  audioLevel: widget.recorderState.amplitude,
-                  color: colorScheme.primary,
-                  barWidth: 3.0,
-                  maxHeight: 22.0,
-                ),
-              ),
-            ),
-
-            // Actions Container: Add to draft (+) & Pause/Resume
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: AppHugeIcon(
-                    icon: HugeIcons.strokeRoundedAdd01,
-                    size: 20,
-                    color: colorScheme.onSurface,
-                  ),
-                  onPressed: widget.onStopAndDraft,
-                  tooltip: l10n.addToDraftTooltip,
-                  splashRadius: 20,
-                ),
-                IconButton(
-                  icon: AppHugeIcon(
-                    icon: widget.recorderState.isPaused
-                        ? HugeIcons.strokeRoundedPlay
-                        : HugeIcons.strokeRoundedPause,
-                    size: 20,
-                    color: colorScheme.onSurface,
-                  ),
-                  onPressed: widget.onTogglePause,
-                  tooltip: widget.recorderState.isPaused
-                      ? l10n.resumeTooltip
-                      : l10n.pauseTooltip,
-                  splashRadius: 20,
-                ),
-              ],
-            ),
-          ],
+  Widget _buildRecordingDuration(
+    ColorScheme colorScheme, {
+    required bool compact,
+  }) {
+    return SizedBox(
+      width: compact ? 44 : 72,
+      child: Text(
+        compact
+            ? _formatShortDuration(widget.recorderState.duration)
+            : _formatDuration(widget.recorderState.duration),
+        style: TextStyle(
+          fontFamily: 'monospace',
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: colorScheme.onSurface,
+          fontFeatures: const [FontFeature.tabularFigures()],
         ),
       ),
+    );
+  }
+
+  Widget _buildRecordingWaveform() {
+    return SpeechIndicator(
+      samples: widget.recorderState.waveform,
+      color: Theme.of(context).colorScheme.primary,
+      barWidth: 3.0,
+      barGap: 2.5,
+      height: 22.0,
+    );
+  }
+
+  Widget _buildRecordingActions(
+    AppLocalizations l10n,
+    ColorScheme colorScheme,
+  ) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: AppHugeIcon(
+            icon: HugeIcons.strokeRoundedAdd01,
+            size: 20,
+            color: colorScheme.onSurface,
+          ),
+          onPressed: widget.onStopAndDraft,
+          tooltip: l10n.addToDraftTooltip,
+          splashRadius: 20,
+        ),
+        IconButton(
+          icon: AppHugeIcon(
+            icon: widget.recorderState.isPaused
+                ? HugeIcons.strokeRoundedPlay
+                : HugeIcons.strokeRoundedPause,
+            size: 20,
+            color: colorScheme.onSurface,
+          ),
+          onPressed: widget.onTogglePause,
+          tooltip: widget.recorderState.isPaused
+              ? l10n.resumeTooltip
+              : l10n.pauseTooltip,
+          splashRadius: 20,
+        ),
+      ],
     );
   }
 }

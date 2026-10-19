@@ -11,12 +11,27 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
+@visibleForTesting
+double normalizeRecorderAmplitude(
+  double db, {
+  double previous = 0.0,
+  double silenceDb = -50.0,
+}) {
+  final target = !db.isFinite || db <= silenceDb
+      ? 0.0
+      : ((db - silenceDb) / -silenceDb).clamp(0.0, 1.0);
+
+  if (target >= previous) return target;
+  return previous + (target - previous) * 0.35;
+}
+
 @immutable
 class VoiceRecorderState {
   final bool isRecording;
   final bool isPaused;
   final Duration duration;
   final double amplitude; // Decibels, typically -60 dB to 0 dB
+  final List<double> waveform;
   final String? recordedFilePath;
 
   const VoiceRecorderState({
@@ -24,6 +39,7 @@ class VoiceRecorderState {
     this.isPaused = false,
     this.duration = Duration.zero,
     this.amplitude = -60.0,
+    this.waveform = const [],
     this.recordedFilePath,
   });
 
@@ -32,6 +48,7 @@ class VoiceRecorderState {
     bool? isPaused,
     Duration? duration,
     double? amplitude,
+    List<double>? waveform,
     String? Function()? recordedFilePath,
   }) {
     return VoiceRecorderState(
@@ -39,6 +56,7 @@ class VoiceRecorderState {
       isPaused: isPaused ?? this.isPaused,
       duration: duration ?? this.duration,
       amplitude: amplitude ?? this.amplitude,
+      waveform: waveform ?? this.waveform,
       recordedFilePath: recordedFilePath != null
           ? recordedFilePath()
           : this.recordedFilePath,
@@ -48,6 +66,9 @@ class VoiceRecorderState {
 
 class VoiceRecorderNotifier
     extends AutoDisposeFamilyNotifier<VoiceRecorderState, String> {
+  static const int _maxWaveformSamples = 240;
+  static const Duration _tickerInterval = Duration(milliseconds: 60);
+
   AudioRecorder? _audioRecorder;
   Timer? _ticker;
   DateTime? _recordingStartTime;
@@ -102,6 +123,7 @@ class VoiceRecorderNotifier
         isPaused: false,
         duration: Duration.zero,
         amplitude: -60.0,
+        waveform: const [],
         recordedFilePath: () => filePath,
       );
 
@@ -309,7 +331,9 @@ class VoiceRecorderNotifier
 
   void _startTicker() {
     _ticker?.cancel();
-    _ticker = Timer.periodic(const Duration(milliseconds: 60), (_) async {
+    _ticker = Timer.periodic(_tickerInterval, (_) async {
+      if (!state.isRecording || state.isPaused) return;
+
       var currentDuration = _accumulatedDuration;
       if (_recordingStartTime != null) {
         currentDuration += DateTime.now().difference(_recordingStartTime!);
@@ -317,13 +341,28 @@ class VoiceRecorderNotifier
 
       double currentAmp = -60.0;
       try {
-        if (_audioRecorder != null && state.isRecording && !state.isPaused) {
+        if (_audioRecorder != null) {
           final amp = await _audioRecorder!.getAmplitude();
           currentAmp = amp.current;
         }
       } catch (_) {}
 
-      state = state.copyWith(duration: currentDuration, amplitude: currentAmp);
+      if (!state.isRecording || state.isPaused) return;
+
+      final waveform = List<double>.of(state.waveform);
+      final previousLevel = waveform.isEmpty ? 0.0 : waveform.last;
+      waveform.add(
+        normalizeRecorderAmplitude(currentAmp, previous: previousLevel),
+      );
+      if (waveform.length > _maxWaveformSamples) {
+        waveform.removeRange(0, waveform.length - _maxWaveformSamples);
+      }
+
+      state = state.copyWith(
+        duration: currentDuration,
+        amplitude: currentAmp,
+        waveform: waveform,
+      );
     });
   }
 
