@@ -54,28 +54,37 @@ class ChatModel {
       if (map['lastMessage'] != null && map['lastMessage'] is Map) {
         return Map<String, dynamic>.from(map['lastMessage'] as Map);
       }
-      if (map['subs'] is List) {
-        Map<String, dynamic>? latestSubMsg;
-        DateTime? latestDate;
-        for (final sub in map['subs'] as List) {
-          if (sub is Map &&
-              sub['lastMessage'] != null &&
-              sub['lastMessage'] is Map) {
-            final lm = Map<String, dynamic>.from(sub['lastMessage'] as Map);
-            final dateStr = lm['createdAt']?.toString();
-            final date = dateStr != null ? DateTime.tryParse(dateStr) : null;
-            if (date != null &&
-                (latestDate == null || date.isAfter(latestDate))) {
-              latestDate = date;
-              latestSubMsg = lm;
-            } else {
-              latestSubMsg ??= lm;
-            }
-          }
+
+      Map<String, dynamic>? latest;
+      DateTime? latestDate;
+
+      void consider(dynamic raw) {
+        if (raw is! Map) return;
+        final message = Map<String, dynamic>.from(raw);
+        final rawDate = message['createdAt'] ?? message['created_at'];
+        final date = rawDate == null
+            ? null
+            : MessageFieldParser.parseCreatedAtDateTime(rawDate);
+        if (latest == null ||
+            (date != null &&
+                (latestDate == null || date.isAfter(latestDate!)))) {
+          latest = message;
+          latestDate = date;
         }
-        if (latestSubMsg != null) return latestSubMsg;
       }
-      return null;
+
+      if (map['messages'] is List) {
+        for (final message in map['messages'] as List) {
+          consider(message);
+        }
+      }
+      if (map['subs'] is List) {
+        for (final sub in map['subs'] as List) {
+          if (sub is Map) consider(sub['lastMessage']);
+        }
+      }
+
+      return latest;
     }
 
     return ChatModel(

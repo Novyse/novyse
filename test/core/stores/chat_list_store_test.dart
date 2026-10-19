@@ -61,6 +61,43 @@ void main() {
       expect(chat1?.type, equals('GROUP'));
     });
 
+    test('chat:new seed messages populate the last message preview', () async {
+      final notifier = container.read(chatListProvider.notifier);
+      await notifier.init();
+
+      final bus = container.read(eventBusProvider);
+      bus.emit(
+        const ChatNewEvent(
+          chat: {
+            'uuid': 'chat-socket',
+            'name': 'Fresh',
+            'type': 'GROUP',
+            'members': [
+              {'uuid': 'user-1'},
+            ],
+            'messages': [
+              {
+                'id': 1,
+                'chatUUID': 'chat-socket',
+                'subID': 0,
+                'senderUUID': '00000000-0000-0000-0000-000000000000',
+                'content': '',
+                'type': 'system',
+                'system_action': 'CHAT_CREATED',
+                'created_at': '2026-10-19T10:00:00.000Z',
+              },
+            ],
+          },
+          users: [],
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      final chat = container.read(chatProvider('chat-socket'));
+      expect(chat, isNotNull);
+      expect(chat!.lastMessage?['system_action'], equals('CHAT_CREATED'));
+    });
+
     test('chat updates (rename, sub_create, message_new, unreadCount, pin) work reactively', () async {
       await db.chat.add({'uuid': 'chat-1', 'name': 'General', 'type': 'GROUP'});
 
