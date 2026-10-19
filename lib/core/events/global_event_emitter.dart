@@ -55,11 +55,20 @@ class GlobalEventEmitter {
 
   //  file
 
-  Future<void> fileReady(String fileUUID, [String? uri]) async {
-    if (uri != null) {
-      await _db.updateFileURI(fileUUID, uri);
-    }
-    _bus.emit(FileReadyEvent(fileUUID));
+  void fileDownloaded({
+    required String fileUUID,
+    required String uri,
+    List<double>? waveform,
+    int? duration,
+  }) {
+    _bus.emit(
+      FileDownloadedEvent(
+        fileUUID: fileUUID,
+        uri: uri,
+        waveform: waveform,
+        duration: duration,
+      ),
+    );
   }
 }
 

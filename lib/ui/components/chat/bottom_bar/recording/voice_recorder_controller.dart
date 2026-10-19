@@ -212,6 +212,9 @@ class VoiceRecorderNotifier
         'mimeType': mime,
         'size': fileSize,
         'type': 'VOICE',
+        'duration': previousState.duration.inSeconds > 0
+            ? previousState.duration.inSeconds
+            : null,
       };
 
       final draftNotifier = ref.read(chatDraftProvider(chatUUID).notifier);
@@ -271,6 +274,9 @@ class VoiceRecorderNotifier
         'mimeType': mime,
         'size': fileSize,
         'type': 'VOICE',
+        'duration': previousState.duration.inSeconds > 0
+            ? previousState.duration.inSeconds
+            : null,
       };
 
       final localUserUUID = ref.read(userStoreProvider).localUserUUID;

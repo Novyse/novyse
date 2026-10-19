@@ -159,11 +159,6 @@ class AppDatabase {
     _setDatabase(db);
   }
 
-  /// Helper to update a file URI/ref.
-  Future<bool> updateFileURI(String fileUUID, String uri) async {
-    return file.update.uri(fileUUID, uri);
-  }
-
   /// Clears all tables in the database and re-initializes the schema.
   Future<void> clear() async {
     final db = _db;
