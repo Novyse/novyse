@@ -45,13 +45,22 @@ class _MessageFileAttachmentState extends State<MessageFileAttachment> {
     super.initState();
     _isDownloading = FileDownloadService.instance.isDownloading(widget.uuid);
     GlobalEventEmitter.instance.on('file:download_progress', _onProgress);
-    GlobalEventEmitter.instance.on('file:downloaded', _onDownloaded);
+  }
+
+  @override
+  void didUpdateWidget(covariant MessageFileAttachment oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.fileRef != oldWidget.fileRef &&
+        widget.fileRef != null &&
+        widget.fileRef!.isNotEmpty) {
+      _isDownloading = false;
+      _downloadProgress = 1.0;
+    }
   }
 
   @override
   void dispose() {
     GlobalEventEmitter.instance.off('file:download_progress', _onProgress);
-    GlobalEventEmitter.instance.off('file:downloaded', _onDownloaded);
     super.dispose();
   }
 
@@ -63,18 +72,6 @@ class _MessageFileAttachmentState extends State<MessageFileAttachment> {
         setState(() {
           _isDownloading = true;
           _downloadProgress = progress;
-        });
-      }
-    }
-  }
-
-  void _onDownloaded(dynamic data) {
-    if (data is Map && mounted) {
-      final uuid = data['fileUUID'] as String?;
-      if (uuid != null && uuid == widget.uuid) {
-        setState(() {
-          _isDownloading = false;
-          _downloadProgress = 1.0;
         });
       }
     }

@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/services/file_download_service.dart';
 import 'package:novyse/core/storage/file/file_storage.dart';
+import 'package:novyse/core/storage/file/file_type.dart';
 
 import 'web_blob_url.dart' as web_blob;
 
@@ -57,10 +57,26 @@ class _UriResolverState extends State<UriResolver> {
   bool _loading = true;
   String? _blobUrl;
 
+  String? get _effectiveMimeType {
+    final explicit = widget.mimeType;
+    if (explicit != null && explicit.isNotEmpty) return explicit;
+
+    final hint = widget.name ?? widget.ref;
+    if (hint == null || hint.isEmpty) return null;
+    if (hint.startsWith('blob:') ||
+        hint.startsWith('http://') ||
+        hint.startsWith('https://') ||
+        hint.startsWith('data:')) {
+      return null;
+    }
+
+    final inferred = getMimeTypeByName(hint);
+    return inferred == defaultMimeType ? null : inferred;
+  }
+
   @override
   void initState() {
     super.initState();
-    GlobalEventEmitter.instance.on('file:downloaded', _onFileDownloaded);
     _resolve();
   }
 
@@ -75,19 +91,8 @@ class _UriResolverState extends State<UriResolver> {
 
   @override
   void dispose() {
-    GlobalEventEmitter.instance.off('file:downloaded', _onFileDownloaded);
     _revokeBlobUrl();
     super.dispose();
-  }
-
-  void _onFileDownloaded(dynamic data) {
-    if (data is Map && mounted) {
-      final uuid = data['fileUUID'] as String?;
-      final uri = data['uri'] as String?;
-      if (uuid != null && uuid == widget.fileUUID && uri != null) {
-        _setResolvedUri(uri);
-      }
-    }
   }
 
   void _setResolvedUri(String? uri) {
@@ -112,7 +117,7 @@ class _UriResolverState extends State<UriResolver> {
 
   void _setBlobFromBytes(Uint8List bytes) {
     _revokeBlobUrl();
-    final blobUrl = web_blob.createWebBlobUrl(bytes, widget.mimeType);
+    final blobUrl = web_blob.createWebBlobUrl(bytes, _effectiveMimeType);
     _blobUrl = blobUrl;
     if (mounted) {
       setState(() {
@@ -185,7 +190,7 @@ class _UriResolverState extends State<UriResolver> {
     // Native / Storage: attempt to read local ref
     if (ref != null && ref.isNotEmpty) {
       try {
-        final uri = await FileStorage.instance.read(ref, widget.mimeType);
+        final uri = await FileStorage.instance.read(ref, _effectiveMimeType);
         if (uri != null && uri.isNotEmpty) {
           if (mounted) {
             _setResolvedUri(uri);
@@ -204,7 +209,7 @@ class _UriResolverState extends State<UriResolver> {
           fileUUID: fileUUID,
           ref: ref,
           name: widget.name,
-          mimeType: widget.mimeType,
+          mimeType: _effectiveMimeType,
           autoDownload: widget.autoDownload,
         );
 
