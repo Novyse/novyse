@@ -21,7 +21,7 @@ void main() {
     expect(normalized.systemDefault.id, 'abc123');
     expect(
       CommsDevicesDefaults.defaultOptionLabel(normalized.systemDefault.label),
-      'Default — Kopfhörer (abc123)',
+      'Default: Kopfhörer (abc123)',
     );
   });
 
@@ -108,7 +108,7 @@ void main() {
     expect(normalized.systemDefault.id, '{nvidia}');
     expect(
       CommsDevicesDefaults.defaultOptionLabel(normalized.systemDefault.label),
-      'Default — Microfono (NVIDIA Broadcast)',
+      'Default: Microfono (NVIDIA Broadcast)',
     );
   });
 
@@ -126,7 +126,7 @@ void main() {
     expect(normalized.systemDefault.id, 'hw:0,0');
     expect(
       CommsDevicesDefaults.defaultOptionLabel(normalized.systemDefault.label),
-      'Default — Microphone',
+      'Default: Microphone',
     );
   });
 
@@ -143,7 +143,7 @@ void main() {
     expect(normalized.systemDefault.id, 'default: HDA Intel PCH');
     expect(
       CommsDevicesDefaults.defaultOptionLabel(normalized.systemDefault.label),
-      'Default — HDA Intel PCH',
+      'Default: HDA Intel PCH',
     );
   });
 }

@@ -61,7 +61,7 @@ abstract final class CommsDevicesDefaults {
 
   static const _pseudoIds = {'default', 'communications'};
 
-  /// Folds the system default into a single `Default — name` option.
+  /// Folds the system default into a single `Default: name` option.
   ///
   /// Browsers expose a pseudo-device with id `default` sharing the real
   /// device's [CommsDevice.groupId]. On Windows [osDefaultId]/[osDefaultLabel]

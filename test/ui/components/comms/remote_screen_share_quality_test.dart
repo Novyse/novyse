@@ -271,6 +271,7 @@ void main() {
         final btn = find.byTooltip(l10n.screenShareQualityTooltip);
         expect(btn, findsOneWidget);
         await tester.tap(btn);
+        await tester.pump(kDoubleTapTimeout);
         await tester.pumpAndSettle();
 
         // Menu should display title and real resolutions

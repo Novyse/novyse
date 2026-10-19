@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -213,6 +214,7 @@ void main() {
       await pump(tester, tiles: [tile('a')]);
 
       await tester.tap(find.byTooltip(en.commsPin));
+      await tester.pump(kDoubleTapTimeout);
       await tester.pumpAndSettle();
 
       expect(notifier.calls, contains('togglePin(a)'));
@@ -224,6 +226,7 @@ void main() {
       await pump(tester, tiles: [tile('a')]);
 
       await tester.tap(find.byTooltip(en.commsFullScreen));
+      await tester.pump(kDoubleTapTimeout);
       await tester.pumpAndSettle();
 
       expect(notifier.calls, contains('toggleFullscreen(a)'));
@@ -318,6 +321,7 @@ void main() {
       await pump(tester, tiles: [tile('TR_1', trackSid: 'TR_1')]);
 
       await tester.tap(find.byTooltip(en.commsStopScreenShare));
+      await tester.pump(kDoubleTapTimeout);
       await tester.pumpAndSettle();
 
       expect(notifier.calls, contains('stopScreenShare(TR_1)'));
