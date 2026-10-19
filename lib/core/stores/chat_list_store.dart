@@ -249,6 +249,10 @@ class ChatListNotifier extends Notifier<ChatListState> {
         applyRead(event.chatUUID, event.subID, event.targetId, event.count);
       }),
     );
+
+    _subscriptions.add(
+      bus.on<FileDownloadedEvent>().listen(onFileDownloaded),
+    );
   }
 
   /// Initializes the chat list by loading all chats from SQLite.
@@ -407,6 +411,48 @@ class ChatListNotifier extends Notifier<ChatListState> {
 
     _sortChats(updated);
     state = state.copyWith(chats: updated);
+  }
+
+  /// Patches freshly-derived media metadata (duration, waveform, uri) into the
+  /// in-memory `lastMessage` preview.
+  void onFileDownloaded(FileDownloadedEvent event) {
+    if (event.fileUUID.isEmpty) return;
+
+    var updatedAny = false;
+    final updated = state.chats.map((chat) {
+      final lastMessage = chat.lastMessage;
+      if (lastMessage == null) return chat;
+      final files = lastMessage['files'];
+      if (files is! List || files.isEmpty) return chat;
+
+      var chatChanged = false;
+      final mergedFiles = files.map((file) {
+        if (file is! Map || file['uuid'] != event.fileUUID) return file;
+
+        final updatedFile = Map<String, dynamic>.from(file);
+        if (event.uri.isNotEmpty) {
+          updatedFile['uri'] = event.uri;
+        }
+        if (event.waveform != null && event.waveform!.isNotEmpty) {
+          updatedFile['waveform'] = List<double>.from(event.waveform!);
+        }
+        if (event.duration != null && event.duration! > 0) {
+          updatedFile['duration'] = event.duration;
+        }
+        chatChanged = true;
+        return updatedFile;
+      }).toList();
+
+      if (!chatChanged) return chat;
+      updatedAny = true;
+      return chat.copyWith(
+        lastMessage: {...lastMessage, 'files': mergedFiles},
+      );
+    }).toList();
+
+    if (updatedAny) {
+      state = state.copyWith(chats: updated);
+    }
   }
 
   void markAsRead(String chatUUID) {
