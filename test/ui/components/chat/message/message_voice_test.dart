@@ -42,6 +42,25 @@ void main() {
       },
     );
 
+    testWidgets('shows a loading placeholder while the voice file resolves', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: MessageVoice(fileRef: 'missing-voice-ref', uuid: ''),
+          ),
+        ),
+      );
+
+      expect(find.byType(MessageVoice), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('0s'), findsNothing);
+
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('MessageVoice tap does not throw when unplayable', (
       tester,
     ) async {

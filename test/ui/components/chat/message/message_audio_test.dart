@@ -45,6 +45,29 @@ void main() {
       expect(findPlayIcon(), findsOneWidget);
     });
 
+    testWidgets('shows a loading placeholder while the audio file resolves', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: MessageAudio(
+              fileRef: 'missing-audio-ref',
+              uuid: '',
+              name: 'voice-note.m4a',
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('voice-note.m4a'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('0s'), findsNothing);
+
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets(
       'tapping play on MessageAudio calls ChatAudioService without throwing',
       (tester) async {
