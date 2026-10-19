@@ -26,13 +26,16 @@ class EventChatRepository {
   final EventRepository _repo;
   EventChatRepository(this._repo);
 
+  /// Advances the per-chat delta-sync cursor.
+  ///
+  /// The cursor is monotonic
   Future<bool> update(String chatUUID, int eventID) async {
     try {
       if (chatUUID.isEmpty) return false;
-      await _repo.db.execute('UPDATE chat SET eventID = ? WHERE uuid = ?;', [
-        eventID,
-        chatUUID,
-      ]);
+      await _repo.db.execute(
+        'UPDATE chat SET eventID = MAX(COALESCE(eventID, 0), ?) WHERE uuid = ?;',
+        [eventID, chatUUID],
+      );
       return true;
     } catch (e) {
       debugPrint('Error updating chat event ID: $e');
