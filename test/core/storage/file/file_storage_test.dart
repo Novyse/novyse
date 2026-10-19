@@ -3,6 +3,9 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/storage/file/file.dart';
+import 'package:novyse/core/storage/file/playable_uri.dart';
+import 'package:novyse/core/storage/file/waveform_decoder_native.dart';
+import 'package:novyse/core/storage/file/waveform_generator.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -152,41 +155,78 @@ void main() {
     });
   });
 
-  group('MediaUtils Tests', () {
-    test('processes normalized waveform from PCM bytes', () {
-      final pcmBytes = Uint8List(100);
-      for (var i = 0; i < 100; i++) {
-        pcmBytes[i] = (i % 20) * 10;
+  group('Waveform pipeline Tests', () {
+    test('decodes PCM bytes and normalizes them into bars', () {
+      final samples = List<int>.generate(200, (i) => (i % 20) * 1000);
+      final dataBytes = ByteData(samples.length * 2);
+      for (var i = 0; i < samples.length; i++) {
+        dataBytes.setInt16(i * 2, samples[i], Endian.host);
       }
 
-      final waveform = processWaveform(pcmBytes, samples: 10);
+      final pcm = decodePcm16(dataBytes.buffer.asUint8List());
+      expect(pcm, isNotNull);
+
+      final waveform = WaveformGenerator.normalizeSamples(pcm!, samples: 10);
       expect(waveform.length, 10);
       expect(waveform.every((v) => v >= 0.0 && v <= 1.0), isTrue);
       expect(waveform.any((v) => (v - 1.0).abs() < 1e-3), isTrue);
     });
 
-    test('extracts WAV duration from synthetic WAV header', () {
-      // Create minimal WAV header: 44 bytes + 16000 bytes data (1 sec at 16000 byteRate)
-      final wavData = Uint8List(44 + 16000);
-      final byteData = ByteData.sublistView(wavData);
+    test('normalizes arbitrary PCM samples into a bounded waveform', () {
+      final pcm = Float32List(100);
+      for (var i = 0; i < 100; i++) {
+        pcm[i] = ((i % 20) - 10) / 10;
+      }
 
-      // 'RIFF'
-      byteData.setUint32(0, 0x52494646, Endian.big);
-      // 'WAVE'
-      byteData.setUint32(8, 0x57415645, Endian.big);
-      // 'fmt '
-      byteData.setUint32(12, 0x666D7420, Endian.big);
-      // Subchunk1Size = 16
-      byteData.setUint32(16, 16, Endian.little);
-      // ByteRate = 16000
-      byteData.setUint32(28, 16000, Endian.little);
-      // 'data'
-      byteData.setUint32(36, 0x64617461, Endian.big);
-      // Subchunk2Size = 16000
-      byteData.setUint32(40, 16000, Endian.little);
+      final waveform = WaveformGenerator.normalizeSamples(pcm, samples: 10);
+      expect(waveform.length, 10);
+      expect(waveform.every((v) => v >= 0.0 && v <= 1.0), isTrue);
+    });
 
-      final duration = extractAudioDurationFromWav(wavData);
-      expect(duration, 1);
+    test('duration service accepts audio, voice and video files', () {
+      expect(isMediaFile(mimeType: 'audio/mpeg', name: 'song.mp3'), isTrue);
+      expect(
+        isMediaFile(mimeType: 'audio/aac', name: 'novyse_vocal_1.m4a'),
+        isTrue,
+      );
+      expect(isMediaFile(mimeType: 'video/mp4', name: 'clip.mp4'), isTrue);
+      expect(
+        isMediaFile(mimeType: 'application/pdf', name: 'doc.pdf'),
+        isFalse,
+      );
+    });
+
+    test('duration service infers media category from the file name', () {
+      expect(
+        isMediaFile(mimeType: 'application/octet-stream', name: 'clip.mov'),
+        isTrue,
+      );
+      expect(
+        isMediaFile(mimeType: 'application/octet-stream', name: 'notes.txt'),
+        isFalse,
+      );
+    });
+
+    test('normalizes remote and local media URIs', () {
+      expect(
+        normalizeMediaUri('https://cdn.test/audio.mp3'),
+        'https://cdn.test/audio.mp3',
+      );
+      expect(
+        normalizeMediaUri('blob:https://cdn.test/abc'),
+        'blob:https://cdn.test/abc',
+      );
+      expect(
+        normalizeMediaUri('data:audio/mpeg;base64,AAAA'),
+        'data:audio/mpeg;base64,AAAA',
+      );
+      expect(
+        normalizeMediaUri('file:///tmp/audio.mp3'),
+        'file:///tmp/audio.mp3',
+      );
+      expect(normalizeMediaUri('/tmp/audio.mp3'), 'file:///tmp/audio.mp3');
+      expect(normalizeMediaUri('relative/audio.mp3'), isNull);
+      expect(normalizeMediaUri(null), isNull);
     });
   });
 

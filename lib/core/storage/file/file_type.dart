@@ -172,6 +172,22 @@ String getMimeTypeByName(String fileName, {List<int>? headerBytes}) {
   return mime.lookupMimeType(path, headerBytes: headerBytes) ?? defaultMimeType;
 }
 
+/// True when [mimeType]/[name] identify audio, voice or video content.
+bool isMediaFile({String? mimeType, String? name}) {
+  final fileName = name ?? '';
+  final resolvedMime = getMimeType({
+    'mimeType': mimeType ?? '',
+    'name': fileName,
+  });
+  final category = getFileType(
+    resolvedMime,
+    fileName.isEmpty ? null : fileName,
+  );
+  return category == FileTypeCategory.audio ||
+      category == FileTypeCategory.voice ||
+      category == FileTypeCategory.video;
+}
+
 /// Returns the preferred file extension (without leading dot) for a MIME type.
 /// Returns an empty string when [mimeType] maps to no known extension.
 String extensionFromMime(String mimeType) {

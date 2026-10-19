@@ -25,3 +25,25 @@ String? resolveMediaUri(String? resolvedUri, String? fileRef) {
   if (isPlayableMediaUri(fileRef)) return fileRef;
   return null;
 }
+
+/// Normalizes a URI or absolute path into a source a media player can open.
+///
+/// Remote, blob and data URIs pass through unchanged. On native platforms,
+/// `file://` URIs are kept and absolute Unix/Windows paths are converted to
+/// `file://` URIs. Returns `null` for unsupported values and for local paths
+/// on web.
+String? normalizeMediaUri(String? uri) {
+  if (uri == null || uri.isEmpty) return null;
+  if (uri.startsWith('http://') ||
+      uri.startsWith('https://') ||
+      uri.startsWith('blob:') ||
+      uri.startsWith('data:')) {
+    return uri;
+  }
+  if (kIsWeb) return null;
+  if (uri.startsWith('file://')) return uri;
+  if (uri.startsWith('/') || RegExp(r'^[a-zA-Z]:[\\/]').hasMatch(uri)) {
+    return 'file://$uri';
+  }
+  return null;
+}
