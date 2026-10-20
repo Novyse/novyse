@@ -76,7 +76,7 @@ abstract final class CommsMediaConstraints {
       deviceId: deviceId,
       noiseSuppression: false,
       echoCancellation: false,
-      autoGainControl: false,
+      autoGainControl: true,
       highPassFilter: false,
       voiceIsolation: false,
       typingNoiseDetection: false,
