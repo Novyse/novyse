@@ -23,25 +23,26 @@ mkdir -p "$DIST_DIR"
 CLEAN_VERSION=$(echo "$APP_VERSION" | tr '-' '.')
 RPM_NAME="${PKG_NAME}-${APP_VERSION}-linux.rpm"
 STAGING_DIR="$(mktemp -d)"
+trap 'rm -rf "$STAGING_DIR"' EXIT
 
 mkdir -p "$STAGING_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-mkdir -p "$STAGING_DIR/BUILDROOT/${PKG_NAME}-${CLEAN_VERSION}-1.x86_64"
-ROOT="$STAGING_DIR/BUILDROOT/${PKG_NAME}-${CLEAN_VERSION}-1.x86_64"
+PAYLOAD_DIR="$STAGING_DIR/payload"
+mkdir -p "$PAYLOAD_DIR/opt/$PKG_NAME"
+mkdir -p "$PAYLOAD_DIR/usr/bin"
+mkdir -p "$PAYLOAD_DIR/usr/share/applications"
+mkdir -p "$PAYLOAD_DIR/usr/share/metainfo"
+mkdir -p "$PAYLOAD_DIR/usr/share/icons"
 
-mkdir -p "$ROOT/opt/$PKG_NAME"
-mkdir -p "$ROOT/usr/bin"
-mkdir -p "$ROOT/usr/share/applications"
-mkdir -p "$ROOT/usr/share/metainfo"
-mkdir -p "$ROOT/usr/share/icons"
+cp -R "$BUNDLE_DIR"/* "$PAYLOAD_DIR/opt/$PKG_NAME/"
+ln -sf "/opt/$PKG_NAME/novyse" "$PAYLOAD_DIR/usr/bin/$PKG_NAME"
 
-cp -R "$BUNDLE_DIR"/* "$ROOT/opt/$PKG_NAME/"
-ln -sf "/opt/$PKG_NAME/novyse" "$ROOT/usr/bin/$PKG_NAME"
-
-generate_desktop_entry "$ROOT/usr/share/applications/${APP_ID}.desktop"
-generate_appstream_metainfo "$ROOT/usr/share/metainfo/${APP_ID}.metainfo.xml"
-generate_linux_icons "$ROOT/usr/share/icons"
+generate_desktop_entry "$PAYLOAD_DIR/usr/share/applications/${APP_ID}.desktop"
+generate_appstream_metainfo "$PAYLOAD_DIR/usr/share/metainfo/${APP_ID}.metainfo.xml"
+generate_linux_icons "$PAYLOAD_DIR/usr/share/icons"
 
 cat << EOF > "$STAGING_DIR/SPECS/${PKG_NAME}.spec"
+%global __brp_check_rpaths %{nil}
+
 Name:           $PKG_NAME
 Version:        $CLEAN_VERSION
 Release:        1
@@ -56,6 +57,9 @@ AutoReqProv:    no
 %description
 $APP_DESCRIPTION
 
+%install
+cp -a "$PAYLOAD_DIR"/. %{buildroot}/
+
 %files
 /opt/$PKG_NAME
 /usr/bin/$PKG_NAME
@@ -65,14 +69,19 @@ $APP_DESCRIPTION
 
 EOF
 
-rpmbuild --define "_topdir $STAGING_DIR" -bb "$STAGING_DIR/SPECS/${PKG_NAME}.spec" >/dev/null 2>&1 || true
+RPMBUILD_LOG="$STAGING_DIR/rpmbuild.log"
+if ! rpmbuild --define "_topdir $STAGING_DIR" -bb "$STAGING_DIR/SPECS/${PKG_NAME}.spec" >"$RPMBUILD_LOG" 2>&1; then
+  echo "⚠️  [RPM WARNING] rpmbuild failed:"
+  tail -n 30 "$RPMBUILD_LOG"
+fi
 
 BUILT_RPM=$(find "$STAGING_DIR/RPMS" -name "*.rpm" | head -n 1)
 if [ -n "$BUILT_RPM" ]; then
   cp "$BUILT_RPM" "$DIST_DIR/$RPM_NAME" 2>/dev/null || true
 fi
-rm -rf "$STAGING_DIR"
 
 if [ -f "$DIST_DIR/$RPM_NAME" ]; then
   echo "✅ [RPM] Created: $DIST_DIR/$RPM_NAME"
+else
+  echo "⚠️  [RPM WARNING] No RPM package was produced."
 fi
