@@ -21,14 +21,16 @@ mixin CommsDevicesLiveMixin on Notifier<CommsState>, CommsMediaSettingsMixin {
         if (target != null) {
           await track.setDeviceId(target);
         } else if (track.currentOptions.deviceId != null) {
-          await track.restartTrack(const AudioCaptureOptions());
+          await track.restartTrack(CommsMediaConstraints.audioCapture());
         }
         switched = true;
       }
       if (!switched && state.isAudioEnabled) {
         await local.setMicrophoneEnabled(
           true,
-          audioCaptureOptions: AudioCaptureOptions(deviceId: target),
+          audioCaptureOptions: CommsMediaConstraints.audioCapture(
+            deviceId: target,
+          ),
         );
       }
     } catch (e) {

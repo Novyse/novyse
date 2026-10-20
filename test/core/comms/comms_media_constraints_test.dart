@@ -26,6 +26,17 @@ void main() {
   });
 
   group('CommsMediaConstraints audio capture', () {
+    test('microphone capture disables WebRTC software processing', () {
+      final capture = CommsMediaConstraints.audioCapture(deviceId: 'mic-1');
+      expect(capture.deviceId, 'mic-1');
+      expect(capture.noiseSuppression, isFalse);
+      expect(capture.echoCancellation, isFalse);
+      expect(capture.autoGainControl, isFalse);
+      expect(capture.highPassFilter, isFalse);
+      expect(capture.voiceIsolation, isFalse);
+      expect(capture.typingNoiseDetection, isFalse);
+    });
+
     test('voice publish encoding is maximum quality stereo', () {
       const publish = CommsMediaConstraints.maxQualityAudioPublish;
       expect(

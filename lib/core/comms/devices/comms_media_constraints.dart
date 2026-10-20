@@ -70,6 +70,19 @@ abstract final class CommsMediaConstraints {
     return fb;
   }
 
+  /// Microphone capture with WebRTC's software processing disabled.
+  static AudioCaptureOptions audioCapture({String? deviceId}) {
+    return AudioCaptureOptions(
+      deviceId: deviceId,
+      noiseSuppression: false,
+      echoCancellation: false,
+      autoGainControl: false,
+      highPassFilter: false,
+      voiceIsolation: false,
+      typingNoiseDetection: false,
+    );
+  }
+
   /// Voice publish encoding: maximum quality (stereo music preset).
   static const AudioPublishOptions maxQualityAudioPublish = AudioPublishOptions(
     encoding: AudioEncoding.presetMusicHighQualityStereo,
