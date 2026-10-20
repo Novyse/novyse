@@ -224,32 +224,25 @@ parts:
 EOF
 }
 
-# Generate hicolor icons on-demand (ImageMagick magick/convert)
+# Install the pre-rendered hicolor icon set committed under linux/packaging/icons.
+# The canonical files are named novyse.*; they are renamed to the active APP_ID.
 generate_linux_icons() {
   local target_root="${1:-$_ROOT_DIR/linux/packaging/icons}"
   local APP_ID="${2:-$APP_ID}"
-  local logo_src="$_ROOT_DIR/assets/images/logo-novyse.png"
-  local svg_src="$_ROOT_DIR/assets/images/logo.svg"
-
-  [ ! -f "$logo_src" ] && return 0
-
-  local img_cmd=""
-  if command -v magick >/dev/null 2>&1; then
-    img_cmd="magick"
-  elif command -v convert >/dev/null 2>&1; then
-    img_cmd="convert"
-  fi
+  local source_root="$_ROOT_DIR/linux/packaging/icons"
 
   for s in 16 24 32 48 64 128 256 512; do
+    local src="${source_root}/hicolor/${s}x${s}/apps/novyse.png"
     local dest_dir="${target_root}/hicolor/${s}x${s}/apps"
-    mkdir -p "$dest_dir"
-    if [ -n "$img_cmd" ]; then
-      "$img_cmd" "$logo_src" -resize "${s}x${s}" "$dest_dir/${APP_ID}.png"
-    else
-      cp "$logo_src" "$dest_dir/${APP_ID}.png"
+    if [ ! -f "$src" ]; then
+      echo "❌ [ICONS] Missing pre-rendered icon: $src" >&2
+      return 1
     fi
+    mkdir -p "$dest_dir"
+    cp "$src" "$dest_dir/${APP_ID}.png"
   done
 
+  local svg_src="${source_root}/hicolor/scalable/apps/novyse.svg"
   if [ -f "$svg_src" ]; then
     local svg_dir="${target_root}/hicolor/scalable/apps"
     mkdir -p "$svg_dir"
