@@ -187,7 +187,7 @@ generate_snapcraft_yaml() {
   mkdir -p "$(dirname "$target_file")"
   cat << EOF > "$target_file"
 name: ${PKG_NAME}
-base: core24
+base: core26
 version: '${APP_VERSION}'
 summary: ${APP_DESCRIPTION}
 description: |
@@ -211,6 +211,7 @@ apps:
       - home
       - desktop
       - desktop-legacy
+      - gsettings
       - wayland
       - x11
       - opengl
