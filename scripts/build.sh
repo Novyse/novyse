@@ -104,6 +104,15 @@ add_format() {
   SELECTED_FORMATS+=("$norm_fmt")
 }
 
+run_packaging() {
+  local name="$1"; shift
+  if "$@"; then
+    return 0
+  fi
+  echo "❌ [BUILD] $name packaging failed" >&2
+  exit 1
+}
+
 is_format_selected() {
   local check_fmt
   check_fmt=$(normalize_format "$1")
@@ -344,21 +353,23 @@ build_linux() {
     seed_install_identity_marker "$ROOT_DIR/build/linux/x64/release/bundle"
 
     if is_format_selected "tarball"; then
-      bash "$ROOT_DIR/linux/packaging/build-tarball.sh" || true
+      run_packaging tarball bash "$ROOT_DIR/linux/packaging/build-tarball.sh"
     fi
     if is_format_selected "deb"; then
-      bash "$ROOT_DIR/linux/packaging/build-deb.sh" || true
+      run_packaging deb bash "$ROOT_DIR/linux/packaging/build-deb.sh"
     fi
     if is_format_selected "appimage"; then
-      bash "$ROOT_DIR/linux/packaging/build-appimage.sh" || true
+      run_packaging appimage bash "$ROOT_DIR/linux/packaging/build-appimage.sh"
     fi
     if is_format_selected "rpm"; then
-      bash "$ROOT_DIR/linux/packaging/build-rpm.sh" || true
+      run_packaging rpm bash "$ROOT_DIR/linux/packaging/build-rpm.sh"
     fi
     if is_format_selected "snap"; then
-      bash "$ROOT_DIR/linux/packaging/build-snap.sh" || true
+      run_packaging snap bash "$ROOT_DIR/linux/packaging/build-snap.sh"
     fi
     if is_format_selected "flatpak"; then
+      run_packaging flatpak bash "$ROOT_DIR/linux/packaging/build-flatpak.sh"
+    else
       bash "$ROOT_DIR/linux/packaging/build-flatpak.sh" || true
     fi
   fi
@@ -376,15 +387,13 @@ build_windows() {
     seed_install_identity_marker "$ROOT_DIR/build/windows/x64/runner/Release"
 
     if is_format_selected "exe"; then
-      if ! bash "$ROOT_DIR/windows/packaging/build-inno.sh"; then
-        echo "⚠️  [WINDOWS WARNING] Inno Setup packaging failed; continuing with other formats."
-      fi
+      bash "$ROOT_DIR/windows/packaging/build-inno.sh"
     fi
     if is_format_selected "portable"; then
-      bash "$ROOT_DIR/windows/packaging/build-portable.sh" || true
+      run_packaging portable bash "$ROOT_DIR/windows/packaging/build-portable.sh"
     fi
     if is_format_selected "msi"; then
-      bash "$ROOT_DIR/windows/packaging/build-msi.sh" || true
+      run_packaging msi bash "$ROOT_DIR/windows/packaging/build-msi.sh"
     fi
   fi
 }
@@ -398,7 +407,7 @@ build_macos() {
     if is_format_selected "zip"; then
       APP_PATH=$(find "$ROOT_DIR/build/macos/Build/Products/Release" -maxdepth 1 -name "*.app" | head -n 1)
       if [ -n "$APP_PATH" ] && [ -d "$APP_PATH" ]; then
-        (cd "$(dirname "$APP_PATH")" && zip -r -y -q "$DIST_DIR/${PKG_NAME}-${APP_VERSION}-macos.zip" "$(basename "$APP_PATH")") || true
+        (cd "$(dirname "$APP_PATH")" && zip -r -y -q "$DIST_DIR/${PKG_NAME}-${APP_VERSION}-macos.zip" "$(basename "$APP_PATH")")
         if [ -f "$DIST_DIR/${PKG_NAME}-${APP_VERSION}-macos.zip" ]; then
           echo "✅ [MACOS] Created: $DIST_DIR/${PKG_NAME}-${APP_VERSION}-macos.zip"
         else
@@ -407,7 +416,7 @@ build_macos() {
       fi
     fi
     if is_format_selected "dmg"; then
-      bash "$ROOT_DIR/macos/packaging/build-dmg.sh" || true
+      run_packaging dmg bash "$ROOT_DIR/macos/packaging/build-dmg.sh"
     fi
     if [ "$SKIP_PACKAGING" -eq 0 ]; then
       APP_PATH_DU=$(find "$ROOT_DIR/build/macos/Build/Products/Release" -maxdepth 1 -name "*.app" | head -n 1)
@@ -469,7 +478,7 @@ build_ios() {
   echo "📱 Building iOS for $APP_NAME ($APP_ID)..."
   flutter build ipa --release --no-codesign
   find "$ROOT_DIR/build/ios/archive" -name "*.xcarchive" 2>/dev/null | while read -r archive_file; do
-    (cd "$(dirname "$archive_file")" && zip -r -q "$DIST_DIR/${PKG_NAME}-${APP_VERSION}-ios.xcarchive.zip" "$(basename "$archive_file")") || true
+    (cd "$(dirname "$archive_file")" && zip -r -q "$DIST_DIR/${PKG_NAME}-${APP_VERSION}-ios.xcarchive.zip" "$(basename "$archive_file")")
   done
 }
 

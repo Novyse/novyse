@@ -63,3 +63,4 @@ novyse-release.keystore
 dist/
 .cache/
 *.dukey
+.flatpak-build/

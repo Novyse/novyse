@@ -44,8 +44,8 @@ endfunction()
 
 extract_dart_meta("appName" "${CURRENT_BRANCH}" APP_NAME)
 extract_dart_meta("appDescription" "${CURRENT_BRANCH}" APP_DESCRIPTION)
-extract_dart_meta("appId" "${CURRENT_BRANCH}" EXTRACTED_APP_ID)
-set(APPLICATION_ID "${EXTRACTED_APP_ID}")
+extract_dart_meta("desktopId" "${CURRENT_BRANCH}" EXTRACTED_DESKTOP_ID)
+set(APPLICATION_ID "${EXTRACTED_DESKTOP_ID}")
 message(STATUS "Configuring ${APP_NAME} (${CURRENT_BRANCH}): ${APP_DESCRIPTION}")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent

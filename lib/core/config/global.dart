@@ -34,7 +34,11 @@ const String metadataLicense = 'CC0-1.0';
 const String appId = branch == 'production'
     ? 'com.novyse'
     : (branch == 'preview' ? 'com.novyse.preview' : 'com.novyse.dev');
-const String flathubAppId = 'com.novyse.novyse';
+const String desktopId = branch == 'production'
+    ? 'com.novyse.novyse'
+    : (branch == 'preview'
+          ? 'com.novyse.preview.novyse'
+          : 'com.novyse.dev.novyse');
 const String linuxCategories = 'Network;InstantMessaging;Chat;';
 const String linuxKeywords = 'chat;messaging;voip;call;communication;novyse;';
 const String macOSCategory = 'public.app-category.social-networking';
