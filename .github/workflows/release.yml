@@ -297,6 +297,25 @@ jobs:
           # Update release notes and publish release
           gh release edit v${{ inputs.version }} --notes-file release-notes.md --draft=false
 
+  publish-snap:
+    needs: [build, publish-release]
+    if: ${{ inputs.release_type == 'production' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Linux dist
+        uses: actions/download-artifact@v4
+        with:
+          name: build-linux
+          path: dist-upload
+
+      - name: Publish to Snap Store
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: dist-upload/novyse-${{ inputs.version }}-linux.snap
+          release: stable
+
   deploy-web:
     needs: publish-release
     runs-on: ubuntu-latest
