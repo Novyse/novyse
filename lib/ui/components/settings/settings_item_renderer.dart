@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -15,6 +17,7 @@ import 'package:novyse/pages/app/settings/api_keys_page.dart';
 import 'package:novyse/pages/app/settings/password_page.dart';
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
 import 'package:novyse/ui/components/number/number_stepper.dart';
+import 'package:novyse/ui/components/settings/qr_login_scanner_modal.dart';
 import 'package:novyse/ui/components/settings/settings_base_row.dart';
 import 'package:novyse/ui/components/settings/settings_external_link_row.dart';
 import 'package:novyse/ui/components/settings/settings_modal_row.dart';
@@ -206,6 +209,14 @@ class SettingsItemRenderer extends ConsumerWidget {
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const ApiKeysPage()),
             ),
+          );
+        }
+        if (!isDisabled && item.customRendererId == 'qrLoginScanner') {
+          return SettingsNavigationRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            onTap: () => unawaited(showQrLoginScannerModal(context)),
           );
         }
         final raw = settingKey == null

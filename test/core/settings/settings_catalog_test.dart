@@ -89,6 +89,7 @@ void main() {
         'password',
         'auth_sessions',
         'api_keys',
+        'qr_login_scanner',
         'send_with_enter',
       };
       for (final item in SettingsCatalog.allItems) {
@@ -100,6 +101,18 @@ void main() {
           expect(item.disabled, isTrue, reason: item.id);
         }
       }
+    });
+
+    test('QR login scanner is enabled and limited to camera platforms', () {
+      final item = SettingsCatalog.allItems.firstWhere(
+        (i) => i.id == 'qr_login_scanner',
+      );
+      expect(item.component, SettingComponent.custom);
+      expect(item.customRendererId, 'qrLoginScanner');
+      expect(item.disabled, isFalse);
+      expect(item.supportedOS, containsAll([AppOS.android, AppOS.ios]));
+      expect(item.supportedOS, isNot(contains(AppOS.linux)));
+      expect(item.supportedOS, isNot(contains(AppOS.windows)));
     });
 
     test('hidden items are storage-only and never shown', () {
@@ -130,6 +143,12 @@ void main() {
             'linux',
             'windows',
             'macos',
+          }, reason: item.id);
+        } else if (item.id == 'qr_login_scanner') {
+          expect(item.supportedOS.map((e) => e.name).toSet(), {
+            'android',
+            'ios',
+            'web',
           }, reason: item.id);
         } else {
           // Default: visible everywhere.
