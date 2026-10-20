@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -15,6 +17,7 @@ import 'package:novyse/pages/app/settings/api_keys_page.dart';
 import 'package:novyse/pages/app/settings/password_page.dart';
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
 import 'package:novyse/ui/components/number/number_stepper.dart';
+import 'package:novyse/ui/components/settings/qr_login_scanner_modal.dart';
 import 'package:novyse/ui/components/settings/settings_base_row.dart';
 import 'package:novyse/ui/components/settings/settings_external_link_row.dart';
 import 'package:novyse/ui/components/settings/settings_modal_row.dart';
@@ -50,7 +53,17 @@ class SettingsItemRenderer extends ConsumerWidget {
         return const SizedBox.shrink();
       }
     }
-    final bool isDisabled = item.disabled;
+    bool isDisabled = item.disabled;
+    final disabledWhen = item.disabledWhen;
+    if (!isDisabled && disabledWhen != null) {
+      final rawDisabled = ref.watch(
+        settingValueProvider(disabledWhen.settingKey),
+      );
+      final currentDisabled = rawDisabled ?? disabledWhen.defaultValue;
+      if (currentDisabled == disabledWhen.equals) {
+        isDisabled = true;
+      }
+    }
     final title = context.settingsText(item.title);
     final subtitle = context.settingsText(item.subtitle);
     final subtitleOrNull = subtitle.isEmpty ? null : subtitle;
@@ -198,6 +211,14 @@ class SettingsItemRenderer extends ConsumerWidget {
             ),
           );
         }
+        if (!isDisabled && item.customRendererId == 'qrLoginScanner') {
+          return SettingsNavigationRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            onTap: () => unawaited(showQrLoginScannerModal(context)),
+          );
+        }
         final raw = settingKey == null
             ? null
             : ref.watch(settingValueProvider(settingKey));
@@ -250,7 +271,7 @@ class SettingsItemRenderer extends ConsumerWidget {
         );
 
       case SettingComponent.action:
-        const directActions = {'openLicenses', 'openAppLicense'};
+        const directActions = {'openLicenses', 'openAppLicense', 'checkUpdates'};
         if (directActions.contains(item.actionId)) {
           return wrapDisabled(
             SettingsNavigationRow(

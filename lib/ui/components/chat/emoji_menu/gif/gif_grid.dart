@@ -61,7 +61,7 @@ class GifSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 4),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
       child: Align(
         alignment: Alignment.centerLeft,
         child: Text(

@@ -15,6 +15,21 @@
       }
     }
   },
+  "qrLoginScannerTitle": "Scan QR Code",
+  "qrLoginScannerInstruction": "Point your camera at the QR code displayed on the device you want to sign in.",
+  "qrLoginScannerAuthorizing": "Authorizing sign-in...",
+  "qrLoginScannerSuccessTitle": "Device authorized",
+  "qrLoginScannerSuccessMessage": "The sign-in will be completed on the other device in a moment.",
+  "qrLoginScannerInvalidCode": "The QR code is invalid or has expired. Try scanning it again.",
+  "qrLoginScannerScanAgain": "Scan again",
+  "qrLoginScannerDone": "Done",
+  "qrLoginScannerTorchOn": "Turn off flashlight",
+  "qrLoginScannerTorchOff": "Turn on flashlight",
+  "qrLoginScannerSwitchCamera": "Switch camera",
+  "qrLoginScannerCameraPermissionTitle": "Camera access required",
+  "qrLoginScannerCameraPermissionMessage": "Allow camera access in your system settings to scan QR codes.",
+  "qrLoginScannerCameraErrorTitle": "Camera unavailable",
+  "qrLoginScannerCameraErrorMessage": "The camera could not be started. Please try again.",
   "loginSubtitle": "Enter your credentials to log in",
   "createAccount": "Create account",
   "signupSubtitle": "Get started with your account",
@@ -46,6 +61,10 @@
   "signupSuccess": "Registration completed successfully! You can now log in.",
   "signupFailed": "Registration failed. Please check your data and try again.",
   "loginFailed": "Login failed. Please check your credentials.",
+  "turnstileTitle": "Security verification",
+  "turnstileSubtitle": "Complete the Cloudflare challenge to continue.",
+  "turnstileVerificationCancelled": "Security verification was cancelled. Complete the Cloudflare challenge to continue.",
+  "turnstileVerificationFailed": "Security verification failed. Please try again.",
   "statusSuccess": "Success",
   "statusError": "Error",
   "statusWarning": "Warning",
@@ -318,6 +337,8 @@
   "commsExitFullScreen": "Exit full screen",
   "commsFullScreen": "Full screen",
   "commsStopScreenShare": "Stop sharing",
+  "commsPreviousShare": "Previous screen share",
+  "commsNextShare": "Next screen share",
   "commsMuteUser": "Mute for me",
   "commsUnmuteUser": "Unmute for me",
   "commsVolume": "Volume",
@@ -398,6 +419,7 @@
     }
   },
   "pinnedMessage": "Pinned message",
+  "activeVoiceSpeedTitle": "Playback speed",
   "attachMenuMedia": "Media",
   "attachMenuCamera": "Camera",
   "attachMenuFile": "File",
@@ -987,6 +1009,8 @@
   "settingsItemProfilePhotoVisibilityTitle": "Profile Photo & Avatar",
   "settingsItemPurgeCloudSubtitle": "Bulk delete archived cloud assets",
   "settingsItemPurgeCloudTitle": "Purge Remote Cloud Media",
+  "settingsItemQrLoginScannerSubtitle": "Authorize a sign-in on another device by scanning its QR code",
+  "settingsItemQrLoginScannerTitle": "Sign in with QR Code",
   "settingsItemQuotaGraphSubtitle": "Remote bucket usage",
   "settingsItemQuotaGraphTitle": "Cloud Quota",
   "settingsItemReadReceiptsSubtitle": "Checks and typing indicators",
@@ -1256,5 +1280,14 @@
         "type": "String"
       }
     }
-  }
+  },
+  "updaterSystemPackageManaged": "This install is managed by your system package manager (RPM, DEB, AppImage). Download the new package from the website and install it manually.",
+  "updaterCheckFailed": "Update check failed. Please try again later.",
+  "updaterCopyCommand": "Copy update command",
+  "updaterCommandCopied": "Copied",
+  "updaterMacOSUncertified": "This version of the app is not certified and does not support automatic updates. Please download the new version from the website.",
+  "updaterLinuxRpm": "This install uses an RPM package, which does not support in-app updates. Download the new .rpm from the website and install it with your package manager (e.g. sudo dnf install ./novyse-*.rpm).",
+  "updaterLinuxDeb": "This install uses a DEB package, which does not support in-app updates. Download the new .deb from the website and install it with your package manager (e.g. sudo apt install ./novyse-*.deb).",
+  "updaterLinuxAppImage": "This install is an AppImage, which does not support in-app updates. Download the new .AppImage from the website and replace the old file (then chmod +x).",
+  "updaterReadOnlyInstall": "This install location is not writable, so in-app updates are unavailable. Please download the new version from the website."
 }

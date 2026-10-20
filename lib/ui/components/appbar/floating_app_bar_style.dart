@@ -23,41 +23,58 @@ abstract final class FloatingAppBarConsts {
   static const double centralRadius = 28.0;
 
   /// Outer padding of a single-icon pill (back, search, menu, ...).
-  static const EdgeInsetsGeometry iconPillPadding = EdgeInsets.all(2);
+  static const EdgeInsetsGeometry iconPillPadding = EdgeInsets.all(barInset);
 
-  /// Box of every icon button living inside a pill. 42 + 2 + 2 = 46 of
-  /// content, plus 2px of border = 48 outer, i.e. the Material 48px
-  /// touch target. Same height as every central pill.
-  static const double iconButtonSize = 42.0;
+  /// Canonical bar metrics — single source of truth for every icon box,
+  /// pill height and glyph in app bars AND sub-header rows. Everything
+  /// below aliases these, so a size tweak happens once here.
+  ///
+  /// - 42 box (buttons, avatar, row content) + 2 + 2 glass = 46,
+  ///   plus 2px of border = 48 outer, i.e. the Material 48px touch target.
+  static const double barContentSize = 42.0;
+
+  /// Total outer pill height/width (2 + 42 + 2 + 2 border = 48).
+  static const double barOuterSize = 48.0;
+
+  /// Icon glyph drawn inside the 42 box (same as the Material default).
+  static const double barIconSize = 24.0;
+
+  /// Glass padding around content.
+  static const double barInset = 2.0;
+
+  /// Inner-row padding: 42 content + 3 + 3 = 48, so rows are exactly the
+  /// app bar height with symmetric insets.
+  static const double barInnerInset = 3.0;
+
+  /// Box of every icon button living inside a pill.
+  static const double iconButtonSize = barContentSize;
   static const EdgeInsets iconButtonPadding = EdgeInsets.all(8.0);
 
   /// Forces icon buttons to exactly [iconButtonSize], matching the
   /// 48px Material default outer pill height.
   static ButtonStyle get iconButtonStyle => const ButtonStyle(
-    minimumSize: WidgetStatePropertyAll(Size(42, 42)),
-    maximumSize: WidgetStatePropertyAll(Size(42, 42)),
-    padding: WidgetStatePropertyAll(EdgeInsets.all(8.0)),
+    minimumSize: WidgetStatePropertyAll(
+      Size(iconButtonSize, iconButtonSize),
+    ),
+    maximumSize: WidgetStatePropertyAll(
+      Size(iconButtonSize, iconButtonSize),
+    ),
+    padding: WidgetStatePropertyAll(iconButtonPadding),
     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
   );
 
-  /// Total outer width of a single-icon pill (2 + 42 + 2 + 2 border = 48).
+  /// Total outer width of a single-icon pill.
   /// Used for the balancing spacer in centered-title bars.
-  static const double iconPillOuterSize = 48.0;
+  static const double iconPillOuterSize = barOuterSize;
 
   /// Outer padding of the central pill when it hosts a 42px leading
   /// (avatar / star circle). Total height: 2 + 42 + 2 = 46 + 2 border = 48.
-  static const EdgeInsetsGeometry centralAvatarPadding = EdgeInsets.fromLTRB(
-    2,
-    2,
-    2,
-    2,
+  static const EdgeInsetsGeometry centralAvatarPadding = EdgeInsets.all(
+    barInset,
   );
 
   /// Outer padding of the trailing actions pill (search, toggles, ...).
-  static const EdgeInsetsGeometry actionsPadding = EdgeInsets.symmetric(
-    horizontal: 2,
-    vertical: 2,
-  );
+  static const EdgeInsetsGeometry actionsPadding = EdgeInsets.all(barInset);
 
   /// Outer padding of the search-field central pill.
   /// Combined with [searchFieldHeight] it yields 2 + 42 + 2 = 46,
@@ -69,8 +86,8 @@ abstract final class FloatingAppBarConsts {
     2,
   );
 
-  /// Minimum content height of search fields. Same as [centralMinHeight].
-  static const double searchFieldHeight = 42.0;
+  /// Minimum content height of search fields. Same box as every icon.
+  static const double searchFieldHeight = barContentSize;
 
   /// Compact constraints for the clear (X) button inside search fields,
   /// so it never inflates the pill when it appears.
@@ -91,12 +108,36 @@ abstract final class FloatingAppBarConsts {
 
   /// Minimum content height inside [centralTitlePadding] so the pill
   /// measures 48px outer like the chat ones.
-  static const double centralMinHeight = 42.0;
+  static const double centralMinHeight = barContentSize;
 
-  /// Size of the 42px leading (avatar / icon circle) and its gap
+  /// Size of the leading (avatar / icon circle) and its gap
   /// to the title column.
-  static const double leadingSize = 42.0;
+  static const double leadingSize = barContentSize;
   static const double leadingGap = 12.0;
+
+  /// Outer skin of the sub-header stacked under every chat app bar
+  /// ([ChatSubHeader]): 2px padding + 24px radius, so it reads as the
+  /// same glassy card as the navbar pills above it.
+  static const double subHeaderRadius = 24.0;
+  static const EdgeInsetsGeometry subHeaderPadding = EdgeInsets.all(barInset);
+
+  /// Inner rows (pinned / voice / comms) share the same 24px radius and
+  /// fill [barOuterSize], exactly like every app bar pill.
+  static const double subHeaderInnerRadius = 24.0;
+
+  /// Gap between stacked inner rows — same as the outer glass padding.
+  static const double subHeaderGap = barInset;
+
+  /// Inner padding of every row, fully symmetric.
+  static const EdgeInsets subHeaderInnerPadding = EdgeInsets.all(
+    barInnerInset,
+  );
+
+  /// Icon-to-text gap inside rows (same as [leadingGap]).
+  static const double subHeaderContentGap = leadingGap;
+
+  /// Text-to-actions gap inside rows.
+  static const double subHeaderActionsGap = 8.0;
 
   /// Vertical gap between the bar row and an optional [bottom] slot.
   static const double bottomGap = 12.0;

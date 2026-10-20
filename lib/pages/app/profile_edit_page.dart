@@ -16,7 +16,7 @@ class ProfileEditPage extends StatelessWidget {
         ),
       ),
       body: const Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, 96),
+        padding: EdgeInsets.fromLTRB(12, 16, 12, 96),
         child: Text(
           'Pagina di test: su schermi larghi resta nel master, non a tutta pagina.',
         ),

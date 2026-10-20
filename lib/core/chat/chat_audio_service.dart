@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/storage/file/file_uri.dart';
 
 /// Centralized audio service for chat voice and audio messages.
 /// Ensures that ONLY ONE audio or voice message can be played at any given time.
@@ -22,9 +23,17 @@ class ChatAudioService extends ChangeNotifier {
   String? _activeId;
   String? _activeUri;
   bool _isPlaying = false;
+  bool _isSeeking = false;
+  bool _resumeAfterSeek = false;
+  Future<void>? _pauseForSeek;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
   double _speed = 1.0;
+  String? _activeChatUUID;
+  int? _activeSubID;
+  dynamic _activeMessageID;
+  String? _activeSenderUUID;
+  bool _activeIsVoice = false;
 
   /// Identifier (UUID or key) of the currently loaded/playing audio item.
   String? get activeId => _activeId;
@@ -43,6 +52,33 @@ class ChatAudioService extends ChangeNotifier {
 
   /// Current playback speed multiplier (e.g. 1.0, 1.5, 2.0).
   double get speed => _speed;
+
+  /// Chat UUID of the active item, if it comes from a chat message.
+  String? get activeChatUUID => _activeChatUUID;
+
+  /// Sub-channel ID of the active item, if it comes from a chat message.
+  int? get activeSubID => _activeSubID;
+
+  /// Message ID of the active item, if it comes from a chat message.
+  dynamic get activeMessageID => _activeMessageID;
+
+  /// Sender UUID of the active item, if known.
+  String? get activeSenderUUID => _activeSenderUUID;
+
+  /// Whether the active item is a voice message (vs plain audio file).
+  bool get activeIsVoice => _activeIsVoice;
+
+  /// Discrete playback speeds offered by the active-voice bar.
+  static const List<double> speedSteps = [
+    0.25,
+    0.5,
+    0.75,
+    1.0,
+    1.5,
+    2.0,
+    3.0,
+    5.0,
+  ];
 
   void _initSubscriptions() {
     _cancelSubscriptions();
@@ -103,14 +139,28 @@ class ChatAudioService extends ChangeNotifier {
 
   /// Plays or resumes playback for [id] with [uri].
   /// If another audio was playing, it is stopped immediately.
+  /// Optional chat context ([chatUUID]/[subID]/[messageID]/[senderUUID])
+  /// is stored so the global active-voice bar can resolve metadata.
+  /// Speed always resets to 1.0 when a different track starts.
   Future<void> play({
     required String id,
     required String uri,
     Duration? initialDuration,
+    String? chatUUID,
+    int? subID,
+    dynamic messageID,
+    String? senderUUID,
+    bool isVoice = false,
   }) async {
     if (uri.isEmpty) return;
 
     try {
+      if (_activeId != id) {
+        _isSeeking = false;
+        _resumeAfterSeek = false;
+        _pauseForSeek = null;
+      }
+
       if (_activeId == id) {
         if (!_isPlaying) {
           if (_position == Duration.zero) {
@@ -123,12 +173,22 @@ class ChatAudioService extends ChangeNotifier {
       }
 
       // Stop previous track if any
-      await _player.stop();
-
       _activeId = id;
       _activeUri = uri;
       _position = Duration.zero;
       _duration = initialDuration ?? Duration.zero;
+      _isPlaying = false;
+      _speed = 1.0;
+      _activeChatUUID = chatUUID;
+      _activeSubID = subID;
+      _activeMessageID = messageID;
+      _activeSenderUUID = senderUUID;
+      _activeIsVoice = isVoice;
+      notifyListeners();
+
+      await _player.stop();
+
+      _position = Duration.zero;
       _isPlaying = false;
       notifyListeners();
 
@@ -161,10 +221,7 @@ class ChatAudioService extends ChangeNotifier {
 
     Source source;
     if (!kIsWeb && (uri.startsWith('file://') || uri.startsWith('/'))) {
-      final cleanPath = uri.startsWith('file://')
-          ? uri.replaceFirst('file://', '')
-          : uri;
-      source = DeviceFileSource(cleanPath);
+      source = DeviceFileSource(filePathFromUri(uri));
     } else {
       source = UrlSource(uri);
     }
@@ -201,6 +258,9 @@ class ChatAudioService extends ChangeNotifier {
 
   /// Stops current playback and resets position.
   Future<void> stop() async {
+    _isSeeking = false;
+    _resumeAfterSeek = false;
+    _pauseForSeek = null;
     if (_activeId != null || _isPlaying) {
       try {
         await _player.stop().timeout(
@@ -214,7 +274,60 @@ class ChatAudioService extends ChangeNotifier {
     _isPlaying = false;
     _activeId = null;
     _activeUri = null;
+    _activeChatUUID = null;
+    _activeSubID = null;
+    _activeMessageID = null;
+    _activeSenderUUID = null;
+    _activeIsVoice = false;
     notifyListeners();
+  }
+
+  /// Pauses playback while the user is dragging a seek control.
+  ///
+  /// Remembers whether playback was active so [endSeek] can resume it.
+  Future<void> beginSeek() async {
+    if (_isSeeking) return;
+    _isSeeking = true;
+    _resumeAfterSeek = _isPlaying;
+    if (!_isPlaying) return;
+
+    _isPlaying = false;
+    notifyListeners();
+    _pauseForSeek = _player
+        .pause()
+        .timeout(const Duration(milliseconds: 500), onTimeout: () {})
+        .catchError((Object e) {
+          debugPrint('[ChatAudioService] pause before seek error: $e');
+        });
+  }
+
+  /// Resumes playback after a seek if it was playing when the seek started.
+  Future<void> endSeek() async {
+    if (!_isSeeking) return;
+    _isSeeking = false;
+
+    final pauseFuture = _pauseForSeek;
+    _pauseForSeek = null;
+    final shouldResume = _resumeAfterSeek;
+    _resumeAfterSeek = false;
+
+    if (pauseFuture != null) {
+      try {
+        await pauseFuture;
+      } catch (_) {}
+    }
+
+    if (!shouldResume || _activeId == null || _isPlaying) return;
+
+    try {
+      await _player.resume();
+      _isPlaying = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[ChatAudioService] resume after seek error: $e');
+      _isPlaying = false;
+      notifyListeners();
+    }
   }
 
   /// Seeks to [targetPosition] in the active audio.
@@ -235,11 +348,23 @@ class ChatAudioService extends ChangeNotifier {
     bool isPlaying = false,
     Duration? position,
     Duration? duration,
+    String? uri,
+    String? chatUUID,
+    int? subID,
+    dynamic messageID,
+    String? senderUUID,
+    bool isVoice = false,
   }) {
     _activeId = id;
     _isPlaying = isPlaying;
     _position = position ?? Duration.zero;
     _duration = duration ?? Duration.zero;
+    _activeUri = uri;
+    _activeChatUUID = chatUUID;
+    _activeSubID = subID;
+    _activeMessageID = messageID;
+    _activeSenderUUID = senderUUID;
+    _activeIsVoice = isVoice;
     notifyListeners();
   }
 
@@ -250,9 +375,17 @@ class ChatAudioService extends ChangeNotifier {
     _activeId = null;
     _activeUri = null;
     _isPlaying = false;
+    _isSeeking = false;
+    _resumeAfterSeek = false;
+    _pauseForSeek = null;
     _position = Duration.zero;
     _duration = Duration.zero;
     _speed = 1.0;
+    _activeChatUUID = null;
+    _activeSubID = null;
+    _activeMessageID = null;
+    _activeSenderUUID = null;
+    _activeIsVoice = false;
     notifyListeners();
   }
 
@@ -272,16 +405,34 @@ class ChatAudioService extends ChangeNotifier {
     required String id,
     required String uri,
     Duration? initialDuration,
+    String? chatUUID,
+    int? subID,
+    dynamic messageID,
+    String? senderUUID,
+    bool isVoice = false,
   }) async {
     if (isItemPlaying(id)) {
       await pause();
     } else {
-      await play(id: id, uri: uri, initialDuration: initialDuration);
+      await play(
+        id: id,
+        uri: uri,
+        initialDuration: initialDuration,
+        chatUUID: chatUUID,
+        subID: subID,
+        messageID: messageID,
+        senderUUID: senderUUID,
+        isVoice: isVoice,
+      );
     }
   }
 
   @override
-  void dispose() {
+  // ignore: must_call_super — process-lifetime singleton, see above.
+  void dispose() {}
+
+  @visibleForTesting
+  void disposeForTesting() {
     _stateSub?.cancel();
     _positionSub?.cancel();
     _durationSub?.cancel();

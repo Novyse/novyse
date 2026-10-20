@@ -196,6 +196,8 @@ class MessageListNotifier
       }),
     );
 
+    _subscriptions.add(bus.on<FileDownloadedEvent>().listen(onFileDownloaded));
+
     _subscriptions.add(
       bus.on<MessageFailedEvent>().listen((event) {
         onMessageFailed(event.tempId, event.error);
@@ -258,7 +260,9 @@ class MessageListNotifier
     state = state.copyWith(loading: true);
 
     try {
-      final oldestTime = state.messages.last.createdAt.toUtc().toIso8601String();
+      final oldestTime = state.messages.last.createdAt
+          .toUtc()
+          .toIso8601String();
       final db = AppDatabase.instance;
       final rawOlder = await db.message.get.by.sub(
         arg.chatUUID,
@@ -325,6 +329,41 @@ class MessageListNotifier
       state = state.copyWith(messages: list);
     } else {
       state = state.copyWith(messages: [newMsg, ...state.messages]);
+    }
+  }
+
+  void onFileDownloaded(FileDownloadedEvent event) {
+    if (event.fileUUID.isEmpty || state.messages.isEmpty) return;
+
+    var updatedAny = false;
+    final messages = state.messages.map((message) {
+      if (message.files.isEmpty) return message;
+
+      var messageChanged = false;
+      final files = message.files.map((file) {
+        if (file['uuid'] != event.fileUUID) return file;
+
+        final updated = Map<String, dynamic>.from(file);
+        if (event.uri.isNotEmpty) {
+          updated['uri'] = event.uri;
+        }
+        if (event.waveform != null && event.waveform!.isNotEmpty) {
+          updated['waveform'] = List<double>.from(event.waveform!);
+        }
+        if (event.duration != null && event.duration! > 0) {
+          updated['duration'] = event.duration;
+        }
+        messageChanged = true;
+        return updated;
+      }).toList();
+
+      if (!messageChanged) return message;
+      updatedAny = true;
+      return message.copyWith(files: files);
+    }).toList();
+
+    if (updatedAny) {
+      state = state.copyWith(messages: messages);
     }
   }
 

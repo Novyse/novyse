@@ -251,7 +251,7 @@ class _EmojiSectionListState extends ConsumerState<EmojiSectionList> {
     );
 
     final searchBar = Padding(
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
       child: TextField(
         controller: _searchController,
         onChanged: (v) => setState(() => _query = v.trim()),
@@ -313,7 +313,7 @@ class _EmojiSectionListState extends ConsumerState<EmojiSectionList> {
                           ),
                         ),
                         SliverPadding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
                           sliver: SliverGrid(
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
@@ -383,7 +383,7 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 4),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
       child: Align(
         alignment: Alignment.centerLeft,
         child: Text(

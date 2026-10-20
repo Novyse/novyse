@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/auth/session_cleanup.dart';
 import 'package:novyse/core/router/router.dart';
 import 'package:novyse/core/services/auth.dart' as auth_service;
+import 'package:novyse/core/updater/manual_update_check.dart';
 import 'package:novyse/pages/app/settings/app_license_page.dart';
 import 'package:novyse/pages/app/settings/oss_licenses_page.dart';
 
@@ -49,6 +50,8 @@ Future<bool> runSettingsAction(
       return _openLicenses(context);
     case 'openAppLicense':
       return _openAppLicense(context);
+    case 'checkUpdates':
+      return handleManualUpdateCheck(ref, context);
     default:
       return false;
   }

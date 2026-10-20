@@ -1,10 +1,9 @@
-import 'dart:io' as io;
-
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/services/profile_picture_service.dart';
+import 'package:novyse/core/storage/file/file_uri.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/badge/badges.dart';
@@ -196,11 +195,8 @@ class _ProfileBanner extends ConsumerWidget {
           errorBuilder: (_, _, _) => const SizedBox.shrink(),
         );
       } else if (!kIsWeb) {
-        final cleanPath = uri.startsWith('file://')
-            ? uri.replaceFirst('file://', '')
-            : uri;
         image = Image.file(
-          io.File(cleanPath),
+          fileFromUri(uri),
           fit: BoxFit.cover,
           errorBuilder: (_, _, _) => const SizedBox.shrink(),
         );

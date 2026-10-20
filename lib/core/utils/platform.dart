@@ -9,7 +9,7 @@ enum AppOS { android, ios, macos, linux, windows, fuchsia, web }
 enum AppPlatform { mobile, desktop, web }
 
 /// Distribution source used to install the running app.
-enum AppInstallSource { direct, playStore, snapStore, flathub }
+enum AppInstallSource { direct, playStore, snapStore, flathub, systemPackage }
 
 /// Detects the current [AppOS].
 final AppOS currentOS = _detectOS();
@@ -66,13 +66,23 @@ AppInstallSource _detectInstallSource() {
         io.File('/.flatpak-info').existsSync()) {
       return AppInstallSource.flathub;
     }
+    if (environment.containsKey('APPIMAGE')) {
+      return AppInstallSource.systemPackage;
+    }
+    final resolved = io.Platform.resolvedExecutable;
+    if (resolved.startsWith('/opt/') ||
+        resolved.startsWith('/usr/') ||
+        resolved.startsWith('/var/') ||
+        resolved.startsWith('/etc/')) {
+      return AppInstallSource.systemPackage;
+    }
   }
   return AppInstallSource.direct;
 }
 
 /// Friendly name of the current app distribution source, if store-managed.
 String? get currentStoreName => switch (currentInstallSource) {
-  AppInstallSource.direct => null,
+  AppInstallSource.direct || AppInstallSource.systemPackage => null,
   AppInstallSource.playStore => 'Google Play',
   AppInstallSource.snapStore => 'Snap Store',
   AppInstallSource.flathub => 'Flathub',

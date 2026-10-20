@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/services/api_gateway.dart';
+import 'package:novyse/core/services/media_metadata_service.dart';
 import 'package:novyse/core/storage/database/database.dart';
 import 'package:novyse/core/storage/file/file_storage.dart';
 import 'package:novyse/core/storage/file/file_type.dart';
@@ -128,17 +129,26 @@ class FileDownloadService {
       }
 
       // 5. Update local URI / ref in database
-      final localUri = await _storage.read(saveResult.ref) ?? saveResult.ref;
+      final localUri =
+          await _storage.read(saveResult.ref, finalMimeType) ?? saveResult.ref;
       if (AppDatabase.instance.isOpen) {
         await _database.file.update.ref(fileUUID, saveResult.ref);
       }
 
       // 6. Emit completion event
-      GlobalEventEmitter.instance.emit('file:downloaded', {
-        'fileUUID': fileUUID,
-        'uri': localUri,
-        'ref': saveResult.ref,
-      });
+      GlobalEventEmitter.instance.fileDownloaded(
+        fileUUID: fileUUID,
+        uri: localUri,
+      );
+      unawaited(
+        enrichDownloadedMedia(
+          fileUUID: fileUUID,
+          bytes: bytes,
+          name: finalName,
+          mimeType: finalMimeType,
+          localUri: localUri,
+        ),
+      );
 
       return localUri;
     } catch (e) {

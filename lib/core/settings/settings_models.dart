@@ -31,6 +31,16 @@ class SettingVisibleWhen {
   const SettingVisibleWhen(this.settingKey, this.equals, {this.defaultValue});
 }
 
+/// Conditional disabled state: the item renders non-interactive when the
+/// persisted setting at [settingKey] equals [equals]
+/// (falls back to [defaultValue] when unset).
+class SettingDisabledWhen {
+  final String settingKey;
+  final Object? equals;
+  final Object? defaultValue;
+  const SettingDisabledWhen(this.settingKey, this.equals, {this.defaultValue});
+}
+
 enum SettingScope { local, synchronized }
 
 enum SettingComponent {
@@ -79,6 +89,9 @@ class SettingOption {
 /// - [valueProviderId]: provider id for read-only values (e.g. app version).
 /// - [disabled]: when true the row renders non-interactive (WIP placeholder).
 ///   Defaults to false.
+/// - [disabledWhen]: when set, the row also renders non-interactive while
+///   the watched setting equals the given value (e.g. open-in-background
+///   while open-on-startup is off).
 /// - [hidden]: when true the item is never shown in settings UI (pages,
 ///   groups, search and renderer all skip it). Defaults to false.
 /// - [supportedOS]: OS list where the item is visible. Defaults to all
@@ -108,6 +121,7 @@ class SettingItem {
   final bool hidden;
   final List<AppOS> supportedOS;
   final SettingVisibleWhen? visibleWhen;
+  final SettingDisabledWhen? disabledWhen;
 
   const SettingItem({
     required this.id,
@@ -134,6 +148,7 @@ class SettingItem {
     this.hidden = false,
     this.supportedOS = AppOS.values,
     this.visibleWhen,
+    this.disabledWhen,
   });
 
   /// Whether this item should be shown on the current OS.

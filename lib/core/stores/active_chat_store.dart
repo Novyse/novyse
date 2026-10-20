@@ -92,10 +92,20 @@ class ActiveChatNotifier extends Notifier<ActiveChatState> {
 
     final targetSub = subOverride ?? 0;
 
+    // Restore the per-chat last view ('chat' | 'vocal') and sub
+    var contentView = 'chat';
+    var restoredSub = targetSub;
+    if (uuid != null) {
+      final draft = ref.read(chatDraftProvider(uuid));
+      contentView = draft.contentView;
+      restoredSub = subOverride ?? draft.selectedSub;
+    }
+
     state = state.copyWith(
       selectedChatUUID: () => uuid,
       selectedHandle: () => null,
-      selectedSub: targetSub,
+      selectedSub: restoredSub,
+      contentView: contentView,
       activeRemoteChatData: () => null,
     );
   }

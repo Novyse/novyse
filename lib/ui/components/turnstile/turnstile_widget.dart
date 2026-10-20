@@ -12,7 +12,7 @@ class TurnstileWidget extends StatefulWidget {
   const TurnstileWidget({
     super.key,
     required this.siteKey,
-    this.baseUrl = 'http://localhost',
+    required this.baseUrl,
     this.action,
     this.theme = 'dark',
     this.language,
@@ -26,7 +26,8 @@ class TurnstileWidget extends StatefulWidget {
   /// The Turnstile public site key.
   final String siteKey;
 
-  /// The base URL used as fallback.
+  /// The base URL used to resolve relative URLs and as the document origin
+  /// when the HTML is loaded inline.
   final String baseUrl;
 
   /// Optional action name for reporting (e.g. 'login', 'signup').
@@ -228,7 +229,17 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
   @override
   Widget build(BuildContext context) {
     if (!_isInitialized) {
-      return SizedBox(width: widget.width, height: widget.height);
+      return SizedBox(
+        width: widget.width,
+        height: widget.height,
+        child: const Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
     }
 
     return SizedBox(

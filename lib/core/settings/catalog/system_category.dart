@@ -41,6 +41,11 @@ final List<SettingCategory> systemCategory = [
                 scope: SettingScope.local,
                 defaultValue: false,
                 disabled: !DesktopStartupController.isSupported,
+                disabledWhen: const SettingDisabledWhen(
+                  'system.openOnStartup',
+                  false,
+                  defaultValue: false,
+                ),
                 supportedOS: const [AppOS.linux, AppOS.windows, AppOS.macos],
               ),
               SettingItem(

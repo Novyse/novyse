@@ -17,9 +17,20 @@ class ClientUpdateRequiredEvent {
   const ClientUpdateRequiredEvent({this.minVersion});
 }
 
-class FileReadyEvent {
+class FileDownloadedEvent {
   final String fileUUID;
-  const FileReadyEvent(this.fileUUID);
+
+  final String uri;
+
+  final List<double>? waveform;
+  final int? duration;
+
+  const FileDownloadedEvent({
+    required this.fileUUID,
+    required this.uri,
+    this.waveform,
+    this.duration,
+  });
 }
 
 // Message events

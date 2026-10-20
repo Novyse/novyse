@@ -10,6 +10,7 @@ class AppMenuItem extends StatelessWidget {
     this.onTap,
     this.isDanger = false,
     this.enabled = true,
+    this.selected = false,
   });
 
   final String label;
@@ -17,12 +18,17 @@ class AppMenuItem extends StatelessWidget {
   final VoidCallback? onTap;
   final bool isDanger;
   final bool enabled;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
-    final itemColor = isDanger ? colorScheme.error : colorScheme.onSurface;
+    final itemColor = isDanger
+        ? colorScheme.error
+        : selected
+        ? colorScheme.primary
+        : colorScheme.onSurface;
     final interactive = enabled && onTap != null;
 
     final content = Container(

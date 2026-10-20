@@ -10,6 +10,7 @@ import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/comms/comms_user_card.dart';
 import 'package:novyse/ui/components/comms/screen_share_actions.dart';
+import 'package:novyse/ui/components/comms/screen_share_stream_switcher.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Responsive grid layout displaying members and screenshares in the vocal room.
@@ -126,30 +127,42 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
         maintainState: false,
         builder: (overlayContext) => Material(
           color: Colors.black,
-          child: Container(
-            color: Colors.black,
-            width: double.infinity,
-            height: double.infinity,
-            child: CommsUserCard(
-              tile: tile,
-              isPinned: ref.read(commsProvider).pinnedStreamId == tile.id,
-              isFullScreen: true,
-              onPin: () => ref.read(commsProvider.notifier).togglePin(tile.id),
-              onFullScreen: () =>
-                  ref.read(commsProvider.notifier).exitFullscreen(),
-              onStopShare: tile.trackSid != null
-                  ? () => ref
-                        .read(commsProvider.notifier)
-                        .stopScreenShare(tile.trackSid)
-                  : null,
-              onEditShare: tile.trackSid != null
-                  ? () => ScreenShareActions.editShareFlow(
-                      context,
-                      ref,
-                      tile.trackSid!,
-                    )
-                  : null,
-            ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Container(
+                color: Colors.black,
+                width: double.infinity,
+                height: double.infinity,
+                child: CommsUserCard(
+                  tile: tile,
+                  isPinned:
+                      ref.read(commsProvider).pinnedStreamId == tile.id,
+                  isFullScreen: true,
+                  onPin: () =>
+                      ref.read(commsProvider.notifier).togglePin(tile.id),
+                  onFullScreen: () =>
+                      ref.read(commsProvider.notifier).exitFullscreen(),
+                  onStopShare: tile.trackSid != null
+                      ? () => ref
+                            .read(commsProvider.notifier)
+                            .stopScreenShare(tile.trackSid)
+                      : null,
+                  onEditShare: tile.trackSid != null
+                      ? () => ScreenShareActions.editShareFlow(
+                          context,
+                          ref,
+                          tile.trackSid!,
+                        )
+                      : null,
+                ),
+              ),
+              ScreenShareStreamSwitcher(
+                tiles: widget.tiles,
+                top: MediaQuery.paddingOf(context).top + 16,
+                left: 16,
+              ),
+            ],
           ),
         ),
       );
@@ -238,39 +251,47 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
           targetWidth = targetHeight * cardAspectRatio;
         }
 
-        return Center(
-          child: SingleChildScrollView(
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: margin,
-              runSpacing: margin,
-              children: activeTiles.map((tile) {
-                return SizedBox(
-                  width: targetWidth.clamp(140.0, availableWidth),
-                  height: targetHeight.clamp(100.0, availableHeight),
-                  child: CommsUserCard(
-                    key: ValueKey(tile.id),
-                    tile: tile,
-                    isPinned: pinnedId == tile.id,
-                    isFullScreen: false,
-                    onPin: () => controller.togglePin(tile.id),
-                    onFullScreen: () => controller.toggleFullscreen(tile.id),
-                    onStopShare: tile.trackSid != null
-                        ? () => controller.stopScreenShare(tile.trackSid)
-                        : null,
-                    onEditShare: tile.trackSid != null
-                        ? () => ScreenShareActions.editShareFlow(
-                            context,
-                            ref,
-                            tile.trackSid!,
-                          )
-                        : null,
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: Center(
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: margin,
+                    runSpacing: margin,
+                    children: activeTiles.map((tile) {
+                      return SizedBox(
+                        width: targetWidth.clamp(140.0, availableWidth),
+                        height: targetHeight.clamp(100.0, availableHeight),
+                        child: CommsUserCard(
+                          key: ValueKey(tile.id),
+                          tile: tile,
+                          isPinned: pinnedId == tile.id,
+                          isFullScreen: false,
+                          onPin: () => controller.togglePin(tile.id),
+                          onFullScreen: () =>
+                              controller.toggleFullscreen(tile.id),
+                          onStopShare: tile.trackSid != null
+                              ? () => controller.stopScreenShare(tile.trackSid)
+                              : null,
+                          onEditShare: tile.trackSid != null
+                              ? () => ScreenShareActions.editShareFlow(
+                                  context,
+                                  ref,
+                                  tile.trackSid!,
+                                )
+                              : null,
+                        ),
+                      );
+                    }).toList(),
                   ),
-                );
-              }).toList(),
+                ),
+              ),
             ),
-          ),
+            ScreenShareStreamSwitcher(tiles: widget.tiles),
+          ],
         );
       },
     );

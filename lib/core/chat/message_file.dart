@@ -88,12 +88,10 @@ class MessageFile {
 
   /// Voice detection logic:
   /// 1. Explicit type='VOICE' from recorder
-  /// 2. Waveform data present
-  /// 3. Category is voice
-  /// 4. Filename starts with 'novyse_vocal_'
+  /// 2. Category is voice
+  /// 3. Filename starts with 'novyse_vocal_'
   bool get isVoice {
     if (isExplicitVoice) return true;
-    if (waveform != null && waveform!.isNotEmpty) return true;
     if (category == FileTypeCategory.voice) return true;
     if (name.toLowerCase().startsWith('novyse_vocal_')) return true;
     return false;

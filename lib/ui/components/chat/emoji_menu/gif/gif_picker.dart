@@ -163,7 +163,7 @@ class _GifPickerState extends ConsumerState<GifPicker> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
           child: TextField(
             controller: _searchController,
             onChanged: _onSearchChanged,
@@ -206,7 +206,7 @@ class _GifPickerState extends ConsumerState<GifPicker> {
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 children: [
                   _ProviderChip(
@@ -383,7 +383,7 @@ class _GifSliverGrid extends StatelessWidget {
                   child: GifSectionHeader(title: section.title),
                 ),
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: count,

@@ -14,7 +14,7 @@ import '../../../core/config/global.dart';
 import '../../../core/l10n/l10n.dart';
 import '../huge_icon.dart';
 import '../status/status_message.dart';
-import '../turnstile/turnstile_widget.dart';
+import '../turnstile/turnstile_modal.dart';
 import 'onboarding_primary_button.dart';
 import 'onboarding_secondary_button.dart';
 import 'onboarding_text_field.dart';
@@ -65,8 +65,6 @@ class OnboardingAuthCard extends ConsumerStatefulWidget {
 
 class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
   late OnboardingAuthMode _mode = widget.initialMode;
-  String? _turnstileToken;
-  int _turnstileKey = 0;
   bool _acceptLegal = false;
   bool _isOldEnough = false;
   bool _isLoading = false;
@@ -229,8 +227,7 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
     if (_isLoginMode) {
       final hasUsername = _usernameController.text.trim().isNotEmpty;
       final hasPassword = _passwordController.text.isNotEmpty;
-      final hasTurnstile = !widget.showTurnstile || _turnstileToken != null;
-      return hasUsername && hasPassword && hasTurnstile;
+      return hasUsername && hasPassword;
     }
 
     final handle = _handle.value;
@@ -261,29 +258,46 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
     final legalValid =
         !widget.showLegalCheckboxes || (_acceptLegal && _isOldEnough);
 
-    final turnstileValid = !widget.showTurnstile || _turnstileToken != null;
-
     return nameValid &&
         handleValid &&
         passwordValid &&
         confirmValid &&
-        legalValid &&
-        turnstileValid;
+        legalValid;
   }
 
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context);
-    setState(() => _statusError = null);
-
-    if (!_isSubmitEnabled(l10n)) {
+    if (!_isSubmitEnabled(l10n) || _isLoading) {
       return;
     }
 
-    setState(() => _isLoading = true);
-
-    final captchaTokenToUse = _turnstileToken;
+    setState(() {
+      _statusError = null;
+      _isLoading = true;
+    });
 
     try {
+      String? captchaToken;
+
+      // Cloudflare Turnstile is always solved inside a dedicated modal, right
+      // before the actual request. A dismissed modal counts as a failed
+      // verification and blocks the login/signup attempt.
+      if (widget.showTurnstile) {
+        captchaToken = await showTurnstileModal(
+          context,
+          siteKey: cloudflareTurnstilePublic,
+          action: _isLoginMode ? 'login' : 'signup',
+        );
+        if (!mounted) return;
+
+        if (captchaToken == null || captchaToken.isEmpty) {
+          setState(() {
+            _statusError = l10n?.turnstileVerificationCancelled;
+          });
+          return;
+        }
+      }
+
       if (widget.onSubmitData != null) {
         await widget.onSubmitData!(
           username: _usernameController.text.trim(),
@@ -292,7 +306,7 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
           confirmPassword: _isLoginMode
               ? null
               : _confirmPasswordController.text,
-          captchaToken: captchaTokenToUse,
+          captchaToken: captchaToken,
           acceptLegal: _acceptLegal,
           isOldEnough: _isOldEnough,
         );
@@ -309,11 +323,7 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _turnstileToken = null;
-          _turnstileKey++;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -524,25 +534,6 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
                   });
                 },
                 text: l10n.atLeastSixteen,
-              ),
-            ],
-            if (widget.showTurnstile) ...[
-              const SizedBox(height: 16),
-              Center(
-                child: TurnstileWidget(
-                  key: ValueKey('turnstile_$_turnstileKey'),
-                  siteKey: cloudflareTurnstilePublic,
-                  baseUrl: 'http://localhost',
-                  action: _isLoginMode ? 'login' : 'signup',
-                  theme: theme.brightness == Brightness.dark ? 'dark' : 'light',
-                  language: Localizations.localeOf(context).languageCode,
-                  onTokenReceived: (token) => setState(() {
-                    _turnstileToken = token;
-                    _statusError = null;
-                  }),
-                  onTokenExpired: () => setState(() => _turnstileToken = null),
-                  onError: (error) => debugPrint('Turnstile Error: $error'),
-                ),
               ),
             ],
             const SizedBox(height: 24),

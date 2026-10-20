@@ -34,7 +34,6 @@ final List<SettingCategory> infoDiagnosticsFlatEntriesCategory = [
         component: SettingComponent.action,
         scope: SettingScope.local,
         actionId: 'checkUpdates',
-        disabled: true,
         icon: HugeIcons.strokeRoundedRefresh,
       ),
       SettingItem(

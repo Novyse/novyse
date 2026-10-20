@@ -10,12 +10,16 @@
 struct _MyApplication {
   GtkApplication parent_instance;
   char **dart_entrypoint_arguments;
+  gboolean start_hidden;
 };
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 
 // Called when first Flutter frame received.
 static void first_frame_cb(MyApplication *self, FlView *view) {
+  if (self->start_hidden) {
+    return;
+  }
   gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
 }
 
@@ -85,6 +89,15 @@ static gboolean my_application_local_command_line(GApplication *application,
   MyApplication *self = MY_APPLICATION(application);
   // Strip out the first argument as it is the binary name.
   self->dart_entrypoint_arguments = g_strdupv(*arguments + 1);
+
+  self->start_hidden = FALSE;
+  for (gchar **arg = self->dart_entrypoint_arguments; arg != nullptr && *arg != nullptr;
+       arg++) {
+    if (g_strcmp0(*arg, "--hidden") == 0) {
+      self->start_hidden = TRUE;
+      break;
+    }
+  }
 
   g_autoptr(GError) error = nullptr;
   if (!g_application_register(application, nullptr, &error)) {

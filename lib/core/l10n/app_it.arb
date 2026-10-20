@@ -15,6 +15,21 @@
       }
     }
   },
+  "qrLoginScannerTitle": "Scansiona QR Code",
+  "qrLoginScannerInstruction": "Inquadra il codice QR mostrato sul dispositivo che vuoi collegare.",
+  "qrLoginScannerAuthorizing": "Autorizzazione in corso...",
+  "qrLoginScannerSuccessTitle": "Dispositivo autorizzato",
+  "qrLoginScannerSuccessMessage": "L'accesso verrà completato a breve sull'altro dispositivo.",
+  "qrLoginScannerInvalidCode": "Il codice QR non è valido o è scaduto. Prova a scansionarlo di nuovo.",
+  "qrLoginScannerScanAgain": "Scansiona di nuovo",
+  "qrLoginScannerDone": "Fatto",
+  "qrLoginScannerTorchOn": "Disattiva torcia",
+  "qrLoginScannerTorchOff": "Attiva torcia",
+  "qrLoginScannerSwitchCamera": "Cambia fotocamera",
+  "qrLoginScannerCameraPermissionTitle": "Accesso alla fotocamera necessario",
+  "qrLoginScannerCameraPermissionMessage": "Consenti l'accesso alla fotocamera nelle impostazioni di sistema per scansionare i codici QR.",
+  "qrLoginScannerCameraErrorTitle": "Fotocamera non disponibile",
+  "qrLoginScannerCameraErrorMessage": "Impossibile avviare la fotocamera. Riprova.",
   "loginSubtitle": "Inserisci le tue credenziali per accedere",
   "createAccount": "Crea account",
   "signupSubtitle": "Inizia subito con il tuo account",
@@ -46,6 +61,10 @@
   "signupSuccess": "Registrazione completata con successo! Ora puoi accedere.",
   "signupFailed": "Registrazione non riuscita. Verifica i dati e riprova.",
   "loginFailed": "Accesso non riuscito. Verifica le tue credenziali.",
+  "turnstileTitle": "Verifica di sicurezza",
+  "turnstileSubtitle": "Completa il controllo Cloudflare per continuare.",
+  "turnstileVerificationCancelled": "Verifica di sicurezza annullata. Completa il controllo Cloudflare per continuare.",
+  "turnstileVerificationFailed": "Verifica di sicurezza non riuscita. Riprova.",
   "statusSuccess": "Successo",
   "statusError": "Errore",
   "statusWarning": "Attenzione",
@@ -318,6 +337,8 @@
   "commsExitFullScreen": "Riduci",
   "commsFullScreen": "Schermo intero",
   "commsStopScreenShare": "Interrompi condivisione",
+  "commsPreviousShare": "Condivisione precedente",
+  "commsNextShare": "Condivisione successiva",
   "commsMuteUser": "Silenzia per me",
   "commsUnmuteUser": "Riattiva per me",
   "commsVolume": "Volume",
@@ -398,6 +419,7 @@
     }
   },
   "pinnedMessage": "Messaggio fissato",
+  "activeVoiceSpeedTitle": "Velocità di riproduzione",
   "attachMenuMedia": "Media",
   "attachMenuCamera": "Fotocamera",
   "attachMenuFile": "File",
@@ -979,6 +1001,8 @@
   "settingsItemProfilePhotoVisibilityTitle": "Foto Profilo e Avatar",
   "settingsItemPurgeCloudSubtitle": "Elimina asset archiviati",
   "settingsItemPurgeCloudTitle": "Elimina Media Cloud Remoti",
+  "settingsItemQrLoginScannerSubtitle": "Autorizza l'accesso su un altro dispositivo scansionando il suo QR code",
+  "settingsItemQrLoginScannerTitle": "Accedi con QR Code",
   "settingsItemQuotaGraphSubtitle": "Utilizzo bucket remoto",
   "settingsItemQuotaGraphTitle": "Quota Cloud",
   "settingsItemReadReceiptsSubtitle": "Spunte e indicatori di scrittura",
@@ -1248,5 +1272,14 @@
         "type": "String"
       }
     }
-  }
+  },
+  "updaterSystemPackageManaged": "Questa installazione è gestita dal package manager di sistema (RPM, DEB, AppImage). Scarica il nuovo pacchetto dal sito e installalo manualmente.",
+  "updaterCheckFailed": "Controllo aggiornamenti fallito. Riprova più tardi.",
+  "updaterCopyCommand": "Copia comando di aggiornamento",
+  "updaterCommandCopied": "Copiato",
+  "updaterMacOSUncertified": "Questa versione dell'app non è certificata e non supporta gli aggiornamenti automatici. Scarica la nuova versione dal sito.",
+  "updaterLinuxRpm": "Questa installazione usa un pacchetto RPM, che non supporta gli aggiornamenti in-app. Scarica il nuovo .rpm dal sito e installalo col package manager (es. sudo dnf install ./novyse-*.rpm).",
+  "updaterLinuxDeb": "Questa installazione usa un pacchetto DEB, che non supporta gli aggiornamenti in-app. Scarica il nuovo .deb dal sito e installalo col package manager (es. sudo apt install ./novyse-*.deb).",
+  "updaterLinuxAppImage": "Questa installazione è un'AppImage, che non supporta gli aggiornamenti in-app. Scarica la nuova .AppImage dal sito e sostituisci il vecchio file (poi chmod +x).",
+  "updaterReadOnlyInstall": "Questa cartella di installazione non è scrivibile: aggiornamento in-app non disponibile. Scarica la nuova versione dal sito."
 }

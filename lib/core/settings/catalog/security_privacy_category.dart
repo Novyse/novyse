@@ -1,5 +1,6 @@
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/settings/settings_models.dart';
+import 'package:novyse/core/utils/platform.dart';
 
 /// Security & Privacy settings.
 final List<SettingCategory> securityPrivacyCategory = [
@@ -42,6 +43,14 @@ final List<SettingCategory> securityPrivacyCategory = [
                 component: SettingComponent.custom,
                 scope: SettingScope.synchronized,
                 customRendererId: 'sessionAuditor',
+              ),
+              SettingItem(
+                id: 'qr_login_scanner',
+                title: (l) => l.settingsItemQrLoginScannerTitle,
+                subtitle: (l) => l.settingsItemQrLoginScannerSubtitle,
+                component: SettingComponent.custom,
+                customRendererId: 'qrLoginScanner',
+                supportedOS: const [AppOS.android, AppOS.ios, AppOS.web],
               ),
               SettingItem(
                 id: 'api_keys',

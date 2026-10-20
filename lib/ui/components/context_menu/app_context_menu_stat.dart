@@ -45,7 +45,7 @@ class AppMenuStat extends StatelessWidget {
               Text(
                 text,
                 style: TextStyle(
-                  fontSize: 12.5,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: colorScheme.onSurface,
                 ),

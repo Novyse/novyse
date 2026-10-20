@@ -52,12 +52,16 @@ void main() {
     bool isScreenShare = false,
     bool isLocal = false,
     bool isSpeaking = false,
+    bool isRemoteMuted = false,
+    bool isLocallyMuted = false,
   }) => CommsTileItem(
     id: id,
     userUUID: userUUID,
     isScreenShare: isScreenShare,
     isLocal: isLocal,
     isSpeaking: isSpeaking,
+    isRemoteMuted: isRemoteMuted,
+    isLocallyMuted: isLocallyMuted,
     trackSid: isScreenShare ? id : null,
   );
 
@@ -192,7 +196,7 @@ void main() {
       final l10n = await pump(tester, item: tile(), onPin: () => pinned++);
 
       await tester.tap(find.byTooltip(l10n.commsPin));
-      await tester.pump();
+      await tester.pump(kDoubleTapTimeout);
 
       expect(pinned, 1);
     });
@@ -206,7 +210,7 @@ void main() {
       );
 
       await tester.tap(find.byTooltip(l10n.commsFullScreen));
-      await tester.pump();
+      await tester.pump(kDoubleTapTimeout);
 
       expect(toggled, 1);
     });
@@ -243,7 +247,7 @@ void main() {
       );
 
       await tester.tap(find.byTooltip(l10n.commsStopScreenShare));
-      await tester.pump();
+      await tester.pump(kDoubleTapTimeout);
 
       expect(stopped, 1);
     });
@@ -503,7 +507,7 @@ void main() {
 
       final card = find.byType(CommsUserCard);
       await tester.tap(card);
-      await tester.pump();
+      await tester.pump(kDoubleTapTimeout);
 
       expect(find.text(l10n.commsMuteUser), findsOneWidget);
     });
@@ -552,6 +556,42 @@ void main() {
 
       expect(pinned, 1);
       expect(find.text(l10n.commsMuteUser), findsNothing);
+    });
+
+    testWidgets('double tap pins the card without opening the menu', (
+      tester,
+    ) async {
+      var pinned = 0;
+      final l10n = await pump(tester, item: muteTile(), onPin: () => pinned++);
+
+      final card = find.byType(CommsUserCard);
+      await tester.tap(card);
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(card);
+      await tester.pumpAndSettle();
+
+      expect(pinned, 1);
+      expect(find.text(l10n.commsMuteUser), findsNothing);
+    });
+
+    testWidgets('double tap toggles pin on an already pinned card', (
+      tester,
+    ) async {
+      var toggles = 0;
+      await pump(
+        tester,
+        item: muteTile(),
+        isPinned: true,
+        onPin: () => toggles++,
+      );
+
+      final card = find.byType(CommsUserCard);
+      await tester.tap(card);
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(card);
+      await tester.pumpAndSettle();
+
+      expect(toggles, 1);
     });
   });
 
@@ -605,6 +645,26 @@ void main() {
 
     testWidgets('a screen share never counts as speaking', (tester) async {
       await pump(tester, item: tile(isSpeaking: true, isScreenShare: true));
+
+      expect(borderColor(tester).a, lessThan(1));
+    });
+
+    testWidgets('a remote self-muted participant is not speaking', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        item: tile(isSpeaking: true, isRemoteMuted: true),
+      );
+
+      expect(borderColor(tester).a, lessThan(1));
+    });
+
+    testWidgets('a locally muted participant is not speaking', (tester) async {
+      await pump(
+        tester,
+        item: tile(isSpeaking: true, isLocallyMuted: true),
+      );
 
       expect(borderColor(tester).a, lessThan(1));
     });
@@ -746,6 +806,7 @@ void main() {
 
         // Tap opens menu
         await tester.tap(find.byType(CommsUserCard));
+        await tester.pump(kDoubleTapTimeout);
         await tester.pumpAndSettle();
         expect(find.text(l10n.commsMuteUser), findsOneWidget);
       },

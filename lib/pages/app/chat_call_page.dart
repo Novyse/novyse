@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/comms/comms_data_provider.dart';
+import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/ui/components/comms/comms_bottom_bar.dart';
 import 'package:novyse/ui/components/comms/comms_members_layout.dart';
 
@@ -16,7 +17,10 @@ class ChatCallPage extends ConsumerWidget {
       commsDataProvider((chatUUID: chatUUID, sub: subID)),
     );
 
-    final topPadding = MediaQuery.paddingOf(context).top + kToolbarHeight + 8;
+    final fallbackTop = MediaQuery.paddingOf(context).top + kToolbarHeight + 8;
+    final measuredTop =
+        ref.watch(activeChatProvider.select((s) => s.headerHeight)) + 12;
+    final topPadding = measuredTop > fallbackTop ? measuredTop : fallbackTop;
     const bottomPadding = 90.0;
 
     return Scaffold(

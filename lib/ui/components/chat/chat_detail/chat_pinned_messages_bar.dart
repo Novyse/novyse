@@ -7,6 +7,7 @@ import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Interactive component displaying pinned messages within the chat sub-header bar.
@@ -130,25 +131,42 @@ class _ChatPinnedMessagesBarState extends ConsumerState<ChatPinnedMessagesBar> {
 
     final hasMultiple = pinnedMessages.length > 1;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () {
-          ref
-              .read(activeChatProvider.notifier)
-              .jumpToMessage(messageIdStr, subID: subID);
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          child: Row(
-            children: [
-              AppHugeIcon(
-                icon: HugeIcons.strokeRoundedPin02,
-                size: 18,
-                color: scheme.primary,
-              ),
-              const SizedBox(width: 10),
+    return SizedBox(
+      height: FloatingAppBarConsts.barOuterSize,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(
+          FloatingAppBarConsts.subHeaderInnerRadius,
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(
+            FloatingAppBarConsts.subHeaderInnerRadius,
+          ),
+          onTap: () {
+            ref
+                .read(activeChatProvider.notifier)
+                .jumpToMessage(messageIdStr, subID: subID);
+          },
+          child: Padding(
+            padding: FloatingAppBarConsts.subHeaderInnerPadding,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: FloatingAppBarConsts.barContentSize,
+                  height: FloatingAppBarConsts.barContentSize,
+                  child: Center(
+                    child: AppHugeIcon(
+                      icon: HugeIcons.strokeRoundedPin02,
+                      size: FloatingAppBarConsts.barIconSize,
+                      color: scheme.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  width: FloatingAppBarConsts.subHeaderContentGap,
+                ),
               Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -191,31 +209,21 @@ class _ChatPinnedMessagesBarState extends ConsumerState<ChatPinnedMessagesBar> {
                 ),
               ),
               if (hasMultiple) ...[
-                const SizedBox(width: 6),
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 28,
-                    minHeight: 28,
-                  ),
+                const SizedBox(
+                  width: FloatingAppBarConsts.subHeaderActionsGap,
+                ),
+                FloatingIconButton(
                   icon: AppHugeIcon(
                     icon: HugeIcons.strokeRoundedArrowLeft02,
-                    size: 16,
+                    size: FloatingAppBarConsts.barIconSize,
                     color: scheme.onSurfaceVariant,
                   ),
                   onPressed: () => _handlePrev(pinnedMessages.length),
                 ),
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 28,
-                    minHeight: 28,
-                  ),
+                FloatingIconButton(
                   icon: AppHugeIcon(
                     icon: HugeIcons.strokeRoundedArrowRight02,
-                    size: 16,
+                    size: FloatingAppBarConsts.barIconSize,
                     color: scheme.onSurfaceVariant,
                   ),
                   onPressed: () => _handleNext(pinnedMessages.length),
@@ -225,6 +233,7 @@ class _ChatPinnedMessagesBarState extends ConsumerState<ChatPinnedMessagesBar> {
           ),
         ),
       ),
+    ),
     );
   }
 }

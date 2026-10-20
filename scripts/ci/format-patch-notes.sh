@@ -21,13 +21,26 @@ formatted=$(printf "%b" "$raw_input")
 # 2. If the text has no newlines, it was flattened into a single line by the web input.
 # Reconstruct markdown line breaks based on standard delimiters:
 if [[ "$formatted" != *$'\n'* ]]; then
-  formatted=$(printf "%s" "$formatted" | sed -E \
-    -e 's/ +(#{1,6} +)/\n\n\1/g' \
-    -e 's/ +([-*] +)/\n- /g' \
-    -e 's/ +• +/\n- /g' \
-    -e 's/ +([0-9]+\. +)/\n\1/g' \
-    -e 's/ +(> +)/\n\n\1/g' \
-    -e 's/ +(---)/\n\n---\n\n/g')
+  # Step 1: Put double newline before headers (##, ###, etc.)
+  # Note: The H1 title ("# Novyse ... - Subtitle") is preserved intact
+  formatted=$(printf "%s" "$formatted" | sed -E 's/ +(#{1,6} +)/\n\n\1/g')
+
+  # Step 2: Separate the first bullet following a section or category header (## or ###, never #)
+  formatted=$(printf "%s" "$formatted" | sed -E 's/^(#{2,6} [^\n*•-]+) +([*•] +)/\1\n\n\2/gm')
+  formatted=$(printf "%s" "$formatted" | sed -E 's/^(#{2,6} [^\n*•-]+) +(- [A-Z*#])/\1\n\n\2/gm')
+
+  # Step 3: For lines that do NOT start with #, separate subsequent bullets into new lines
+  formatted=$(printf "%s" "$formatted" | sed -E '/^#/! s/ +([*•] +)/\n\1/g')
+  formatted=$(printf "%s" "$formatted" | sed -E '/^#/! s/ +(- [A-Z*#])/\n\1/g')
+
+  # Step 4: Numbered lists (1. Item)
+  formatted=$(printf "%s" "$formatted" | sed -E 's/ +([0-9]+\. +)/\n\1/g')
+
+  # Step 5: Blockquotes (> Note)
+  formatted=$(printf "%s" "$formatted" | sed -E 's/ +(> +)/\n\n\1/g')
+
+  # Step 6: Horizontal dividers (---)
+  formatted=$(printf "%s" "$formatted" | sed -E 's/ +(---)/\n\n---\n\n/g')
 fi
 
 # 3. Clean up excessive blank lines (max 1 blank line between sections)

@@ -233,27 +233,28 @@ void main() {
 
   group('timestamp', () {
     testWidgets('shows only the time for today', (tester) async {
-      final now = DateTime.now();
+      final localNow = DateTime.now();
+      final localTime = localNow.subtract(const Duration(minutes: 5));
       await pump(
         tester,
         result: {
           'chatUUID': 'chat-1',
           'content': 'hello',
-          'created_at': now
-              .subtract(const Duration(minutes: 5))
-              .toIso8601String(),
+          'created_at': localTime.toUtc().toIso8601String(),
         },
         chat: groupChat,
       );
 
       final expected =
-          '${now.subtract(const Duration(minutes: 5)).hour.toString().padLeft(2, '0')}:'
-          '${now.subtract(const Duration(minutes: 5)).minute.toString().padLeft(2, '0')}';
+          '${localTime.hour.toString().padLeft(2, '0')}:'
+          '${localTime.minute.toString().padLeft(2, '0')}';
       expect(find.text(expected), findsOneWidget);
     });
 
     testWidgets('shows a date for an older message', (tester) async {
-      final old = DateTime.now().subtract(const Duration(days: 10));
+      final old = DateTime.now()
+          .subtract(const Duration(days: 10))
+          .toUtc();
       await pump(
         tester,
         result: {
@@ -265,11 +266,13 @@ void main() {
       );
 
       // A localized short date, not a bare time.
-      expect(find.textContaining('${old.day}'), findsOneWidget);
+      expect(find.textContaining('${old.toLocal().day}'), findsOneWidget);
     });
 
     testWidgets('accepts the createdAt key too', (tester) async {
-      final now = DateTime.now().subtract(const Duration(minutes: 5));
+      final now = DateTime.now()
+          .subtract(const Duration(minutes: 5))
+          .toUtc();
       await pump(
         tester,
         result: {

@@ -1,5 +1,3 @@
-import 'dart:io' as io;
-
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:novyse/core/chat/message_file.dart';
+import 'package:novyse/core/storage/file/file_uri.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/utils/media_kit_initializer.dart';
@@ -285,6 +284,7 @@ class _ViewerPage extends StatelessWidget {
           imageProvider: _imageProviderFor(uri),
           minScale: PhotoViewComputedScale.contained,
           maxScale: PhotoViewComputedScale.covered * 3,
+          filterQuality: FilterQuality.high,
           loadingBuilder: (context, event) => const Center(
             child: CircularProgressIndicator(color: Colors.white),
           ),
@@ -301,10 +301,7 @@ class _ViewerPage extends StatelessWidget {
         uri.startsWith('https://')) {
       return NetworkImage(uri);
     }
-    final clean = uri.startsWith('file://')
-        ? uri.replaceFirst('file://', '')
-        : uri;
-    return FileImage(io.File(clean));
+    return FileImage(fileFromUri(uri));
   }
 }
 

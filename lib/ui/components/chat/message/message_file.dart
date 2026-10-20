@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/services/file_download_service.dart';
 import 'package:novyse/core/storage/file/file_type.dart';
+import 'package:novyse/core/storage/file/file_uri.dart';
 import 'package:novyse/core/storage/file/file_utils.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
 import 'package:novyse/core/storage/file/web_blob_url.dart' as web_file;
@@ -44,13 +45,22 @@ class _MessageFileAttachmentState extends State<MessageFileAttachment> {
     super.initState();
     _isDownloading = FileDownloadService.instance.isDownloading(widget.uuid);
     GlobalEventEmitter.instance.on('file:download_progress', _onProgress);
-    GlobalEventEmitter.instance.on('file:downloaded', _onDownloaded);
+  }
+
+  @override
+  void didUpdateWidget(covariant MessageFileAttachment oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.fileRef != oldWidget.fileRef &&
+        widget.fileRef != null &&
+        widget.fileRef!.isNotEmpty) {
+      _isDownloading = false;
+      _downloadProgress = 1.0;
+    }
   }
 
   @override
   void dispose() {
     GlobalEventEmitter.instance.off('file:download_progress', _onProgress);
-    GlobalEventEmitter.instance.off('file:downloaded', _onDownloaded);
     super.dispose();
   }
 
@@ -62,18 +72,6 @@ class _MessageFileAttachmentState extends State<MessageFileAttachment> {
         setState(() {
           _isDownloading = true;
           _downloadProgress = progress;
-        });
-      }
-    }
-  }
-
-  void _onDownloaded(dynamic data) {
-    if (data is Map && mounted) {
-      final uuid = data['fileUUID'] as String?;
-      if (uuid != null && uuid == widget.uuid) {
-        setState(() {
-          _isDownloading = false;
-          _downloadProgress = 1.0;
         });
       }
     }
@@ -126,10 +124,7 @@ class _MessageFileAttachmentState extends State<MessageFileAttachment> {
         if (uri.startsWith('http://') || uri.startsWith('https://')) {
           await launchUrl(Uri.parse(uri));
         } else {
-          final cleanUri = uri.startsWith('file://')
-              ? uri.replaceFirst('file://', '')
-              : uri;
-          await OpenFile.open(cleanUri);
+          await OpenFile.open(filePathFromUri(uri));
         }
       }
     } catch (e) {

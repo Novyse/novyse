@@ -6,6 +6,7 @@ import 'package:novyse/core/services/api/modules/gather_module.dart';
 import 'package:novyse/core/services/api/modules/message_module.dart';
 import 'package:novyse/core/services/api/modules/notification_module.dart';
 import 'package:novyse/core/services/api/modules/search_module.dart';
+import 'package:novyse/core/services/api/modules/system_module.dart';
 import 'package:novyse/core/services/api/modules/user_module.dart';
 import 'package:novyse/core/services/api/modules/watch_together_module.dart';
 import 'package:novyse/core/services/api_gateway.dart';
@@ -29,7 +30,8 @@ class FakeGateway implements Gateway {
       file = FileModule(http.dio),
       comms = CommsModule(http.dio),
       watchTogether = WatchTogetherModule(http.dio),
-      notification = NotificationModule(http.dio);
+      notification = NotificationModule(http.dio),
+      system = SystemModule(http.dio);
 
   /// A gateway that replies to every request with [data] in a success envelope.
   factory FakeGateway.always(Object? data) =>
@@ -73,6 +75,9 @@ class FakeGateway implements Gateway {
 
   @override
   final NotificationModule notification;
+
+  @override
+  final SystemModule system;
 
   List<RecordedRequest> get requests => http.requests;
 }

@@ -175,5 +175,50 @@ void main() {
         expect(sentState.messages.first.isPending, isFalse);
       },
     );
+
+    test('applies FileDownloadedEvent metadata to the matching file', () async {
+      const key = (chatUUID: 'chat-1', subID: 0);
+      container.read(chatMessagesProvider(key).notifier);
+      final bus = container.read(eventBusProvider);
+
+      bus.emit(
+        const MessageNewEvent({
+          'id': 1,
+          'chatUUID': 'chat-1',
+          'subID': 0,
+          'userUUID': 'user-1',
+          'createdAt': '2026-08-31T12:00:00.000Z',
+          'files': [
+            {
+              'uuid': 'file-1',
+              'name': 'novyse_vocal_1.m4a',
+              'mimeType': 'audio/aac',
+              'size': 10,
+            },
+          ],
+        }),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      bus.emit(
+        const FileDownloadedEvent(
+          fileUUID: 'file-1',
+          uri: 'file:///voice.m4a',
+          waveform: [0.1, 0.5],
+          duration: 12,
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      final file = container
+          .read(chatMessagesProvider(key))
+          .messages
+          .first
+          .files
+          .first;
+      expect(file['uri'], equals('file:///voice.m4a'));
+      expect(file['waveform'], equals([0.1, 0.5]));
+      expect(file['duration'], equals(12));
+    });
   });
 }

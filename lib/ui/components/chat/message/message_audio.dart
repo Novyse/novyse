@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/chat/chat_audio_service.dart';
 import 'package:novyse/core/storage/file/file_utils.dart';
 import 'package:novyse/core/storage/file/playable_uri.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
-import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/chat/message/message_placeholder_bar.dart';
+import 'package:novyse/ui/components/chat/message/message_play_button.dart';
+import 'package:novyse/ui/components/slider/app_progress_slider.dart';
 
-/// Displays an audio file message with playback controls and progress slider.
-class MessageAudio extends StatefulWidget {
+/// Displays an audio file message with playback controls and a slider.
+class MessageAudio extends StatelessWidget {
   const MessageAudio({
     super.key,
     required this.fileRef,
@@ -16,6 +17,10 @@ class MessageAudio extends StatefulWidget {
     this.size,
     this.duration,
     this.isPending = false,
+    this.messageID,
+    this.chatUUID,
+    this.subID,
+    this.senderUUID,
   });
 
   final String? fileRef;
@@ -25,26 +30,28 @@ class MessageAudio extends StatefulWidget {
   final int? duration;
   final bool isPending;
 
-  @override
-  State<MessageAudio> createState() => _MessageAudioState();
-}
+  /// Chat context, stored in [ChatAudioService] for the global voice bar.
+  final dynamic messageID;
+  final String? chatUUID;
+  final int? subID;
+  final String? senderUUID;
 
-class _MessageAudioState extends State<MessageAudio> {
+  Future<void> _seek(double value) async {
+    await ChatAudioService.instance.seek(Duration(milliseconds: value.toInt()));
+  }
+
   Future<void> _togglePlayPause(String? uri) async {
     if (!isPlayableMediaUri(uri)) return;
 
     await ChatAudioService.instance.togglePlayPause(
-      id: widget.uuid,
+      id: uuid,
       uri: uri!,
-      initialDuration: widget.duration != null
-          ? Duration(seconds: widget.duration!)
-          : null,
+      initialDuration: duration != null ? Duration(seconds: duration!) : null,
+      chatUUID: chatUUID,
+      subID: subID,
+      messageID: messageID,
+      senderUUID: senderUUID,
     );
-  }
-
-  Future<void> _seek(double value) async {
-    final position = Duration(milliseconds: value.toInt());
-    await ChatAudioService.instance.seek(position);
   }
 
   @override
@@ -52,15 +59,14 @@ class _MessageAudioState extends State<MessageAudio> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Use UriResolver to resolve local file refs or download via fileUUID
     return UriResolver(
-      ref: widget.fileRef,
-      fileUUID: widget.uuid,
-      name: widget.name,
-      mimeType: 'audio/mpeg',
+      ref: fileRef,
+      fileUUID: uuid,
+      name: name,
       autoDownload: true,
+      placeholder: _buildPlayerWidget(colorScheme, null, loading: true),
       builder: (context, resolvedUri) {
-        final displayUri = resolveMediaUri(resolvedUri, widget.fileRef);
+        final displayUri = resolveMediaUri(resolvedUri, fileRef);
 
         return ListenableBuilder(
           listenable: ChatAudioService.instance,
@@ -70,15 +76,22 @@ class _MessageAudioState extends State<MessageAudio> {
     );
   }
 
-  Widget _buildPlayerWidget(ColorScheme colorScheme, String? displayUri) {
+  Widget _buildPlayerWidget(
+    ColorScheme colorScheme,
+    String? displayUri, {
+    bool loading = false,
+  }) {
     final audioService = ChatAudioService.instance;
-    final isItemActive = audioService.isItemActive(widget.uuid);
-    final isPlaying = audioService.isItemPlaying(widget.uuid);
-    final currentPosition = audioService.getItemPosition(widget.uuid);
+    final isItemActive = !loading && audioService.isItemActive(uuid);
+    final isPlaying = !loading && audioService.isItemPlaying(uuid);
+    final currentPosition = loading
+        ? Duration.zero
+        : audioService.getItemPosition(uuid);
 
-    final totalMs = isItemActive && audioService.duration > Duration.zero
+    final totalMs =
+        !loading && isItemActive && audioService.duration > Duration.zero
         ? audioService.duration.inMilliseconds
-        : ((widget.duration ?? 0) * 1000);
+        : (loading ? 0 : (duration ?? 0) * 1000);
 
     return Container(
       constraints: const BoxConstraints(minWidth: 200, maxWidth: 280),
@@ -86,16 +99,20 @@ class _MessageAudioState extends State<MessageAudio> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Play/Pause button
-          _buildPlayButton(colorScheme, isPlaying, displayUri),
+          MessagePlayButton(
+            isPlaying: isPlaying,
+            isPlayable: isPlayableMediaUri(displayUri),
+            isPending: isPending,
+            isLoading: loading,
+            onTap: () => _togglePlayPause(displayUri),
+          ),
           const SizedBox(width: 10),
-          // Slider and info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.name,
+                  name,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -104,105 +121,63 @@ class _MessageAudioState extends State<MessageAudio> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SliderTheme(
-                  data: SliderThemeData(
-                    trackHeight: 3,
-                    thumbShape: const RoundSliderThumbShape(
-                      enabledThumbRadius: 6,
-                    ),
-                    overlayShape: const RoundSliderOverlayShape(
-                      overlayRadius: 14,
-                    ),
-                    activeTrackColor: colorScheme.primary,
-                    inactiveTrackColor: colorScheme.surfaceContainerHighest,
-                    thumbColor: colorScheme.primary,
-                  ),
-                  child: Slider(
-                    value: currentPosition.inMilliseconds.toDouble().clamp(
-                      0,
-                      totalMs > 0 ? totalMs.toDouble() : 1.0,
-                    ),
-                    max: totalMs > 0 ? totalMs.toDouble() : 1.0,
-                    onChanged: isItemActive ? _seek : null,
-                  ),
+                AppProgressSlider(
+                  positionMs: currentPosition.inMilliseconds.toDouble(),
+                  totalMs: totalMs.toDouble(),
+                  onSeek: isItemActive ? _seek : null,
+                  onSeekStart: isItemActive
+                      ? ChatAudioService.instance.beginSeek
+                      : null,
+                  onSeekEnd: isItemActive
+                      ? ChatAudioService.instance.endSeek
+                      : null,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      formatTime(currentPosition.inSeconds),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: colorScheme.onSurfaceVariant,
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                      ),
+                if (loading)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 2),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: MessagePlaceholderBar(),
                     ),
-                    Text(
-                      formatDuration(
-                        totalMs > 0 ? totalMs ~/ 1000 : widget.duration,
+                  )
+                else ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        formatTime(currentPosition.inSeconds),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colorScheme.onSurfaceVariant,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                       ),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: colorScheme.onSurfaceVariant,
+                      Text(
+                        formatDuration(
+                          totalMs > 0 ? totalMs ~/ 1000 : duration,
+                        ),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                if (widget.size != null && widget.size! > 0)
-                  Text(
-                    formatFileSize(widget.size),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: colorScheme.onSurfaceVariant.withValues(
-                        alpha: 0.7,
-                      ),
-                    ),
+                    ],
                   ),
+                  if (size != null && size! > 0)
+                    Text(
+                      formatFileSize(size),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.7,
+                        ),
+                      ),
+                    ),
+                ],
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPlayButton(
-    ColorScheme colorScheme,
-    bool isPlaying,
-    String? displayUri,
-  ) {
-    final isAvailable = isPlayableMediaUri(displayUri) || widget.isPending;
-
-    return GestureDetector(
-      onTap: isAvailable && !widget.isPending
-          ? () => _togglePlayPause(displayUri)
-          : null,
-      child: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          color: isAvailable
-              ? colorScheme.primary
-              : colorScheme.surfaceContainerHighest,
-          shape: BoxShape.circle,
-        ),
-        child: widget.isPending
-            ? Padding(
-                padding: const EdgeInsets.all(10),
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              )
-            : AppHugeIcon(
-                icon: isPlaying
-                    ? HugeIcons.strokeRoundedPause
-                    : HugeIcons.strokeRoundedPlay,
-                color: isAvailable
-                    ? colorScheme.onPrimary
-                    : colorScheme.onSurfaceVariant,
-                size: 24,
-              ),
       ),
     );
   }

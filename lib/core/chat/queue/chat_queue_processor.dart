@@ -9,6 +9,7 @@ import 'package:novyse/core/chat/queue/queue_media.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/notifications/notification_bridge.dart';
 import 'package:novyse/core/services/api_gateway.dart';
+import 'package:novyse/core/services/media_metadata_service.dart';
 import 'package:novyse/core/storage/database/database.dart';
 import 'package:novyse/core/storage/file/file.dart';
 
@@ -206,7 +207,9 @@ class ChatQueueProcessor {
   }
 
   Future<void> _processNext() async {
-    if (_disposed || _isProcessing || QueueManager.instance.isGlobalPaused) return;
+    if (_disposed || _isProcessing || QueueManager.instance.isGlobalPaused) {
+      return;
+    }
 
     final pendingJobs = _jobs
         .where((j) => j.status == JobStatus.pending)
@@ -314,8 +317,11 @@ class ChatQueueProcessor {
 
         // Exponential backoff with jitter (2^attempts * 1000ms + random jitter up to 500ms, max 30s)
         final jitter = Random().nextInt(500);
-        final exponentialDelayMs = (pow(2, job.attempts) * 1000).toInt() + jitter;
-        final backoffDelay = Duration(milliseconds: min(exponentialDelayMs, 30000));
+        final exponentialDelayMs =
+            (pow(2, job.attempts) * 1000).toInt() + jitter;
+        final backoffDelay = Duration(
+          milliseconds: min(exponentialDelayMs, 30000),
+        );
         _scheduleRetry(backoffDelay);
       }
     } finally {
@@ -377,6 +383,7 @@ class ChatQueueProcessor {
 
     // 2. Persist local message in DB in pending/sending status and emit global event
     if (_disposed || !AppDatabase.instance.isOpen) return;
+    message['files'] = files;
     message['chatUUID'] = chatUUID;
     message['subID'] = job.subID;
     message['status'] = 'PENDING_SEND';
@@ -862,16 +869,39 @@ class ChatQueueProcessor {
     if (_disposed) return;
 
     // Save downloaded bytes to local file storage
-    final ext = (job.payload['name'] as String? ?? '').split('.').last;
+    final name = job.payload['name'] as String? ?? fileUUID;
+    final mimeType = job.payload['mimeType'] as String? ?? defaultMimeType;
+    final ext = name.split('.').last;
     final saveResult = await FileStorage.instance.save.byBytes(
       bytes,
       '$fileUUID.${ext.isNotEmpty ? ext : "dat"}',
     );
     final uri =
-        await FileStorage.instance.read(saveResult.ref) ?? saveResult.ref;
+        await FileStorage.instance.read(saveResult.ref, mimeType) ??
+        saveResult.ref;
 
     if (AppDatabase.instance.isOpen) {
       await AppDatabase.instance.file.update.uri(fileUUID, uri);
+    }
+
+    GlobalEventEmitter.instance.fileDownloaded(fileUUID: fileUUID, uri: uri);
+
+    final duration = await MediaDuration.read(
+      uri: uri,
+      bytes: bytes,
+      name: name,
+      mimeType: mimeType,
+    );
+    final waveform = await generateVoiceWaveform(
+      fileUUID: fileUUID,
+      bytes: bytes,
+      name: name,
+      mimeType: mimeType,
+      localUri: uri,
+    );
+
+    if (AppDatabase.instance.isOpen && duration != null && duration > 0) {
+      await AppDatabase.instance.file.update.duration(fileUUID, duration);
     }
 
     if (_disposed) return;
@@ -886,9 +916,13 @@ class ChatQueueProcessor {
     }
     _jobs.removeWhere((j) => j.id == job.id);
 
-    GlobalEventEmitter.instance.emit('file:downloaded', {
-      'fileUUID': fileUUID,
-      'uri': uri,
-    });
+    if (duration != null || waveform != null) {
+      GlobalEventEmitter.instance.fileDownloaded(
+        fileUUID: fileUUID,
+        uri: uri,
+        waveform: waveform,
+        duration: duration,
+      );
+    }
   }
 }

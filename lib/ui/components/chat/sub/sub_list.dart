@@ -15,6 +15,7 @@ import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/chat/sub/create_sub_modal.dart';
 import 'package:novyse/ui/components/chat/sub/vocal_sub_subtitle.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/layout/pane_resizer.dart';
 
 const double kSubListCollapsedWidth = 70;
 const double kSubListDefaultWidth = 250;
@@ -92,6 +93,12 @@ class SubList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
+
+    final measuredTop =
+        ref.watch(activeChatProvider.select((s) => s.headerHeight)) + 12;
+    final effectiveTopPadding = measuredTop > topPadding
+        ? measuredTop
+        : topPadding;
     final localUserUUID = ref.watch(
       userStoreProvider.select((s) => s.localUserUUID),
     );
@@ -102,7 +109,7 @@ class SubList extends ConsumerWidget {
     );
 
     return Padding(
-      padding: EdgeInsets.only(top: topPadding, left: 10, bottom: 10),
+      padding: EdgeInsets.only(top: effectiveTopPadding, left: 10, bottom: 10),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(25),
         child: BackdropFilter(
@@ -119,7 +126,7 @@ class SubList extends ConsumerWidget {
             child: Stack(
               children: [
                 ListView.separated(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   itemCount: chat.subs.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
@@ -258,6 +265,10 @@ class SubList extends ConsumerWidget {
 }
 
 /// Vertical drag handle used to resize the forum SubList column.
+///
+/// Unified with the master/detail divider: same pill, same hover/drag
+/// feedback ([PaneResizer]). Kept as a thin alias so existing call sites
+/// don't change.
 class SubListResizeHandle extends StatelessWidget {
   const SubListResizeHandle({super.key, required this.onDragUpdate});
 
@@ -265,26 +276,6 @@ class SubListResizeHandle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onHorizontalDragUpdate: (details) => onDragUpdate(details.delta.dx),
-      child: MouseRegion(
-        cursor: SystemMouseCursors.resizeColumn,
-        child: SizedBox(
-          width: 10,
-          child: Center(
-            child: Container(
-              width: 3,
-              height: 36,
-              decoration: BoxDecoration(
-                color: colorScheme.outline.withValues(alpha: 0.45),
-                borderRadius: BorderRadius.circular(999),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    return PaneResizer(onDrag: onDragUpdate);
   }
 }

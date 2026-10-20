@@ -152,7 +152,7 @@ class MessageText extends StatelessWidget {
         p: defaultStyle,
         pPadding: EdgeInsets.zero,
         code: TextStyle(
-          fontSize: 13.5,
+          fontSize: 13,
           fontFamily: 'monospace',
           color: textColor,
           backgroundColor: codeBgColor,

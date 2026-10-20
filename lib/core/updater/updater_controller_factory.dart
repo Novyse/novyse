@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../config/global.dart' as config;
 import '../utils/platform.dart';
+import 'self_update_capability.dart';
 import 'update_recovery_store.dart';
 import 'updater_keys.dart';
 
@@ -46,13 +47,44 @@ Future<DesktopUpdaterController> createDesktopUpdaterController({
     channel: _updateChannel,
     localization: localization,
     skipInitialVersionCheck: true,
+    diagnosticsRecorder: UpdateDiagnosticsRecorder(channel: _updateChannel),
   );
+}
+
+/// Clears a wedged pending-install marker left behind by a failed attempt.
+Future<void> clearStalePendingDesktopInstall() async {
+  try {
+    final recoveryStore = await createUpdateRecoveryStore();
+    final marker = await recoveryStore.readPendingInstall(
+      channel: _updateChannel,
+    );
+    if (marker == null) return;
+    if (marker.updateVersion == config.appVersion) return;
+    final stagingPath = marker.stagingPath;
+    if (stagingPath != null && stagingPath.isNotEmpty) {
+      try {
+        final stageDir = Directory(stagingPath);
+        if (await stageDir.exists()) {
+          await stageDir.delete(recursive: true);
+        }
+      } catch (e) {
+        debugPrint('[updater] stale stage cleanup skipped: $e');
+      }
+    }
+    await recoveryStore.clearPendingInstall(channel: _updateChannel);
+    debugPrint(
+      '[updater] cleared stale pending install for ${marker.updateVersion}.',
+    );
+  } catch (e) {
+    debugPrint('[updater] stale pending-install cleanup skipped: $e');
+  }
 }
 
 Future<void> recoverPendingDesktopInstall() async {
   if (kIsWeb) return;
   if (currentPlatform != AppPlatform.desktop ||
-      currentInstallSource != AppInstallSource.direct) {
+      currentInstallSource != AppInstallSource.direct ||
+      !canSelfUpdateInstallation()) {
     return;
   }
   try {
@@ -62,4 +94,5 @@ Future<void> recoverPendingDesktopInstall() async {
   } catch (e) {
     debugPrint('[updater] pending-install recovery skipped: $e');
   }
+  await clearStalePendingDesktopInstall();
 }

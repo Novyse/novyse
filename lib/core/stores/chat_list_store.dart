@@ -54,28 +54,37 @@ class ChatModel {
       if (map['lastMessage'] != null && map['lastMessage'] is Map) {
         return Map<String, dynamic>.from(map['lastMessage'] as Map);
       }
-      if (map['subs'] is List) {
-        Map<String, dynamic>? latestSubMsg;
-        DateTime? latestDate;
-        for (final sub in map['subs'] as List) {
-          if (sub is Map &&
-              sub['lastMessage'] != null &&
-              sub['lastMessage'] is Map) {
-            final lm = Map<String, dynamic>.from(sub['lastMessage'] as Map);
-            final dateStr = lm['createdAt']?.toString();
-            final date = dateStr != null ? DateTime.tryParse(dateStr) : null;
-            if (date != null &&
-                (latestDate == null || date.isAfter(latestDate))) {
-              latestDate = date;
-              latestSubMsg = lm;
-            } else {
-              latestSubMsg ??= lm;
-            }
-          }
+
+      Map<String, dynamic>? latest;
+      DateTime? latestDate;
+
+      void consider(dynamic raw) {
+        if (raw is! Map) return;
+        final message = Map<String, dynamic>.from(raw);
+        final rawDate = message['createdAt'] ?? message['created_at'];
+        final date = rawDate == null
+            ? null
+            : MessageFieldParser.parseCreatedAtDateTime(rawDate);
+        if (latest == null ||
+            (date != null &&
+                (latestDate == null || date.isAfter(latestDate!)))) {
+          latest = message;
+          latestDate = date;
         }
-        if (latestSubMsg != null) return latestSubMsg;
       }
-      return null;
+
+      if (map['messages'] is List) {
+        for (final message in map['messages'] as List) {
+          consider(message);
+        }
+      }
+      if (map['subs'] is List) {
+        for (final sub in map['subs'] as List) {
+          if (sub is Map) consider(sub['lastMessage']);
+        }
+      }
+
+      return latest;
     }
 
     return ChatModel(
@@ -240,6 +249,10 @@ class ChatListNotifier extends Notifier<ChatListState> {
         applyRead(event.chatUUID, event.subID, event.targetId, event.count);
       }),
     );
+
+    _subscriptions.add(
+      bus.on<FileDownloadedEvent>().listen(onFileDownloaded),
+    );
   }
 
   /// Initializes the chat list by loading all chats from SQLite.
@@ -398,6 +411,48 @@ class ChatListNotifier extends Notifier<ChatListState> {
 
     _sortChats(updated);
     state = state.copyWith(chats: updated);
+  }
+
+  /// Patches freshly-derived media metadata (duration, waveform, uri) into the
+  /// in-memory `lastMessage` preview.
+  void onFileDownloaded(FileDownloadedEvent event) {
+    if (event.fileUUID.isEmpty) return;
+
+    var updatedAny = false;
+    final updated = state.chats.map((chat) {
+      final lastMessage = chat.lastMessage;
+      if (lastMessage == null) return chat;
+      final files = lastMessage['files'];
+      if (files is! List || files.isEmpty) return chat;
+
+      var chatChanged = false;
+      final mergedFiles = files.map((file) {
+        if (file is! Map || file['uuid'] != event.fileUUID) return file;
+
+        final updatedFile = Map<String, dynamic>.from(file);
+        if (event.uri.isNotEmpty) {
+          updatedFile['uri'] = event.uri;
+        }
+        if (event.waveform != null && event.waveform!.isNotEmpty) {
+          updatedFile['waveform'] = List<double>.from(event.waveform!);
+        }
+        if (event.duration != null && event.duration! > 0) {
+          updatedFile['duration'] = event.duration;
+        }
+        chatChanged = true;
+        return updatedFile;
+      }).toList();
+
+      if (!chatChanged) return chat;
+      updatedAny = true;
+      return chat.copyWith(
+        lastMessage: {...lastMessage, 'files': mergedFiles},
+      );
+    }).toList();
+
+    if (updatedAny) {
+      state = state.copyWith(chats: updated);
+    }
   }
 
   void markAsRead(String chatUUID) {

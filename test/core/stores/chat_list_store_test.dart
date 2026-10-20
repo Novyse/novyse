@@ -61,6 +61,43 @@ void main() {
       expect(chat1?.type, equals('GROUP'));
     });
 
+    test('chat:new seed messages populate the last message preview', () async {
+      final notifier = container.read(chatListProvider.notifier);
+      await notifier.init();
+
+      final bus = container.read(eventBusProvider);
+      bus.emit(
+        const ChatNewEvent(
+          chat: {
+            'uuid': 'chat-socket',
+            'name': 'Fresh',
+            'type': 'GROUP',
+            'members': [
+              {'uuid': 'user-1'},
+            ],
+            'messages': [
+              {
+                'id': 1,
+                'chatUUID': 'chat-socket',
+                'subID': 0,
+                'senderUUID': '00000000-0000-0000-0000-000000000000',
+                'content': '',
+                'type': 'system',
+                'system_action': 'CHAT_CREATED',
+                'created_at': '2026-10-19T10:00:00.000Z',
+              },
+            ],
+          },
+          users: [],
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      final chat = container.read(chatProvider('chat-socket'));
+      expect(chat, isNotNull);
+      expect(chat!.lastMessage?['system_action'], equals('CHAT_CREATED'));
+    });
+
     test('chat updates (rename, sub_create, message_new, unreadCount, pin) work reactively', () async {
       await db.chat.add({'uuid': 'chat-1', 'name': 'General', 'type': 'GROUP'});
 
@@ -329,5 +366,110 @@ void main() {
         expect(badge(), equals(0));
       },
     );
+
+    test('file download patches duration into the last message preview', () async {
+      await db.chat.add({
+        'uuid': 'chat-voice',
+        'name': 'Voice',
+        'type': 'DM',
+      });
+
+      await container.read(chatListProvider.notifier).init();
+      final bus = container.read(eventBusProvider);
+
+      // Inbound voice message: the server payload carries no duration.
+      bus.emit(
+        const MessageNewEvent({
+          'id': 41,
+          'chatUUID': 'chat-voice',
+          'subID': 0,
+          'userUUID': 'other',
+          'content': '',
+          'created_at': '2026-10-19T10:00:00.000Z',
+          'files': [
+            {
+              'uuid': 'file-voice',
+              'name': 'novyse_vocal_1.m4a',
+              'mimeType': 'audio/mp4',
+              'size': 1024,
+            },
+          ],
+        }),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      final before = container.read(chatProvider('chat-voice'));
+      final beforeFile =
+          (before?.lastMessage?['files'] as List).first as Map;
+      expect(beforeFile['duration'], isNull);
+
+      // Once the attachment is downloaded the metadata arrives asynchronously.
+      bus.emit(
+        const FileDownloadedEvent(
+          fileUUID: 'file-voice',
+          uri: 'file:///tmp/voice.m4a',
+          duration: 42,
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      final after = container.read(chatProvider('chat-voice'));
+      final afterFile = (after?.lastMessage?['files'] as List).first as Map;
+      expect(afterFile['duration'], equals(42));
+
+      // Unrelated files must be ignored.
+      bus.emit(
+        const FileDownloadedEvent(
+          fileUUID: 'other-file',
+          uri: 'file:///tmp/other.m4a',
+          duration: 7,
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(
+        ((container.read(chatProvider('chat-voice'))?.lastMessage?['files']
+                as List)
+            .first as Map)['duration'],
+        equals(42),
+      );
+    });
+
+    test('download of an older file leaves a text last message untouched', () async {
+      await db.chat.add({'uuid': 'chat-text', 'name': 'Text', 'type': 'DM'});
+
+      await container.read(chatListProvider.notifier).init();
+      final bus = container.read(eventBusProvider);
+
+      bus.emit(
+        const MessageNewEvent({
+          'id': 51,
+          'chatUUID': 'chat-text',
+          'subID': 0,
+          'userUUID': 'other',
+          'content': 'xxxxx',
+          'created_at': '2026-10-19T10:00:00.000Z',
+        }),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(
+        container.read(chatProvider('chat-text'))?.lastMessage?['content'],
+        equals('xxxxx'),
+      );
+
+      // An older voice note finishes downloading while a newer text message is
+      // on top: the preview must not change at all.
+      bus.emit(
+        const FileDownloadedEvent(
+          fileUUID: 'older-voice',
+          uri: 'file:///tmp/older.m4a',
+          duration: 13,
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      final chat = container.read(chatProvider('chat-text'));
+      expect(chat?.lastMessage?['content'], equals('xxxxx'));
+      expect(chat?.lastMessage?['files'], isNull);
+    });
   });
 }

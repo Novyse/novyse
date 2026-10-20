@@ -73,7 +73,7 @@ class SettingsPageTemplate extends StatelessWidget {
                   child: ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: maxWidth),
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 96),
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 96),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: spaced,

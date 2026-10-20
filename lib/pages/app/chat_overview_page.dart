@@ -242,7 +242,7 @@ class _ChatOverviewPageState extends ConsumerState<ChatOverviewPage> {
         children: [
           SingleChildScrollView(
             controller: _pageScrollController,
-            padding: EdgeInsets.fromLTRB(16, topInset + 74 + 12, 16, 32),
+            padding: EdgeInsets.fromLTRB(12, topInset + 74 + 12, 12, 32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

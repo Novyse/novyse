@@ -307,6 +307,10 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
           size: audio.size,
           duration: audio.duration,
           isPending: message.isPending,
+          messageID: message.id,
+          chatUUID: message.chatUUID,
+          subID: message.subID,
+          senderUUID: message.userUUID,
         ),
       );
     }
@@ -321,6 +325,10 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
           duration: voice.duration,
           isPending: message.isPending,
           waveform: voice.waveform,
+          messageID: message.id,
+          chatUUID: message.chatUUID,
+          subID: message.subID,
+          senderUUID: message.userUUID,
         ),
       );
     }

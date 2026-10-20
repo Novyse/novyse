@@ -1,8 +1,7 @@
-import 'dart:io' as io;
-
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/storage/file/file_uri.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
 import 'package:novyse/ui/components/chat/media/chat_media_viewer.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
@@ -134,10 +133,7 @@ class _MessageImageState extends State<MessageImage> {
 
   ImageProvider _providerFor(String uri) {
     if (_isRemote(uri)) return NetworkImage(uri);
-    final cleanPath = uri.startsWith('file://')
-        ? uri.replaceFirst('file://', '')
-        : uri;
-    return FileImage(io.File(cleanPath));
+    return FileImage(fileFromUri(uri));
   }
 
   @override
@@ -273,10 +269,7 @@ class _ImageViewerPage extends StatelessWidget {
         imageUrl.startsWith('https://')) {
       return NetworkImage(imageUrl);
     }
-    final cleanPath = imageUrl.startsWith('file://')
-        ? imageUrl.replaceFirst('file://', '')
-        : imageUrl;
-    return FileImage(io.File(cleanPath));
+    return FileImage(fileFromUri(imageUrl));
   }
 
   @override
@@ -292,6 +285,7 @@ class _ImageViewerPage extends StatelessWidget {
         imageProvider: _getImageProvider(),
         minScale: PhotoViewComputedScale.contained,
         maxScale: PhotoViewComputedScale.covered * 3,
+        filterQuality: FilterQuality.high,
         heroAttributes: PhotoViewHeroAttributes(tag: heroTag),
         loadingBuilder: (context, event) => Center(
           child: CircularProgressIndicator(

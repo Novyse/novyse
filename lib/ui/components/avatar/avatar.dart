@@ -1,4 +1,3 @@
-import 'dart:io' as io;
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -8,6 +7,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import 'package:novyse/core/services/profile_picture_service.dart';
 import 'package:novyse/core/storage/file/file_storage.dart';
+import 'package:novyse/core/storage/file/file_uri.dart';
 import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
@@ -214,10 +214,7 @@ class _AvatarState extends ConsumerState<Avatar> {
     }
 
     if (!kIsWeb) {
-      final cleanPath = uri.startsWith('file://')
-          ? uri.replaceFirst('file://', '')
-          : uri;
-      final file = io.File(cleanPath);
+      final file = fileFromUri(uri);
       return Image.file(
         file,
         fit: BoxFit.cover,

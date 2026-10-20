@@ -228,7 +228,7 @@ class _MessageListState extends ConsumerState<MessageList>
         key: listKey,
         controller: effectiveController,
         reverse: true,
-        padding: EdgeInsets.fromLTRB(16, 12, 16, widget.bottomInset),
+        padding: EdgeInsets.fromLTRB(12, 12, 12, widget.bottomInset),
         itemCount: items.length,
         itemBuilder: (context, index) {
           final entry = items[index];

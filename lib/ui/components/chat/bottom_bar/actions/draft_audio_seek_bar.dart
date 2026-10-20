@@ -69,28 +69,39 @@ class DraftAudioSeekBar extends StatelessWidget {
               _jump(dx / width, totalMs, isActive);
             }
 
-            return GestureDetector(
-              key: Key('draft_seek_$index'),
-              behavior: HitTestBehavior.opaque,
-              onTapDown: (details) => jumpTo(details.localPosition.dx),
-              onHorizontalDragUpdate: (details) =>
-                  jumpTo(details.localPosition.dx),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
-                  child: SizedBox(
-                    height: 4,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Container(color: colorScheme.surfaceContainerHighest),
-                        FractionallySizedBox(
-                          alignment: Alignment.centerLeft,
-                          widthFactor: progress,
-                          child: Container(color: colorScheme.primary),
-                        ),
-                      ],
+            return Listener(
+              onPointerDown: (_) {
+                if (isActive) ChatAudioService.instance.beginSeek();
+              },
+              onPointerUp: (_) {
+                if (isActive) ChatAudioService.instance.endSeek();
+              },
+              onPointerCancel: (_) {
+                if (isActive) ChatAudioService.instance.endSeek();
+              },
+              child: GestureDetector(
+                key: Key('draft_seek_$index'),
+                behavior: HitTestBehavior.opaque,
+                onTapDown: (details) => jumpTo(details.localPosition.dx),
+                onHorizontalDragUpdate: (details) =>
+                    jumpTo(details.localPosition.dx),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(2),
+                    child: SizedBox(
+                      height: 4,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Container(color: colorScheme.surfaceContainerHighest),
+                          FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: progress,
+                            child: Container(color: colorScheme.primary),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
