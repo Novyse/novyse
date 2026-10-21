@@ -8,25 +8,25 @@ Outputs are generated in the `dist/` directory.
 - **Linux:**
   - **Command:** `./scripts/build.sh linux`
   - **Formats:** `tarball` (`novyse-<version>-linux.tar.gz`), `deb` (`novyse-<version>-linux.deb`), `appimage` (`novyse-<version>-linux.AppImage`), `rpm` (`novyse-<version>-linux.rpm`), `snap` (`novyse-<version>-linux.snap`), `flatpak` (`novyse-<version>-linux.flatpak`)
-  - Preview/dev: `novyse-preview-<version>-linux.deb`, ... / `novyse-dev-<version>-linux.deb`, ...
+  - Dev: `novyse-dev-<version>-linux.deb`, ...
 - **Windows:**
   - **Command:** `./scripts/build.sh windows`
   - **Formats:** `exe` (`novyse-<version>-windows-setup.exe`), `portable` (`novyse-<version>-windows-portable.exe`), `msi` (`novyse-<version>-windows-setup.msi`)
-  - Preview/dev: `novyse-preview-<version>-windows-setup.exe`, ... / `novyse-dev-<version>-windows-setup.exe`, ...
+  - Dev: `novyse-dev-<version>-windows-setup.exe`, ...
 - **macOS:**
   - **Command:** `./scripts/build.sh macos`
   - **Formats:** `zip` (`novyse-<version>-macos.zip`), `dmg` (`novyse-<version>-macos.dmg`)
-  - Preview/dev: `novyse-preview-<version>-macos.zip`, `novyse-preview-<version>-macos.dmg` / `novyse-dev-<version>-macos.zip`, `novyse-dev-<version>-macos.dmg`
+  - Dev: `novyse-dev-<version>-macos.zip`, `novyse-dev-<version>-macos.dmg`
 - **Android:**
   - **Command:** `./scripts/build.sh android`
   - **Formats:** `apk` (`novyse-<version>-android-universal.apk`, `novyse-<version>-android-<abi>.apk` per split), `aab` (`novyse-<version>-android.aab`)
-  - Preview/dev: `novyse-preview-<version>-android-universal.apk`, `novyse-preview-<version>-android.aab` / `novyse-dev-<version>-android-universal.apk`, `novyse-dev-<version>-android.aab`
+  - Dev: `novyse-dev-<version>-android-universal.apk`, `novyse-dev-<version>-android.aab`
 - **iOS:**
   - **Command:** `./scripts/build.sh ios`
-  - **Formats:** `xcarchive` (`novyse-<version>-ios.xcarchive.zip` / `novyse-preview-<version>-ios.xcarchive.zip` / `novyse-dev-<version>-ios.xcarchive.zip`)
+  - **Formats:** `xcarchive` (`novyse-<version>-ios.xcarchive.zip` / `novyse-dev-<version>-ios.xcarchive.zip`)
 - **Web:**
   - **Command:** `./scripts/build.sh web`
-  - **Formats:** `zip` (`novyse-<version>-web.zip` / `novyse-preview-<version>-web.zip` / `novyse-dev-<version>-web.zip`)
+  - **Formats:** `zip` (`novyse-<version>-web.zip` / `novyse-dev-<version>-web.zip`)
 - **All Platforms:**
   - **Command:** `./scripts/build.sh all`
 

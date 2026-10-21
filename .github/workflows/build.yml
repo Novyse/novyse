@@ -15,11 +15,6 @@ on:
         description: Branch or ref to checkout and build
         required: true
         type: string
-      release_type:
-        description: Channel (production/preview); controls AAB + -preview suffix
-        required: false
-        default: production
-        type: string
     secrets:
       GOOGLE_SERVICES_JSON:
         required: false
@@ -55,7 +50,6 @@ jobs:
 
       - name: Build Android
         env:
-          RELEASE_TYPE: ${{ inputs.release_type }}
           GOOGLE_SERVICES_B64: ${{ secrets.GOOGLE_SERVICES_JSON }}
           ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_FILE: ${{ github.workspace }}/novyse-release.keystore

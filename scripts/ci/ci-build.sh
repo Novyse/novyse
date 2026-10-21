@@ -5,7 +5,6 @@
 #   <os>: android | linux | windows | macos | web | ios
 #
 # Env (all optional unless noted):
-#   RELEASE_TYPE            production|preview (android: controls AAB + -preview suffix)
 #   GOOGLE_SERVICES_B64     base64 google-services.json (android)
 #   ANDROID_KEYSTORE_B64    base64 release keystore (android)
 #   ANDROID_KEYSTORE_FILE   keystore path (default: <repo>/novyse-release.keystore)
@@ -22,19 +21,14 @@ cd "$ROOT_DIR"
 
 source "$ROOT_DIR/scripts/extract-metadata.sh"
 
-RELEASE_TYPE="${RELEASE_TYPE:-production}"
 if [ -n "${PKG_NAME:-}" ] && [ -n "${APP_VERSION:-}" ]; then
   ANDROID_BASE="${PKG_NAME}-${APP_VERSION}-android"
 else
-  SUFFIX=""
-  if [ "$RELEASE_TYPE" = "preview" ]; then
-    SUFFIX="-preview"
-  fi
-  ANDROID_BASE="novyse${SUFFIX}"
+  ANDROID_BASE="novyse"
 fi
 
 build_android() {
-  echo "🤖 [CI-BUILD] Android ($RELEASE_TYPE)..."
+  echo "🤖 [CI-BUILD] Android..."
 
   if [ -n "${GOOGLE_SERVICES_B64:-}" ]; then
     echo "$GOOGLE_SERVICES_B64" | base64 --decode > android/app/google-services.json
@@ -50,9 +44,7 @@ build_android() {
 
   flutter build apk --release
   flutter build apk --release --split-per-abi
-  if [ "$RELEASE_TYPE" = "production" ]; then
-    flutter build appbundle --release
-  fi
+  flutter build appbundle --release
 
   mkdir -p dist
   find build/app/outputs/bundle -name "*.aab" 2>/dev/null | while read -r aab_path; do

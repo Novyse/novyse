@@ -7,7 +7,6 @@ import 'package:novyse_auth/novyse_auth.dart';
 /// Maps the config string to the SDK [Branch] enum.
 final Branch _branch = switch (config.branch) {
   'production' => Branch.production,
-  'preview' => Branch.preview,
   _ => Branch.development,
 };
 

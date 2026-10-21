@@ -443,7 +443,7 @@ build_android() {
     fi
 
     # Copy APKs to dist/ with branch + version + OS aware names:
-    # novyse-<version>-android-universal.apk / novyse-preview-<version>-android-<abi>.apk
+    # novyse-<version>-android-universal.apk / novyse-dev-<version>-android-<abi>.apk
     find "$ROOT_DIR/build/app/outputs/flutter-apk" -maxdepth 1 -name "*.apk" 2>/dev/null | while read -r apk_file; do
       apk_base=$(basename "$apk_file")
       if [ "$apk_base" = "app-release.apk" ]; then

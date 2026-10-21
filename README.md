@@ -66,7 +66,6 @@
       <a href="#about-the-project">About The Project</a>
     </li>
     <li><a href="#updates-and-roadmap">Updates and Roadmap</a></li>
-    <li><a href="#preview-version">Preview Version</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#license">License</a></li>
@@ -88,13 +87,6 @@ All changelogs and patch notes are published on:
 - [Website](https://www.novyse.com/patchnotes)
 
 Additionally, the website features a complete [roadmap](https://www.novyse.com/roadmap) that is typically updated every Sunday.
-
-## Preview Version
-
-A preview version with new features that are not yet fully tested may be available at [web.preview.novyse.com](https://web.preview.novyse.com).
-
-> [!WARNING]
-> We recommend not saving important data on this version, as data may be deleted with version changes, and there could be significant bugs affecting app usage.
 
 ## Testing & Code Coverage
 

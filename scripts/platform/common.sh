@@ -35,11 +35,8 @@ get_dart_field() {
     "production")
       val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}$var[[:space:]]*=[[:space:]]*branch[[:space:]]*==[[:space:]]*['\"]production['\"][[:space:]]*?[[:space:]]*['\"]\([^'\"]\{1,\}\)['\"].*/\1/p")
       ;;
-    "preview")
-      val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}$var[[:space:]]*=[^;]*branch[[:space:]]*==[[:space:]]*['\"]preview['\"][[:space:]]*?[[:space:]]*['\"]\([^'\"]\{1,\}\)['\"].*/\1/p")
-      ;;
     *)
-      val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}$var[[:space:]]*=[^;]*:[[:space:]]*['\"]\([^'\"]\{1,\}\)['\"][[:space:]]*)[[:space:]]*;.*/\1/p")
+      val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}$var[[:space:]]*=[[:space:]]*[^;]*:[[:space:]]*['\"]\([^'\"]\{1,\}\)['\"].*/\1/p")
       ;;
   esac
 

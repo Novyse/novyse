@@ -11,7 +11,6 @@ export IOS_SCHEME="$APP_SCHEME"
 
 case "$BRANCH" in
   "production") IOS_HOST_SUFFIX="" ;;
-  "preview")    IOS_HOST_SUFFIX=".preview" ;;
   *)            IOS_HOST_SUFFIX=".dev" ;;
 esac
 export IOS_APP_HOST="app${IOS_HOST_SUFFIX}.novyse.com"

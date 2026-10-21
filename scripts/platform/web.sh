@@ -8,7 +8,6 @@ source "$_THIS_DIR/common.sh"
 
 case "$BRANCH" in
   "production") WEB_HOST_SUFFIX="" ;;
-  "preview")    WEB_HOST_SUFFIX=".preview" ;;
   *)            WEB_HOST_SUFFIX=".dev" ;;
 esac
 
