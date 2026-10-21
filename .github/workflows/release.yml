@@ -287,6 +287,28 @@ jobs:
           # Update release notes and publish release
           gh release edit v${{ inputs.version }} --notes-file release-notes.md --draft=false
 
+  publish-playstore:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Android build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-android
+          path: dist-android
+
+      - name: Publish AAB to Play Store (closed testing)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT }}
+          packageName: com.novyse
+          releaseFiles: dist-android/*.aab
+          track: closed
+          releaseStatus: completed
+
   publish-snap:
     needs: [build, publish-release]
     runs-on: ubuntu-latest
@@ -326,4 +348,3 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy build/web --project-name=${{ steps.cf-settings.outputs.project }} --commit-dirty=true
-
