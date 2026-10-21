@@ -237,4 +237,28 @@ abstract final class DesktopWindowController {
       () => WindowManager.instance.removeListener(listenerId),
     );
   }
+
+  static int? addFullscreenListener(void Function(bool isFullscreen) onChanged) {
+    try {
+      final windowId = current?.id;
+      return WindowManager.instance.addListener((event) {
+        if (windowId != null && event.windowId != windowId) return;
+        if (event is WindowEnteredFullScreenEvent) {
+          onChanged(true);
+        } else if (event is WindowExitedFullScreenEvent) {
+          onChanged(false);
+        }
+      });
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static void removeFullscreenListener(int? listenerId) {
+    if (listenerId == null) return;
+    _guard(
+      'removeFullscreenListener',
+      () => WindowManager.instance.removeListener(listenerId),
+    );
+  }
 }

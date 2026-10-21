@@ -21,15 +21,25 @@ class DesktopWindowFrame extends ConsumerStatefulWidget {
 
 class _DesktopWindowFrameState extends ConsumerState<DesktopWindowFrame> {
   bool _isMaximized = false;
+  bool _isFullscreen = false;
   int? _listenerId;
+  int? _fullscreenListenerId;
 
   @override
   void initState() {
     super.initState();
     _isMaximized = DesktopWindowController.isMaximized;
+    _isFullscreen = DesktopWindowController.isFullscreen;
     _listenerId = DesktopWindowController.addMaximizedListener((maximized) {
       if (mounted && maximized != _isMaximized) {
         setState(() => _isMaximized = maximized);
+      }
+    });
+    _fullscreenListenerId = DesktopWindowController.addFullscreenListener((
+      fullscreen,
+    ) {
+      if (mounted && fullscreen != _isFullscreen) {
+        setState(() => _isFullscreen = fullscreen);
       }
     });
     if (DesktopStartupController.isSupported) {
@@ -44,6 +54,7 @@ class _DesktopWindowFrameState extends ConsumerState<DesktopWindowFrame> {
   @override
   void dispose() {
     DesktopWindowController.removeMaximizedListener(_listenerId);
+    DesktopWindowController.removeFullscreenListener(_fullscreenListenerId);
     super.dispose();
   }
 
@@ -62,7 +73,7 @@ class _DesktopWindowFrameState extends ConsumerState<DesktopWindowFrame> {
       });
     }
 
-    if (!showCustomTitleBar) return widget.child;
+    if (!showCustomTitleBar || _isFullscreen) return widget.child;
     final style = WindowChromeStyle.resolve();
     // A maximized window cannot be resized: disable every handle so the
     // resize cursor never shows and pointer events reach the content.
