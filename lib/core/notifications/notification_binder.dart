@@ -123,6 +123,21 @@ class _NotificationBinderState extends ConsumerState<NotificationBinder>
         return null;
       }
     };
+    manager.activeChatSubID = () {
+      try {
+        final path = ref.read(routerProvider).state.uri.path;
+        return chatSubIDFromPath(path);
+      } catch (_) {
+        return null;
+      }
+    };
+    manager.activeChatContentView = () {
+      try {
+        return ref.read(activeChatProvider.select((s) => s.contentView));
+      } catch (_) {
+        return null;
+      }
+    };
     manager.localUserUUID = () {
       try {
         return ref.read(userStoreProvider).localUserUUID;
