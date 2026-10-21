@@ -24,18 +24,24 @@ class ScreenShareSourceThumbnail extends StatelessWidget {
     final hasThumbnail =
         source.thumbnail != null && source.thumbnail!.isNotEmpty;
 
+    final placeholder = Container(
+      color: Colors.black26,
+      child: const Center(
+        child: Icon(
+          Icons.screen_share_rounded,
+          color: Colors.white54,
+          size: 32,
+        ),
+      ),
+    );
+
     final thumbnail = hasThumbnail
-        ? Image.memory(source.thumbnail!, fit: BoxFit.cover)
-        : Container(
-            color: Colors.black26,
-            child: const Center(
-              child: Icon(
-                Icons.screen_share_rounded,
-                color: Colors.white54,
-                size: 32,
-              ),
-            ),
-          );
+        ? Image.memory(
+            source.thumbnail!,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => placeholder,
+          )
+        : placeholder;
 
     final thumbnailBox = expand
         ? Expanded(

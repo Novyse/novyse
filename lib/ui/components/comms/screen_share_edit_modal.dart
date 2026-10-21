@@ -1,3 +1,5 @@
+import 'dart:async' show StreamSubscription, unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:novyse/core/comms/comms_share_config.dart';
@@ -5,6 +7,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_selector_modal.dart';
 import 'package:novyse/ui/components/comms/screen_share_source_picker.dart';
+import 'package:novyse/ui/components/comms/screen_share_thumbnails.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
 /// Outcome of the per-share edit menu: source and audio only.
@@ -71,11 +74,23 @@ class _ScreenShareEditModalState extends State<ScreenShareEditModal> {
 
   List<DesktopCapturerSource> _sources = [];
   bool _loadingSources = false;
+  StreamSubscription<DesktopCapturerSource>? _thumbSub;
 
   @override
   void initState() {
     super.initState();
-    if (widget.customPicker) _loadSources();
+    if (widget.customPicker) {
+      _thumbSub = ScreenShareThumbnails.listen(() {
+        if (mounted) setState(() {});
+      });
+      _loadSources();
+    }
+  }
+
+  @override
+  void dispose() {
+    _thumbSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadSources() async {
@@ -84,12 +99,20 @@ class _ScreenShareEditModalState extends State<ScreenShareEditModal> {
       final sources = await desktopCapturer.getSources(
         types: [SourceType.Screen, SourceType.Window],
       );
-      if (mounted) {
-        setState(() {
-          _sources = sources;
-          _loadingSources = false;
-        });
-      }
+      if (!mounted) return;
+      ScreenShareThumbnails.primeFromCache(sources);
+      setState(() {
+        _sources = sources;
+        _loadingSources = false;
+      });
+      unawaited(
+        ScreenShareThumbnails.fetchMissing(
+          sources,
+          onChanged: () {
+            if (mounted) setState(() {});
+          },
+        ),
+      );
     } catch (e) {
       debugPrint('[ScreenShareEdit] Error loading desktop sources: $e');
       if (mounted) setState(() => _loadingSources = false);

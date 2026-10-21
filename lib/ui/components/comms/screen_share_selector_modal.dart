@@ -1,3 +1,4 @@
+import 'dart:async' show StreamSubscription, unawaited;
 import 'dart:io' as io;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -12,6 +13,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_quality_fields.dart';
 import 'package:novyse/ui/components/comms/screen_share_source_thumbnail.dart';
+import 'package:novyse/ui/components/comms/screen_share_thumbnails.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/switch/segmented_switch.dart';
 
@@ -116,6 +118,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   DesktopCapturerSource? _selectedSource;
   bool _includeAudio = false;
   bool _loading = true;
+  StreamSubscription<DesktopCapturerSource>? _thumbSub;
 
   // Native-picker flow (preview captured in-menu).
   LocalVideoTrack? _previewVideo;
@@ -133,6 +136,9 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   void initState() {
     super.initState();
     if (_custom) {
+      _thumbSub = ScreenShareThumbnails.listen(() {
+        if (mounted) setState(() {});
+      });
       _loadSources();
     } else {
       _requestCapture();
@@ -141,6 +147,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
 
   @override
   void dispose() {
+    _thumbSub?.cancel();
     if (!_handedOff) {
       _stopPreviewTracks();
       CommsScreenshareAndroid.teardownProjectionService();
@@ -278,10 +285,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   }
 
   Future<void> _loadSources() async {
-    setState(() {
-      _loading = true;
-      _selectedSource = null;
-    });
+    setState(() => _loading = true);
 
     try {
       final type = _selectedType == ScreenShareType.screen
@@ -289,13 +293,21 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
           : SourceType.Window;
 
       final sources = await desktopCapturer.getSources(types: [type]);
-      if (mounted) {
-        setState(() {
-          _sources = sources;
-          _selectedSource = sources.isNotEmpty ? sources.first : null;
-          _loading = false;
-        });
-      }
+      if (!mounted) return;
+      ScreenShareThumbnails.primeFromCache(sources);
+      setState(() {
+        _sources = sources;
+        _selectedSource = sources.isNotEmpty ? sources.first : null;
+        _loading = false;
+      });
+      unawaited(
+        ScreenShareThumbnails.fetchMissing(
+          sources,
+          onChanged: () {
+            if (mounted) setState(() {});
+          },
+        ),
+      );
     } catch (e) {
       debugPrint('[ScreenShareSelector] Error loading desktop sources: $e');
       if (mounted) {
@@ -430,6 +442,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   }
 
   bool get _canStart =>
+      !_loading &&
       (_custom ? _selectedSource != null : _previewVideo != null) &&
       (!_isCustomMode || _bitrateError == CommsBitrateError.none);
 
@@ -460,7 +473,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
           ),
         ),
         const SizedBox(height: 16),
-        if (_loading)
+        if (_loading && _sources.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(child: CircularProgressIndicator()),
