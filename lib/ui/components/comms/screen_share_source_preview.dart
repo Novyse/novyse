@@ -5,9 +5,6 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:novyse/core/comms/comms_share_config.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 
-/// Desktop source type for screen share.
-enum ScreenShareType { screen, window }
-
 /// Lightweight capture config used only for the preview (not the real share).
 const _previewConfig = ScreenShareConfig(
   mode: 'smooth',

@@ -11,8 +11,6 @@ import 'package:novyse/core/comms/devices/comms_screenshare_android.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_quality_fields.dart';
-import 'package:novyse/ui/components/comms/screen_share_source_preview.dart'
-    show ScreenShareType;
 import 'package:novyse/ui/components/comms/screen_share_source_thumbnail.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/switch/segmented_switch.dart';

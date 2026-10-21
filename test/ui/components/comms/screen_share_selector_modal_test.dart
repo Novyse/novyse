@@ -8,7 +8,6 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_quality_fields.dart';
 import 'package:novyse/ui/components/comms/screen_share_selector_modal.dart';
-import 'package:novyse/ui/components/comms/screen_share_source_preview.dart';
 import 'package:novyse/ui/components/number/number_stepper.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
