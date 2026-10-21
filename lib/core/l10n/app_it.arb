@@ -292,6 +292,7 @@
   "screenShareNativePickerNotice": "La selezione specifica dello schermo o della finestra verrà effettuata tramite l'interfaccia nativa di sistema.",
   "screenShareNoScreensDetected": "Nessuno schermo rilevato",
   "screenShareNoWindowsDetected": "Nessuna finestra rilevata",
+  "screenShareNoSourcesDetected": "Nessuno schermo o finestra rilevato",
   "screenShareIncludeSystemAudio": "Condividi anche l'audio del sistema",
   "screenShareStart": "Avvia condivisione",
   "screenShareSetupTitle": "Configura condivisione",

@@ -11,10 +11,10 @@ import 'package:novyse/core/comms/devices/comms_screenshare_android.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_quality_fields.dart';
+import 'package:novyse/ui/components/comms/screen_share_source_preview.dart';
+import 'package:novyse/ui/components/comms/screen_share_source_thumbnail.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/switch/segmented_switch.dart';
-
-enum ScreenShareType { screen, window }
 
 /// Result of the mandatory screen-share setup menu.
 class ScreenShareSetupResult {
@@ -118,6 +118,11 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   bool _includeAudio = false;
   bool _loading = true;
 
+  // Custom-picker flow: live preview tracks of the selected source.
+  LocalVideoTrack? _customPreviewVideo;
+  List<LocalAudioTrack> _customPreviewAudio = [];
+  bool _customPreviewReleased = false;
+
   // Native-picker flow (preview captured in-menu).
   LocalVideoTrack? _previewVideo;
   List<LocalAudioTrack> _previewAudio = [];
@@ -144,6 +149,9 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   void dispose() {
     if (!_handedOff) {
       _stopPreviewTracks();
+      if (!_customPreviewReleased) {
+        _stopCustomPreviewTracks();
+      }
       CommsScreenshareAndroid.teardownProjectionService();
     }
     super.dispose();
@@ -198,6 +206,24 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
     final audios = List<LocalAudioTrack>.from(_previewAudio);
     _previewVideo = null;
     _previewAudio = [];
+    if (video != null) {
+      try {
+        await video.stop();
+      } catch (_) {}
+    }
+    for (final audio in audios) {
+      try {
+        await audio.stop();
+      } catch (_) {}
+    }
+  }
+
+  /// Stops the custom-picker live preview tracks (if not handed off to caller).
+  Future<void> _stopCustomPreviewTracks() async {
+    final video = _customPreviewVideo;
+    final audios = List<LocalAudioTrack>.from(_customPreviewAudio);
+    _customPreviewVideo = null;
+    _customPreviewAudio = [];
     if (video != null) {
       try {
         await video.stop();
@@ -333,11 +359,6 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Body only: the title bar, padding, scrolling and min/max sizing are
-    // provided by OverlayDialog / OverlayBottomSheet via
-    // ResponsiveOverlay.show(), so this is a plain Column with no inner
-    // scroll view (an inner Flexible/ScrollView would break inside the
-    // bottom sheet's unbounded height).
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -412,16 +433,23 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
               child: AppButton(
                 label: l10n.screenShareStart,
                 onPressed: _canStart
-                    ? () => _popResult(
-                        ScreenShareSetupResult(
-                          source: _selectedSource,
-                          type: _selectedType,
-                          includeAudio: _includeAudio,
-                          config: _draft,
-                          previewVideoTrack: _previewVideo,
-                          previewAudioTracks: _previewAudio,
-                        ),
-                      )
+                    ? () {
+                        _customPreviewReleased = true;
+                        _popResult(
+                          ScreenShareSetupResult(
+                            source: _selectedSource,
+                            type: _selectedType,
+                            includeAudio: _includeAudio,
+                            config: _draft,
+                            previewVideoTrack: _custom
+                                ? _customPreviewVideo
+                                : _previewVideo,
+                            previewAudioTracks: _custom
+                                ? _customPreviewAudio
+                                : _previewAudio,
+                          ),
+                        );
+                      }
                     : null,
               ),
             ),
@@ -432,7 +460,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   }
 
   bool get _canStart =>
-      (_custom ? _selectedSource != null : _previewVideo != null) &&
+      (_custom ? _customPreviewVideo != null : _previewVideo != null) &&
       (!_isCustomMode || _bitrateError == CommsBitrateError.none);
 
   Widget _buildCustomPicker(BuildContext context) {
@@ -462,9 +490,25 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
           ),
         ),
         const SizedBox(height: 16),
-        // Altezza adattiva: la griglia si dimensiona sul contenuto e scorre
-        // insieme al resto del modal (un'unica scrollbar), senza averne una
-        // propria.
+        // Live video preview of the currently selected source.
+        if (_selectedSource != null)
+          ScreenShareSourcePreview(
+            source: _selectedSource,
+            type: _selectedType,
+            releaseOnDispose: false,
+            onCaptureChanged: ({
+              required LocalVideoTrack? video,
+              required List<LocalAudioTrack> audios,
+              required bool loading,
+              required bool failed,
+            }) {
+              setState(() {
+                _customPreviewVideo = video;
+                _customPreviewAudio = audios;
+              });
+            },
+          ),
+        const SizedBox(height: 16),
         if (_loading)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
@@ -498,11 +542,6 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
                     final source = _sources[index];
                     final isSelected = _selectedSource?.id == source.id;
 
-                    // Material locale (trasparente): senza, hover/splash
-                    // dell'InkWell verrebbero dipinti sul Material del
-                    // modal/sheet — fuori dal clip dello scroll — e
-                    // sborderebbero sopra l'header pinnato quando la tile
-                    // scorre sotto di esso.
                     return Material(
                       type: MaterialType.transparency,
                       borderRadius: BorderRadius.circular(14),
@@ -524,53 +563,11 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
                           ),
                         ),
                         clipBehavior: Clip.antiAlias,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child:
-                                  source.thumbnail != null &&
-                                      source.thumbnail!.isNotEmpty
-                                  ? Image.memory(
-                                      source.thumbnail!,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Container(
-                                      color: Colors.black26,
-                                      child: Center(
-                                        child: Icon(
-                                          _selectedType ==
-                                                  ScreenShareType.screen
-                                              ? Icons.monitor_rounded
-                                              : Icons.window_rounded,
-                                          color: Colors.white54,
-                                          size: 32,
-                                        ),
-                                      ),
-                                    ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 8,
-                              ),
-                              child: Text(
-                                source.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
-                                  color: isSelected
-                                      ? colorScheme.primary
-                                      : colorScheme.onSurface,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                          child: ScreenShareSourceThumbnail(
+                            source: source,
+                            expand: true,
+                            isSelected: isSelected,
+                          ),
                       ),
                       ),
                     );

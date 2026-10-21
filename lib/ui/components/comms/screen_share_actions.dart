@@ -14,7 +14,8 @@ abstract final class ScreenShareActions {
     WidgetRef ref, {
     ScreenShareConfig? initial,
   }) async {
-    final defaults = initial ??
+    final defaults =
+        initial ??
         ScreenShareConfig.fromSettings(ref.read(settingsControllerProvider));
     final result = await ScreenShareSelectorModal.show(
       context,
@@ -24,12 +25,12 @@ abstract final class ScreenShareActions {
     if (result == null || !context.mounted) return;
     final controller = ref.read(commsProvider.notifier);
     if (result.previewVideoTrack != null) {
-    
       final sid = await controller.publishPreviewShare(
         videoTrack: result.previewVideoTrack!,
         audioTracks: result.previewAudioTracks,
         config: result.config,
         captureScreenAudio: result.includeAudio,
+        sourceId: result.source?.id,
       );
       if (sid == null) {
         try {
@@ -106,9 +107,7 @@ abstract final class ScreenShareActions {
           // No audio track to re-enable: recreate the share with audio.
           final cfg =
               ref.read(commsProvider).screenShareConfigs[trackSid] ?? current;
-          final id = ref
-              .read(commsProvider)
-              .screenShareSourceIds[trackSid];
+          final id = ref.read(commsProvider).screenShareSourceIds[trackSid];
           await comms.stopScreenShare(trackSid);
           if (!context.mounted) return;
           if (id != null && id.isNotEmpty) {

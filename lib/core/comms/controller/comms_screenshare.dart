@@ -65,12 +65,15 @@ mixin CommsScreenshareMixin
 
   /// Publishes tracks already captured in the setup menu (native-picker flow:
   /// the OS picker ran there, so the tracks must be reused, never recreated).
+  /// On desktop custom-picker flow the captured preview tracks are also reused,
+  /// and [sourceId] identifies the desktop source they were captured from.
   /// Returns the video publication SID.
   Future<String?> publishPreviewShare({
     required LocalVideoTrack videoTrack,
     List<LocalAudioTrack> audioTracks = const [],
     required ScreenShareConfig config,
     bool captureScreenAudio = true,
+    String? sourceId,
   }) async {
     if (state.room?.localParticipant == null) return null;
     try {
@@ -78,7 +81,7 @@ mixin CommsScreenshareMixin
         videoTrack: videoTrack,
         audioTracks: audioTracks,
         config: config,
-        sourceId: null,
+        sourceId: sourceId,
         captureScreenAudio: captureScreenAudio,
       );
     } catch (e) {

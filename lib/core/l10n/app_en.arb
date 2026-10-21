@@ -292,6 +292,7 @@
   "screenShareNativePickerNotice": "Screen or window selection will be handled by the native system interface.",
   "screenShareNoScreensDetected": "No screens detected",
   "screenShareNoWindowsDetected": "No windows detected",
+  "screenShareNoSourcesDetected": "No screens or windows detected",
   "screenShareIncludeSystemAudio": "Share system audio as well",
   "screenShareStart": "Start sharing",
   "screenShareSetupTitle": "Set up sharing",
