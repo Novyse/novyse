@@ -84,7 +84,7 @@ class ScreenShareSelectorModal extends StatefulWidget {
     required ScreenShareConfig initial,
     bool isPremium = false,
   }) {
-return ResponsiveOverlay.show<ScreenShareSetupResult>(
+    return ResponsiveOverlay.show<ScreenShareSetupResult>(
       context: context,
       title: AppLocalizations.of(context)!.screenShareSetupTitle,
       // Picker with thumbnails needs more room than the default 480px.
@@ -490,25 +490,6 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
           ),
         ),
         const SizedBox(height: 16),
-        // Live video preview of the currently selected source.
-        if (_selectedSource != null)
-          ScreenShareSourcePreview(
-            source: _selectedSource,
-            type: _selectedType,
-            releaseOnDispose: false,
-            onCaptureChanged: ({
-              required LocalVideoTrack? video,
-              required List<LocalAudioTrack> audios,
-              required bool loading,
-              required bool failed,
-            }) {
-              setState(() {
-                _customPreviewVideo = video;
-                _customPreviewAudio = audios;
-              });
-            },
-          ),
-        const SizedBox(height: 16),
         if (_loading)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
@@ -528,51 +509,51 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
           )
         else
           GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  primary: false,
-                  itemCount: _sources.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 16 / 11,
-                  ),
-                  itemBuilder: (context, index) {
-                    final source = _sources[index];
-                    final isSelected = _selectedSource?.id == source.id;
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            primary: false,
+            itemCount: _sources.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 16 / 11,
+            ),
+            itemBuilder: (context, index) {
+              final source = _sources[index];
+              final isSelected = _selectedSource?.id == source.id;
 
-                    return Material(
-                      type: MaterialType.transparency,
+              return Material(
+                type: MaterialType.transparency,
+                borderRadius: BorderRadius.circular(14),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () => setState(() => _selectedSource = source),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14),
-                      clipBehavior: Clip.antiAlias,
-                      child: InkWell(
-                        onTap: () => setState(() => _selectedSource = source),
-                        borderRadius: BorderRadius.circular(14),
-                        child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isSelected
-                                ? colorScheme.primary
-                                : colorScheme.outline.withValues(alpha: 0.12),
-                            width: isSelected ? 2.5 : 1,
-                          ),
-                          color: colorScheme.surfaceContainerHighest.withValues(
-                            alpha: 0.35,
-                          ),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                          child: ScreenShareSourceThumbnail(
-                            source: source,
-                            expand: true,
-                            isSelected: isSelected,
-                          ),
+                      border: Border.all(
+                        color: isSelected
+                            ? colorScheme.primary
+                            : colorScheme.outline.withValues(alpha: 0.12),
+                        width: isSelected ? 2.5 : 1,
                       ),
+                      color: colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.35,
                       ),
-                    );
-                  },
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: ScreenShareSourceThumbnail(
+                      source: source,
+                      expand: true,
+                      isSelected: isSelected,
+                    ),
+                  ),
                 ),
+              );
+            },
+          ),
         const SizedBox(height: 12),
       ],
     );

@@ -5,7 +5,6 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_selector_modal.dart';
 import 'package:novyse/ui/components/comms/screen_share_source_picker.dart';
-import 'package:novyse/ui/components/comms/screen_share_source_preview.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
 /// Outcome of the per-share edit menu: source and audio only.
@@ -183,15 +182,6 @@ class _ScreenShareEditModalState extends State<ScreenShareEditModal> {
     final effectiveId = _sourceTouched
         ? _selectedSourceId
         : widget.currentActive ?? widget.currentSourceId;
-    DesktopCapturerSource? activeSource;
-    if (effectiveId != null) {
-      for (final s in _sources) {
-        if (s.id == effectiveId) {
-          activeSource = s;
-          break;
-        }
-      }
-    }
     if (_loadingSources) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -208,16 +198,7 @@ class _ScreenShareEditModalState extends State<ScreenShareEditModal> {
           ),
         ),
         const SizedBox(height: 8),
-        if (activeSource != null)
-          ScreenShareSourcePreview(
-            source: activeSource,
-            type: activeSource.type == SourceType.Window
-                ? ScreenShareType.window
-                : ScreenShareType.screen,
-            releaseOnDispose: true,
-            height: 200,
-          )
-        else if (_sources.isEmpty)
+        if (_sources.isEmpty)
           Center(
             child: Text(
               l10n.screenShareNoSourcesDetected,

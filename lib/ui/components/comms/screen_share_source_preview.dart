@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -69,11 +70,12 @@ class _ScreenShareSourcePreviewState extends State<ScreenShareSourcePreview> {
   String? _capturedSourceId;
   bool _disposed = false;
   bool _handedOff = false;
+  int _captureSeq = 0;
 
   @override
   void initState() {
     super.initState();
-    _capture();
+    unawaited(_capture());
   }
 
   @override
@@ -81,9 +83,9 @@ class _ScreenShareSourcePreviewState extends State<ScreenShareSourcePreview> {
     super.didUpdateWidget(oldWidget);
     final id = widget.source?.id;
     if (_capturedSourceId != id || oldWidget.type != widget.type) {
-      _capture();
+      unawaited(_capture());
     } else if (id == null && _video != null) {
-      _stop();
+      unawaited(_stop());
     }
   }
 
@@ -91,7 +93,7 @@ class _ScreenShareSourcePreviewState extends State<ScreenShareSourcePreview> {
   void dispose() {
     _disposed = true;
     if (widget.releaseOnDispose && !_handedOff) {
-      _stop();
+      unawaited(_stop());
     }
     super.dispose();
   }
@@ -133,9 +135,11 @@ class _ScreenShareSourcePreviewState extends State<ScreenShareSourcePreview> {
 
   /// Captures preview tracks for the currently selected source.
   Future<void> _capture() async {
+    final seq = ++_captureSeq;
     await _stop();
     final src = widget.source;
     if (src == null) {
+      if (seq != _captureSeq) return;
       if (mounted && !_disposed) {
         setState(() {
           _loading = false;
@@ -152,6 +156,7 @@ class _ScreenShareSourcePreviewState extends State<ScreenShareSourcePreview> {
     }
 
     if (!mounted) return;
+    if (seq != _captureSeq) return;
     setState(() {
       _loading = true;
       _failed = false;
@@ -170,7 +175,7 @@ class _ScreenShareSourcePreviewState extends State<ScreenShareSourcePreview> {
           captureScreenAudio: false,
         ),
       );
-      if (_disposed || !mounted) {
+      if (_disposed || !mounted || seq != _captureSeq) {
         for (final t in tracks) {
           try {
             await t.stop();
@@ -184,7 +189,7 @@ class _ScreenShareSourcePreviewState extends State<ScreenShareSourcePreview> {
       _capturedSourceId = src.id;
       _video = videos.isNotEmpty ? videos.first : null;
       _audios = audios;
-      if (mounted && !_disposed) {
+      if (mounted && !_disposed && seq == _captureSeq) {
         setState(() {
           _loading = false;
           _failed = failed;
@@ -203,7 +208,7 @@ class _ScreenShareSourcePreviewState extends State<ScreenShareSourcePreview> {
       }
     } catch (e) {
       debugPrint('[ScreenShareSourcePreview] Capture failed: $e');
-      if (_disposed || !mounted) return;
+      if (_disposed || !mounted || seq != _captureSeq) return;
       setState(() {
         _loading = false;
         _failed = true;
