@@ -4,6 +4,8 @@ import 'package:novyse/core/comms/comms_share_config.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_selector_modal.dart';
+import 'package:novyse/ui/components/comms/screen_share_source_picker.dart';
+import 'package:novyse/ui/components/comms/screen_share_source_preview.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
 /// Outcome of the per-share edit menu: source and audio only.
@@ -26,12 +28,14 @@ class ScreenShareEditModal extends StatefulWidget {
   final ScreenShareConfig current;
   final bool hasAudio;
   final String? currentSourceId;
+  final String? currentActive;
 
   const ScreenShareEditModal({
     super.key,
     required this.current,
     required this.hasAudio,
     this.currentSourceId,
+    this.currentActive,
   });
 
   bool get customPicker => ScreenShareSelectorModal.useCustomPicker;
@@ -41,6 +45,7 @@ class ScreenShareEditModal extends StatefulWidget {
     required ScreenShareConfig current,
     required bool hasAudio,
     String? currentSourceId,
+    String? currentActive,
   }) {
     return ResponsiveOverlay.show<ScreenShareEditResult>(
       context: context,
@@ -51,6 +56,7 @@ class ScreenShareEditModal extends StatefulWidget {
         current: current,
         hasAudio: hasAudio,
         currentSourceId: currentSourceId,
+        currentActive: currentActive,
       ),
     );
   }
@@ -173,9 +179,19 @@ class _ScreenShareEditModalState extends State<ScreenShareEditModal> {
   }
 
   Widget _buildSourceSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final effectiveId = _sourceTouched
         ? _selectedSourceId
-        : widget.currentSourceId;
+        : widget.currentActive ?? widget.currentSourceId;
+    DesktopCapturerSource? activeSource;
+    if (effectiveId != null) {
+      for (final s in _sources) {
+        if (s.id == effectiveId) {
+          activeSource = s;
+          break;
+        }
+      }
+    }
     if (_loadingSources) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -183,30 +199,43 @@ class _ScreenShareEditModalState extends State<ScreenShareEditModal> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        RadioGroup<String>(
-          groupValue: effectiveId,
-          onChanged: (v) => setState(() {
-            _selectedSourceId = v;
-            _sourceTouched = true;
-          }),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final source in _sources)
-                RadioListTile<String>(
-                  value: source.id,
-                  title: Text(
-                    source.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-            ],
+        Text(
+          l10n.screenSharePreview,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
+        const SizedBox(height: 8),
+        if (activeSource != null)
+          ScreenShareSourcePreview(
+            source: activeSource,
+            type: activeSource.type == SourceType.Window
+                ? ScreenShareType.window
+                : ScreenShareType.screen,
+            releaseOnDispose: true,
+            height: 200,
+          )
+        else if (_sources.isEmpty)
+          Center(
+            child: Text(
+              l10n.screenShareNoSourcesDetected,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        const SizedBox(height: 12),
+        if (_sources.isNotEmpty)
+          ScreenShareSourcePicker(
+            sources: _sources,
+            selectedId: effectiveId,
+            onChanged: (v) => setState(() {
+              _selectedSourceId = v;
+              _sourceTouched = true;
+            }),
+          ),
       ],
     );
   }
