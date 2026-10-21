@@ -33,13 +33,16 @@ if [ ! -f "$PUBSPEC" ]; then
   exit 1
 fi
 
-# Extract existing build suffix (+...) if present, otherwise default to +1
-BUILD_SUFFIX=$(sed -n "s/^version:[[:space:]]*[^+]*\(+.*\)/\1/p" "$PUBSPEC" | head -n 1)
-if [ -z "$BUILD_SUFFIX" ]; then
-  BUILD_SUFFIX="+1"
+# Extract existing build number (+N) if present, otherwise default to 1,
+# then increment it so every new build gets a higher Android versionCode.
+BUILD_NUM=$(sed -n "s/^version:[[:space:]]*[^+]*+\([0-9]\{1,\}\).*/\1/p" "$PUBSPEC" | head -n 1)
+if [ -z "$BUILD_NUM" ]; then
+  BUILD_NUM=1
+else
+  BUILD_NUM=$((BUILD_NUM + 1))
 fi
 
-NEW_VERSION="version: ${APP_VERSION}${BUILD_SUFFIX}"
+NEW_VERSION="version: ${APP_VERSION}+${BUILD_NUM}"
 CURRENT_VERSION=$(grep "^version:" "$PUBSPEC" | head -n 1)
 
 if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
