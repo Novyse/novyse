@@ -11,7 +11,8 @@ import 'package:novyse/core/comms/devices/comms_screenshare_android.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_quality_fields.dart';
-import 'package:novyse/ui/components/comms/screen_share_source_preview.dart';
+import 'package:novyse/ui/components/comms/screen_share_source_preview.dart'
+    show ScreenShareType;
 import 'package:novyse/ui/components/comms/screen_share_source_thumbnail.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/switch/segmented_switch.dart';
@@ -118,11 +119,6 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   bool _includeAudio = false;
   bool _loading = true;
 
-  // Custom-picker flow: live preview tracks of the selected source.
-  LocalVideoTrack? _customPreviewVideo;
-  List<LocalAudioTrack> _customPreviewAudio = [];
-  bool _customPreviewReleased = false;
-
   // Native-picker flow (preview captured in-menu).
   LocalVideoTrack? _previewVideo;
   List<LocalAudioTrack> _previewAudio = [];
@@ -149,9 +145,6 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   void dispose() {
     if (!_handedOff) {
       _stopPreviewTracks();
-      if (!_customPreviewReleased) {
-        _stopCustomPreviewTracks();
-      }
       CommsScreenshareAndroid.teardownProjectionService();
     }
     super.dispose();
@@ -206,24 +199,6 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
     final audios = List<LocalAudioTrack>.from(_previewAudio);
     _previewVideo = null;
     _previewAudio = [];
-    if (video != null) {
-      try {
-        await video.stop();
-      } catch (_) {}
-    }
-    for (final audio in audios) {
-      try {
-        await audio.stop();
-      } catch (_) {}
-    }
-  }
-
-  /// Stops the custom-picker live preview tracks (if not handed off to caller).
-  Future<void> _stopCustomPreviewTracks() async {
-    final video = _customPreviewVideo;
-    final audios = List<LocalAudioTrack>.from(_customPreviewAudio);
-    _customPreviewVideo = null;
-    _customPreviewAudio = [];
     if (video != null) {
       try {
         await video.stop();
@@ -434,18 +409,15 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
                 label: l10n.screenShareStart,
                 onPressed: _canStart
                     ? () {
-                        _customPreviewReleased = true;
                         _popResult(
                           ScreenShareSetupResult(
                             source: _selectedSource,
                             type: _selectedType,
                             includeAudio: _includeAudio,
                             config: _draft,
-                            previewVideoTrack: _custom
-                                ? _customPreviewVideo
-                                : _previewVideo,
+                            previewVideoTrack: _custom ? null : _previewVideo,
                             previewAudioTracks: _custom
-                                ? _customPreviewAudio
+                                ? const []
                                 : _previewAudio,
                           ),
                         );
@@ -460,7 +432,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   }
 
   bool get _canStart =>
-      (_custom ? _customPreviewVideo != null : _previewVideo != null) &&
+      (_custom ? _selectedSource != null : _previewVideo != null) &&
       (!_isCustomMode || _bitrateError == CommsBitrateError.none);
 
   Widget _buildCustomPicker(BuildContext context) {
