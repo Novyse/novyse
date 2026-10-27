@@ -34,6 +34,14 @@ void main() {
       expect(find.text('Password'), findsOneWidget);
       expect(find.text('OPAQUE'), findsOneWidget);
       expect(find.text('Email'), findsNothing);
+
+      final fields = tester
+          .widgetList<EditableText>(find.byType(EditableText))
+          .toList();
+      expect(fields, hasLength(2));
+      expect(fields[0].autofillHints, contains(AutofillHints.username));
+      expect(fields[1].autofillHints, contains(AutofillHints.password));
+      expect(find.byType(AutofillGroup), findsOneWidget);
     },
   );
 }
