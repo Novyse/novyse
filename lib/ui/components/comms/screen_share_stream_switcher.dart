@@ -58,34 +58,42 @@ class ScreenShareStreamSwitcher extends ConsumerWidget {
       left: left,
       child: FloatingPill(
         padding: const EdgeInsets.all(2),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _ArrowButton(
-              icon: HugeIcons.strokeRoundedArrowLeft01,
-              tooltip: l10n.commsPreviousShare,
-              onPressed: () => selectShare(
-                currentIndex - 1 < 0 ? screenShares.length - 1 : currentIndex - 1,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: Text(
-                '${currentIndex + 1}/${screenShares.length}',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                  fontFeatures: const [FontFeature.tabularFigures()],
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minHeight: FloatingConsts.barContentSize,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _ArrowButton(
+                icon: HugeIcons.strokeRoundedArrowLeft01,
+                tooltip: l10n.commsPreviousShare,
+                onPressed: () => selectShare(
+                  currentIndex - 1 < 0
+                      ? screenShares.length - 1
+                      : currentIndex - 1,
                 ),
               ),
-            ),
-            _ArrowButton(
-              icon: HugeIcons.strokeRoundedArrowRight01,
-              tooltip: l10n.commsNextShare,
-              onPressed: () => selectShare((currentIndex + 1) % screenShares.length),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Text(
+                  '${currentIndex + 1}/${screenShares.length}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+              _ArrowButton(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                tooltip: l10n.commsNextShare,
+                onPressed: () =>
+                    selectShare((currentIndex + 1) % screenShares.length),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -134,4 +142,3 @@ class _ArrowButton extends StatelessWidget {
     );
   }
 }
-

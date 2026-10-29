@@ -154,6 +154,11 @@ class _SettingsFloatingAppBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: FloatingConsts.pillSpacing),
+          ] else if (extraActions != null && extraActions.isNotEmpty) ...[
+            // Mirrors the actions pill on the right so the title stays
+            // centered (e.g. settings root: no back button, search action).
+            const SizedBox(width: FloatingConsts.iconPillOuterSize),
+            const SizedBox(width: FloatingConsts.pillSpacing),
           ],
           Expanded(
             child: FloatingPill(
@@ -204,6 +209,8 @@ class _SettingsFloatingAppBar extends StatelessWidget {
           ] else if (showBack) ...[
             // Balances the back pill so the title stays centered,
             // like `production` HeaderWithBackArrow's right spacer.
+            // The gap mirrors the one after the back pill.
+            const SizedBox(width: FloatingConsts.pillSpacing),
             const SizedBox(width: FloatingConsts.iconPillOuterSize),
           ],
         ],

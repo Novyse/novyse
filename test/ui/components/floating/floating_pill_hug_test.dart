@@ -33,19 +33,19 @@ void main() {
   ) async {
     await pumpPill(
       tester,
-      FloatingPill(
-        padding: const EdgeInsets.all(9),
+      const FloatingPill(
+        padding: EdgeInsets.all(9),
         child: SizedBox(
           width: FloatingConsts.iconButtonSize,
           height: FloatingConsts.iconButtonSize,
-          child: const Center(child: Icon(Icons.call, size: 22)),
+          child: Center(child: Icon(Icons.call, size: 22)),
         ),
       ),
     );
 
     // 44 content + 9 + 9 glass = 62 circle, NOT 320 wide.
-    final expected = FloatingConsts.iconButtonSize + 18;
-    expect(pillSize(tester), Size(expected, expected));
+    const expected = FloatingConsts.iconButtonSize + 18;
+    expect(pillSize(tester), const Size(expected, expected));
   });
 
   testWidgets('opt-out pill shrink-wraps small overlay content', (
@@ -56,11 +56,41 @@ void main() {
       const FloatingPill(
         padding: EdgeInsets.all(2),
         enforceMinSize: false,
-        child: SizedBox(width: 32, height: 32, child: Icon(Icons.mic, size: 18)),
+        child: SizedBox(
+          width: 32,
+          height: 32,
+          child: Icon(Icons.mic, size: 18),
+        ),
       ),
     );
 
     // 32 content + 2 + 2 glass = 36 chip, no 48 minimum imposed.
     expect(pillSize(tester), const Size(36, 36));
+  });
+
+  testWidgets('narrow content gets the min box without repositioning', (
+    tester,
+  ) async {
+    await pumpPill(
+      tester,
+      const FloatingPill(
+        padding: EdgeInsets.zero,
+        child: SizedBox(width: 32, height: 32),
+      ),
+    );
+
+    final pillElement = find.byType(FloatingPill).evaluate().single;
+    final pillBox = pillElement.renderObject! as RenderBox;
+    final pillTopLeft = pillBox.localToGlobal(Offset.zero);
+    // Minimum enforced...
+    expect(pillBox.size, const Size(48, 48));
+
+    final childElement = find.byType(SizedBox).evaluate().single;
+    final childBox = childElement.renderObject! as RenderBox;
+    final childTopLeft = childBox.localToGlobal(Offset.zero);
+    // ...but no centering: plain hug, tight constraints flow down.
+    // Centering short content is each call site's job (Align, Center,
+    // centered Rows/Columns) — never the pill's, so it can never stretch.
+    expect(childTopLeft - pillTopLeft, Offset.zero);
   });
 }

@@ -50,62 +50,68 @@ class EditBar extends ConsumerWidget {
       child: FloatingPill(
         radius: FloatingConsts.centralRadius,
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(children: [
-          AppHugeIcon(
-            icon: HugeIcons.strokeRoundedPencilEdit02,
-            size: 18,
-            color: colorScheme.primary,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minHeight: FloatingConsts.barOuterSize,
           ),
-          const SizedBox(width: 8),
-          Container(
-            width: 3,
-            height: 24,
-            decoration: BoxDecoration(
-              color: colorScheme.primary,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  l10n.editingMessage,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
-                  ),
+          child: Row(
+            children: [
+              AppHugeIcon(
+                icon: HugeIcons.strokeRoundedPencilEdit02,
+                size: 18,
+                color: colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 3,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                Text(
-                  content,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l10n.editingMessage,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      content,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              InkWell(
+                onTap: handleCancelEdit,
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: AppHugeIcon(
+                    icon: HugeIcons.strokeRoundedCancel01,
+                    size: 16,
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-              ],
-            ),
-          ),
-          InkWell(
-            onTap: handleCancelEdit,
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: AppHugeIcon(
-                icon: HugeIcons.strokeRoundedCancel01,
-                size: 16,
-                color: colorScheme.onSurfaceVariant,
               ),
-            ),
+            ],
           ),
-        ],
         ),
       ),
     );

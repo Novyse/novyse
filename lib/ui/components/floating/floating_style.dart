@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 /// Shared constants for every floating pill in the app.
 ///
@@ -21,8 +20,8 @@ abstract final class FloatingConsts {
   // static const double borderOpacity = 0.25;
 
   /// Fully-rounded icon / action pills vs. the larger central pill.
-  static const double pillRadius = 100.0;
-  static const double centralRadius = 28.0;
+  static const double pillRadius = 50.0;
+  static const double centralRadius = 50.0;
 
   /// Outer padding of every pill (single-icon, central, actions,
   /// sub-header). Zero: pills hug their 42 content, the 48 outer comes
@@ -48,7 +47,6 @@ abstract final class FloatingConsts {
   /// Glass padding around content.
   static const double barInset = 2.0;
 
-
   /// Inner padding of every sub-header row: exactly what's left of the
   /// 48 row once the [barContentSize] boxes are centered, so 44 boxes
   /// never overflow. Follows content size automatically.
@@ -68,12 +66,8 @@ abstract final class FloatingConsts {
   /// Forces icon buttons to exactly [iconButtonSize], so the pill
   /// content + glass measures exactly [barOuterSize].
   static ButtonStyle get iconButtonStyle => const ButtonStyle(
-    minimumSize: WidgetStatePropertyAll(
-      Size(iconButtonSize, iconButtonSize),
-    ),
-    maximumSize: WidgetStatePropertyAll(
-      Size(iconButtonSize, iconButtonSize),
-    ),
+    minimumSize: WidgetStatePropertyAll(Size(iconButtonSize, iconButtonSize)),
+    maximumSize: WidgetStatePropertyAll(Size(iconButtonSize, iconButtonSize)),
     padding: WidgetStatePropertyAll(iconButtonPadding),
     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
   );
@@ -92,7 +86,9 @@ abstract final class FloatingConsts {
     barInset,
   );
 
-  /// Minimum content height of search fields. Same box as every icon.
+  /// Minimum content height of search fields. Same box as every icon:
+  /// 44 + vertical glass = 48 outer, with the text centered by its own
+  /// Align.
   static const double searchFieldHeight = barContentSize;
 
   /// Compact constraints for the clear (X) button inside search fields,
@@ -112,8 +108,9 @@ abstract final class FloatingConsts {
     barInset,
   );
 
-  /// Minimum content height inside [centralTitlePadding] so the pill
-  /// measures 48px outer like the chat ones.
+  /// Minimum content height inside [centralTitlePadding]. Same box as
+  /// every icon: 44 + vertical glass = 48 outer. Every central content
+  /// self-centers (Column center, Center, Align, Rows).
   static const double centralMinHeight = barContentSize;
 
   /// Size of the leading (avatar / icon circle) and its gap
@@ -121,9 +118,8 @@ abstract final class FloatingConsts {
   static const double leadingSize = barContentSize;
   static const double leadingGap = 12.0;
 
-  /// Outer skin of the sub-header stacked under every chat app bar
-  /// ([ChatSubHeader]): 24px radius glass card holding the 48px rows.
-  static const double subHeaderRadius = 24.0;
+  /// Outer skin of the sub-header stacked under every chat app bar ([ChatSubHeader])
+  static const double subHeaderRadius = 50.0;
 
   /// Outer padding of the sub-header card. Equals [barInset] so the card
   /// carries the same glass frame as every other pill; inner rows are
@@ -238,15 +234,17 @@ class FloatingIconButton extends StatelessWidget {
 
 /// Glassy pill container shared by every floating element.
 ///
-/// Pure skin (blur + translucent surface + padding): it guarantees a
-/// minimum [barOuterSize] x [barOuterSize] outer box with [child] centered
-/// in it, so single-icon pills are always 48x48 round no matter how narrow
-/// their content is. Wider / taller content (search fields, stacked
-/// sub-header rows) simply grows past 48.
+/// Pure skin (blur + translucent surface + padding) with a minimum
+/// [barOuterSize] x [barOuterSize] outer box. It shrink-wraps [child]
+/// (tight constraints flow down untouched, exactly like the original
+/// borderless pill), so full-width contents keep centering themselves
+/// and narrow ones hug — the minimum only kicks in for short content.
+/// Short contents are responsible for centering themselves (all of them
+/// do: search/central align, rows self-center, buttons fill).
 ///
 /// Pass [enforceMinSize] = false to opt out and shrink-wrap [child]
-/// exactly like before (used by overlay chips like the voice user card,
-/// which keep their own compact paddings and sizes).
+/// with no minimum at all (used by overlay chips like the voice user
+/// card, which keep their own compact paddings and sizes).
 class FloatingPill extends StatelessWidget {
   const FloatingPill({
     super.key,
@@ -264,16 +262,6 @@ class FloatingPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final resolvedPadding = padding.resolve(Directionality.of(context));
-    // Minimum inner box so that inner + padding == barOuterSize.
-    // (Padding lives outside the min box on purpose: the glass counts
-    // toward the 48, like buttons filling the content edge to edge.)
-    final minInnerWidth = (FloatingConsts.barOuterSize -
-            resolvedPadding.horizontal)
-        .clamp(0.0, double.infinity);
-    final minInnerHeight = (FloatingConsts.barOuterSize -
-            resolvedPadding.vertical)
-        .clamp(0.0, double.infinity);
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
       child: BackdropFilter(
@@ -283,96 +271,21 @@ class FloatingPill extends StatelessWidget {
         ),
         child: Container(
           padding: padding,
+          constraints: enforceMinSize
+              ? const BoxConstraints(
+                  minWidth: FloatingConsts.barOuterSize,
+                  minHeight: FloatingConsts.barOuterSize,
+                )
+              : null,
           decoration: BoxDecoration(
             color: scheme.primary.withValues(
               alpha: FloatingConsts.surfaceOpacity,
             ),
             borderRadius: BorderRadius.circular(radius),
           ),
-          child: enforceMinSize
-              ? _PillMinBox(
-                  minWidth: minInnerWidth,
-                  minHeight: minInnerHeight,
-                  child: child,
-                )
-              : child,
+          child: child,
         ),
       ),
-    );
-  }
-}
-
-/// Shrink-wrap box with a minimum size and centered content.
-///
-/// Lays [child] out loosely (never forcing it bigger), sizes itself to
-/// the child clamped to at least ([minWidth], [minHeight]), and centers
-/// the child in any leftover space. Unlike `Align`/`Center` — which
-/// stretch to fill bounded parents and once turned pills full-width —
-/// this can never grow past child + minimum.
-class _PillMinBox extends SingleChildRenderObjectWidget {
-  const _PillMinBox({
-    required this.minWidth,
-    required this.minHeight,
-    required super.child,
-  });
-
-  final double minWidth;
-  final double minHeight;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) =>
-      _RenderPillMinBox(minWidth, minHeight);
-
-  @override
-  void updateRenderObject(BuildContext context, _RenderPillMinBox renderObject) {
-    renderObject
-      ..minWidth = minWidth
-      ..minHeight = minHeight;
-  }
-}
-
-class _RenderPillMinBox extends RenderProxyBox {
-  _RenderPillMinBox(this._minWidth, this._minHeight);
-
-  double _minWidth;
-  set minWidth(double value) {
-    if (value == _minWidth) return;
-    _minWidth = value;
-    markNeedsLayout();
-  }
-
-  double _minHeight;
-  set minHeight(double value) {
-    if (value == _minHeight) return;
-    _minHeight = value;
-    markNeedsLayout();
-  }
-
-  @override
-  void setupParentData(RenderBox child) {
-    if (child.parentData is! BoxParentData) {
-      child.parentData = BoxParentData();
-    }
-  }
-
-  @override
-  void performLayout() {
-    final RenderBox? child = this.child;
-    if (child == null) {
-      size = constraints.constrain(Size(_minWidth, _minHeight));
-      return;
-    }
-    child.layout(constraints.loosen(), parentUsesSize: true);
-    final Size childSize = child.size;
-    size = constraints.constrain(
-      Size(
-        childSize.width < _minWidth ? _minWidth : childSize.width,
-        childSize.height < _minHeight ? _minHeight : childSize.height,
-      ),
-    );
-    (child.parentData! as BoxParentData).offset = Offset(
-      (size.width - childSize.width) / 2,
-      (size.height - childSize.height) / 2,
     );
   }
 }

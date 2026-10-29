@@ -31,87 +31,94 @@ class ReplyBar extends ConsumerWidget {
       child: FloatingPill(
         radius: FloatingConsts.centralRadius,
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: replyingTo.map((item) {
-          final message = item.message;
-          final senderName = users[message.userUUID]?.name ?? message.userUUID;
-          var content = message.content ?? '';
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minHeight: FloatingConsts.barOuterSize,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: replyingTo.map((item) {
+              final message = item.message;
+              final senderName =
+                  users[message.userUUID]?.name ?? message.userUUID;
+              var content = message.content ?? '';
 
-          if (item.isQuote && content.isNotEmpty) {
-            final start = item.rangeStart!.clamp(0, content.length);
-            final end = item.rangeEnd!.clamp(start, content.length);
-            content = content.substring(start, end);
-          }
+              if (item.isQuote && content.isNotEmpty) {
+                final start = item.rangeStart!.clamp(0, content.length);
+                final end = item.rangeEnd!.clamp(start, content.length);
+                content = content.substring(start, end);
+              }
 
-          return Row(
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    AppHugeIcon(
-                      icon: item.isQuote
-                          ? HugeIcons.strokeRoundedArrowMoveUpLeft
-                          : HugeIcons.strokeRoundedArrowMoveUpLeft,
-                      size: 18,
-                      color: colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      width: 3,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            senderName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: colorScheme.onSurface,
-                            ),
+              return Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        AppHugeIcon(
+                          icon: item.isQuote
+                              ? HugeIcons.strokeRoundedArrowMoveUpLeft
+                              : HugeIcons.strokeRoundedArrowMoveUpLeft,
+                          size: 18,
+                          color: colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 3,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            borderRadius: BorderRadius.circular(2),
                           ),
-                          Text(
-                            content,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                senderName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              Text(
+                                content,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 4),
-              InkWell(
-                onTap: () => handleCancelReply(item),
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: AppHugeIcon(
-                    icon: HugeIcons.strokeRoundedCancel01,
-                    size: 16,
-                    color: colorScheme.onSurfaceVariant,
                   ),
-                ),
-              ),
-            ],
-          );
-        }).toList(),
+                  const SizedBox(width: 4),
+                  InkWell(
+                    onTap: () => handleCancelReply(item),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: AppHugeIcon(
+                        icon: HugeIcons.strokeRoundedCancel01,
+                        size: 16,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
