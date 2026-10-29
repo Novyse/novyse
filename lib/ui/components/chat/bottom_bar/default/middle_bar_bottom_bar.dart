@@ -166,7 +166,9 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
         padding: FloatingConsts.iconPillPadding,
         child: ConstrainedBox(
           constraints: const BoxConstraints(
-            minHeight: FloatingConsts.barOuterSize,
+            // 44 content + 4 glass = 48, exactly like every other pill.
+            // (Full 48 here would stack on the padding and make 52.)
+            minHeight: FloatingConsts.barContentSize,
           ),
           child: Actions(
             actions: {
@@ -176,49 +178,75 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
                 },
               ),
             },
-            child: TextField(
-              controller: widget.textController,
-              focusNode: _effectiveFocusNode,
-              textCapitalization: TextCapitalization.sentences,
-              maxLines: 4,
-              minLines: 1,
-              textAlignVertical: TextAlignVertical.center,
-              style: TextStyle(color: colorScheme.onSurface, fontSize: 15),
-              contentInsertionConfiguration: ContentInsertionConfiguration(
-                allowedMimeTypes: const <String>[
-                  'image/png',
-                  'image/jpeg',
-                  'image/gif',
-                  'image/webp',
-                  'image/heic',
-                  'image/svg+xml',
-                ],
-                onContentInserted: (KeyboardInsertedContent data) async {
-                  await ChatPasteHelper.handleKeyboardInserted(
-                    ref,
-                    widget.chatUUID,
-                    data,
-                    subID: widget.subID,
-                  );
-                },
-              ),
-              contextMenuBuilder: (context, editableTextState) {
-                return ChatContextMenu(
-                  editableTextState: editableTextState,
-                  controller: widget.textController,
-                  onPaste: () async {
-                    await _handlePaste();
-                  },
-                );
-              },
-              decoration: InputDecoration(
-                filled: false,
-                hintText: l10n.typeMessageHint,
-                hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: const EdgeInsets.fromLTRB(16, 11, 4, 11),
-                suffixIcon: IconButton(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: widget.textController,
+                    focusNode: _effectiveFocusNode,
+                    textCapitalization: TextCapitalization.sentences,
+                    maxLines: 4,
+                    minLines: 1,
+                    textAlignVertical: TextAlignVertical.center,
+                    style: TextStyle(
+                      color: colorScheme.onSurface,
+                      fontSize: 15,
+                    ),
+                    contentInsertionConfiguration:
+                        ContentInsertionConfiguration(
+                          allowedMimeTypes: const <String>[
+                            'image/png',
+                            'image/jpeg',
+                            'image/gif',
+                            'image/webp',
+                            'image/heic',
+                            'image/svg+xml',
+                          ],
+                          onContentInserted:
+                              (KeyboardInsertedContent data) async {
+                                await ChatPasteHelper.handleKeyboardInserted(
+                                  ref,
+                                  widget.chatUUID,
+                                  data,
+                                  subID: widget.subID,
+                                );
+                              },
+                        ),
+                    contextMenuBuilder: (context, editableTextState) {
+                      return ChatContextMenu(
+                        editableTextState: editableTextState,
+                        controller: widget.textController,
+                        onPaste: () async {
+                          await _handlePaste();
+                        },
+                      );
+                    },
+                    decoration: InputDecoration(
+                      filled: false,
+                      hintText: l10n.typeMessageHint,
+                      hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.fromLTRB(16, 10, 0, 10),
+                      // Keeps one line 44 tall, with the hint centered,
+                      // without taking a column the emoji button would
+                      // follow as the field grows.
+                      suffixIconConstraints: const BoxConstraints.tightFor(
+                        width: 0,
+                        height: FloatingConsts.barContentSize,
+                      ),
+                      suffixIcon: const SizedBox.shrink(),
+                    ),
+                    onChanged: (text) {
+                      ref
+                          .read(chatDraftProvider(widget.chatUUID).notifier)
+                          .setText(text);
+                    },
+                    onSubmitted: (_) => widget.onSendMessage(),
+                  ),
+                ),
+                FloatingIconButton(
                   icon: AppHugeIcon(
                     icon: widget.isEmojiMenuOpen
                         ? HugeIcons.strokeRoundedKeyboard
@@ -227,15 +255,8 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
                   ),
                   onPressed: widget.onToggleEmoji,
                   tooltip: l10n.emojiTooltip,
-                  splashRadius: 20,
                 ),
-              ),
-              onChanged: (text) {
-                ref
-                    .read(chatDraftProvider(widget.chatUUID).notifier)
-                    .setText(text);
-              },
-              onSubmitted: (_) => widget.onSendMessage(),
+              ],
             ),
           ),
         ),

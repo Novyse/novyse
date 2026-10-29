@@ -21,7 +21,7 @@ abstract final class FloatingConsts {
 
   /// Fully-rounded icon / action pills vs. the larger central pill.
   static const double pillRadius = 50.0;
-  static const double centralRadius = 50.0;
+  static const double centralRadius = 24.0;
 
   /// Outer padding of every pill (single-icon, central, actions,
   /// sub-header). Zero: pills hug their 42 content, the 48 outer comes

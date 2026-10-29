@@ -16,6 +16,7 @@ import 'package:novyse/ui/components/chat/bottom_bar/default/right_button_bottom
 import 'package:novyse/ui/components/chat/bottom_bar/recording/speech_indicator.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/recording/voice_recorder_controller.dart';
 import 'package:novyse/ui/components/chat/chat_drop_zone.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/waveform/waveform_view.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -112,6 +113,55 @@ void main() {
         (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedSent,
       );
       expect(sendIcon, findsOneWidget);
+    });
+
+    testWidgets('Emoji button stays at the bottom when the composer grows', (
+      tester,
+    ) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            localizationsDelegates: localizationsDelegates,
+            supportedLocales: supportedLocales,
+            locale: Locale('en'),
+            home: Scaffold(
+              body: Column(
+                children: [
+                  Spacer(),
+                  ChatBottomBar(chatUUID: 'chat-test-1'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byType(TextField),
+        List.filled(6, 'a line of message text').join('\n'),
+      );
+      await tester.pump();
+
+      final fieldRect = tester.getRect(find.byType(TextField));
+      final buttonRect = tester.getRect(
+        find.descendant(
+          of: find.byType(MiddleBarBottomBar),
+          matching: find.byType(FloatingIconButton),
+        ),
+      );
+
+      expect(fieldRect.height, greaterThan(buttonRect.height + 8));
+      expect(buttonRect.bottom, closeTo(fieldRect.bottom, 1));
+      expect(buttonRect.left, greaterThanOrEqualTo(fieldRect.right - 1));
+      expect(
+        (fieldRect.center.dy - buttonRect.center.dy).abs(),
+        greaterThan(8),
+      );
     });
 
     testWidgets('Right button switches to Send icon when draft has files', (
@@ -575,6 +625,66 @@ void main() {
         matching: find.byType(DropRegion),
       );
       expect(dropRegionInDropZone, findsOneWidget);
+    });
+
+    testWidgets('Single-line composer is 48 tall like the side buttons', (
+      tester,
+    ) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            localizationsDelegates: localizationsDelegates,
+            supportedLocales: supportedLocales,
+            locale: Locale('en'),
+            home: Scaffold(
+              body: Column(
+                children: [
+                  Spacer(),
+                  ChatBottomBar(chatUUID: 'chat-test-1'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      double pillHeight(Widget pillWidget) {
+        final element = find.byWidget(pillWidget).evaluate().single;
+        return (element.renderObject! as RenderBox).size.height;
+      }
+
+      final middle = find.byType(MiddleBarBottomBar).evaluate().single.widget;
+      final left = find.byType(LeftButtonBottomBar).evaluate().single.widget;
+      final right = find.byType(RightButtonBottomBar).evaluate().single.widget;
+
+      // Composer pill...
+      final composerPill = find
+          .descendant(
+            of: find.byWidget(middle),
+            matching: find.byType(FloatingPill),
+          )
+          .evaluate()
+          .single
+          .widget;
+      expect(pillHeight(composerPill), moreOrLessEquals(48.0, epsilon: 0.5));
+
+      // ...same height as the side button pills.
+      for (final side in [left, right]) {
+        final sidePill = find
+            .descendant(
+              of: find.byWidget(side),
+              matching: find.byType(FloatingPill),
+            )
+            .evaluate()
+            .single
+            .widget;
+        expect(pillHeight(sidePill), moreOrLessEquals(48.0, epsilon: 0.5));
+      }
     });
   });
 }
