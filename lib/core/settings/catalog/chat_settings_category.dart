@@ -1,5 +1,42 @@
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/chat/message_quick_action.dart';
+import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_models.dart';
+
+SettingItem _quickActionSlot({
+  required String id,
+  required String Function(AppLocalizations) title,
+  required String Function(AppLocalizations) subtitle,
+  required List<List<dynamic>> icon,
+  required String settingKey,
+  required String defaultValue,
+  required String otherKey,
+  required String otherDefault,
+}) {
+  return SettingItem(
+    id: id,
+    title: title,
+    subtitle: subtitle,
+    icon: icon,
+    component: SettingComponent.select,
+    settingKey: settingKey,
+    scope: SettingScope.local,
+    defaultValue: defaultValue,
+    options: MessageQuickAction.options(),
+    optionsLoader: (ref) => MessageQuickAction.loadOptions(
+      ref,
+      otherKey: otherKey,
+      fallback: otherDefault,
+    ),
+    onOptionPicked: (ref, value) => MessageQuickAction.save(
+      ref,
+      value,
+      key: settingKey,
+      otherKey: otherKey,
+      fallback: otherDefault,
+    ),
+  );
+}
 
 /// Chat Settings settings.
 final List<SettingCategory> chatSettingsCategory = [
@@ -100,6 +137,39 @@ final List<SettingCategory> chatSettingsCategory = [
                 scope: SettingScope.synchronized,
                 defaultValue: true,
                 disabled: true,
+              ),
+            ],
+          ),
+        ],
+      ),
+      SettingPage(
+        id: 'chat_messages',
+        title: (l) => l.settingsPageChatMessagesTitle,
+        subtitle: (l) => l.settingsPageChatMessagesSubtitle,
+        groups: [
+          SettingGroup(
+            id: 'quick_actions',
+            title: (l) => l.settingsGroupQuickActionsTitle,
+            items: [
+              _quickActionSlot(
+                id: 'quick_action_1',
+                title: (l) => l.settingsItemQuickAction1Title,
+                subtitle: (l) => l.settingsItemQuickAction1Subtitle,
+                icon: HugeIcons.strokeRoundedArrowMoveUpLeft,
+                settingKey: MessageQuickAction.settingKey1,
+                defaultValue: MessageQuickAction.default1,
+                otherKey: MessageQuickAction.settingKey2,
+                otherDefault: MessageQuickAction.default2,
+              ),
+              _quickActionSlot(
+                id: 'quick_action_2',
+                title: (l) => l.settingsItemQuickAction2Title,
+                subtitle: (l) => l.settingsItemQuickAction2Subtitle,
+                icon: HugeIcons.strokeRoundedEdit02,
+                settingKey: MessageQuickAction.settingKey2,
+                defaultValue: MessageQuickAction.default2,
+                otherKey: MessageQuickAction.settingKey1,
+                otherDefault: MessageQuickAction.default1,
               ),
             ],
           ),
