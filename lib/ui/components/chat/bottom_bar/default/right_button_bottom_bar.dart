@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class RightButtonBottomBar extends StatelessWidget {
@@ -51,7 +51,6 @@ class RightButtonBottomBar extends StatelessWidget {
             icon: shouldShowSend
                 ? HugeIcons.strokeRoundedSent
                 : HugeIcons.strokeRoundedMic02,
-            size: 20,
             color: shouldShowSend
                 ? colorScheme.onPrimary
                 : colorScheme.onSurface,
@@ -77,11 +76,11 @@ class RightButtonBottomBar extends StatelessWidget {
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(
-              FloatingAppBarConsts.pillRadius,
+              FloatingConsts.pillRadius,
             ),
             child: Container(
-              width: FloatingAppBarConsts.iconPillOuterSize,
-              height: FloatingAppBarConsts.iconPillOuterSize,
+              width: FloatingConsts.iconPillOuterSize,
+              height: FloatingConsts.iconPillOuterSize,
               decoration: BoxDecoration(
                 color: colorScheme.primary,
                 shape: BoxShape.circle,
@@ -98,17 +97,17 @@ class RightButtonBottomBar extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: FloatingPill(
-        padding: FloatingAppBarConsts.iconPillPadding,
+        padding: FloatingConsts.iconPillPadding,
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(
-              FloatingAppBarConsts.pillRadius,
+              FloatingConsts.pillRadius,
             ),
             child: SizedBox(
-              width: FloatingAppBarConsts.iconButtonSize,
-              height: FloatingAppBarConsts.iconButtonSize,
+              width: FloatingConsts.iconButtonSize,
+              height: FloatingConsts.iconButtonSize,
               child: Center(child: icon),
             ),
           ),

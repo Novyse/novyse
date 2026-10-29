@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 
 /// Floating mention bar that displays a list of group/channel members
 /// when typing '@query' in the chat input.
@@ -175,9 +175,9 @@ class _MentionBarState extends ConsumerState<MentionBar> {
     final listHeight = math.min(220.0, displayMembers.length * 52.0 + 8.0);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: FloatingAppBarConsts.bottomGap),
+      padding: const EdgeInsets.only(bottom: FloatingConsts.bottomGap),
       child: FloatingPill(
-        radius: FloatingAppBarConsts.centralRadius,
+        radius: FloatingConsts.centralRadius,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 220),
           child: SizedBox(

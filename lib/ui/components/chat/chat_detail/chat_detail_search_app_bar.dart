@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class ChatDetailSearchAppBar extends StatelessWidget {
@@ -39,21 +39,21 @@ class ChatDetailSearchAppBar extends StatelessWidget {
     final content = Row(
       children: [
         FloatingPill(
-          padding: FloatingAppBarConsts.iconPillPadding,
+          padding: FloatingConsts.iconPillPadding,
           child: FloatingIconButton(
             icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
             tooltip: l10n.cancel,
             onPressed: onClose,
           ),
         ),
-        const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+        const SizedBox(width: FloatingConsts.pillSpacing),
         Expanded(
           child: FloatingPill(
-            radius: FloatingAppBarConsts.centralRadius,
-            padding: FloatingAppBarConsts.searchFieldPadding,
+            radius: FloatingConsts.centralRadius,
+            padding: FloatingConsts.searchFieldPadding,
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                minHeight: FloatingAppBarConsts.searchFieldHeight,
+                minHeight: FloatingConsts.searchFieldHeight,
               ),
               child: Align(
                 alignment: Alignment.centerLeft,
@@ -76,12 +76,12 @@ class ChatDetailSearchAppBar extends StatelessWidget {
                     filled: false,
                     contentPadding: const EdgeInsets.symmetric(vertical: 8),
                     suffixIconConstraints:
-                        FloatingAppBarConsts.searchClearConstraints,
+                        FloatingConsts.searchClearConstraints,
                     suffixIcon: hasQuery
                         ? IconButton(
                             padding: EdgeInsets.zero,
                             constraints:
-                                FloatingAppBarConsts.searchClearConstraints,
+                                FloatingConsts.searchClearConstraints,
                             icon: const AppHugeIcon(
                               icon: HugeIcons.strokeRoundedCancel01,
                               size: 18,
@@ -98,9 +98,9 @@ class ChatDetailSearchAppBar extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+        const SizedBox(width: FloatingConsts.pillSpacing),
         FloatingPill(
-          padding: FloatingAppBarConsts.actionsPadding,
+          padding: FloatingConsts.iconPillPadding,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -139,7 +139,7 @@ class ChatDetailSearchAppBar extends StatelessWidget {
         children: [
           content,
           if (bottom != null) ...[
-            const SizedBox(height: FloatingAppBarConsts.bottomGap),
+            const SizedBox(height: FloatingConsts.bottomGap),
             bottom!,
           ],
         ],

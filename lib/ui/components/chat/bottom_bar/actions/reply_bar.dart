@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class ReplyBar extends ConsumerWidget {
@@ -27,10 +27,10 @@ class ReplyBar extends ConsumerWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: FloatingAppBarConsts.bottomGap),
+      padding: const EdgeInsets.only(bottom: FloatingConsts.bottomGap),
       child: FloatingPill(
-        radius: FloatingAppBarConsts.centralRadius,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        radius: FloatingConsts.centralRadius,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: replyingTo.map((item) {

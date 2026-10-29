@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class ChatOverviewAppBar extends StatelessWidget {
@@ -37,29 +37,29 @@ class ChatOverviewAppBar extends StatelessWidget {
     final content = Row(
       children: [
         FloatingPill(
-          padding: FloatingAppBarConsts.iconPillPadding,
+          padding: FloatingConsts.iconPillPadding,
           child: FloatingIconButton(
             icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
             onPressed: onBack,
           ),
         ),
-        const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+        const SizedBox(width: FloatingConsts.pillSpacing),
         Expanded(
           child: FloatingPill(
-            radius: FloatingAppBarConsts.centralRadius,
-            padding: FloatingAppBarConsts.centralAvatarPadding,
+            radius: FloatingConsts.centralRadius,
+            padding: FloatingConsts.iconPillPadding,
             child: Row(
               children: [
                 Avatar(
                   uuid: avatarUuid,
                   name: title,
                   seedKey: seedKey,
-                  size: FloatingAppBarConsts.leadingSize,
+                  size: FloatingConsts.leadingSize,
                   isOnline: isOnline,
                   isSavedMessages: isSavedMessages,
                   type: chatType,
                 ),
-                const SizedBox(width: FloatingAppBarConsts.leadingGap),
+                const SizedBox(width: FloatingConsts.leadingGap),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,14 +67,14 @@ class ChatOverviewAppBar extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: FloatingAppBarConsts.titleStyle,
+                        style: FloatingConsts.titleStyle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (subtitle.isNotEmpty)
                         Text(
                           subtitle,
-                          style: FloatingAppBarConsts.subtitleStyle(
+                          style: FloatingConsts.subtitleStyle(
                             colorScheme,
                             highlighted: subtitleHighlighted,
                           ),

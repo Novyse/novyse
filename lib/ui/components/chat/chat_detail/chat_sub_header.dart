@@ -5,10 +5,10 @@ import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/storage/file/playable_uri.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_pinned_messages_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/sub_header/comms/chat_comms_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/sub_header/voice/chat_active_voice_bar.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 
 /// General unified sub-header bar displayed directly under the main floating header.
 ///
@@ -62,12 +62,12 @@ class ChatSubHeader extends ConsumerWidget {
     }
 
     return FloatingPill(
-      radius: FloatingAppBarConsts.subHeaderRadius,
-      padding: FloatingAppBarConsts.subHeaderPadding,
+      radius: FloatingConsts.subHeaderRadius,
+      padding: FloatingConsts.subHeaderOuterPadding,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: FloatingAppBarConsts.subHeaderGap,
+        spacing: FloatingConsts.subHeaderGap,
         children: [
           if (hasPinnedMessages) ChatPinnedMessagesBar(chatUUID: chatUUID),
           if (hasVoice)

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
@@ -37,7 +37,7 @@ class ChatSelectedHeader extends StatelessWidget {
     final content = Row(
       children: [
         FloatingPill(
-          padding: FloatingAppBarConsts.iconPillPadding,
+          padding: FloatingConsts.iconPillPadding,
           child: FloatingIconButton(
             icon: AppHugeIcon(
               icon: HugeIcons.strokeRoundedCancel01,
@@ -47,14 +47,14 @@ class ChatSelectedHeader extends StatelessWidget {
             onPressed: onClose,
           ),
         ),
-        const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+        const SizedBox(width: FloatingConsts.pillSpacing),
         Expanded(
           child: FloatingPill(
-            radius: FloatingAppBarConsts.centralRadius,
-            padding: FloatingAppBarConsts.centralTitlePadding,
+            radius: FloatingConsts.centralRadius,
+            padding: FloatingConsts.centralTitlePadding,
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                minHeight: FloatingAppBarConsts.centralMinHeight,
+                minHeight: FloatingConsts.centralMinHeight,
               ),
               child: Align(
                 alignment: Alignment.centerLeft,
@@ -73,9 +73,9 @@ class ChatSelectedHeader extends StatelessWidget {
           ),
         ),
         if (hasActions) ...[
-          const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+          const SizedBox(width: FloatingConsts.pillSpacing),
           FloatingPill(
-            padding: FloatingAppBarConsts.actionsPadding,
+            padding: FloatingConsts.iconPillPadding,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -143,7 +143,7 @@ class ChatSelectedHeader extends StatelessWidget {
         children: [
           content,
           if (bottom != null) ...[
-            const SizedBox(height: FloatingAppBarConsts.bottomGap),
+            const SizedBox(height: FloatingConsts.bottomGap),
             bottom!,
           ],
         ],

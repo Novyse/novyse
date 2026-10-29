@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Base template for every settings page.
@@ -145,7 +145,7 @@ class _SettingsFloatingAppBar extends StatelessWidget {
         children: [
           if (showBack) ...[
             FloatingPill(
-              padding: FloatingAppBarConsts.iconPillPadding,
+              padding: FloatingConsts.iconPillPadding,
               child: FloatingIconButton(
                 icon: const AppHugeIcon(
                   icon: HugeIcons.strokeRoundedArrowLeft01,
@@ -153,15 +153,15 @@ class _SettingsFloatingAppBar extends StatelessWidget {
                 onPressed: onBack,
               ),
             ),
-            const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+            const SizedBox(width: FloatingConsts.pillSpacing),
           ],
           Expanded(
             child: FloatingPill(
-              radius: FloatingAppBarConsts.centralRadius,
-              padding: FloatingAppBarConsts.centralTitlePadding,
+              radius: FloatingConsts.centralRadius,
+              padding: FloatingConsts.centralTitlePadding,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(
-                  minHeight: FloatingAppBarConsts.centralMinHeight,
+                  minHeight: FloatingConsts.centralMinHeight,
                 ),
                 child: Semantics(
                   header: true,
@@ -171,7 +171,7 @@ class _SettingsFloatingAppBar extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: FloatingAppBarConsts.titleStyle,
+                        style: FloatingConsts.titleStyle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
@@ -179,7 +179,7 @@ class _SettingsFloatingAppBar extends StatelessWidget {
                       if (subtitleText != null && subtitleText.isNotEmpty)
                         Text(
                           subtitleText,
-                          style: FloatingAppBarConsts.subtitleStyle(
+                          style: FloatingConsts.subtitleStyle(
                             colorScheme,
                           ),
                           maxLines: 1,
@@ -193,9 +193,9 @@ class _SettingsFloatingAppBar extends StatelessWidget {
             ),
           ),
           if (extraActions != null && extraActions.isNotEmpty) ...[
-            const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+            const SizedBox(width: FloatingConsts.pillSpacing),
             FloatingPill(
-              padding: FloatingAppBarConsts.actionsPadding,
+              padding: FloatingConsts.iconPillPadding,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: extraActions,
@@ -204,7 +204,7 @@ class _SettingsFloatingAppBar extends StatelessWidget {
           ] else if (showBack) ...[
             // Balances the back pill so the title stays centered,
             // like `production` HeaderWithBackArrow's right spacer.
-            const SizedBox(width: FloatingAppBarConsts.iconPillOuterSize),
+            const SizedBox(width: FloatingConsts.iconPillOuterSize),
           ],
         ],
       );
@@ -217,7 +217,7 @@ class _SettingsFloatingAppBar extends StatelessWidget {
         children: [
           content,
           if (bottom != null) ...[
-            const SizedBox(height: FloatingAppBarConsts.bottomGap),
+            const SizedBox(height: FloatingConsts.bottomGap),
             bottom!,
           ],
         ],

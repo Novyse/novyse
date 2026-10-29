@@ -5,7 +5,7 @@ import 'package:novyse/core/chat/message_format.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class EditBar extends ConsumerWidget {
@@ -46,10 +46,10 @@ class EditBar extends ConsumerWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: FloatingAppBarConsts.bottomGap),
+      padding: const EdgeInsets.only(bottom: FloatingConsts.bottomGap),
       child: FloatingPill(
-        radius: FloatingAppBarConsts.centralRadius,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        radius: FloatingConsts.centralRadius,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Row(children: [
           AppHugeIcon(
             icon: HugeIcons.strokeRoundedPencilEdit02,

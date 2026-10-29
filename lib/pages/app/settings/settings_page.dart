@@ -5,7 +5,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/settings/settings_search.dart';
 
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
 import 'package:novyse/ui/components/settings/settings_page_template.dart';
@@ -93,9 +93,9 @@ class _SettingsPageState extends State<SettingsPage> {
                       onQueryChanged: _onQueryChanged,
                     ),
                   ),
-                  const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+                  const SizedBox(width: FloatingConsts.pillSpacing),
                   FloatingPill(
-                    padding: FloatingAppBarConsts.iconPillPadding,
+                    padding: FloatingConsts.iconPillPadding,
                     child: FloatingIconButton(
                       icon: const AppHugeIcon(
                         icon: HugeIcons.strokeRoundedCancel01,

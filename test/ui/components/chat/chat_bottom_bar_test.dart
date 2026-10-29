@@ -72,7 +72,7 @@ void main() {
 
         // Verify + icon is shown on LeftButton
         final plusIcon = find.byWidgetPredicate(
-          (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedAdd01,
+          (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedPlus,
         );
         expect(plusIcon, findsWidgets);
       },

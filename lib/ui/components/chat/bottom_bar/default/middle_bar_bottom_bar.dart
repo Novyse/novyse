@@ -7,11 +7,11 @@ import 'package:markdown_editor_live/markdown_editor_live.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/shortcuts/chat_shortcuts.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/context_menu.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/recording/speech_indicator.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/recording/voice_recorder_controller.dart';
 import 'package:novyse/ui/components/chat/paste/chat_paste_helper.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class MiddleBarBottomBar extends ConsumerStatefulWidget {
@@ -162,8 +162,8 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
 
     if (!widget.isRecording) {
       return FloatingPill(
-        radius: FloatingAppBarConsts.centralRadius,
-        padding: const EdgeInsets.symmetric(vertical: 2),
+        radius: FloatingConsts.centralRadius,
+        padding: FloatingConsts.iconPillPadding,
         child: Actions(
           actions: {
             PasteTextIntent: CallbackAction<PasteTextIntent>(
@@ -218,7 +218,6 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
                   icon: widget.isEmojiMenuOpen
                       ? HugeIcons.strokeRoundedKeyboard
                       : HugeIcons.strokeRoundedSmile,
-                  size: 20,
                   color: colorScheme.onSurfaceVariant,
                 ),
                 onPressed: widget.onToggleEmoji,
@@ -239,8 +238,8 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
 
     // Recording Mode
     return FloatingPill(
-      radius: FloatingAppBarConsts.centralRadius,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      radius: FloatingConsts.centralRadius,
+      padding: FloatingConsts.centralTitlePadding,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final compactTimer = constraints.maxWidth < _compactTimerBreakpoint;
@@ -253,7 +252,7 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
 
           return ConstrainedBox(
             constraints: const BoxConstraints(
-              minHeight: FloatingAppBarConsts.centralMinHeight,
+              minHeight: FloatingConsts.centralMinHeight,
             ),
             child: Row(
               children: [
@@ -313,7 +312,7 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
       children: [
         IconButton(
           icon: AppHugeIcon(
-            icon: HugeIcons.strokeRoundedAdd01,
+            icon: HugeIcons.strokeRoundedPlus,
             size: 20,
             color: colorScheme.onSurface,
           ),

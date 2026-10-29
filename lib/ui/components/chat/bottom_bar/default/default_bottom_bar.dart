@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/utils/platform.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/edit_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/files_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/mention_bar.dart';
@@ -16,6 +15,7 @@ import 'package:novyse/ui/components/chat/bottom_bar/recording/voice_recorder_co
 import 'package:novyse/ui/components/chat/emoji_menu/emoji_menu_overlay.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_models.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_send_handler.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 
 class DefaultBottomBar extends ConsumerStatefulWidget {
   const DefaultBottomBar({
@@ -276,7 +276,7 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
                 onCancelRecording: () => recorderNotifier.cancelRecording(),
               ),
             ),
-            const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+            const SizedBox(width: FloatingConsts.pillSpacing),
             Expanded(
               child: CompositedTransformTarget(
                 link: _emojiMenuLink,
@@ -295,7 +295,7 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
                 ),
               ),
             ),
-            const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+            const SizedBox(width: FloatingConsts.pillSpacing),
             RightButtonBottomBar(
               isRecording: recorderState.isRecording,
               hasText: hasText,
@@ -313,7 +313,7 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
         // Desktop/web use the floating overlay instead (see _syncEmojiMenuOverlay).
         if (widget.isEmojiMenuOpen &&
             currentPlatform == AppPlatform.mobile) ...[
-          const SizedBox(height: FloatingAppBarConsts.bottomGap),
+          const SizedBox(height: FloatingConsts.bottomGap),
           EmojiMenuPanel(
             textController: textController,
             onSelectGif: _handleSelectGif,

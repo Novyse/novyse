@@ -14,9 +14,9 @@ import 'package:novyse/core/storage/file/file_utils.dart';
 import 'package:novyse/core/storage/file/file_validators.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/themes/themes.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/draft_audio_seek_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/draft_file_chip.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class FilesBar extends ConsumerStatefulWidget {
@@ -140,31 +140,24 @@ class _FilesBarState extends ConsumerState<FilesBar> {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: FloatingAppBarConsts.bottomGap),
+      padding: const EdgeInsets.only(bottom: FloatingConsts.bottomGap),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(
-          FloatingAppBarConsts.centralRadius,
+          FloatingConsts.centralRadius,
         ),
         child: BackdropFilter(
           filter: ImageFilter.blur(
-            sigmaX: FloatingAppBarConsts.blurSigma,
-            sigmaY: FloatingAppBarConsts.blurSigma,
+            sigmaX: FloatingConsts.blurSigma,
+            sigmaY: FloatingConsts.blurSigma,
           ),
           child: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: colorScheme.surface.withValues(
-                alpha: FloatingAppBarConsts.surfaceOpacity,
+                alpha: FloatingConsts.surfaceOpacity,
               ),
               borderRadius: BorderRadius.circular(
-                FloatingAppBarConsts.centralRadius,
-              ),
-              border: Border.all(
-                color: isNearLimit
-                    ? AppColors.danger.withValues(alpha: 0.6)
-                    : colorScheme.outline.withValues(
-                        alpha: FloatingAppBarConsts.borderOpacity,
-                      ),
+                FloatingConsts.centralRadius,
               ),
             ),
             child: Column(

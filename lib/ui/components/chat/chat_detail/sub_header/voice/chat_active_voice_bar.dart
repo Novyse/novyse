@@ -10,7 +10,7 @@ import 'package:novyse/core/storage/file/playable_uri.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/slider/app_progress_slider.dart';
 
@@ -89,20 +89,20 @@ class ChatActiveVoiceBar extends ConsumerWidget {
     );
 
     return SizedBox(
-      height: FloatingAppBarConsts.barOuterSize,
+      height: FloatingConsts.barOuterSize,
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(
-          FloatingAppBarConsts.subHeaderInnerRadius,
+          FloatingConsts.subHeaderInnerRadius,
         ),
         clipBehavior: Clip.hardEdge,
         child: InkWell(
           borderRadius: BorderRadius.circular(
-            FloatingAppBarConsts.subHeaderInnerRadius,
+            FloatingConsts.subHeaderInnerRadius,
           ),
           onTap: () => _jumpToSource(context, ref),
           child: Padding(
-            padding: FloatingAppBarConsts.subHeaderInnerPadding,
+            padding: FloatingConsts.subHeaderInnerPadding,
             // Single 48px row: play left, meta compact, slider fills the
             // middle, speed + close pinned to the far right.
             child: Row(
@@ -114,7 +114,7 @@ class ChatActiveVoiceBar extends ConsumerWidget {
                       audio.togglePlayPause(id: activeId, uri: activeUri!),
                 ),
                 const SizedBox(
-                  width: FloatingAppBarConsts.subHeaderContentGap,
+                  width: FloatingConsts.subHeaderContentGap,
                 ),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 168),
@@ -126,7 +126,7 @@ class ChatActiveVoiceBar extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(
-                  width: FloatingAppBarConsts.subHeaderActionsGap,
+                  width: FloatingConsts.subHeaderActionsGap,
                 ),
                 Expanded(
                   child: AppProgressSlider(
@@ -139,17 +139,17 @@ class ChatActiveVoiceBar extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(
-                  width: FloatingAppBarConsts.subHeaderActionsGap,
+                  width: FloatingConsts.subHeaderActionsGap,
                 ),
                 VoiceBarSpeedControl(speed: audio.speed),
                 const SizedBox(
-                  width: FloatingAppBarConsts.subHeaderActionsGap,
+                  width: FloatingConsts.subHeaderActionsGap,
                 ),
                 FloatingIconButton(
                   tooltip: l10n.cancel,
                   icon: AppHugeIcon(
                     icon: HugeIcons.strokeRoundedCancel01,
-                    size: FloatingAppBarConsts.barIconSize,
+                    size: FloatingConsts.barIconSize,
                     color: scheme.onSurfaceVariant,
                   ),
                   onPressed: () => audio.stop(),
