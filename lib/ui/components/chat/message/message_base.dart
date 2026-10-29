@@ -516,7 +516,11 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
       onOpenContextMenu: widget.onOpenContextMenu,
     );
 
-    return Padding(
+    return ColoredBox(
+      color: isSelected
+          ? colorScheme.primary.withValues(alpha: 0.3)
+          : Colors.transparent,
+      child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 3),
         child: SizedBox(
           width: double.infinity,
@@ -669,6 +673,7 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
             ],
           ),
         ),
-      );
+      ),
+    );
   }
 }
