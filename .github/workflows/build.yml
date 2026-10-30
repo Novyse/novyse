@@ -84,9 +84,8 @@ jobs:
             org.gnome.Sdk//51 \
             org.freedesktop.Sdk.Extension.llvm22//26.08
           sudo snap set system refresh.hold="$(date --date='+60 days' +%Y-%m-%dT%H:%M:%SZ)" || true
-          sudo snap install snapcraft --classic --channel=latest/stable || sudo snap refresh snapcraft --channel=latest/stable || true
-          sudo snap wait system seed-loaded || true
-          sudo snap install gnome-core26-sdk gnome-core26 mesa-2604 || true
+          timeout 300 bash -c 'sudo snap install snapcraft --classic --channel=latest/stable || sudo snap refresh snapcraft --channel=latest/stable' || true
+          sleep 10
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
