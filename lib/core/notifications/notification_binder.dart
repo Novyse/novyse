@@ -11,7 +11,7 @@ import 'package:novyse/core/notifications/notification_bridge.dart';
 import 'package:novyse/core/notifications/notification_manager.dart';
 import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/core/router/router.dart';
-import 'package:novyse/core/services/socket_service.dart';
+import 'package:novyse/core/services/realtime_service.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';

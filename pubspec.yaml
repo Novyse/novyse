@@ -42,7 +42,7 @@ dependencies:
   dio: ^5.8.0+1
   connectivity_plus: ^7.3.1
   flutter_riverpod: ^2.6.1
-  socket_io_client: ^3.0.2
+  centrifuge: ^0.21.0
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.3.3
   shared_preferences_linux: ^2.4.1

@@ -83,7 +83,7 @@ String getDomain(String subdomain) {
 
 final String apiBaseUrl = 'https://${getDomain('api')}';
 final String authBaseUrl = 'https://${getDomain('auth')}';
-final String socketBaseUrl = 'wss://${getDomain('io')}';
+final String realtimeBaseUrl = 'wss://${getDomain('realtime')}/connection/websocket';
 
 // Web URLs
 

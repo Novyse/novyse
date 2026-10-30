@@ -228,7 +228,7 @@ class StatusNotifier extends Notifier<StatusState> {
     }
   }
 
-  /// Sets or clears the Socket.IO connection status notification.
+  /// Sets or clears the realtime connection status notification.
   void setSocketStatus({
     required bool isConnected,
     bool isConnecting = false,

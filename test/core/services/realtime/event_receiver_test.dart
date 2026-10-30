@@ -1,22 +1,23 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
 import 'package:novyse/core/events/global_event_emitter.dart';
-import 'package:novyse/core/services/socket/event_receiver.dart';
+import 'package:novyse/core/services/realtime/event_receiver.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/storage/database/database.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import '../../../helpers/dispatch.dart';
 import '../../../helpers/event_collector.dart';
-import '../../../helpers/offline_socket.dart';
 
-/// Exercises every `EventReceiver` socket handler end to end: a simulated
-/// server packet goes in, the resulting emitter effects come out on the
+/// Exercises every `EventReceiver` realtime handler end to end: a simulated
+/// server publication goes in, the resulting emitter effects come out on the
 /// `EventBus` (and the in-memory database).
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  late OfflineSocket offline;
   late AppDatabase db;
   late EventCollector bus;
 
@@ -44,50 +45,96 @@ void main() {
     await db.chat.add({'uuid': 'chat-1', 'type': 'GROUP', 'name': 'Chat 1'});
     bus = EventCollector.start();
 
-    offline = OfflineSocket();
-    EventReceiver.instance.initialize(
-      offline.socket,
-      GlobalEventEmitter(EventBus.instance, db),
-    );
+    EventReceiver.instance
+      ..identify(userUUID: null)
+      ..initialize(GlobalEventEmitter(EventBus.instance, db));
   });
 
   tearDown(() async {
+    EventReceiver.instance.identify(userUUID: null);
     await bus.stop();
-    offline.close();
     await db.close();
   });
 
   group('initialize', () {
-    test('is idempotent for the same socket', () async {
+    test('binds the emitter exactly once for the same instance', () async {
       EventReceiver.instance.initialize(
-        offline.socket,
         GlobalEventEmitter(EventBus.instance, db),
       );
 
-      offline.dispatch('user:presence:online', {'userUUID': 'u1'});
+      dispatchEvent('user:presence:online', {'userUUID': 'u1'});
       await bus.settle();
 
       expect(bus.ofType<UserPresenceUpdateEvent>(), hasLength(1));
     });
+  });
 
-    test('re-registers when handed a different socket', () async {
-      final second = OfflineSocket();
-      addTearDown(second.close);
-      EventReceiver.instance.initialize(
-        second.socket,
-        GlobalEventEmitter(EventBus.instance, db),
-      );
+  group('publications', () {
+    const message = {
+      'id': 1,
+      'chatUUID': 'chat-1',
+      'subID': 0,
+      'content': 'hello',
+      'userUUID': 'u1',
+    };
 
-      second.dispatch('user:presence:online', {'userUUID': 'u1'});
+    test('unwraps the {event, payload} envelope of the channel data', () async {
+      dispatchPublication('chat:1', {
+        'event': 'message:new',
+        'payload': message,
+      });
       await bus.settle();
 
-      expect(bus.ofType<UserPresenceUpdateEvent>(), hasLength(1));
+      expect(bus.single<MessageNewEvent>().message['content'], 'hello');
+    });
+
+    test('routes by event regardless of the channel', () async {
+      dispatchPublication('user:u1', {
+        'event': 'message:new',
+        'payload': {
+          ...message,
+          'id': 2,
+          'content': 'from the inbox',
+        },
+      });
+      await bus.settle();
+
+      expect(bus.single<MessageNewEvent>().message['content'],
+          'from the inbox');
+    });
+
+    test('drops undecodable publication data', () async {
+      dispatchRawPublication('chat:1', <int>[0x00, 0xFF, 0xFE, 0x80]);
+      await bus.settle();
+
+      expect(bus.ofType<MessageNewEvent>(), isEmpty);
+    });
+
+    test('drops a non-map envelope', () async {
+      dispatchRawPublication('chat:1', utf8.encode(jsonEncode([1, 2])));
+      await bus.settle();
+
+      expect(bus.ofType<MessageNewEvent>(), isEmpty);
+    });
+
+    test('drops data without an event name', () async {
+      dispatchPublication('chat:1', {'payload': message});
+      await bus.settle();
+
+      expect(bus.ofType<MessageNewEvent>(), isEmpty);
+    });
+
+    test('drops an empty event name', () async {
+      dispatchPublication('chat:1', {'event': '', 'payload': message});
+      await bus.settle();
+
+      expect(bus.ofType<MessageNewEvent>(), isEmpty);
     });
   });
 
   group('user:profile:update', () {
     test('emits a profile update for the user', () async {
-      offline.dispatch('user:profile:update', {
+      dispatchEvent('user:profile:update', {
         'userUUID': 'u1',
         'name': 'Ada',
         'profileEventID': 12,
@@ -102,7 +149,7 @@ void main() {
     test('persists the changed fields', () async {
       await db.user.add({'uuid': 'u1', 'name': 'Old'});
 
-      offline.dispatch('user:profile:update', {
+      dispatchEvent('user:profile:update', {
         'userUUID': 'u1',
         'name': 'Ada',
         'biography': 'Mathematician',
@@ -115,14 +162,14 @@ void main() {
     });
 
     test('ignores a non-map payload', () async {
-      offline.dispatch('user:profile:update', 'not-a-map');
+      dispatchEvent('user:profile:update', 'not-a-map');
       await bus.settle();
 
       expect(bus.ofType<UserProfileUpdateEvent>(), isEmpty);
     });
 
     test('ignores a payload without a userUUID', () async {
-      offline.dispatch('user:profile:update', {'name': 'Ada'});
+      dispatchEvent('user:profile:update', {'name': 'Ada'});
       await bus.settle();
 
       expect(bus.ofType<UserProfileUpdateEvent>(), isEmpty);
@@ -131,7 +178,7 @@ void main() {
 
   group('user:setting:chat:update', () {
     test('emits a chat setting update', () async {
-      offline.dispatch('user:setting:chat:update', {
+      dispatchEvent('user:setting:chat:update', {
         'chatUUID': 'chat-1',
         'action': 'pin_add',
         'position': 0,
@@ -145,7 +192,7 @@ void main() {
     });
 
     test('pins the chat in the database for pin_add', () async {
-      offline.dispatch('user:setting:chat:update', {
+      dispatchEvent('user:setting:chat:update', {
         'chatUUID': 'chat-1',
         'action': 'pin_add',
         'position': 1,
@@ -159,7 +206,7 @@ void main() {
     test('unpins the chat in the database for pin_remove', () async {
       await db.chat.pin.add('chat-1', 0);
 
-      offline.dispatch('user:setting:chat:update', {
+      dispatchEvent('user:setting:chat:update', {
         'chatUUID': 'chat-1',
         'action': 'pin_remove',
       });
@@ -170,14 +217,14 @@ void main() {
     });
 
     test('ignores a payload missing the chatUUID', () async {
-      offline.dispatch('user:setting:chat:update', {'action': 'pin_add'});
+      dispatchEvent('user:setting:chat:update', {'action': 'pin_add'});
       await bus.settle();
 
       expect(bus.ofType<UserSettingChatUpdateEvent>(), isEmpty);
     });
 
     test('ignores a payload missing the action', () async {
-      offline.dispatch('user:setting:chat:update', {'chatUUID': 'chat-1'});
+      dispatchEvent('user:setting:chat:update', {'chatUUID': 'chat-1'});
       await bus.settle();
 
       expect(bus.ofType<UserSettingChatUpdateEvent>(), isEmpty);
@@ -186,10 +233,7 @@ void main() {
 
   group('user:setting:update', () {
     test('applies a synchronized setting', () async {
-      offline.dispatch('user:setting:update', {
-        'key': syncKey,
-        'value': 'dark',
-      });
+      dispatchEvent('user:setting:update', {'key': syncKey, 'value': 'dark'});
       await bus.settle();
 
       final event = bus.single<SettingValueUpdateEvent>();
@@ -198,10 +242,7 @@ void main() {
     });
 
     test('persists the setting with the synchronized scope', () async {
-      offline.dispatch('user:setting:update', {
-        'key': syncKey,
-        'value': 'light',
-      });
+      dispatchEvent('user:setting:update', {'key': syncKey, 'value': 'light'});
       await bus.settle();
 
       expect(
@@ -211,7 +252,7 @@ void main() {
     });
 
     test('ignores an unknown key', () async {
-      offline.dispatch('user:setting:update', {
+      dispatchEvent('user:setting:update', {
         'key': 'definitely_not_a_setting',
         'value': 1,
       });
@@ -221,15 +262,15 @@ void main() {
     });
 
     test('ignores a device-local setting', () async {
-      offline.dispatch('user:setting:update', {'key': localKey, 'value': 1});
+      dispatchEvent('user:setting:update', {'key': localKey, 'value': 1});
       await bus.settle();
 
       expect(bus.ofType<SettingValueUpdateEvent>(), isEmpty);
     });
 
     test('ignores an empty key', () async {
-      offline.dispatch('user:setting:update', {'key': '', 'value': 1});
-      offline.dispatch('user:setting:update', {'value': 1});
+      dispatchEvent('user:setting:update', {'key': '', 'value': 1});
+      dispatchEvent('user:setting:update', {'value': 1});
       await bus.settle();
 
       expect(bus.ofType<SettingValueUpdateEvent>(), isEmpty);
@@ -238,7 +279,7 @@ void main() {
 
   group('user:message:favorite:update', () {
     test('emits a favorite update for favorite_add', () async {
-      offline.dispatch('user:message:favorite:update', {
+      dispatchEvent('user:message:favorite:update', {
         'chatUUID': 'chat-1',
         'subID': 0,
         'messageID': '11',
@@ -257,7 +298,7 @@ void main() {
     test(
       'also emits a generic message update so the chatlist refreshes',
       () async {
-        offline.dispatch('user:message:favorite:update', {
+        dispatchEvent('user:message:favorite:update', {
           'chatUUID': 'chat-1',
           'subID': 0,
           'messageID': '11',
@@ -270,7 +311,7 @@ void main() {
     );
 
     test('emits a favorite update for favorite_remove', () async {
-      offline.dispatch('user:message:favorite:update', {
+      dispatchEvent('user:message:favorite:update', {
         'chatUUID': 'chat-1',
         'subID': 1,
         'messageID': '12',
@@ -284,7 +325,7 @@ void main() {
     });
 
     test('ignores an unknown action', () async {
-      offline.dispatch('user:message:favorite:update', {
+      dispatchEvent('user:message:favorite:update', {
         'chatUUID': 'chat-1',
         'subID': 0,
         'messageID': '11',
@@ -304,7 +345,7 @@ void main() {
         'action': 'favorite_add',
       };
       for (final missing in complete.keys) {
-        offline.dispatch('user:message:favorite:update', {
+        dispatchEvent('user:message:favorite:update', {
           for (final e in complete.entries)
             if (e.key != missing) e.key: e.value,
         });
@@ -317,7 +358,7 @@ void main() {
 
   group('user:presence', () {
     test('online marks the user ONLINE', () async {
-      offline.dispatch('user:presence:online', {'userUUID': 'u1'});
+      dispatchEvent('user:presence:online', {'userUUID': 'u1'});
       await bus.settle();
 
       final event = bus.single<UserPresenceUpdateEvent>();
@@ -326,7 +367,7 @@ void main() {
     });
 
     test('offline carries the last access timestamp', () async {
-      offline.dispatch('user:presence:offline', {
+      dispatchEvent('user:presence:offline', {
         'userUUID': 'u1',
         'lastAccessAt': '2026-01-01T10:00:00Z',
       });
@@ -338,8 +379,18 @@ void main() {
     });
 
     test('ignores a presence update without a userUUID', () async {
-      offline.dispatch('user:presence:online', <String, dynamic>{});
-      offline.dispatch('user:presence:offline', <String, dynamic>{});
+      dispatchEvent('user:presence:online', <String, dynamic>{});
+      dispatchEvent('user:presence:offline', <String, dynamic>{});
+      await bus.settle();
+
+      expect(bus.ofType<UserPresenceUpdateEvent>(), isEmpty);
+    });
+
+    test('ignores the own presence update', () async {
+      EventReceiver.instance.identify(userUUID: 'me');
+
+      dispatchEvent('user:presence:online', {'userUUID': 'me'});
+      dispatchEvent('user:presence:offline', {'userUUID': 'me'});
       await bus.settle();
 
       expect(bus.ofType<UserPresenceUpdateEvent>(), isEmpty);
@@ -348,7 +399,7 @@ void main() {
 
   group('message:new', () {
     test('emits a new message event and stores the row', () async {
-      offline.dispatch('message:new', {
+      dispatchEvent('message:new', {
         'id': 1,
         'chatUUID': 'chat-1',
         'subID': 0,
@@ -363,7 +414,7 @@ void main() {
     });
 
     test('coerces a string subID', () async {
-      offline.dispatch('message:new', {
+      dispatchEvent('message:new', {
         'id': 2,
         'chatUUID': 'chat-1',
         'subID': '3',
@@ -377,7 +428,7 @@ void main() {
     });
 
     test('ignores a non-map payload', () async {
-      offline.dispatch('message:new', 42);
+      dispatchEvent('message:new', 42);
       await bus.settle();
 
       expect(bus.ofType<MessageNewEvent>(), isEmpty);
@@ -386,7 +437,7 @@ void main() {
 
   group('message:read', () {
     test('emits a read update with a synthesized payload', () async {
-      offline.dispatch('message:read', {
+      dispatchEvent('message:read', {
         'chatUUID': 'chat-1',
         'subID': 0,
         'messageID': '1',
@@ -402,7 +453,7 @@ void main() {
     });
 
     test('ignores a payload missing an identifier', () async {
-      offline.dispatch('message:read', {'chatUUID': 'chat-1', 'subID': 0});
+      dispatchEvent('message:read', {'chatUUID': 'chat-1', 'subID': 0});
       await bus.settle();
 
       expect(bus.ofType<MessageUpdateEvent>(), isEmpty);
@@ -411,7 +462,7 @@ void main() {
 
   group('message:update', () {
     test('forwards the action and the raw payload', () async {
-      offline.dispatch('message:update', {
+      dispatchEvent('message:update', {
         'chatUUID': 'chat-1',
         'subID': 0,
         'messageID': '1',
@@ -434,7 +485,7 @@ void main() {
         'content': 'doomed',
       });
 
-      offline.dispatch('message:update', {
+      dispatchEvent('message:update', {
         'chatUUID': 'chat-1',
         'subID': 0,
         'messageID': '7',
@@ -446,7 +497,7 @@ void main() {
     });
 
     test('ignores a payload missing the action', () async {
-      offline.dispatch('message:update', {
+      dispatchEvent('message:update', {
         'chatUUID': 'chat-1',
         'subID': 0,
         'messageID': '1',
@@ -459,7 +510,7 @@ void main() {
 
   group('chat:new', () {
     test('emits a chat event and stores the chat and users', () async {
-      offline.dispatch('chat:new', {
+      dispatchEvent('chat:new', {
         'chat': {'uuid': 'chat-2', 'type': 'GROUP', 'name': 'New'},
         'users': [
           {'uuid': 'u9', 'name': 'Nine'},
@@ -477,14 +528,14 @@ void main() {
     });
 
     test('rejects a payload whose chat is not a map', () async {
-      offline.dispatch('chat:new', {'chat': 'not-a-map', 'users': <dynamic>[]});
+      dispatchEvent('chat:new', {'chat': 'not-a-map', 'users': <dynamic>[]});
       await bus.settle();
 
       expect(bus.ofType<ChatNewEvent>(), isEmpty);
     });
 
     test('rejects a payload whose users is not a list', () async {
-      offline.dispatch('chat:new', {
+      dispatchEvent('chat:new', {
         'chat': {'uuid': 'chat-2'},
         'users': 'not-a-list',
       });
@@ -496,7 +547,7 @@ void main() {
 
   group('chat:update', () {
     test('emits a chat update', () async {
-      offline.dispatch('chat:update', {
+      dispatchEvent('chat:update', {
         'chatUUID': 'chat-1',
         'action': 'rename',
         'chatEventID': 7,
@@ -509,8 +560,26 @@ void main() {
       expect(event.action, 'rename');
     });
 
+    test('processes distinct chat event IDs separately', () async {
+      dispatchEvent('chat:update', {
+        'chatUUID': 'chat-1',
+        'action': 'rename',
+        'chatEventID': 9,
+        'name': 'First',
+      });
+      dispatchEvent('chat:update', {
+        'chatUUID': 'chat-1',
+        'action': 'picture',
+        'chatEventID': 10,
+        'profilePictureUUID': 'p1',
+      });
+      await bus.settle();
+
+      expect(bus.ofType<ChatUpdateEvent>(), hasLength(2));
+    });
+
     test('forwards a nested sub payload for sub_create', () async {
-      offline.dispatch('chat:update', {
+      dispatchEvent('chat:update', {
         'chatUUID': 'chat-1',
         'action': 'sub_create',
         'sub': {'id': 1, 'name': 'General', 'type': 'TEXT'},
@@ -527,7 +596,7 @@ void main() {
     test('removes a sub-channel for sub_delete', () async {
       await db.chat.sub.add('chat-1', {'id': 2, 'name': 'Temp'});
 
-      offline.dispatch('chat:update', {
+      dispatchEvent('chat:update', {
         'chatUUID': 'chat-1',
         'action': 'sub_delete',
         'subID': 2,
@@ -538,7 +607,7 @@ void main() {
     });
 
     test('ignores a payload missing the action', () async {
-      offline.dispatch('chat:update', {'chatUUID': 'chat-1'});
+      dispatchEvent('chat:update', {'chatUUID': 'chat-1'});
       await bus.settle();
 
       expect(bus.ofType<ChatUpdateEvent>(), isEmpty);
@@ -547,7 +616,7 @@ void main() {
 
   group('chat:member', () {
     test('joined adds the member and emits the event', () async {
-      offline.dispatch('chat:member:joined', {
+      dispatchEvent('chat:member:joined', {
         'chat': {'uuid': 'chat-1'},
         'user': {'uuid': 'u3', 'name': 'Three'},
         'chatEventID': 8,
@@ -561,7 +630,7 @@ void main() {
     });
 
     test('joined ignores a chat without a uuid', () async {
-      offline.dispatch('chat:member:joined', {
+      dispatchEvent('chat:member:joined', {
         'chat': <String, dynamic>{'type': 'GROUP'},
         'user': {'uuid': 'u3'},
       });
@@ -573,7 +642,7 @@ void main() {
     test('left removes the member and emits the event', () async {
       await db.chat.member.add('chat-1', {'uuid': 'u4', 'name': 'Four'});
 
-      offline.dispatch('chat:member:left', {
+      dispatchEvent('chat:member:left', {
         'chatUUID': 'chat-1',
         'user': {'uuid': 'u4'},
       });
@@ -585,7 +654,7 @@ void main() {
     });
 
     test('left ignores a payload whose user is not a map', () async {
-      offline.dispatch('chat:member:left', {
+      dispatchEvent('chat:member:left', {
         'chatUUID': 'chat-1',
         'user': 'nope',
       });
@@ -595,7 +664,7 @@ void main() {
     });
 
     test('activity is forwarded verbatim', () async {
-      offline.dispatch('chat:member:activity', {
+      dispatchEvent('chat:member:activity', {
         'chatUUID': 'chat-1',
         'userUUID': 'u5',
         'action': 'TYPING',
@@ -607,8 +676,21 @@ void main() {
       expect(event.action, 'TYPING');
     });
 
+    test('activity ignores the sender own echo', () async {
+      EventReceiver.instance.identify(userUUID: 'me');
+
+      dispatchEvent('chat:member:activity', {
+        'chatUUID': 'chat-1',
+        'userUUID': 'me',
+        'action': 'TYPING',
+      });
+      await bus.settle();
+
+      expect(bus.ofType<ChatMemberActivityEvent>(), isEmpty);
+    });
+
     test('activity ignores a payload missing an identifier', () async {
-      offline.dispatch('chat:member:activity', {
+      dispatchEvent('chat:member:activity', {
         'chatUUID': 'chat-1',
         'action': 'TYPING',
       });
