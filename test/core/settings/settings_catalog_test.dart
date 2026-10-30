@@ -91,6 +91,8 @@ void main() {
         'api_keys',
         'qr_login_scanner',
         'send_with_enter',
+        'quick_action_1',
+        'quick_action_2',
       };
       for (final item in SettingsCatalog.allItems) {
         // Hidden items are storage-only and exempt from the WIP rule.
