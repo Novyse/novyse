@@ -294,7 +294,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
 
       final sources = await desktopCapturer.getSources(types: [type]);
       if (!mounted) return;
-      ScreenShareThumbnails.primeFromCache(sources);
+      ScreenShareThumbnails.remember(sources);
       setState(() {
         _sources = sources;
         _selectedSource = sources.isNotEmpty ? sources.first : null;

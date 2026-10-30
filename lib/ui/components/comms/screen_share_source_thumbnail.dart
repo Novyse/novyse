@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:novyse/ui/components/comms/screen_share_thumbnails.dart';
 
 /// Static thumbnail of a single desktop source (screen or window):
 /// preview image + name, highlighted when selected.
@@ -21,8 +22,11 @@ class ScreenShareSourceThumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final hasThumbnail =
-        source.thumbnail != null && source.thumbnail!.isNotEmpty;
+    final own = source.thumbnail;
+    final bytes = own == null || own.isEmpty
+        ? ScreenShareThumbnails.thumbnailFor(source.id)
+        : own;
+    final hasThumbnail = bytes != null && bytes.isNotEmpty;
 
     final placeholder = Container(
       color: Colors.black26,
@@ -37,7 +41,7 @@ class ScreenShareSourceThumbnail extends StatelessWidget {
 
     final thumbnail = hasThumbnail
         ? Image.memory(
-            source.thumbnail!,
+            bytes,
             fit: BoxFit.cover,
             errorBuilder: (_, _, _) => placeholder,
           )

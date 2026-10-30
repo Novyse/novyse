@@ -100,7 +100,7 @@ class _ScreenShareEditModalState extends State<ScreenShareEditModal> {
         types: [SourceType.Screen, SourceType.Window],
       );
       if (!mounted) return;
-      ScreenShareThumbnails.primeFromCache(sources);
+      ScreenShareThumbnails.remember(sources);
       setState(() {
         _sources = sources;
         _loadingSources = false;
