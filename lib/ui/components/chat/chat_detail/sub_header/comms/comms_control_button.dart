@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Round icon button used by the comms sub-header bar. Sizes come straight
-/// from [FloatingAppBarConsts]: 24 glyph in a 42 box, like every app bar.
+/// from [FloatingConsts]: 24 glyph in a 42 box, like every app bar.
 class CommsControlButton extends StatelessWidget {
   const CommsControlButton({
     super.key,
@@ -32,13 +32,13 @@ class CommsControlButton extends StatelessWidget {
           customBorder: const CircleBorder(),
           onTap: onPressed,
           child: SizedBox(
-            width: FloatingAppBarConsts.barContentSize,
-            height: FloatingAppBarConsts.barContentSize,
+            width: FloatingConsts.barContentSize,
+            height: FloatingConsts.barContentSize,
             child: Center(
               child: AppHugeIcon(
                 icon: icon,
                 color: iconColor,
-                size: FloatingAppBarConsts.barIconSize,
+                size: FloatingConsts.barIconSize,
               ),
             ),
           ),

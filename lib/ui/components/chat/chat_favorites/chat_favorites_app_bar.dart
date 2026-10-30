@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class ChatFavoritesAppBar extends StatelessWidget {
@@ -23,29 +23,29 @@ class ChatFavoritesAppBar extends StatelessWidget {
     final content = Row(
       children: [
         FloatingPill(
-          padding: FloatingAppBarConsts.iconPillPadding,
+          padding: FloatingConsts.iconPillPadding,
           child: FloatingIconButton(
             icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
             onPressed: onBack,
           ),
         ),
-        const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+        const SizedBox(width: FloatingConsts.pillSpacing),
         Expanded(
           child: FloatingPill(
-            radius: FloatingAppBarConsts.centralRadius,
-            padding: FloatingAppBarConsts.centralAvatarPadding,
+            radius: FloatingConsts.centralRadius,
+            padding: FloatingConsts.iconPillPadding,
             child: Row(
               children: [
                 Container(
-                  width: FloatingAppBarConsts.leadingSize,
-                  height: FloatingAppBarConsts.leadingSize,
+                  width: FloatingConsts.leadingSize,
+                  height: FloatingConsts.leadingSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: colorScheme.primary.withValues(alpha: 0.12),
                   ),
                   child: Icon(Icons.star, size: 20, color: colorScheme.primary),
                 ),
-                const SizedBox(width: FloatingAppBarConsts.leadingGap),
+                const SizedBox(width: FloatingConsts.leadingGap),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,14 +53,14 @@ class ChatFavoritesAppBar extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: FloatingAppBarConsts.titleStyle,
+                        style: FloatingConsts.titleStyle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (subtitle.isNotEmpty)
                         Text(
                           subtitle,
-                          style: FloatingAppBarConsts.subtitleStyle(
+                          style: FloatingConsts.subtitleStyle(
                             colorScheme,
                           ),
                           maxLines: 1,

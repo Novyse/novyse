@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Textual info of the comms bar: live indicator + chat/sub + participant count.
@@ -27,17 +27,17 @@ class CommsBarInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(
-          width: FloatingAppBarConsts.barContentSize,
-          height: FloatingAppBarConsts.barContentSize,
+          width: FloatingConsts.barContentSize,
+          height: FloatingConsts.barContentSize,
           child: Center(
             child: AppHugeIcon(
               icon: HugeIcons.strokeRoundedCall02,
-              size: FloatingAppBarConsts.barIconSize,
+              size: FloatingConsts.barIconSize,
               color: scheme.primary,
             ),
           ),
         ),
-        const SizedBox(width: FloatingAppBarConsts.subHeaderContentGap),
+        const SizedBox(width: FloatingConsts.subHeaderContentGap),
         Expanded(
           child: Column(
             mainAxisSize: MainAxisSize.min,

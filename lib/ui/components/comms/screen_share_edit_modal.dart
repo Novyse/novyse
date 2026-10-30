@@ -1,9 +1,13 @@
+import 'dart:async' show StreamSubscription, unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:novyse/core/comms/comms_share_config.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_selector_modal.dart';
+import 'package:novyse/ui/components/comms/screen_share_source_picker.dart';
+import 'package:novyse/ui/components/comms/screen_share_thumbnails.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
 /// Outcome of the per-share edit menu: source and audio only.
@@ -26,12 +30,14 @@ class ScreenShareEditModal extends StatefulWidget {
   final ScreenShareConfig current;
   final bool hasAudio;
   final String? currentSourceId;
+  final String? currentActive;
 
   const ScreenShareEditModal({
     super.key,
     required this.current,
     required this.hasAudio,
     this.currentSourceId,
+    this.currentActive,
   });
 
   bool get customPicker => ScreenShareSelectorModal.useCustomPicker;
@@ -41,6 +47,7 @@ class ScreenShareEditModal extends StatefulWidget {
     required ScreenShareConfig current,
     required bool hasAudio,
     String? currentSourceId,
+    String? currentActive,
   }) {
     return ResponsiveOverlay.show<ScreenShareEditResult>(
       context: context,
@@ -51,6 +58,7 @@ class ScreenShareEditModal extends StatefulWidget {
         current: current,
         hasAudio: hasAudio,
         currentSourceId: currentSourceId,
+        currentActive: currentActive,
       ),
     );
   }
@@ -66,11 +74,23 @@ class _ScreenShareEditModalState extends State<ScreenShareEditModal> {
 
   List<DesktopCapturerSource> _sources = [];
   bool _loadingSources = false;
+  StreamSubscription<DesktopCapturerSource>? _thumbSub;
 
   @override
   void initState() {
     super.initState();
-    if (widget.customPicker) _loadSources();
+    if (widget.customPicker) {
+      _thumbSub = ScreenShareThumbnails.listen(() {
+        if (mounted) setState(() {});
+      });
+      _loadSources();
+    }
+  }
+
+  @override
+  void dispose() {
+    _thumbSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadSources() async {
@@ -79,12 +99,20 @@ class _ScreenShareEditModalState extends State<ScreenShareEditModal> {
       final sources = await desktopCapturer.getSources(
         types: [SourceType.Screen, SourceType.Window],
       );
-      if (mounted) {
-        setState(() {
-          _sources = sources;
-          _loadingSources = false;
-        });
-      }
+      if (!mounted) return;
+      ScreenShareThumbnails.primeFromCache(sources);
+      setState(() {
+        _sources = sources;
+        _loadingSources = false;
+      });
+      unawaited(
+        ScreenShareThumbnails.fetchMissing(
+          sources,
+          onChanged: () {
+            if (mounted) setState(() {});
+          },
+        ),
+      );
     } catch (e) {
       debugPrint('[ScreenShareEdit] Error loading desktop sources: $e');
       if (mounted) setState(() => _loadingSources = false);
@@ -173,9 +201,10 @@ class _ScreenShareEditModalState extends State<ScreenShareEditModal> {
   }
 
   Widget _buildSourceSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final effectiveId = _sourceTouched
         ? _selectedSourceId
-        : widget.currentSourceId;
+        : widget.currentActive ?? widget.currentSourceId;
     if (_loadingSources) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -183,30 +212,34 @@ class _ScreenShareEditModalState extends State<ScreenShareEditModal> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        RadioGroup<String>(
-          groupValue: effectiveId,
-          onChanged: (v) => setState(() {
-            _selectedSourceId = v;
-            _sourceTouched = true;
-          }),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final source in _sources)
-                RadioListTile<String>(
-                  value: source.id,
-                  title: Text(
-                    source.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-            ],
+        Text(
+          l10n.screenSharePreview,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
+        const SizedBox(height: 8),
+        if (_sources.isEmpty)
+          Center(
+            child: Text(
+              l10n.screenShareNoSourcesDetected,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        const SizedBox(height: 12),
+        if (_sources.isNotEmpty)
+          ScreenShareSourcePicker(
+            sources: _sources,
+            selectedId: effectiveId,
+            onChanged: (v) => setState(() {
+              _selectedSourceId = v;
+              _sourceTouched = true;
+            }),
+          ),
       ],
     );
   }

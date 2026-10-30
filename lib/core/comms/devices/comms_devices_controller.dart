@@ -23,12 +23,15 @@ class CommsDevicesNotifier extends Notifier<CommsDevicesState> {
   @override
   CommsDevicesState build() {
     final settings = ref.watch(settingsControllerProvider);
-    final selectedAudioInput =
-        _savedId(settings[CommsDevicesDefaults.kAudioInputKey]);
-    final selectedAudioOutput =
-        _savedId(settings[CommsDevicesDefaults.kAudioOutputKey]);
-    final selectedVideoInput =
-        _savedId(settings[CommsDevicesDefaults.kVideoInputKey]);
+    final selectedAudioInput = _savedId(
+      settings[CommsDevicesDefaults.kAudioInputKey],
+    );
+    final selectedAudioOutput = _savedId(
+      settings[CommsDevicesDefaults.kAudioOutputKey],
+    );
+    final selectedVideoInput = _savedId(
+      settings[CommsDevicesDefaults.kVideoInputKey],
+    );
 
     state = CommsDevicesState(
       selectedAudioInputId: selectedAudioInput,
@@ -92,10 +95,7 @@ class CommsDevicesNotifier extends Notifier<CommsDevicesState> {
       _clampSelectionToAvailable();
     } catch (e) {
       debugPrint('[CommsDevices] enumerate failed: $e');
-      state = state.copyWith(
-        loading: false,
-        errorMessage: () => e.toString(),
-      );
+      state = state.copyWith(loading: false, errorMessage: () => e.toString());
     } finally {
       _refreshing = false;
     }
@@ -126,9 +126,7 @@ class CommsDevicesNotifier extends Notifier<CommsDevicesState> {
   }) async {
     state = apply(state);
     try {
-      return await ref
-          .read(settingsControllerProvider.notifier)
-          .set(key, id);
+      return await ref.read(settingsControllerProvider.notifier).set(key, id);
     } catch (e) {
       debugPrint('[CommsDevices] persist $key failed: $e');
       return false;

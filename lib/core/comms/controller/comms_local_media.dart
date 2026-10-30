@@ -10,7 +10,12 @@ mixin CommsLocalMediaMixin
 
     try {
       final next = !state.isAudioEnabled;
-      await localParticipant.setMicrophoneEnabled(next);
+      await localParticipant.setMicrophoneEnabled(
+        next,
+        audioCaptureOptions: CommsMediaConstraints.audioCapture(
+          deviceId: _microphoneDeviceId(),
+        ),
+      );
       state = state.copyWith(
         isAudioEnabled: next,
         wasMicEnabledBeforeSpeakerMute:
@@ -38,7 +43,12 @@ mixin CommsLocalMediaMixin
     }
 
     try {
-      await localParticipant.setMicrophoneEnabled(enabled);
+      await localParticipant.setMicrophoneEnabled(
+        enabled,
+        audioCaptureOptions: CommsMediaConstraints.audioCapture(
+          deviceId: _microphoneDeviceId(),
+        ),
+      );
       state = state.copyWith(isAudioEnabled: enabled);
       (this as CommsNotifier).syncCommsNotification();
     } catch (e) {

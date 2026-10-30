@@ -2,6 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
 
+/// Desktop source type for screen share.
+enum ScreenShareType { screen, window }
+
 /// Per-share screen configuration.
 @immutable
 class ScreenShareConfig {

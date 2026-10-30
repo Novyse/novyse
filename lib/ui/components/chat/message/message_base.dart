@@ -11,6 +11,7 @@ import 'package:novyse/ui/components/chat/message/message_audio.dart';
 import 'package:novyse/ui/components/chat/message/message_file.dart';
 import 'package:novyse/ui/components/chat/message/message_gif.dart';
 import 'package:novyse/ui/components/chat/message/message_image.dart';
+import 'package:novyse/ui/components/chat/message/message_quick_actions.dart';
 import 'package:novyse/ui/components/chat/message/message_reply.dart';
 import 'package:novyse/ui/components/chat/message/message_row_gestures.dart';
 import 'package:novyse/ui/components/chat/message/message_system.dart';
@@ -515,181 +516,162 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
       onOpenContextMenu: widget.onOpenContextMenu,
     );
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: SizedBox(
-        width: double.infinity,
-        child: Stack(
-          children: [
-            MessageRowBackground(
-              gestures: gestures,
-              onRecordPosition: (position) => _lastTapPosition = position,
-              readPosition: () => _lastTapPosition,
-              readSelectedText: () => _selectedText,
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: isSender
-                  ? MainAxisAlignment.end
-                  : MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                if (!isSender && showAvatar) _buildSenderAvatar(context),
-                Flexible(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: maxBubbleWidth),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTapDown: (details) =>
-                            _lastTapPosition = details.globalPosition,
-                        onSecondaryTapDown: (details) =>
-                            _lastTapPosition = details.globalPosition,
-                        onSecondaryTap: () => gestures.handleSecondaryTap(
-                          position: _lastTapPosition,
-                          selectedText: _selectedText,
-                        ),
-                        onTap: () => gestures.handleTap(
-                          position: _lastTapPosition,
-                          selectedText: _selectedText,
-                        ),
-                        onLongPress: gestures.handleLongPress,
-                        onDoubleTap: widget.onDoubleTap,
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: isSender
-                                ? colorScheme.primary
-                                : colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.only(
-                              topLeft: const Radius.circular(18),
-                              topRight: const Radius.circular(18),
-                              bottomLeft: Radius.circular(isSender ? 18 : 4),
-                              bottomRight: Radius.circular(isSender ? 4 : 18),
+    return ColoredBox(
+      color: isSelected
+          ? colorScheme.primary.withValues(alpha: 0.3)
+          : Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        child: SizedBox(
+          width: double.infinity,
+          child: Stack(
+            children: [
+              MessageRowBackground(
+                gestures: gestures,
+                onRecordPosition: (position) => _lastTapPosition = position,
+                readPosition: () => _lastTapPosition,
+                readSelectedText: () => _selectedText,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: isSender
+                    ? MainAxisAlignment.end
+                    : MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (!isSender && showAvatar) _buildSenderAvatar(context),
+                  Flexible(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: maxBubbleWidth),
+                      child: MessageQuickActionsOverlay(
+                        enabled: !isSelectionMode,
+                        isSender: isSender,
+                        message: message,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTapDown: (details) =>
+                                _lastTapPosition = details.globalPosition,
+                            onSecondaryTapDown: (details) =>
+                                _lastTapPosition = details.globalPosition,
+                            onSecondaryTap: () => gestures.handleSecondaryTap(
+                              position: _lastTapPosition,
+                              selectedText: _selectedText,
                             ),
-                            border: isSelected
-                                ? Border.all(
-                                    color: isSender
-                                        ? colorScheme.onPrimary
-                                        : colorScheme.primary,
-                                    width: 2,
-                                  )
-                                : null,
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                      color: colorScheme.primary.withValues(
-                                        alpha: 0.35,
-                                      ),
-                                      blurRadius: 6,
-                                      spreadRadius: 1,
-                                    ),
-                                  ]
-                                : null,
-                          ),
-                          // No uniform padding - each section handles its own spacing
-                          padding: hasOnlyMedia || hasReply
-                              ? const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 12,
-                                )
-                              : const EdgeInsets.symmetric(
-                                  horizontal: 13,
-                                  vertical: 8,
-                                ),
-                          child: Column(
-                            crossAxisAlignment: isSender
-                                ? CrossAxisAlignment.end
-                                : CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Group Sender Name
-                              if (!isSender &&
-                                  showSenderName &&
-                                  senderName.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 3),
-                                  child: Text(
-                                    senderName,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: colorScheme.primary,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                            onTap: () => gestures.handleTap(
+                              position: _lastTapPosition,
+                              selectedText: _selectedText,
+                            ),
+                            onLongPress: gestures.handleLongPress,
+                            onDoubleTap: widget.onDoubleTap,
+                            borderRadius: BorderRadius.circular(18),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: isSender
+                                    ? colorScheme.primary
+                                    : colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: const Radius.circular(18),
+                                  topRight: const Radius.circular(18),
+                                  bottomLeft: Radius.circular(
+                                    isSender ? 18 : 4,
                                   ),
-                                ),
-
-                              // Reply previews
-                              ..._buildReplyPreviews(context),
-
-                              // File attachments (images, videos, audio, voice, files)
-                              ..._buildFileAttachments(context, files),
-
-                              // GIF attachments
-                              ..._buildGifAttachments(gifUrls),
-
-                              // Message Text (only if there's actual text content)
-                              if (hasText)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 2,
+                                  bottomRight: Radius.circular(
+                                    isSender ? 4 : 18,
                                   ),
-                                  child: MessageText(
-                                    content: textWithoutGifs,
-                                    isSender: isSender,
-                                    isSelected: isSelected,
-                                    highlightQuery: searchHighlight,
-                                    isCurrentMatch: isCurrentSearchMatch,
-                                    quoteHighlightRange:
-                                        widget.quoteHighlightRange,
-                                    onSelectionChanged: (text) {
-                                      _selectedText =
-                                          (text != null &&
-                                              text.trim().isNotEmpty)
-                                          ? text
-                                          : null;
-                                    },
-                                    onOpenContextMenu: isSelectionMode
-                                        ? null
-                                        : (pos) {
-                                            widget.onOpenContextMenu?.call(
-                                              pos,
-                                              _selectedText,
-                                            );
-                                          },
-                                  ),
-                                ),
-
-                              // Timestamp & Status info (always shown, even with media)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 2),
-                                child: MessageTimestamp(
-                                  createdAt: message.createdAt,
-                                  isSender: isSender,
-                                  hasBeenRead: hasBeenRead,
-                                  isFavorited: message.favorited,
-                                  isEdited: message.edited,
-                                  isPinned: message.pinned,
-                                  isPending: message.isPending,
-                                  replyCount: message.replyTos.length,
-                                  compact: true,
                                 ),
                               ),
-
-                              // Reactions below timestamp
-                              if (hasReactions) _buildReactionsRow(context),
-                            ],
+                              padding: hasOnlyMedia || hasReply
+                                  ? const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 12,
+                                    )
+                                  : const EdgeInsets.symmetric(
+                                      horizontal: 13,
+                                      vertical: 8,
+                                    ),
+                              child: Column(
+                                crossAxisAlignment: isSender
+                                    ? CrossAxisAlignment.end
+                                    : CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (!isSender &&
+                                      showSenderName &&
+                                      senderName.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 3),
+                                      child: Text(
+                                        senderName,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: colorScheme.primary,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ..._buildReplyPreviews(context),
+                                  ..._buildFileAttachments(context, files),
+                                  ..._buildGifAttachments(gifUrls),
+                                  if (hasText)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 2,
+                                      ),
+                                      child: MessageText(
+                                        content: textWithoutGifs,
+                                        isSender: isSender,
+                                        isSelected: isSelected,
+                                        highlightQuery: searchHighlight,
+                                        isCurrentMatch: isCurrentSearchMatch,
+                                        quoteHighlightRange:
+                                            widget.quoteHighlightRange,
+                                        onSelectionChanged: (text) {
+                                          _selectedText =
+                                              (text != null &&
+                                                  text.trim().isNotEmpty)
+                                              ? text
+                                              : null;
+                                        },
+                                        onOpenContextMenu: isSelectionMode
+                                            ? null
+                                            : (pos) {
+                                                widget.onOpenContextMenu?.call(
+                                                  pos,
+                                                  _selectedText,
+                                                );
+                                              },
+                                      ),
+                                    ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 2),
+                                    child: MessageTimestamp(
+                                      createdAt: message.createdAt,
+                                      isSender: isSender,
+                                      hasBeenRead: hasBeenRead,
+                                      isFavorited: message.favorited,
+                                      isEdited: message.edited,
+                                      isPinned: message.pinned,
+                                      isPending: message.isPending,
+                                      replyCount: message.replyTos.length,
+                                      compact: true,
+                                    ),
+                                  ),
+                                  if (hasReactions) _buildReactionsRow(context),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

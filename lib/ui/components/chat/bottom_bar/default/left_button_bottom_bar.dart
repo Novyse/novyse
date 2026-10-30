@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class LeftButtonBottomBar extends StatefulWidget {
@@ -87,17 +87,17 @@ class _LeftButtonBottomBarState extends State<LeftButtonBottomBar>
     return Tooltip(
       message: tooltip,
       child: FloatingPill(
-        padding: FloatingAppBarConsts.iconPillPadding,
+        padding: FloatingConsts.iconPillPadding,
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: _handlePress,
             borderRadius: BorderRadius.circular(
-              FloatingAppBarConsts.pillRadius,
+              FloatingConsts.pillRadius,
             ),
             child: SizedBox(
-              width: FloatingAppBarConsts.iconButtonSize,
-              height: FloatingAppBarConsts.iconButtonSize,
+              width: FloatingConsts.iconButtonSize,
+              height: FloatingConsts.iconButtonSize,
               child: Center(
                 child: AnimatedBuilder(
                   animation: _rotationAnim,
@@ -108,8 +108,7 @@ class _LeftButtonBottomBarState extends State<LeftButtonBottomBar>
                     );
                   },
                   child: AppHugeIcon(
-                    icon: HugeIcons.strokeRoundedAdd01,
-                    size: 22,
+                    icon: HugeIcons.strokeRoundedPlus,
                     color: colorScheme.onSurface,
                   ),
                 ),

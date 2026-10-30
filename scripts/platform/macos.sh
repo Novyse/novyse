@@ -15,7 +15,6 @@ export MACOS_DMG_NAME="${PKG_NAME}-${APP_VERSION}-macos.dmg"
 
 case "$BRANCH" in
   "production") MACOS_HOST_SUFFIX="" ;;
-  "preview")    MACOS_HOST_SUFFIX=".preview" ;;
   *)            MACOS_HOST_SUFFIX=".dev" ;;
 esac
 export MACOS_APP_HOST="app${MACOS_HOST_SUFFIX}.novyse.com"

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:novyse/core/chat/chat_audio_service.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 
 import 'voice_speed_menu.dart';
 
@@ -41,14 +41,14 @@ class VoiceBarSpeedControl extends StatelessWidget {
           style: const ButtonStyle(
             minimumSize: WidgetStatePropertyAll(
               Size(
-                FloatingAppBarConsts.barContentSize,
-                FloatingAppBarConsts.barContentSize,
+                FloatingConsts.barContentSize,
+                FloatingConsts.barContentSize,
               ),
             ),
             maximumSize: WidgetStatePropertyAll(
               Size(
-                FloatingAppBarConsts.barContentSize,
-                FloatingAppBarConsts.barContentSize,
+                FloatingConsts.barContentSize,
+                FloatingConsts.barContentSize,
               ),
             ),
             padding: WidgetStatePropertyAll(EdgeInsets.all(4)),

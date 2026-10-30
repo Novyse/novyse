@@ -6,8 +6,8 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/comms/screen_share_actions.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
 
@@ -93,8 +93,8 @@ class CommsBottomBar extends ConsumerWidget {
     return FloatingPill(
       padding: const EdgeInsets.all(9),
       child: SizedBox(
-        width: FloatingAppBarConsts.iconButtonSize,
-        height: FloatingAppBarConsts.iconButtonSize,
+        width: FloatingConsts.iconButtonSize,
+        height: FloatingConsts.iconButtonSize,
         child: Center(
           child: commsState.connecting
               ? SizedBox(
@@ -247,8 +247,8 @@ class CommsBottomBar extends ConsumerWidget {
           customBorder: const CircleBorder(),
           onTap: onPressed,
           child: SizedBox(
-            width: FloatingAppBarConsts.iconButtonSize,
-            height: FloatingAppBarConsts.iconButtonSize,
+            width: FloatingConsts.iconButtonSize,
+            height: FloatingConsts.iconButtonSize,
             child: Center(
               child: AppHugeIcon(icon: icon, color: iconColor, size: 20),
             ),

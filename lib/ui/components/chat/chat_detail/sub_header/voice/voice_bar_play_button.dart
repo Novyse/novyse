@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Round play/pause button of the active-voice bar. Sizes come straight
-/// from [FloatingAppBarConsts]: 24 glyph in a 42 box, like every app bar.
+/// from [FloatingConsts]: 24 glyph in a 42 box, like every app bar.
 class VoiceBarPlayButton extends StatelessWidget {
   const VoiceBarPlayButton({
     super.key,
@@ -31,15 +31,15 @@ class VoiceBarPlayButton extends StatelessWidget {
           customBorder: const CircleBorder(),
           onTap: onToggle,
           child: SizedBox(
-            width: FloatingAppBarConsts.barContentSize,
-            height: FloatingAppBarConsts.barContentSize,
+            width: FloatingConsts.barContentSize,
+            height: FloatingConsts.barContentSize,
             child: Center(
               child: AppHugeIcon(
                 icon: isPlaying
                     ? HugeIcons.strokeRoundedPause
                     : HugeIcons.strokeRoundedPlay,
                 color: scheme.onPrimary,
-                size: FloatingAppBarConsts.barIconSize,
+                size: FloatingConsts.barIconSize,
               ),
             ),
           ),

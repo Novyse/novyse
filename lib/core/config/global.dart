@@ -1,12 +1,10 @@
 library;
 
 /// The active deployment branch.
-const String branch = 'production'; // 'development' | 'preview' | 'production'
+const String branch = 'production'; // 'development' | 'production'
 
 /// Application metadata.
-const String appName = branch == 'production'
-    ? 'Novyse'
-    : (branch == 'preview' ? 'Novyse.preview' : 'Novyse.dev');
+const String appName = branch == 'production' ? 'Novyse' : 'Novyse.dev';
 
 /// Application description used across all platforms.
 const String appDescription =
@@ -31,29 +29,25 @@ const String projectLicense = 'GPL-3.0-or-later';
 const String metadataLicense = 'CC0-1.0';
 
 /// System identifiers and categories.
-const String appId = branch == 'production'
-    ? 'com.novyse'
-    : (branch == 'preview' ? 'com.novyse.preview' : 'com.novyse.dev');
-const String flathubAppId = 'com.novyse.novyse';
+const String appId = branch == 'production' ? 'com.novyse' : 'com.novyse.dev';
+const String desktopId = branch == 'production'
+    ? 'com.novyse.novyse'
+    : 'com.novyse.dev.novyse';
 const String linuxCategories = 'Network;InstantMessaging;Chat;';
 const String linuxKeywords = 'chat;messaging;voip;call;communication;novyse;';
 const String macOSCategory = 'public.app-category.social-networking';
 const List<String> webCategories = ['social', 'productivity', 'utilities'];
 
 /// Platform schemes and identifiers.
-const String appScheme = branch == 'production'
-    ? 'novyse'
-    : (branch == 'preview' ? 'novyse.preview' : 'novyse.dev');
+const String appScheme = branch == 'production' ? 'novyse' : 'novyse.dev';
 
 /// Installer / setup executable base name per branch.
 const String installerName = branch == 'production'
     ? 'Novyse-Setup'
-    : (branch == 'preview' ? 'Novyse.preview-Setup' : 'Novyse.dev-Setup');
+    : 'Novyse.dev-Setup';
 
 /// Package name for Linux package managers (apt/deb, pacman, etc.).
-const String packageName = branch == 'production'
-    ? 'novyse'
-    : (branch == 'preview' ? 'novyse-preview' : 'novyse-dev');
+const String packageName = branch == 'production' ? 'novyse' : 'novyse-dev';
 
 /// Project repository URLs.
 const String githubRepoUrl = 'https://github.com/Novyse/novyse';
@@ -76,12 +70,10 @@ String get desktopUpdaterArchiveUrl =>
 /// Returns the full domain for [subdomain] based on the current [branch].
 ///
 /// - production  → `<sub>.novyse.com`
-/// - preview     → `<sub>.preview.novyse.com`
 /// - development → `<sub>.dev.novyse.com`
 String getDomain(String subdomain) {
   final suffix = switch (branch) {
     'production' => '',
-    'preview' => '.preview',
     _ => '.dev',
   };
   return '$subdomain$suffix.novyse.com';
@@ -97,7 +89,6 @@ final String socketBaseUrl = 'wss://${getDomain('io')}';
 
 final String appUrl = switch (branch) {
   'development' => 'http://localhost:8081',
-  'preview' => 'https://app.preview.novyse.com',
   _ => 'https://app.novyse.com',
 };
 

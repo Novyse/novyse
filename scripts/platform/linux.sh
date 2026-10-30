@@ -27,8 +27,8 @@ Terminal=false
 Type=Application
 Categories=${LINUX_CATEGORIES}
 Keywords=${LINUX_KEYWORDS}
-MimeType=x-scheme-handler/novyse;x-scheme-handler/novyse.preview;x-scheme-handler/novyse.dev;
-StartupWMClass=novyse
+MimeType=x-scheme-handler/${APP_SCHEME};
+StartupWMClass=${APP_ID}
 SingleMainWindow=true
 EOF
 }
@@ -38,6 +38,13 @@ generate_appstream_metainfo() {
   local target_file="$1"
   local APP_ID="${2:-$APP_ID}"
   mkdir -p "$(dirname "$target_file")"
+  local categories_xml=""
+  IFS=';' read -ra _cats <<< "${LINUX_CATEGORIES}"
+  for _cat in "${_cats[@]}"; do
+    [ -n "$_cat" ] && categories_xml="${categories_xml}    <category>${_cat}</category>
+"
+  done
+
   cat << EOF > "$target_file"
 <?xml version="1.0" encoding="utf-8"?>
 <component type="desktop-application">
@@ -67,6 +74,8 @@ generate_appstream_metainfo() {
   <developer id="${APP_ID}">
     <name>${AUTHOR_NAME}</name>
   </developer>
+  <categories>
+${categories_xml}  </categories>
   <screenshots>
     <screenshot type="default">
       <caption>The main interface of Novyse client</caption>
@@ -78,105 +87,14 @@ generate_appstream_metainfo() {
     <release version="${APP_VERSION}" date="${CURRENT_DATE}" />
   </releases>
   <provides>
-    <mediatype>x-scheme-handler/novyse</mediatype>
+    <mediatype>x-scheme-handler/${APP_SCHEME}</mediatype>
   </provides>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+  </supports>
 </component>
-EOF
-}
-
-# Generate Flatpak manifest on-demand
-generate_flatpak_manifest() {
-  local target_file="$1"
-  local source_dir="${2:-.}"
-  local FLATHUB_APP_ID="${3:-$FLATHUB_APP_ID}"
-  mkdir -p "$(dirname "$target_file")"
-  cat << EOF > "$target_file"
-app-id: ${FLATHUB_APP_ID}
-runtime: org.freedesktop.Platform
-runtime-version: "26.08"
-sdk: org.freedesktop.Sdk
-command: novyse
-separate-locales: false
-
-finish-args:
-  - --socket=fallback-x11
-  - --socket=wayland
-  - --share=ipc
-  - --share=network
-  - --device=dri
-  - --socket=pulseaudio
-  - --talk-name=org.freedesktop.Notifications
-  - --talk-name=org.kde.StatusNotifierWatcher
-  - --talk-name=com.canonical.AppMenu.Registrar
-  - --filesystem=xdg-download
-  - --filesystem=xdg-pictures
-
-modules:
-  - name: novyse
-    buildsystem: simple
-    build-commands:
-      - mkdir -p /app/bin /app/lib /app/data
-      - cp -R bundle/* /app/
-      - install -Dm755 bundle/novyse /app/bin/novyse
-      - install -Dm644 ${FLATHUB_APP_ID}.desktop /app/share/applications/${FLATHUB_APP_ID}.desktop
-      - install -Dm644 ${FLATHUB_APP_ID}.metainfo.xml /app/share/metainfo/${FLATHUB_APP_ID}.metainfo.xml
-      - mkdir -p /app/share/icons/hicolor
-      - cp -R icons/hicolor/* /app/share/icons/hicolor/
-    sources:
-      - type: dir
-        path: ${source_dir}
-EOF
-}
-
-# Generate Flathub release manifest on-demand
-generate_flathub_manifest() {
-  local target_file="$1"
-  local tarball_url="$2"
-  local tarball_sha256="$3"
-  local FLATHUB_APP_ID="${4:-$FLATHUB_APP_ID}"
-  mkdir -p "$(dirname "$target_file")"
-  cat << EOF > "$target_file"
-app-id: ${FLATHUB_APP_ID}
-runtime: org.freedesktop.Platform
-runtime-version: "26.08"
-sdk: org.freedesktop.Sdk
-command: novyse
-separate-locales: false
-
-finish-args:
-  - --socket=fallback-x11
-  - --socket=wayland
-  - --share=ipc
-  - --share=network
-  - --device=dri
-  - --socket=pulseaudio
-  - --talk-name=org.freedesktop.Notifications
-  - --talk-name=org.kde.StatusNotifierWatcher
-  - --talk-name=com.canonical.AppMenu.Registrar
-  - --filesystem=xdg-download
-  - --filesystem=xdg-pictures
-
-modules:
-  - name: novyse
-    buildsystem: simple
-    build-commands:
-      - mkdir -p /app/bin /app/lib /app/data
-      - cp -R * /app/
-      - install -Dm755 novyse /app/bin/novyse
-      - install -Dm644 ${FLATHUB_APP_ID}.desktop /app/share/applications/${FLATHUB_APP_ID}.desktop
-      - install -Dm644 ${FLATHUB_APP_ID}.metainfo.xml /app/share/metainfo/${FLATHUB_APP_ID}.metainfo.xml
-      - mkdir -p /app/share/icons/hicolor
-      - cp -R icons/hicolor/* /app/share/icons/hicolor/
-    sources:
-      - type: archive
-        url: ${tarball_url}
-        sha256: ${tarball_sha256}
-      - type: file
-        path: ${FLATHUB_APP_ID}.desktop
-      - type: file
-        path: ${FLATHUB_APP_ID}.metainfo.xml
-      - type: dir
-        path: icons
 EOF
 }
 
@@ -187,7 +105,7 @@ generate_snapcraft_yaml() {
   mkdir -p "$(dirname "$target_file")"
   cat << EOF > "$target_file"
 name: ${PKG_NAME}
-base: core24
+base: core26
 version: '${APP_VERSION}'
 summary: ${APP_DESCRIPTION}
 description: |
@@ -211,6 +129,7 @@ apps:
       - home
       - desktop
       - desktop-legacy
+      - gsettings
       - wayland
       - x11
       - opengl
@@ -224,32 +143,25 @@ parts:
 EOF
 }
 
-# Generate hicolor icons on-demand (ImageMagick magick/convert)
+# Install the pre-rendered hicolor icon set committed under linux/packaging/icons.
+# The canonical files are named novyse.*; they are renamed to the active APP_ID.
 generate_linux_icons() {
   local target_root="${1:-$_ROOT_DIR/linux/packaging/icons}"
   local APP_ID="${2:-$APP_ID}"
-  local logo_src="$_ROOT_DIR/assets/images/logo-novyse.png"
-  local svg_src="$_ROOT_DIR/assets/images/logo.svg"
-
-  [ ! -f "$logo_src" ] && return 0
-
-  local img_cmd=""
-  if command -v magick >/dev/null 2>&1; then
-    img_cmd="magick"
-  elif command -v convert >/dev/null 2>&1; then
-    img_cmd="convert"
-  fi
+  local source_root="$_ROOT_DIR/linux/packaging/icons"
 
   for s in 16 24 32 48 64 128 256 512; do
+    local src="${source_root}/hicolor/${s}x${s}/apps/novyse.png"
     local dest_dir="${target_root}/hicolor/${s}x${s}/apps"
-    mkdir -p "$dest_dir"
-    if [ -n "$img_cmd" ]; then
-      "$img_cmd" "$logo_src" -resize "${s}x${s}" "$dest_dir/${APP_ID}.png"
-    else
-      cp "$logo_src" "$dest_dir/${APP_ID}.png"
+    if [ ! -f "$src" ]; then
+      echo "❌ [ICONS] Missing pre-rendered icon: $src" >&2
+      return 1
     fi
+    mkdir -p "$dest_dir"
+    cp "$src" "$dest_dir/${APP_ID}.png"
   done
 
+  local svg_src="${source_root}/hicolor/scalable/apps/novyse.svg"
   if [ -f "$svg_src" ]; then
     local svg_dir="${target_root}/hicolor/scalable/apps"
     mkdir -p "$svg_dir"

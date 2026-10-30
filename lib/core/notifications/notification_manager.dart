@@ -42,6 +42,8 @@ class NotificationManager {
 
   bool Function()? isSocketOpen;
   String? Function()? activeChatUUID;
+  int? Function()? activeChatSubID;
+  String? Function()? activeChatContentView;
   String? Function()? localUserUUID;
   Map<String, dynamic>? Function(String uuid)? getChat;
   Map<String, dynamic>? Function(String uuid)? getUser;
@@ -120,6 +122,7 @@ class NotificationManager {
 
     final chatUUID = (data['chatUUID'] ?? messageData?['chatUUID'] ?? '')
         .toString();
+    final subID = (messageData?['subID'] as num?)?.toInt() ?? 0;
     if (chatUUID.isEmpty) return;
 
     if (isChatMuted?.call(chatUUID) == true) return;
@@ -139,13 +142,19 @@ class NotificationManager {
     }
 
     if (!force &&
+        _isAppActive &&
+        activeChatContentView?.call() == 'vocal') {
+      // In vocal view: never suppress incoming message notifications
+    } else if (
+        !force &&
         source == NotificationSource.socket &&
         _isAppActive &&
-        activeChatUUID?.call() == chatUUID) {
+        activeChatUUID?.call() == chatUUID &&
+        (activeChatSubID?.call() ?? subID) == subID) {
       return;
-    }
-
-    if (!force && _isAppActive && activeChatUUID?.call() == chatUUID) {
+    } else if (
+        !force && _isAppActive && activeChatUUID?.call() == chatUUID &&
+        (activeChatSubID?.call() ?? subID) == subID) {
       return;
     }
 
@@ -201,8 +210,6 @@ class NotificationManager {
     if (at != null) {
       timestamp = DateTime.tryParse(at.toString())?.toLocal();
     }
-
-    final subID = (messageData?['subID'] as num?)?.toInt() ?? 0;
 
     await LocalNotificationService.instance.showChatMessage(
       chatUUID: chatUUID,

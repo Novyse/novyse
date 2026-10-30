@@ -22,7 +22,6 @@ on:
         type: choice
         options:
           - development
-          - preview
           - production
       upload_all_builds:
         description: Package and upload all build files into a single unified ZIP artifact
@@ -44,7 +43,6 @@ jobs:
     with:
       os: ${{ inputs.os }}
       ref: ${{ inputs.ref }}
-      release_type: production
     secrets: inherit
 
   report:

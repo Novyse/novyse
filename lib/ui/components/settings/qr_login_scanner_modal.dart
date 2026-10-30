@@ -7,8 +7,8 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:novyse/core/auth/qr_login_scanner.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/utils/platform.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Opens the QR login scanner as a full-screen modal.
@@ -224,7 +224,7 @@ class _QrLoginScannerModalState extends State<QrLoginScannerModal>
           child: Row(
             children: [
               FloatingPill(
-                padding: FloatingAppBarConsts.iconPillPadding,
+                padding: FloatingConsts.iconPillPadding,
                 child: FloatingIconButton(
                   icon: const AppHugeIcon(
                     icon: HugeIcons.strokeRoundedArrowLeft01,
@@ -233,21 +233,21 @@ class _QrLoginScannerModalState extends State<QrLoginScannerModal>
                   onPressed: _close,
                 ),
               ),
-              const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+              const SizedBox(width: FloatingConsts.pillSpacing),
               Expanded(
                 child: FloatingPill(
-                  radius: FloatingAppBarConsts.centralRadius,
-                  padding: FloatingAppBarConsts.centralTitlePadding,
+                  radius: FloatingConsts.centralRadius,
+                  padding: FloatingConsts.centralTitlePadding,
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(
-                      minHeight: FloatingAppBarConsts.centralMinHeight,
+                      minHeight: FloatingConsts.centralMinHeight,
                     ),
                     child: Center(
                       child: Text(
                         l10n.qrLoginScannerTitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: FloatingAppBarConsts.titleStyle,
+                        style: FloatingConsts.titleStyle,
                       ),
                     ),
                   ),
@@ -273,9 +273,9 @@ class _QrLoginScannerModalState extends State<QrLoginScannerModal>
                     return Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+                        const SizedBox(width: FloatingConsts.pillSpacing),
                         FloatingPill(
-                          padding: FloatingAppBarConsts.actionsPadding,
+                          padding: FloatingConsts.iconPillPadding,
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [

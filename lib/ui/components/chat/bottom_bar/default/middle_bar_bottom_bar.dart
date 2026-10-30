@@ -7,11 +7,11 @@ import 'package:markdown_editor_live/markdown_editor_live.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/shortcuts/chat_shortcuts.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/context_menu.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/recording/speech_indicator.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/recording/voice_recorder_controller.dart';
 import 'package:novyse/ui/components/chat/paste/chat_paste_helper.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class MiddleBarBottomBar extends ConsumerStatefulWidget {
@@ -162,76 +162,102 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
 
     if (!widget.isRecording) {
       return FloatingPill(
-        radius: FloatingAppBarConsts.centralRadius,
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Actions(
-          actions: {
-            PasteTextIntent: CallbackAction<PasteTextIntent>(
-              onInvoke: (intent) async {
-                return await _handlePaste();
-              },
-            ),
-          },
-          child: TextField(
-            controller: widget.textController,
-            focusNode: _effectiveFocusNode,
-            textCapitalization: TextCapitalization.sentences,
-            maxLines: 4,
-            minLines: 1,
-            style: TextStyle(color: colorScheme.onSurface, fontSize: 15),
-            contentInsertionConfiguration: ContentInsertionConfiguration(
-              allowedMimeTypes: const <String>[
-                'image/png',
-                'image/jpeg',
-                'image/gif',
-                'image/webp',
-                'image/heic',
-                'image/svg+xml',
-              ],
-              onContentInserted: (KeyboardInsertedContent data) async {
-                await ChatPasteHelper.handleKeyboardInserted(
-                  ref,
-                  widget.chatUUID,
-                  data,
-                  subID: widget.subID,
-                );
-              },
-            ),
-            contextMenuBuilder: (context, editableTextState) {
-              return ChatContextMenu(
-                editableTextState: editableTextState,
-                controller: widget.textController,
-                onPaste: () async {
-                  await _handlePaste();
+        radius: FloatingConsts.centralRadius,
+        padding: FloatingConsts.iconPillPadding,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            // 44 content + 4 glass = 48, exactly like every other pill.
+            // (Full 48 here would stack on the padding and make 52.)
+            minHeight: FloatingConsts.barContentSize,
+          ),
+          child: Actions(
+            actions: {
+              PasteTextIntent: CallbackAction<PasteTextIntent>(
+                onInvoke: (intent) async {
+                  return await _handlePaste();
                 },
-              );
-            },
-            decoration: InputDecoration(
-              filled: false,
-              hintText: l10n.typeMessageHint,
-              hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-              border: InputBorder.none,
-              isDense: true,
-              contentPadding: const EdgeInsets.fromLTRB(16, 11, 4, 11),
-              suffixIcon: IconButton(
-                icon: AppHugeIcon(
-                  icon: widget.isEmojiMenuOpen
-                      ? HugeIcons.strokeRoundedKeyboard
-                      : HugeIcons.strokeRoundedSmile,
-                  size: 20,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                onPressed: widget.onToggleEmoji,
-                tooltip: l10n.emojiTooltip,
-                splashRadius: 20,
               ),
-            ),
-            onChanged: (text) {
-              ref
-                  .read(chatDraftProvider(widget.chatUUID).notifier)
-                  .setText(text);
             },
-            onSubmitted: (_) => widget.onSendMessage(),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: widget.textController,
+                    focusNode: _effectiveFocusNode,
+                    textCapitalization: TextCapitalization.sentences,
+                    maxLines: 4,
+                    minLines: 1,
+                    textAlignVertical: TextAlignVertical.center,
+                    style: TextStyle(
+                      color: colorScheme.onSurface,
+                      fontSize: 15,
+                    ),
+                    contentInsertionConfiguration:
+                        ContentInsertionConfiguration(
+                          allowedMimeTypes: const <String>[
+                            'image/png',
+                            'image/jpeg',
+                            'image/gif',
+                            'image/webp',
+                            'image/heic',
+                            'image/svg+xml',
+                          ],
+                          onContentInserted:
+                              (KeyboardInsertedContent data) async {
+                                await ChatPasteHelper.handleKeyboardInserted(
+                                  ref,
+                                  widget.chatUUID,
+                                  data,
+                                  subID: widget.subID,
+                                );
+                              },
+                        ),
+                    contextMenuBuilder: (context, editableTextState) {
+                      return ChatContextMenu(
+                        editableTextState: editableTextState,
+                        controller: widget.textController,
+                        onPaste: () async {
+                          await _handlePaste();
+                        },
+                      );
+                    },
+                    decoration: InputDecoration(
+                      filled: false,
+                      hintText: l10n.typeMessageHint,
+                      hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.fromLTRB(16, 10, 0, 10),
+                      // Keeps one line 44 tall, with the hint centered,
+                      // without taking a column the emoji button would
+                      // follow as the field grows.
+                      suffixIconConstraints: const BoxConstraints.tightFor(
+                        width: 0,
+                        height: FloatingConsts.barContentSize,
+                      ),
+                      suffixIcon: const SizedBox.shrink(),
+                    ),
+                    onChanged: (text) {
+                      ref
+                          .read(chatDraftProvider(widget.chatUUID).notifier)
+                          .setText(text);
+                    },
+                    onSubmitted: (_) => widget.onSendMessage(),
+                  ),
+                ),
+                FloatingIconButton(
+                  icon: AppHugeIcon(
+                    icon: widget.isEmojiMenuOpen
+                        ? HugeIcons.strokeRoundedKeyboard
+                        : HugeIcons.strokeRoundedSmile,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  onPressed: widget.onToggleEmoji,
+                  tooltip: l10n.emojiTooltip,
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -239,8 +265,8 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
 
     // Recording Mode
     return FloatingPill(
-      radius: FloatingAppBarConsts.centralRadius,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      radius: FloatingConsts.centralRadius,
+      padding: FloatingConsts.centralTitlePadding,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final compactTimer = constraints.maxWidth < _compactTimerBreakpoint;
@@ -253,7 +279,7 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
 
           return ConstrainedBox(
             constraints: const BoxConstraints(
-              minHeight: FloatingAppBarConsts.centralMinHeight,
+              minHeight: FloatingConsts.centralMinHeight,
             ),
             child: Row(
               children: [
@@ -313,7 +339,7 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
       children: [
         IconButton(
           icon: AppHugeIcon(
-            icon: HugeIcons.strokeRoundedAdd01,
+            icon: HugeIcons.strokeRoundedPlus,
             size: 20,
             color: colorScheme.onSurface,
           ),

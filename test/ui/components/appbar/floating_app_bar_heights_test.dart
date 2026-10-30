@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/pages/app/settings/settings_page.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_detail_app_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_detail_search_app_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_selected_header.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_list_app_bar.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 
 Widget _wrap(Widget child) {
   return ProviderScope(
@@ -26,7 +26,7 @@ List<double> _pillHeights(WidgetTester tester) => [
 ];
 
 void main() {
-  testWidgets('every floating app bar pill measures 48 (46 + border)', (
+  testWidgets('every floating app bar pill measures 48 (borderless)', (
     tester,
   ) async {
     final searchController = TextEditingController();

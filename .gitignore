@@ -55,10 +55,12 @@ google-services.json
 GoogleService-Info.plist
 novyse-release.keystore
 
-# Linux packaging generated icons
-/linux/packaging/icons/
+# Linux packaging generated per-branch icons
+/linux/packaging/icons/hicolor/*/apps/com.novyse*.png
+/linux/packaging/icons/hicolor/scalable/apps/com.novyse*.svg
 
 # Build 
 dist/
 .cache/
 *.dukey
+.flatpak-build/

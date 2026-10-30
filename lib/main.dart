@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:novyse/core/config/global.dart';
 import 'package:novyse/core/events/global_event_receiver.dart';
@@ -53,6 +54,7 @@ Future<void> _initFirebase() async {
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kIsWeb) usePathUrlStrategy();
   if (!kIsWeb) {
     if (Platform.isLinux) {
       PathProviderLinux.registerWith();

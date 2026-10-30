@@ -250,7 +250,7 @@ class SubList extends ConsumerWidget {
                       onPressed: () =>
                           showCreateSubModal(context, chatUUID: chat.uuid),
                       child: const AppHugeIcon(
-                        icon: HugeIcons.strokeRoundedAdd01,
+                        icon: HugeIcons.strokeRoundedPlus,
                         size: 20,
                       ),
                     ),

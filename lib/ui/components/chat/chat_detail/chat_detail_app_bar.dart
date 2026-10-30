@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class ChatDetailAppBar extends StatelessWidget {
@@ -58,28 +58,28 @@ class ChatDetailAppBar extends StatelessWidget {
     final content = Row(
       children: [
         FloatingPill(
-          padding: FloatingAppBarConsts.iconPillPadding,
+          padding: FloatingConsts.iconPillPadding,
           child: FloatingIconButton(
             icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
             onPressed: onBack,
           ),
         ),
-        const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+        const SizedBox(width: FloatingConsts.pillSpacing),
         Expanded(
           child: FloatingPill(
-            radius: FloatingAppBarConsts.centralRadius,
-            padding: FloatingAppBarConsts.centralAvatarPadding,
+            radius: FloatingConsts.centralRadius,
+            padding: FloatingConsts.iconPillPadding,
             child: Semantics(
               header: true,
               child: Material(
                 type: MaterialType.transparency,
                 borderRadius: BorderRadius.circular(
-                  FloatingAppBarConsts.centralRadius,
+                  FloatingConsts.centralRadius,
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(
-                    FloatingAppBarConsts.centralRadius,
+                    FloatingConsts.centralRadius,
                   ),
                   hoverColor: colorScheme.onSurface.withValues(alpha: 0.08),
                   splashColor: colorScheme.onSurface.withValues(alpha: 0.12),
@@ -95,13 +95,13 @@ class ChatDetailAppBar extends StatelessWidget {
                         uuid: avatarUuid,
                         name: title,
                         seedKey: seedKey,
-                        size: FloatingAppBarConsts.leadingSize,
+                        size: FloatingConsts.leadingSize,
                         isOnline: isOnline,
                         isSavedMessages: isSavedMessages,
                         type: chatType,
                         onTap: onOpenOverview,
                       ),
-                      const SizedBox(width: FloatingAppBarConsts.leadingGap),
+                      const SizedBox(width: FloatingConsts.leadingGap),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,14 +109,14 @@ class ChatDetailAppBar extends StatelessWidget {
                           children: [
                             Text(
                               title,
-                              style: FloatingAppBarConsts.titleStyle,
+                              style: FloatingConsts.titleStyle,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                             if (subtitle.isNotEmpty)
                               Text(
                                 subtitle,
-                                style: FloatingAppBarConsts.subtitleStyle(
+                                style: FloatingConsts.subtitleStyle(
                                   colorScheme,
                                   highlighted: subtitleHighlighted,
                                 ),
@@ -134,9 +134,9 @@ class ChatDetailAppBar extends StatelessWidget {
           ),
         ),
         if (hasActions) ...[
-          const SizedBox(width: FloatingAppBarConsts.pillSpacing),
+          const SizedBox(width: FloatingConsts.pillSpacing),
           FloatingPill(
-            padding: FloatingAppBarConsts.actionsPadding,
+            padding: FloatingConsts.iconPillPadding,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -172,7 +172,7 @@ class ChatDetailAppBar extends StatelessWidget {
         children: [
           content,
           if (bottom != null) ...[
-            const SizedBox(height: FloatingAppBarConsts.bottomGap),
+            const SizedBox(height: FloatingConsts.bottomGap),
             bottom!,
           ],
         ],

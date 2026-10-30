@@ -104,7 +104,9 @@ class SettingsItemRenderer extends ConsumerWidget {
         final raw = settingKey == null
             ? null
             : ref.watch(settingValueProvider(settingKey));
-        final valueText = item.optionsLoader != null
+        final valueText =
+            item.optionsLoader != null &&
+                (item.options == null || item.options!.isEmpty)
             ? null
             : _displayValue(context, raw ?? item.defaultValue);
         return wrapDisabled(
@@ -271,7 +273,11 @@ class SettingsItemRenderer extends ConsumerWidget {
         );
 
       case SettingComponent.action:
-        const directActions = {'openLicenses', 'openAppLicense', 'checkUpdates'};
+        const directActions = {
+          'openLicenses',
+          'openAppLicense',
+          'checkUpdates',
+        };
         if (directActions.contains(item.actionId)) {
           return wrapDisabled(
             SettingsNavigationRow(
@@ -475,8 +481,7 @@ class SettingsItemRenderer extends ConsumerWidget {
       return switch (err) {
         CommsBitrateError.none ||
         CommsBitrateError.belowMin ||
-        CommsBitrateError.aboveMax =>
-          null,
+        CommsBitrateError.aboveMax => null,
         CommsBitrateError.premiumLimit =>
           l10n.settingsItemBitratePremiumLimitError,
       };
@@ -504,8 +509,7 @@ class SettingsItemRenderer extends ConsumerWidget {
       return switch (err) {
         CommsBitrateError.none ||
         CommsBitrateError.belowMin ||
-        CommsBitrateError.aboveMax =>
-          null,
+        CommsBitrateError.aboveMax => null,
         CommsBitrateError.premiumLimit =>
           l10n.settingsItemBitratePremiumLimitError,
       };

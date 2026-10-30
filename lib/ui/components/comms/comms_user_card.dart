@@ -11,10 +11,10 @@ import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/core/utils/platform.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/comms/comms_user_context_menu.dart';
 import 'package:novyse/ui/components/comms/remote_screen_share_quality_menu.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Renders an individual participant card or screen share tile in the vocal room.
@@ -253,6 +253,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                     duration: const Duration(milliseconds: 150),
                     child: FloatingPill(
                       padding: const EdgeInsets.all(2),
+                      enforceMinSize: false,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -338,6 +339,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                       horizontal: 12,
                       vertical: 7,
                     ),
+                    enforceMinSize: false,
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -384,6 +386,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                     duration: const Duration(milliseconds: 150),
                     child: FloatingPill(
                       padding: const EdgeInsets.all(2),
+                      enforceMinSize: false,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [

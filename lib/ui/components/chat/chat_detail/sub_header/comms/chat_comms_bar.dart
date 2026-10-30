@@ -7,7 +7,7 @@ import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 
 import 'comms_bar_actions.dart';
 import 'comms_bar_info.dart';
@@ -42,16 +42,16 @@ class ChatCommsBar extends ConsumerWidget {
     final l10n = context.l10n;
 
     return SizedBox(
-      height: FloatingAppBarConsts.barOuterSize,
+      height: FloatingConsts.barOuterSize,
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(
-          FloatingAppBarConsts.subHeaderInnerRadius,
+          FloatingConsts.subHeaderInnerRadius,
         ),
         clipBehavior: Clip.hardEdge,
         child: InkWell(
           borderRadius: BorderRadius.circular(
-            FloatingAppBarConsts.subHeaderInnerRadius,
+            FloatingConsts.subHeaderInnerRadius,
           ),
           onTap: () {
             final notifier = ref.read(activeChatProvider.notifier);
@@ -63,7 +63,7 @@ class ChatCommsBar extends ConsumerWidget {
             context.go(chatSubPath(targetChatUUID, targetSub));
           },
           child: Padding(
-            padding: FloatingAppBarConsts.subHeaderInnerPadding,
+            padding: FloatingConsts.subHeaderInnerPadding,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -75,7 +75,7 @@ class ChatCommsBar extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(
-                  width: FloatingAppBarConsts.subHeaderActionsGap,
+                  width: FloatingConsts.subHeaderActionsGap,
                 ),
                 const CommsBarActions(),
               ],

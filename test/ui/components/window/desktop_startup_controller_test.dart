@@ -6,12 +6,16 @@ import 'package:novyse/ui/components/window/desktop_startup_controller.dart';
 
 void main() {
   group('DesktopStartupController', () {
+    final xdgConfigHome = Platform.environment['XDG_CONFIG_HOME'];
     final autostartDir = Directory(
-      '${Platform.environment['HOME']}/.config/autostart',
+      xdgConfigHome != null && xdgConfigHome.isNotEmpty
+          ? '$xdgConfigHome/autostart'
+          : '${Platform.environment['HOME']}/.config/autostart',
     );
     final desktopFile = File('${autostartDir.path}/$appId.desktop');
 
     setUp(() {
+      autostartDir.createSync(recursive: true);
       if (desktopFile.existsSync()) desktopFile.deleteSync();
     });
 
@@ -90,7 +94,9 @@ void main() {
     });
 
     test('disabling does not delete other desktop files (e.g. production)', () async {
-      final otherDesktopFile = File('${autostartDir.path}/com.novyse.desktop');
+      // Pick an id that is never the active one, including on production builds.
+      const otherAppId = appId == 'com.novyse' ? 'com.novyse.dev' : 'com.novyse';
+      final otherDesktopFile = File('${autostartDir.path}/$otherAppId.desktop');
       try {
         otherDesktopFile.writeAsStringSync(
           '[Desktop Entry]\nType=Application\nName=Novyse Production\n',

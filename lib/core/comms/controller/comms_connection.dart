@@ -59,6 +59,7 @@ mixin CommsConnectionMixin
           dynacast: true,
           defaultAudioPublishOptions:
               CommsMediaConstraints.maxQualityAudioPublish,
+          defaultAudioCaptureOptions: CommsMediaConstraints.audioCapture(),
           defaultVideoPublishOptions: CommsMediaConstraints.cameraPublishFrom(
             ref.read(settingsControllerProvider),
           ),
@@ -127,7 +128,7 @@ mixin CommsConnectionMixin
           await ref.read(commsDevicesProvider.notifier).refresh();
           await newRoom?.localParticipant?.setMicrophoneEnabled(
             true,
-            audioCaptureOptions: AudioCaptureOptions(
+            audioCaptureOptions: CommsMediaConstraints.audioCapture(
               deviceId: _microphoneDeviceId(),
             ),
           );

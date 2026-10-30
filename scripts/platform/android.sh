@@ -11,7 +11,6 @@ export ANDROID_SCHEME="$APP_SCHEME"
 
 case "$BRANCH" in
   "production") ANDROID_HOST_SUFFIX="" ;;
-  "preview")    ANDROID_HOST_SUFFIX=".preview" ;;
   *)            ANDROID_HOST_SUFFIX=".dev" ;;
 esac
 

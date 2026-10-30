@@ -35,11 +35,8 @@ get_dart_field() {
     "production")
       val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}$var[[:space:]]*=[[:space:]]*branch[[:space:]]*==[[:space:]]*['\"]production['\"][[:space:]]*?[[:space:]]*['\"]\([^'\"]\{1,\}\)['\"].*/\1/p")
       ;;
-    "preview")
-      val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}$var[[:space:]]*=[^;]*branch[[:space:]]*==[[:space:]]*['\"]preview['\"][[:space:]]*?[[:space:]]*['\"]\([^'\"]\{1,\}\)['\"].*/\1/p")
-      ;;
     *)
-      val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}$var[[:space:]]*=[^;]*:[[:space:]]*['\"]\([^'\"]\{1,\}\)['\"][[:space:]]*)[[:space:]]*;.*/\1/p")
+      val=$(echo "$_GLOBAL_CONTENT" | sed -n "s/.*const[[:space:]]\{1,\}String[[:space:]]\{1,\}$var[[:space:]]*=[[:space:]]*[^;]*:[[:space:]]*['\"]\([^'\"]\{1,\}\)['\"].*/\1/p")
       ;;
   esac
 
@@ -74,8 +71,7 @@ get_dart_field() {
 # Export common metadata
 export BRANCH="$BRANCH"
 export APP_ID="$(get_dart_field appId)"
-export FLATHUB_APP_ID="$(get_dart_field flathubAppId)"
-[ -z "$FLATHUB_APP_ID" ] && export FLATHUB_APP_ID="com.novyse.novyse"
+export DESKTOP_ID="$(get_dart_field desktopId)"
 export APP_NAME="$(get_dart_field appName)"
 export APP_VERSION="$(get_dart_field appVersion)"
 export APP_DESCRIPTION="$(get_dart_field appDescription)"

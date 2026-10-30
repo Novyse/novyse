@@ -31,4 +31,9 @@ abstract final class DesktopWindowController {
       null;
 
   static void removeMaximizedListener(int? listenerId) {}
+
+  static int? addFullscreenListener(void Function(bool isFullscreen) onChanged) =>
+      null;
+
+  static void removeFullscreenListener(int? listenerId) {}
 }

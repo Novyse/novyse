@@ -7,14 +7,14 @@ import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/themes/themes.dart';
 
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 
 import 'comms_control_button.dart';
 
 /// Mic / webcam / leave actions of the comms bar.
 /// Same icons, tooltips and colors as [CommsBottomBar]; errors are ignored.
 ///
-/// Sizes come straight from [FloatingAppBarConsts]: 42 box + 24 glyph,
+/// Sizes come straight from [FloatingConsts]: 42 box + 24 glyph,
 /// like every app bar icon — no per-call-site overrides.
 class CommsBarActions extends ConsumerWidget {
   const CommsBarActions({super.key});
@@ -47,7 +47,7 @@ class CommsBarActions extends ConsumerWidget {
           onPressed: () => unawaited(controller.toggleAudio()),
         ),
         const SizedBox(
-          width: FloatingAppBarConsts.subHeaderActionsGap,
+          width: FloatingConsts.subHeaderActionsGap,
         ),
         CommsControlButton(
           icon: commsState.isVideoEnabled
@@ -65,7 +65,7 @@ class CommsBarActions extends ConsumerWidget {
           onPressed: () => unawaited(controller.toggleVideo()),
         ),
         const SizedBox(
-          width: FloatingAppBarConsts.subHeaderActionsGap,
+          width: FloatingConsts.subHeaderActionsGap,
         ),
         CommsControlButton(
           icon: HugeIcons.strokeRoundedCall02,

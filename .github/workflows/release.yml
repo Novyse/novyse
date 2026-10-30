@@ -3,13 +3,6 @@ name: Client Release
 on:
   workflow_dispatch:
     inputs:
-      release_type:
-        description: Channel (production/preview)
-        required: true
-        type: choice
-        options:
-          - production
-          - preview
       version:
         description: Version (e.g., 1.0.1-20260405.0)
         required: true
@@ -54,20 +47,20 @@ jobs:
 
       - name: Merge into target branch
         run: |
-          git checkout ${{ inputs.release_type }}
+          git checkout production
           git merge development
 
       - name: Set Branch in global.dart
         run: |
-          sed -i "s/const String branch = '[^']*';/const String branch = '${{ inputs.release_type }}';/g" lib/core/config/global.dart
+          sed -i "s/const String branch = '[^']*';/const String branch = 'production';/g" lib/core/config/global.dart
           bash scripts/sync-platform.sh
           bash scripts/sync-branch.sh || true
-          git commit -am "chore: set branch to ${{ inputs.release_type }}" || true
+          git commit -am "chore: set branch to production" || true
 
       - name: Push to GitHub
         run: |
           git push origin development
-          git push origin ${{ inputs.release_type }}
+          git push origin production
 
   create-release:
     needs: git-flow
@@ -76,7 +69,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_type }}
+          ref: production
 
       - name: Format Patch Notes
         env:
@@ -89,7 +82,6 @@ jobs:
         with:
           tag_name: v${{ inputs.version }}
           name: Version ${{ inputs.version }}
-          prerelease: ${{ inputs.release_type == 'preview' }}
           draft: true
           body_path: draft-notes.md
         env:
@@ -100,8 +92,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       os: all
-      ref: ${{ inputs.release_type }}
-      release_type: ${{ inputs.release_type }}
+      ref: production
     secrets: inherit
 
   cleanup-release:
@@ -144,13 +135,12 @@ jobs:
 
   desktop-updater:
     needs: upload-release
-    if: ${{ inputs.release_type == 'production' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_type }}
+          ref: production
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -265,7 +255,7 @@ jobs:
           echo "### Integrity Checksums" >> release-notes.md
           echo "" >> release-notes.md
           echo "Below are the SHA-256 checksums to verify the authenticity and integrity of each file." >> release-notes.md
-          echo "For detailed verification guides and platform instructions, see [BUILD.md](https://github.com/Novyse/novyse/blob/${{ inputs.release_type }}/BUILD.md#verifying-release-artifacts)." >> release-notes.md
+          echo "For detailed verification guides and platform instructions, see [BUILD.md](https://github.com/Novyse/novyse/blob/production/BUILD.md#verifying-release-artifacts)." >> release-notes.md
 
           if [ -n "$ANDROID_FINGERPRINT" ]; then
             echo "" >> release-notes.md
@@ -297,6 +287,46 @@ jobs:
           # Update release notes and publish release
           gh release edit v${{ inputs.version }} --notes-file release-notes.md --draft=false
 
+  publish-playstore:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Android build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-android
+          path: dist-android
+
+      - name: Publish AAB to Play Store (closed testing)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT }}
+          packageName: com.novyse
+          releaseFiles: dist-android/*.aab
+          track: closed
+          releaseStatus: completed
+
+  publish-snap:
+    needs: [build, publish-release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Linux dist
+        uses: actions/download-artifact@v4
+        with:
+          name: build-linux
+          path: dist-upload
+
+      - name: Publish to Snap Store
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: dist-upload/novyse-${{ inputs.version }}-linux.snap
+          release: stable
+
   deploy-web:
     needs: publish-release
     runs-on: ubuntu-latest
@@ -310,11 +340,7 @@ jobs:
       - name: Set Cloudflare Project
         id: cf-settings
         run: |
-          if [[ "${{ inputs.release_type }}" == "production" ]]; then
-            echo "project=novyse-web" >> $GITHUB_OUTPUT
-          else
-            echo "project=novyse-web-preview" >> $GITHUB_OUTPUT
-          fi
+          echo "project=novyse-web" >> $GITHUB_OUTPUT
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
@@ -322,65 +348,3 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy build/web --project-name=${{ steps.cf-settings.outputs.project }} --commit-dirty=true
-
-  publish-flathub:
-    needs: publish-release
-    runs-on: ubuntu-latest
-    if: ${{ inputs.release_type == 'production' }}
-    steps:
-      - name: Check Flathub Token
-        id: check-token
-        env:
-          FLATHUB_DEPLOY_TOKEN: ${{ secrets.FLATHUB_DEPLOY_TOKEN }}
-        run: |
-          if [ -z "$FLATHUB_DEPLOY_TOKEN" ]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "FLATHUB_DEPLOY_TOKEN secret is not set. Skipping Flathub deployment."
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Checkout repository
-        if: steps.check-token.outputs.skip != 'true'
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.release_type }}
-
-      - name: Checkout Flathub Repository
-        if: steps.check-token.outputs.skip != 'true'
-        uses: actions/checkout@v4
-        with:
-          repository: flathub/com.novyse.novyse
-          path: flathub-repo
-          token: ${{ secrets.FLATHUB_DEPLOY_TOKEN }}
-
-      - name: Generate Manifest and Copy Metadata
-        if: steps.check-token.outputs.skip != 'true'
-        run: |
-          source scripts/extract-metadata.sh
-
-          TARBALL="${PKG_NAME}-${{ inputs.version }}-linux.tar.gz"
-          gh release download v${{ inputs.version }} -p "$TARBALL" || true
-          if [ -f "$TARBALL" ]; then
-            TARBALL_SHA256=$(sha256sum "$TARBALL" | awk '{print $1}')
-          else
-            TARBALL_SHA256=""
-          fi
-          TARBALL_URL="https://github.com/Novyse/novyse/releases/download/v${{ inputs.version }}/$TARBALL"
-
-          generate_desktop_entry "flathub-repo/${FLATHUB_APP_ID}.desktop" "$FLATHUB_APP_ID"
-          generate_appstream_metainfo "flathub-repo/${FLATHUB_APP_ID}.metainfo.xml" "$FLATHUB_APP_ID"
-          generate_linux_icons "flathub-repo/icons" "$FLATHUB_APP_ID"
-          generate_flathub_manifest "flathub-repo/${FLATHUB_APP_ID}.yml" "$TARBALL_URL" "$TARBALL_SHA256"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Commit and Push to Flathub
-        if: steps.check-token.outputs.skip != 'true'
-        run: |
-          cd flathub-repo
-          git config user.name "GitHub Action Bot"
-          git config user.email "bot@novyse.com"
-          git add .
-          git commit -m "Update to version ${{ inputs.version }}" || exit 0
-          git push origin master

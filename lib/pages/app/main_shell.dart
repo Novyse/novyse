@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/ui/components/effects/progressive_opacity_background.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/layout/pane_resizer.dart';
 
@@ -328,39 +329,51 @@ class _FloatingTabBar extends StatelessWidget {
     final paneWidth = isMasterDetailLayout(context)
         ? masterPaneWidth
         : MediaQuery.sizeOf(context).width;
-    final barWidth = (paneWidth * 0.64).clamp(220.0, 420.0);
+    final barWidth = (paneWidth * FloatingConsts.tabBarWidthFactor).clamp(
+      FloatingConsts.tabBarMinWidth,
+      FloatingConsts.tabBarMaxWidth,
+    );
     final scheme = Theme.of(context).colorScheme;
 
-    const barRadius = BorderRadius.all(Radius.circular(100));
+    final barRadius = BorderRadius.circular(FloatingConsts.tabBarRadius);
     return Center(
       child: Container(
         width: barWidth,
-        height: 68,
+        height: FloatingConsts.tabBarHeight,
         decoration: BoxDecoration(
           borderRadius: barRadius,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 100,
-              offset: const Offset(0, 10),
+              color: Colors.black.withValues(
+                alpha: FloatingConsts.tabBarShadowOpacity,
+              ),
+              blurRadius: FloatingConsts.tabBarShadowBlur,
+              offset: FloatingConsts.tabBarShadowOffset,
             ),
           ],
         ),
         child: ClipRRect(
           borderRadius: barRadius,
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            filter: ImageFilter.blur(
+              sigmaX: FloatingConsts.tabBarBlurSigma,
+              sigmaY: FloatingConsts.tabBarBlurSigma,
+            ),
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: scheme.surface.withValues(alpha: 0.6),
-                borderRadius: barRadius,
-                border: Border.all(
-                  color: scheme.outline.withValues(alpha: 0.25),
-                  strokeAlign: BorderSide.strokeAlignInside,
+                color: scheme.primary.withValues(
+                  alpha: FloatingConsts.tabBarSurfaceOpacity,
                 ),
+                borderRadius: barRadius,
+                // border: Border.all(
+                //   color: scheme.outline.withValues(
+                //     alpha: FloatingConsts.tabBarBorderOpacity,
+                //   ),
+                //   strokeAlign: BorderSide.strokeAlignInside,
+                // ),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                padding: FloatingConsts.tabBarPadding,
                 child: AnimatedBuilder(
                   animation: controller.animation!,
                   builder: (context, child) {
@@ -376,12 +389,16 @@ class _FloatingTabBar extends StatelessWidget {
                               top: 0,
                               bottom: 0,
                               width: slotWidth,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: scheme.primary.withValues(alpha: 0.14),
-                                  borderRadius: BorderRadius.circular(100),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: scheme.primary.withValues(
+                                  alpha: FloatingConsts.tabIndicatorOpacity,
+                                ),
+                                borderRadius: BorderRadius.circular(
+                                  FloatingConsts.tabBarRadius,
                                 ),
                               ),
+                            ),
                             ),
                             Row(
                               children: List.generate(_items.length, (index) {
@@ -405,7 +422,7 @@ class _FloatingTabBar extends StatelessWidget {
                                       color: Colors.transparent,
                                       child: InkWell(
                                         borderRadius: BorderRadius.circular(
-                                          100,
+                                          FloatingConsts.tabBarRadius,
                                         ),
                                         onTap: () => onTabPressed(index),
                                         child: Center(
@@ -414,7 +431,7 @@ class _FloatingTabBar extends StatelessWidget {
                                                 ? item.activeIcon
                                                 : item.icon,
                                             color: iconColor,
-                                            size: 28,
+                                            size: FloatingConsts.tabIconSize,
                                           ),
                                         ),
                                       ),

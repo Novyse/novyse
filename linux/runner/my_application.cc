@@ -54,7 +54,7 @@ static void my_application_activate(GApplication *application) {
 #endif
 
   gtk_window_set_title(window, APP_NAME);
-  gtk_window_set_default_icon_name("novyse");
+  gtk_window_set_default_icon_name(APPLICATION_ID);
   gtk_window_set_default_size(window, 1280, 720);
   gtk_window_set_decorated(window, FALSE);
 

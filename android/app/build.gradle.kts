@@ -24,8 +24,7 @@ fun getAppVersionFromGlobalConfig(): String {
 fun getMetadataFromGlobalConfig(varName: String, branch: String): String {
     val pattern = when (branch) {
         "production" -> Regex("""const\s+String\s+${varName}\s*=\s*branch\s*==\s*['"]production['"]\s*\?\s*['"]([^'"]+)['"]""")
-        "preview" -> Regex("""const\s+String\s+${varName}\s*=\s*[^;]*branch\s*==\s*['"]preview['"]\s*\?\s*['"]([^'"]+)['"]""")
-        else -> Regex("""const\s+String\s+${varName}\s*=\s*[^;]*:\s*['"]([^'"]+)['"]\s*\)""")
+        else -> Regex("""const\s+String\s+${varName}\s*=\s*[^;]*:\s*['"]([^'"]+)['"]""")
     }
     val match = pattern.find(globalConfigText)
     if (match != null) {
@@ -44,7 +43,6 @@ val currentScheme = getMetadataFromGlobalConfig("appScheme", currentBranch).ifEm
 
 val currentHostSuffix = when (currentBranch) {
     "production" -> ""
-    "preview" -> ".preview"
     else -> ".dev"
 }
 

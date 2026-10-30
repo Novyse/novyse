@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/ui/components/appbar/floating_app_bar_style.dart';
+import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Floating search field for the settings page.
@@ -27,11 +27,11 @@ class SettingsSearchBar extends StatelessWidget {
     final hasQuery = controller.text.isNotEmpty;
 
     return FloatingPill(
-      radius: FloatingAppBarConsts.centralRadius,
-      padding: FloatingAppBarConsts.searchFieldPadding,
+      radius: FloatingConsts.centralRadius,
+      padding: FloatingConsts.searchFieldPadding,
       child: ConstrainedBox(
         constraints: const BoxConstraints(
-          minHeight: FloatingAppBarConsts.searchFieldHeight,
+          minHeight: FloatingConsts.searchFieldHeight,
         ),
         child: Align(
           alignment: Alignment.centerLeft,
@@ -51,11 +51,11 @@ class SettingsSearchBar extends StatelessWidget {
               filled: false,
               contentPadding: const EdgeInsets.symmetric(vertical: 8),
               suffixIconConstraints:
-                  FloatingAppBarConsts.searchClearConstraints,
+                  FloatingConsts.searchClearConstraints,
               suffixIcon: hasQuery
                   ? IconButton(
                       padding: EdgeInsets.zero,
-                      constraints: FloatingAppBarConsts.searchClearConstraints,
+                      constraints: FloatingConsts.searchClearConstraints,
                       icon: const AppHugeIcon(
                         icon: HugeIcons.strokeRoundedCancel01,
                         size: 18,

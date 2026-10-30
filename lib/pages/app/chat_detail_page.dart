@@ -501,15 +501,18 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
             bottom: 0,
             child: NotificationListener<SizeChangedLayoutNotification>(
               onNotification: (_) {
-                final size = _bottomBarKey.currentContext?.size;
-                if (size != null) {
-                  final next = size.height + 12;
-                  if ((next - _bottomInset).abs() > 1) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted) setState(() => _bottomInset = next);
-                    });
+                // The notification fires during layout, when boxes may
+                // still be dirty: never read .size synchronously here.
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  final size = _bottomBarKey.currentContext?.size;
+                  if (size != null) {
+                    final next = size.height + 12;
+                    if ((next - _bottomInset).abs() > 1) {
+                      setState(() => _bottomInset = next);
+                    }
                   }
-                }
+                });
                 return true;
               },
               child: SizeChangedLayoutNotifier(
@@ -625,22 +628,23 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
                       : SystemUiOverlayStyle.dark,
                   child: NotificationListener<SizeChangedLayoutNotification>(
                     onNotification: (_) {
-                      final height =
-                          _headerBarKey.currentContext?.size?.height;
-                      if (height != null) {
-                        final current = ref.read(
-                          activeChatProvider.select((s) => s.headerHeight),
-                        );
-                        if ((height - current).abs() > 1) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (mounted) {
-                              ref
-                                  .read(activeChatProvider.notifier)
-                                  .setHeaderHeight(height);
-                            }
-                          });
+                      // Same as the bottom bar: read .size post-frame,
+                      // never synchronously during layout.
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (!mounted) return;
+                        final height =
+                            _headerBarKey.currentContext?.size?.height;
+                        if (height != null) {
+                          final current = ref.read(
+                            activeChatProvider.select((s) => s.headerHeight),
+                          );
+                          if ((height - current).abs() > 1) {
+                            ref
+                                .read(activeChatProvider.notifier)
+                                .setHeaderHeight(height);
+                          }
                         }
-                      }
+                      });
                       return true;
                     },
                     child: SizeChangedLayoutNotifier(

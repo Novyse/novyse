@@ -1,3 +1,4 @@
+import 'dart:async' show StreamSubscription, unawaited;
 import 'dart:io' as io;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -11,10 +12,10 @@ import 'package:novyse/core/comms/devices/comms_screenshare_android.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/comms/screen_share_quality_fields.dart';
+import 'package:novyse/ui/components/comms/screen_share_source_thumbnail.dart';
+import 'package:novyse/ui/components/comms/screen_share_thumbnails.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/switch/segmented_switch.dart';
-
-enum ScreenShareType { screen, window }
 
 /// Result of the mandatory screen-share setup menu.
 class ScreenShareSetupResult {
@@ -84,7 +85,7 @@ class ScreenShareSelectorModal extends StatefulWidget {
     required ScreenShareConfig initial,
     bool isPremium = false,
   }) {
-return ResponsiveOverlay.show<ScreenShareSetupResult>(
+    return ResponsiveOverlay.show<ScreenShareSetupResult>(
       context: context,
       title: AppLocalizations.of(context)!.screenShareSetupTitle,
       // Picker with thumbnails needs more room than the default 480px.
@@ -117,6 +118,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   DesktopCapturerSource? _selectedSource;
   bool _includeAudio = false;
   bool _loading = true;
+  StreamSubscription<DesktopCapturerSource>? _thumbSub;
 
   // Native-picker flow (preview captured in-menu).
   LocalVideoTrack? _previewVideo;
@@ -134,6 +136,9 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   void initState() {
     super.initState();
     if (_custom) {
+      _thumbSub = ScreenShareThumbnails.listen(() {
+        if (mounted) setState(() {});
+      });
       _loadSources();
     } else {
       _requestCapture();
@@ -142,6 +147,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
 
   @override
   void dispose() {
+    _thumbSub?.cancel();
     if (!_handedOff) {
       _stopPreviewTracks();
       CommsScreenshareAndroid.teardownProjectionService();
@@ -279,10 +285,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   }
 
   Future<void> _loadSources() async {
-    setState(() {
-      _loading = true;
-      _selectedSource = null;
-    });
+    setState(() => _loading = true);
 
     try {
       final type = _selectedType == ScreenShareType.screen
@@ -290,13 +293,21 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
           : SourceType.Window;
 
       final sources = await desktopCapturer.getSources(types: [type]);
-      if (mounted) {
-        setState(() {
-          _sources = sources;
-          _selectedSource = sources.isNotEmpty ? sources.first : null;
-          _loading = false;
-        });
-      }
+      if (!mounted) return;
+      ScreenShareThumbnails.primeFromCache(sources);
+      setState(() {
+        _sources = sources;
+        _selectedSource = sources.isNotEmpty ? sources.first : null;
+        _loading = false;
+      });
+      unawaited(
+        ScreenShareThumbnails.fetchMissing(
+          sources,
+          onChanged: () {
+            if (mounted) setState(() {});
+          },
+        ),
+      );
     } catch (e) {
       debugPrint('[ScreenShareSelector] Error loading desktop sources: $e');
       if (mounted) {
@@ -333,11 +344,6 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Body only: the title bar, padding, scrolling and min/max sizing are
-    // provided by OverlayDialog / OverlayBottomSheet via
-    // ResponsiveOverlay.show(), so this is a plain Column with no inner
-    // scroll view (an inner Flexible/ScrollView would break inside the
-    // bottom sheet's unbounded height).
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -412,16 +418,20 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
               child: AppButton(
                 label: l10n.screenShareStart,
                 onPressed: _canStart
-                    ? () => _popResult(
-                        ScreenShareSetupResult(
-                          source: _selectedSource,
-                          type: _selectedType,
-                          includeAudio: _includeAudio,
-                          config: _draft,
-                          previewVideoTrack: _previewVideo,
-                          previewAudioTracks: _previewAudio,
-                        ),
-                      )
+                    ? () {
+                        _popResult(
+                          ScreenShareSetupResult(
+                            source: _selectedSource,
+                            type: _selectedType,
+                            includeAudio: _includeAudio,
+                            config: _draft,
+                            previewVideoTrack: _custom ? null : _previewVideo,
+                            previewAudioTracks: _custom
+                                ? const []
+                                : _previewAudio,
+                          ),
+                        );
+                      }
                     : null,
               ),
             ),
@@ -432,6 +442,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   }
 
   bool get _canStart =>
+      !_loading &&
       (_custom ? _selectedSource != null : _previewVideo != null) &&
       (!_isCustomMode || _bitrateError == CommsBitrateError.none);
 
@@ -462,10 +473,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
           ),
         ),
         const SizedBox(height: 16),
-        // Altezza adattiva: la griglia si dimensiona sul contenuto e scorre
-        // insieme al resto del modal (un'unica scrollbar), senza averne una
-        // propria.
-        if (_loading)
+        if (_loading && _sources.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(child: CircularProgressIndicator()),
@@ -484,98 +492,51 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
           )
         else
           GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  primary: false,
-                  itemCount: _sources.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 16 / 11,
-                  ),
-                  itemBuilder: (context, index) {
-                    final source = _sources[index];
-                    final isSelected = _selectedSource?.id == source.id;
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            primary: false,
+            itemCount: _sources.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 16 / 11,
+            ),
+            itemBuilder: (context, index) {
+              final source = _sources[index];
+              final isSelected = _selectedSource?.id == source.id;
 
-                    // Material locale (trasparente): senza, hover/splash
-                    // dell'InkWell verrebbero dipinti sul Material del
-                    // modal/sheet — fuori dal clip dello scroll — e
-                    // sborderebbero sopra l'header pinnato quando la tile
-                    // scorre sotto di esso.
-                    return Material(
-                      type: MaterialType.transparency,
+              return Material(
+                type: MaterialType.transparency,
+                borderRadius: BorderRadius.circular(14),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () => setState(() => _selectedSource = source),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14),
-                      clipBehavior: Clip.antiAlias,
-                      child: InkWell(
-                        onTap: () => setState(() => _selectedSource = source),
-                        borderRadius: BorderRadius.circular(14),
-                        child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isSelected
-                                ? colorScheme.primary
-                                : colorScheme.outline.withValues(alpha: 0.12),
-                            width: isSelected ? 2.5 : 1,
-                          ),
-                          color: colorScheme.surfaceContainerHighest.withValues(
-                            alpha: 0.35,
-                          ),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child:
-                                  source.thumbnail != null &&
-                                      source.thumbnail!.isNotEmpty
-                                  ? Image.memory(
-                                      source.thumbnail!,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Container(
-                                      color: Colors.black26,
-                                      child: Center(
-                                        child: Icon(
-                                          _selectedType ==
-                                                  ScreenShareType.screen
-                                              ? Icons.monitor_rounded
-                                              : Icons.window_rounded,
-                                          color: Colors.white54,
-                                          size: 32,
-                                        ),
-                                      ),
-                                    ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 8,
-                              ),
-                              child: Text(
-                                source.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
-                                  color: isSelected
-                                      ? colorScheme.primary
-                                      : colorScheme.onSurface,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                      border: Border.all(
+                        color: isSelected
+                            ? colorScheme.primary
+                            : colorScheme.outline.withValues(alpha: 0.12),
+                        width: isSelected ? 2.5 : 1,
                       ),
+                      color: colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.35,
                       ),
-                    );
-                  },
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: ScreenShareSourceThumbnail(
+                      source: source,
+                      expand: true,
+                      isSelected: isSelected,
+                    ),
+                  ),
                 ),
+              );
+            },
+          ),
         const SizedBox(height: 12),
       ],
     );
