@@ -70,7 +70,8 @@ abstract final class CommsMediaConstraints {
     return fb;
   }
 
-  /// Microphone capture with WebRTC's software processing disabled.
+  /// Microphone capture with WebRTC's software processing disabled,
+  /// except the automatic gain control, which stays on by design.
   static AudioCaptureOptions audioCapture({String? deviceId}) {
     return AudioCaptureOptions(
       deviceId: deviceId,

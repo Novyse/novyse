@@ -31,7 +31,9 @@ void main() {
       expect(capture.deviceId, 'mic-1');
       expect(capture.noiseSuppression, isFalse);
       expect(capture.echoCancellation, isFalse);
-      expect(capture.autoGainControl, isFalse);
+      // autoGainControl stays on by design: it evens the recorded volume
+      // across far-end speakers and mics and is not an audio-quality filter.
+      expect(capture.autoGainControl, isTrue);
       expect(capture.highPassFilter, isFalse);
       expect(capture.voiceIsolation, isFalse);
       expect(capture.typingNoiseDetection, isFalse);
