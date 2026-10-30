@@ -141,6 +141,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
       });
       _loadSources();
     } else {
+      _loading = false;
       _requestCapture();
     }
   }
@@ -442,8 +443,9 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   }
 
   bool get _canStart =>
-      !_loading &&
-      (_custom ? _selectedSource != null : _previewVideo != null) &&
+      (_custom
+          ? (!_loading && _selectedSource != null)
+          : (!_captureLoading && _previewVideo != null)) &&
       (!_isCustomMode || _bitrateError == CommsBitrateError.none);
 
   Widget _buildCustomPicker(BuildContext context) {
