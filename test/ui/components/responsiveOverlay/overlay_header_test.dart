@@ -62,16 +62,22 @@ void main() {
       expect(find.text('Share screen'), findsOneWidget);
     });
 
-    testWidgets('renders the subtitle only when provided', (tester) async {
+    testWidgets('renders the subtitle when provided', (tester) async {
       await openOverlay(
         tester,
         title: 'Share screen',
         subtitle: 'Pick what to stream',
         child: const Text('body'),
       );
-      expect(find.text('Pick what to stream'), findsOneWidget);
 
+      expect(find.text('Pick what to stream'), findsOneWidget);
+    });
+
+    testWidgets('renders no subtitle node when it is not provided', (
+      tester,
+    ) async {
       await openOverlay(tester, title: 'Share screen', child: const Text('body'));
+
       expect(find.byType(OverlayHeader), findsOneWidget);
       // No stray empty subtitle node.
       expect(find.text(''), findsNothing);
