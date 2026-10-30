@@ -10,7 +10,7 @@ const String appName = branch == 'production' ? 'Novyse' : 'Novyse.dev';
 const String appDescription =
     'Next-Gen Communications. Connect, collaborate, and communicate securely.';
 
-const String appVersion = '1.3.1-20261020.0';
+const String appVersion = '1.3.2-20261030.0';
 
 /// Human-readable update channel for the active deployment branch.
 const String updateChannel = branch == 'development' ? 'dev' : branch;
