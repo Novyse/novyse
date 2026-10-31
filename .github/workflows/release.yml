@@ -306,8 +306,8 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT }}
           packageName: com.novyse
           releaseFiles: dist-android/*.aab
-          track: closed
-          releaseStatus: completed
+          track: alpha
+          status: completed
 
   publish-snap:
     needs: [build, publish-release]
