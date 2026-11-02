@@ -9,7 +9,7 @@ class ChatPermissions {
   static final BigInt speakVocal = BigInt.from(1) << 6;
   static final BigInt videoVocal = BigInt.from(1) << 7;
   static final BigInt screenshareVocal = BigInt.from(1) << 8;
-  static final BigInt watchtogetherVocal = BigInt.from(1) << 9;
+  static final BigInt useActivities = BigInt.from(1) << 9;
   static final BigInt muteMemberVocal = BigInt.from(1) << 10;
   static final BigInt deafenMemberVocal = BigInt.from(1) << 11;
   static final BigInt disableVideoVocal = BigInt.from(1) << 12;

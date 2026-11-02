@@ -12,7 +12,6 @@ import 'api/modules/notification_module.dart';
 import 'api/modules/search_module.dart';
 import 'api/modules/system_module.dart';
 import 'api/modules/user_module.dart';
-import 'api/modules/watch_together_module.dart';
 
 export 'api/dio_factory.dart' show createDefaultDio;
 
@@ -36,7 +35,6 @@ class Gateway {
       message = MessageModule(dio),
       file = FileModule(dio),
       comms = CommsModule(dio),
-      watchTogether = WatchTogetherModule(dio),
       notification = NotificationModule(dio),
       system = SystemModule(dio);
 
@@ -48,7 +46,6 @@ class Gateway {
   final MessageModule message;
   final FileModule file;
   final CommsModule comms;
-  final WatchTogetherModule watchTogether;
   final NotificationModule notification;
   final SystemModule system;
 }
