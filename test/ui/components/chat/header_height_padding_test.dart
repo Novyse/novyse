@@ -53,12 +53,16 @@ EdgeInsets _outerPaddingOf(WidgetTester tester, Type ancestorType) {
   return padding.padding as EdgeInsets;
 }
 
-/// Padding wrapping [childType] (the bar containers built above the content).
+/// Padding that wraps the content of the page, resolved from [childType].
+///
+/// The content of the call page is a column (activity strip + grid), so the
+/// padding is looked up as the closest ancestor of the grid instead of as its
+/// direct parent.
 EdgeInsets _wrappingPaddingOf(WidgetTester tester, Type childType) {
   final padding = tester.widget<Padding>(
-    find.byWidgetPredicate(
-      (w) => w is Padding && w.child.runtimeType == childType,
-    ),
+    find
+        .ancestor(of: find.byType(childType), matching: find.byType(Padding))
+        .first,
   );
   return padding.padding as EdgeInsets;
 }
@@ -67,8 +71,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Measured header height drives content padding', () {
-    testWidgets('SubList uses topPadding fallback when header is unmeasured',
-        (tester) async {
+    testWidgets('SubList uses topPadding fallback when header is unmeasured', (
+      tester,
+    ) async {
       final container = ProviderContainer(
         overrides: [
           userStoreProvider.overrideWith(
@@ -146,8 +151,9 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('ChatCallPage falls back without measured header',
-        (tester) async {
+    testWidgets('ChatCallPage falls back without measured header', (
+      tester,
+    ) async {
       final container = ProviderContainer();
 
       await tester.pumpWidget(

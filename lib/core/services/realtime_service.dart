@@ -66,9 +66,7 @@ class SocketService {
         }
       } else {
         if (_client != null) {
-          debugPrint(
-            'Network state → offline/unsynced. Closing connection...',
-          );
+          debugPrint('Network state → offline/unsynced. Closing connection...');
           close();
         }
       }
@@ -76,6 +74,8 @@ class SocketService {
   }
 
   bool get isOpen => _client?.state == centrifuge.State.connected;
+
+  centrifuge.Client? get client => _client;
 
   /// Opens the realtime connection.
   Future<void> open({bool forceRefreshToken = false}) async {
@@ -87,9 +87,7 @@ class SocketService {
       }
 
       if (_isConnecting || isOpen) {
-        debugPrint(
-          'Connection already in progress or already connected',
-        );
+        debugPrint('Connection already in progress or already connected');
         return;
       }
 

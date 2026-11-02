@@ -92,6 +92,9 @@ dependencies:
   ffi: ^2.2.0
   flutter_web_plugins:
     sdk: flutter
+  flutter_inappwebview: ^6.1.5
+  archive: ^4.6.0
+  crypto: ^3.0.8
 dev_dependencies:
   flutter_test:
     sdk: flutter

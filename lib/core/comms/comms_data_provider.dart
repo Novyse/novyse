@@ -6,6 +6,8 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:novyse/core/comms/comms_audio.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/comms/comms_models.dart';
+import 'package:novyse/core/plugins/activity_controller.dart';
+import 'package:novyse/core/plugins/models/activity_instance.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/stores/user_store.dart';
 
@@ -67,6 +69,12 @@ class CommsDataNotifier
     });
 
     final commsState = ref.watch(commsProvider);
+    final activities = ref.watch(activityControllerProvider);
+
+    final activityTiles = activities.isRoom(arg.chatUUID, arg.sub)
+        ? _buildActivityTiles(activities.instances)
+        : const <CommsTileItem>[];
+
     final isMatch = commsState.isRoomMatch(arg.chatUUID, arg.sub);
 
     if (isMatch && commsState.room != null) {
@@ -74,6 +82,7 @@ class CommsDataNotifier
       return _buildTilesFromLiveRoom(
         commsState.room!,
         commsState.speakingParticipants,
+        activities: activityTiles,
         remoteVolumes: commsState.remoteVolumes,
         localMuted: commsState.localMuted,
         outputEnabled: commsState.isAudioOutputEnabled,
@@ -82,10 +91,22 @@ class CommsDataNotifier
       _startPolling();
       return CommsRoomViewData(
         isConnectedToThisRoom: false,
-        tiles: _lastTiles,
-        isLoading: _lastTiles.isEmpty,
+        tiles: [...activityTiles, ..._lastTiles],
+        isLoading: _lastTiles.isEmpty && activityTiles.isEmpty,
       );
     }
+  }
+
+  /// One tile per running activity, identified by its instance.
+  List<CommsTileItem> _buildActivityTiles(List<ActivityInstance> instances) {
+    return [
+      for (final instance in instances)
+        CommsTileItem(
+          id: 'activity:${instance.instanceId}',
+          userUUID: '',
+          activity: instance,
+        ),
+    ];
   }
 
   void _startPolling() {
@@ -159,11 +180,12 @@ class CommsDataNotifier
   CommsRoomViewData _buildTilesFromLiveRoom(
     Room room,
     Set<String> speakingParticipants, {
+    List<CommsTileItem> activities = const [],
     Map<String, double> remoteVolumes = const {},
     Map<String, bool> localMuted = const {},
     bool outputEnabled = true,
   }) {
-    final tiles = <CommsTileItem>[];
+    final tiles = <CommsTileItem>[...activities];
 
     final participants = <Participant>[
       if (room.localParticipant != null) room.localParticipant!,
@@ -190,7 +212,8 @@ class CommsDataNotifier
           .where((p) => p.source == TrackSource.microphone)
           .firstOrNull;
       final remoteSelfMuted =
-          !isLocal && ((micPub?.muted ?? false) || !participant.isMicrophoneEnabled());
+          !isLocal &&
+          ((micPub?.muted ?? false) || !participant.isMicrophoneEnabled());
 
       final volKey = identity;
       final locallyMuted = !isLocal && (localMuted[volKey] ?? false);

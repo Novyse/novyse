@@ -136,8 +136,7 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
                 height: double.infinity,
                 child: CommsUserCard(
                   tile: tile,
-                  isPinned:
-                      ref.read(commsProvider).pinnedStreamId == tile.id,
+                  isPinned: ref.read(commsProvider).pinnedStreamId == tile.id,
                   isFullScreen: true,
                   onPin: () =>
                       ref.read(commsProvider.notifier).togglePin(tile.id),
@@ -203,9 +202,18 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
       return _buildEmptyState(context);
     }
 
+    // An activity tile in fullscreen is rendered by the overlay only: building
+    // it twice would mount two sandboxes, and therefore two plugins, for the
+    // same instance.
+    final visibleTiles = fullscreenId == null
+        ? activeTiles
+        : activeTiles
+              .where((tile) => tile.id != fullscreenId || !tile.isActivity)
+              .toList();
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final totalElements = activeTiles.length;
+        final totalElements = visibleTiles.length;
         final availableWidth = constraints.maxWidth;
         final availableHeight = constraints.maxHeight;
 
@@ -261,7 +269,7 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     spacing: margin,
                     runSpacing: margin,
-                    children: activeTiles.map((tile) {
+                    children: visibleTiles.map((tile) {
                       return SizedBox(
                         width: targetWidth.clamp(140.0, availableWidth),
                         height: targetHeight.clamp(100.0, availableHeight),

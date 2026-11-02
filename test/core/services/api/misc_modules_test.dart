@@ -6,7 +6,6 @@ import 'package:novyse/core/services/api/modules/file_module.dart';
 import 'package:novyse/core/services/api/modules/gather_module.dart';
 import 'package:novyse/core/services/api/modules/notification_module.dart';
 import 'package:novyse/core/services/api/modules/search_module.dart';
-import 'package:novyse/core/services/api/modules/watch_together_module.dart';
 
 import '../../../helpers/fake_http.dart';
 
@@ -350,59 +349,6 @@ void main() {
       final module = CommsModule(FakeHttp.offline().dio).room;
 
       expect(module.get('chat-1'), throwsA(isA<DioException>()));
-    });
-  });
-
-  group('WatchTogetherModule', () {
-    late FakeHttp http;
-    late WatchTogetherModule module;
-
-    setUp(() {
-      http = FakeHttp.always({'ok': true});
-      module = WatchTogetherModule(http.dio);
-    });
-
-    test('start posts the room and url, returning the raw envelope', () async {
-      final res = await module.start('room-1', 'https://youtu.be/x');
-
-      expect(http.only.method, 'POST');
-      expect(http.only.path, '/comms/watch-together/start');
-      expect(http.only.json, {
-        'roomUUID': 'room-1',
-        'url': 'https://youtu.be/x',
-      });
-      expect(res, {
-        'success': true,
-        'data': {'ok': true},
-      });
-    });
-
-    test('play posts the timestamp', () async {
-      await module.play('room-1', 12.5);
-
-      expect(http.only.path, '/comms/watch-together/play');
-      expect(http.only.json, {'roomUUID': 'room-1', 'timestamp': 12.5});
-    });
-
-    test('pause posts the timestamp', () async {
-      await module.pause('room-1', 20.0);
-
-      expect(http.only.path, '/comms/watch-together/pause');
-      expect(http.only.json, {'roomUUID': 'room-1', 'timestamp': 20.0});
-    });
-
-    test('seek posts the timestamp', () async {
-      await module.seek('room-1', 0.0);
-
-      expect(http.only.path, '/comms/watch-together/seek');
-      expect(http.only.json, {'roomUUID': 'room-1', 'timestamp': 0.0});
-    });
-
-    test('stop posts only the room', () async {
-      await module.stop('room-1');
-
-      expect(http.only.path, '/comms/watch-together/stop');
-      expect(http.only.json, {'roomUUID': 'room-1'});
     });
   });
 }

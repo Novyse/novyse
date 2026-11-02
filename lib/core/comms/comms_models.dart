@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:novyse/core/plugins/models/activity_instance.dart';
 
 /// Helper to extract clean userUUID from a LiveKit identity.
 /// Backend identity format is typically `userUUID_sessionID` or `userUUID`.
@@ -50,6 +51,13 @@ class CommsTileItem {
   /// Linear gain currently applied to this tile (0.0..1.0).
   final double effectiveVolume;
 
+  /// The activity rendered by this tile, `null` for participants and shares.
+  ///
+  /// A tile has exactly one content: a camera track, a screen share or an
+  /// activity. The activity tiles live in the same grid on every platform,
+  /// which is what makes the room look the same everywhere.
+  final ActivityInstance? activity;
+
   const CommsTileItem({
     required this.id,
     required this.userUUID,
@@ -61,7 +69,11 @@ class CommsTileItem {
     this.isRemoteMuted = false,
     this.isLocallyMuted = false,
     this.effectiveVolume = 1.0,
+    this.activity,
   });
+
+  /// True when this tile renders an activity instead of a participant.
+  bool get isActivity => activity != null;
 
   bool get hasActiveVideo => videoTrack != null && !videoTrack!.muted;
 
@@ -76,6 +88,7 @@ class CommsTileItem {
     bool? isRemoteMuted,
     bool? isLocallyMuted,
     double? effectiveVolume,
+    ActivityInstance? activity,
   }) {
     return CommsTileItem(
       id: id ?? this.id,
@@ -88,6 +101,7 @@ class CommsTileItem {
       isRemoteMuted: isRemoteMuted ?? this.isRemoteMuted,
       isLocallyMuted: isLocallyMuted ?? this.isLocallyMuted,
       effectiveVolume: effectiveVolume ?? this.effectiveVolume,
+      activity: activity ?? this.activity,
     );
   }
 
@@ -105,7 +119,9 @@ class CommsTileItem {
           isSpeaking == other.isSpeaking &&
           isRemoteMuted == other.isRemoteMuted &&
           isLocallyMuted == other.isLocallyMuted &&
-          effectiveVolume == other.effectiveVolume;
+          effectiveVolume == other.effectiveVolume &&
+          activity?.instanceId == other.activity?.instanceId &&
+          activity?.seq == other.activity?.seq;
 
   @override
   int get hashCode => Object.hash(
@@ -119,6 +135,8 @@ class CommsTileItem {
     isRemoteMuted,
     isLocallyMuted,
     effectiveVolume,
+    activity?.instanceId,
+    activity?.seq,
   );
 }
 

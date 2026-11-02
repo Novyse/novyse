@@ -5,10 +5,10 @@ import 'package:novyse/core/services/api/modules/file_module.dart';
 import 'package:novyse/core/services/api/modules/gather_module.dart';
 import 'package:novyse/core/services/api/modules/message_module.dart';
 import 'package:novyse/core/services/api/modules/notification_module.dart';
+import 'package:novyse/core/services/api/modules/plugins_module.dart';
 import 'package:novyse/core/services/api/modules/search_module.dart';
 import 'package:novyse/core/services/api/modules/system_module.dart';
 import 'package:novyse/core/services/api/modules/user_module.dart';
-import 'package:novyse/core/services/api/modules/watch_together_module.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 
 import 'fake_http.dart';
@@ -29,7 +29,7 @@ class FakeGateway implements Gateway {
       message = MessageModule(http.dio),
       file = FileModule(http.dio),
       comms = CommsModule(http.dio),
-      watchTogether = WatchTogetherModule(http.dio),
+      plugins = PluginsModule(http.dio),
       notification = NotificationModule(http.dio),
       system = SystemModule(http.dio);
 
@@ -71,7 +71,7 @@ class FakeGateway implements Gateway {
   final CommsModule comms;
 
   @override
-  final WatchTogetherModule watchTogether;
+  final PluginsModule plugins;
 
   @override
   final NotificationModule notification;

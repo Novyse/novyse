@@ -9,6 +9,7 @@ import 'api/modules/file_module.dart';
 import 'api/modules/gather_module.dart';
 import 'api/modules/message_module.dart';
 import 'api/modules/notification_module.dart';
+import 'api/modules/plugins_module.dart';
 import 'api/modules/search_module.dart';
 import 'api/modules/system_module.dart';
 import 'api/modules/user_module.dart';
@@ -35,6 +36,7 @@ class Gateway {
       message = MessageModule(dio),
       file = FileModule(dio),
       comms = CommsModule(dio),
+      plugins = PluginsModule(dio),
       notification = NotificationModule(dio),
       system = SystemModule(dio);
 
@@ -46,6 +48,7 @@ class Gateway {
   final MessageModule message;
   final FileModule file;
   final CommsModule comms;
+  final PluginsModule plugins;
   final NotificationModule notification;
   final SystemModule system;
 }
