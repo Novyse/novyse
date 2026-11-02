@@ -192,7 +192,23 @@ mixin CommsConnectionMixin
         (this as CommsNotifier).syncCommsNotification();
       })
       ..on<ActiveSpeakersChangedEvent>((event) {
-        _pendingSpeakers = event.speakers.map((p) => p.identity).toSet();
+        final next = event.speakers.map((p) => p.identity).toSet();
+        _pendingSpeakers = next;
+        final current = state.speakingParticipants;
+        final someoneStarted = next.any((id) => !current.contains(id));
+
+        // Show the speaking border immediately when someone starts talking.
+        // Debounce only when speakers drop, so brief pauses do not flicker.
+        if (someoneStarted) {
+          _speakingDebounce?.cancel();
+          _speakingDebounce = null;
+          _pendingSpeakers = null;
+          if (!_isDisposed && !setEquals(current, next)) {
+            state = state.copyWith(speakingParticipants: next);
+          }
+          return;
+        }
+
         _speakingDebounce ??= Timer(const Duration(milliseconds: 300), () {
           _speakingDebounce = null;
           final pending = _pendingSpeakers;

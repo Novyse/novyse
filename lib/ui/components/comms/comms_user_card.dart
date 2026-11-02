@@ -12,6 +12,7 @@ import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
+import 'package:novyse/ui/components/avatar/avatar_backdrop.dart';
 import 'package:novyse/ui/components/comms/comms_user_context_menu.dart';
 import 'package:novyse/ui/components/comms/remote_screen_share_quality_menu.dart';
 import 'package:novyse/ui/components/floating/floating_style.dart';
@@ -121,7 +122,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
     final user = ref.watch(userProvider(tile.userUUID));
     final displayName =
         user?.displayName ?? (tile.isLocal ? l10n.chatYou : l10n.user);
-    final pfpUUID = user?.profilePictureUUID ?? tile.userUUID;
+    final pfpUUID = user?.profilePictureUUID;
 
     final String labelText;
     if (tile.isScreenShare) {
@@ -208,19 +209,10 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
           if (widget.isFullScreen) _showOverlayUi();
         },
         onExit: (_) => setState(() => _isHovered = false),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+        child: Container(
+          key: const ValueKey('comms_user_card_frame'),
           decoration: BoxDecoration(
             borderRadius: cardRadius,
-            boxShadow: isSpeaking
-                ? [
-                    BoxShadow(
-                      color: status.success.withValues(alpha: 0.4),
-                      blurRadius: 16,
-                      spreadRadius: 2,
-                    ),
-                  ]
-                : null,
             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
           ),
           foregroundDecoration: BoxDecoration(
@@ -229,7 +221,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
               color: isSpeaking
                   ? status.success
                   : colorScheme.outline.withValues(alpha: 0.25),
-              width: isSpeaking ? 2.5 : 1,
+              width: isSpeaking ? 2 : 1,
             ),
           ),
           clipBehavior: Clip.antiAlias,
@@ -240,7 +232,11 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
               if (videoTrack != null)
                 VideoTrackRenderer(videoTrack)
               else
-                _buildAvatarFallback(context, pfpUUID, displayName),
+                _buildAvatarFallback(
+                  pfpUUID,
+                  displayName,
+                  tile.userUUID,
+                ),
 
               // Top-right controls (Pin, Fullscreen, Stop share)
               // Hidden entirely when previewing the room from outside.
@@ -437,19 +433,30 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
   }
 
   Widget _buildAvatarFallback(
-    BuildContext context,
     String? pfpUUID,
     String displayName,
+    String userUUID,
   ) {
+    final extracted = (pfpUUID != null && pfpUUID.isNotEmpty)
+        ? ref
+              .watch(
+                avatarBackdropGradientProvider((
+                  pfpUUID: pfpUUID,
+                  brightness: Theme.of(context).brightness,
+                )),
+              )
+              .valueOrNull
+        : null;
+    final gradientColors =
+        extracted ?? Avatar.gradientColorsFor(seed: userUUID);
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Theme.of(context).colorScheme.surfaceContainerHighest
-                .withValues(alpha: 0.8),
-            Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+            for (final color in gradientColors)
+              color.withValues(alpha: 0.55),
           ],
         ),
       ),
@@ -461,7 +468,12 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                 : constraints.maxHeight;
             final avatarSize = (cardMinDim * 0.35).clamp(36.0, 96.0);
 
-            return Avatar(uuid: pfpUUID, name: displayName, size: avatarSize);
+            return Avatar(
+              uuid: pfpUUID,
+              name: displayName,
+              seedKey: userUUID,
+              size: avatarSize,
+            );
           },
         ),
       ),

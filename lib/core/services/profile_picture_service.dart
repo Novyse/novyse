@@ -37,7 +37,6 @@ class ProfilePictureService {
     required String name,
     required String mimeType,
     required Uint8List bytes,
-    String? sourcePath,
   }) async {
     if (userUUID.isEmpty || bytes.isEmpty) return false;
     if (bytes.length > maxProfilePictureBytes) return false;
@@ -79,18 +78,10 @@ class ProfilePictureService {
           ? confirm.profilePictureUUID!
           : fileUUID;
 
-      var ref = '';
-      try {
-        final path = sourcePath;
-        if (path != null && path.isNotEmpty) {
-          ref = (await _storage.save.byUri(path, linkedUUID)).ref;
-        }
-      } catch (e) {
-        debugPrint('ProfilePictureService: save by uri failed: $e');
-      }
-      if (ref.isEmpty) {
-        ref = (await _storage.save.byBytes(bytes, linkedUUID)).ref;
-      }
+      // Persist the same bytes that were PUT to S3 (the cropped PNG). Copying
+      // the picker file would store the uncropped original locally, so the
+      // avatar and ColorScheme sampling saw mostly background white.
+      final ref = (await _storage.save.byBytes(bytes, linkedUUID)).ref;
 
       await _database.file.add(
         linkedUUID,

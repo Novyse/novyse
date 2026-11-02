@@ -186,14 +186,14 @@ class ChatListItem extends ConsumerWidget {
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         child: Container(
           decoration: BoxDecoration(
             color: isSelected
                 ? Theme.of(context).colorScheme.primaryContainer
                       .withValues(alpha: 0.28)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(24),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(

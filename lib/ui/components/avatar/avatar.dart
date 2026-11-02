@@ -70,6 +70,22 @@ class Avatar extends ConsumerStatefulWidget {
     Color(0xFF38BDF8),
   ];
 
+  /// Deterministic gradient pair for a profile, hashed from [seed].
+  ///
+  /// The same seed always maps to the same pair so chat avatars and comms
+  /// user cards stay visually in sync.
+  static List<Color> gradientColorsFor({
+    String? seed,
+    bool isSavedMessages = false,
+  }) {
+    if (isSavedMessages) return savedMessagesGradient;
+    final value = seed ?? 'default';
+    final hash = value.isEmpty
+        ? 0
+        : value.codeUnits.fold<int>(0, (prev, elem) => prev + elem);
+    return colorSchemes[hash.abs() % colorSchemes.length];
+  }
+
   @override
   ConsumerState<Avatar> createState() => _AvatarState();
 }
@@ -236,17 +252,10 @@ class _AvatarState extends ConsumerState<Avatar> {
 
   /// Generates the deterministic vibrant gradient and initial letter placeholder.
   Widget _buildPlaceholder() {
-    final List<Color> gradientColors;
-    if (widget.isSavedMessages) {
-      gradientColors = Avatar.savedMessagesGradient;
-    } else {
-      final seed = widget.seedKey ?? widget.uuid ?? widget.name ?? 'default';
-      final hash = seed.isEmpty
-          ? 0
-          : seed.codeUnits.fold<int>(0, (prev, elem) => prev + elem);
-      gradientColors =
-          Avatar.colorSchemes[hash.abs() % Avatar.colorSchemes.length];
-    }
+    final gradientColors = Avatar.gradientColorsFor(
+      seed: widget.seedKey ?? widget.uuid ?? widget.name,
+      isSavedMessages: widget.isSavedMessages,
+    );
 
     final initial = (widget.name != null && widget.name!.trim().isNotEmpty)
         ? widget.name!.trim().characters.first.toUpperCase()

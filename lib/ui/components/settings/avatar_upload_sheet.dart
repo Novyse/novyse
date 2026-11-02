@@ -8,6 +8,7 @@ import 'package:novyse/core/storage/file/file.dart';
 import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
+import 'package:novyse/ui/components/avatar/avatar_backdrop.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/image_crop/image_crop.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
@@ -126,6 +127,8 @@ class _AvatarUploadSheetState extends ConsumerState<AvatarUploadSheet> {
     final ok = await (widget.uploadImage ?? _uploadWithService)(cropped);
     if (!mounted) return;
     if (ok) {
+      ref.invalidate(profilePictureUriProvider);
+      ref.invalidate(avatarBackdropGradientProvider);
       Navigator.of(context, rootNavigator: true).pop();
       return;
     }
@@ -144,7 +147,6 @@ class _AvatarUploadSheetState extends ConsumerState<AvatarUploadSheet> {
       name: file.name,
       mimeType: getMimeType({'name': file.name}, headerBytes: bytes),
       bytes: Uint8List.fromList(bytes),
-      sourcePath: file.path,
     );
   }
 

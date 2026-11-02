@@ -271,4 +271,27 @@ void main() {
       expect(renderBox.size.height, equals(80));
     });
   });
+
+  group('gradientColorsFor', () {
+    test('is deterministic for the same seed', () {
+      expect(
+        Avatar.gradientColorsFor(seed: 'user-a'),
+        Avatar.gradientColorsFor(seed: 'user-a'),
+      );
+    });
+
+    test('varies across different seeds', () {
+      expect(
+        Avatar.gradientColorsFor(seed: 'user-a'),
+        isNot(Avatar.gradientColorsFor(seed: 'user-b-different')),
+      );
+    });
+
+    test('uses the saved-messages palette when requested', () {
+      expect(
+        Avatar.gradientColorsFor(seed: 'anything', isSavedMessages: true),
+        Avatar.savedMessagesGradient,
+      );
+    });
+  });
 }

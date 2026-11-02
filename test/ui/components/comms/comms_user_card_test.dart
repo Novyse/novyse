@@ -10,6 +10,8 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/services/profile_picture_service.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/ui/components/avatar/avatar.dart';
+import 'package:novyse/ui/components/avatar/avatar_backdrop.dart';
 import 'package:novyse/ui/components/comms/comms_user_card.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
@@ -602,24 +604,15 @@ void main() {
     /// clipped video/avatar: as a background decoration it would be drawn
     /// under the child, and the child's clip path (which follows the outer
     /// radius) would erase the border around the corners.
-    Color borderColor(WidgetTester tester) =>
-        (tester
-                    .widget<AnimatedContainer>(find.byType(AnimatedContainer))
-                    .foregroundDecoration!
-                as BoxDecoration)
-            .border!
-            .top
-            .color;
+    Container frame(WidgetTester tester) => tester.widget<Container>(
+      find.byKey(const ValueKey('comms_user_card_frame')),
+    );
 
-    /// Reads the border colour declared by the animated container.
+    Color borderColor(WidgetTester tester) =>
+        (frame(tester).foregroundDecoration! as BoxDecoration).border!.top.color;
+
     Color borderColorFromForeground(WidgetTester tester) =>
-        (tester
-                    .widget<AnimatedContainer>(find.byType(AnimatedContainer))
-                    .foregroundDecoration!
-                as BoxDecoration)
-            .border!
-            .top
-            .color;
+        (frame(tester).foregroundDecoration! as BoxDecoration).border!.top.color;
 
     testWidgets('the border colour matches the foreground decoration', (
       tester,
@@ -641,6 +634,7 @@ void main() {
       await pump(tester, item: tile(isSpeaking: true));
 
       expect(borderColor(tester).a, 1.0);
+      expect((frame(tester).decoration! as BoxDecoration).boxShadow, isNull);
     });
 
     testWidgets('a screen share never counts as speaking', (tester) async {
@@ -672,9 +666,7 @@ void main() {
     testWidgets('the clip and the border share one radius', (tester) async {
       await pump(tester, item: tile(isSpeaking: true));
 
-      final container = tester.widget<AnimatedContainer>(
-        find.byType(AnimatedContainer),
-      );
+      final container = frame(tester);
       final background = container.decoration! as BoxDecoration;
       final foreground = container.foregroundDecoration! as BoxDecoration;
 
@@ -689,9 +681,7 @@ void main() {
     ) async {
       await pump(tester, item: tile(isSpeaking: true), isFullScreen: true);
 
-      final container = tester.widget<AnimatedContainer>(
-        find.byType(AnimatedContainer),
-      );
+      final container = frame(tester);
       final background = container.decoration! as BoxDecoration;
       final foreground = container.foregroundDecoration! as BoxDecoration;
 
@@ -811,5 +801,101 @@ void main() {
         expect(find.text(l10n.commsMuteUser), findsOneWidget);
       },
     );
+  });
+
+  group('profile gradient', () {
+    List<Color>? cardGradientColors(WidgetTester tester) {
+      for (final container in tester.widgetList<Container>(
+        find.byType(Container),
+      )) {
+        final decoration = container.decoration;
+        if (decoration is BoxDecoration &&
+            decoration.gradient is LinearGradient &&
+            decoration.shape != BoxShape.circle) {
+          return (decoration.gradient as LinearGradient).colors;
+        }
+      }
+      return null;
+    }
+
+    testWidgets('card background uses the participant avatar palette', (
+      tester,
+    ) async {
+      const userUUID = 'u-gradient-1';
+      await pump(tester, item: tile(userUUID: userUUID));
+
+      final expected = Avatar.gradientColorsFor(seed: userUUID);
+      final colors = cardGradientColors(tester);
+      expect(colors, isNotNull);
+      expect(colors!.length, expected.length);
+      for (var i = 0; i < expected.length; i++) {
+        expect(colors[i].r, expected[i].r);
+        expect(colors[i].g, expected[i].g);
+        expect(colors[i].b, expected[i].b);
+      }
+    });
+
+    testWidgets('different participants get different card palettes', (
+      tester,
+    ) async {
+      await pump(tester, item: tile(userUUID: 'alice-uuid'));
+      final alice = cardGradientColors(tester);
+
+      await pump(tester, item: tile(userUUID: 'bob-uuid-zzzz'));
+      final bob = cardGradientColors(tester);
+
+      expect(alice, isNotNull);
+      expect(bob, isNotNull);
+      expect(alice, isNot(equals(bob)));
+    });
+
+    testWidgets('uses extracted picture colors when a PFP exists', (
+      tester,
+    ) async {
+      const userUUID = 'u-with-pfp';
+      const pfpUUID = 'pfp-teal';
+      const extracted = [Color(0xFF0F766E), Color(0xFF2DD4BF)];
+
+      await pump(
+        tester,
+        item: tile(userUUID: userUUID),
+        users: {
+          userUUID: const UserModel(
+            uuid: userUUID,
+            name: 'Teal',
+            profilePictureUUID: pfpUUID,
+          ),
+        },
+        overrides: [
+          avatarBackdropGradientProvider.overrideWith(
+            (ref, args) async =>
+                args.pfpUUID == pfpUUID ? extracted : null,
+          ),
+        ],
+      );
+
+      final colors = cardGradientColors(tester);
+      expect(colors, isNotNull);
+      expect(colors!.length, extracted.length);
+      for (var i = 0; i < extracted.length; i++) {
+        expect(colors[i].r, extracted[i].r);
+        expect(colors[i].g, extracted[i].g);
+        expect(colors[i].b, extracted[i].b);
+      }
+    });
+
+    testWidgets('avatar is seeded with the user UUID', (tester) async {
+      const userUUID = 'seeded-user';
+      await pump(
+        tester,
+        item: tile(userUUID: userUUID),
+        users: {
+          userUUID: const UserModel(uuid: userUUID, name: 'Ada', surname: 'L'),
+        },
+      );
+
+      final avatar = tester.widget<Avatar>(find.byType(Avatar));
+      expect(avatar.seedKey, userUUID);
+    });
   });
 }
