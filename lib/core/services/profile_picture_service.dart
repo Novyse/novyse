@@ -29,8 +29,7 @@ class ProfilePictureService {
 
   /// Requests a presigned upload, puts the bytes on S3, confirms with the
   /// backend, then stores the file locally and links it to [userUUID].
-  ///
-  /// Mirrors the React Native `uploadProfilePicture` sequence:
+  /// 
   /// `picture.update` → S3 PUT → `picture.confirm` → local file + profile event.
   Future<bool> uploadProfilePicture({
     required String userUUID,

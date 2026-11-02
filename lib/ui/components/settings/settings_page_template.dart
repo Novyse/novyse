@@ -19,6 +19,8 @@ class SettingsPageTemplate extends StatelessWidget {
     required this.children,
     this.showBack = true,
     this.onBack,
+    this.backIcon,
+    this.backTooltip,
     this.actions,
     this.bottom,
     this.appBarContent,
@@ -34,6 +36,13 @@ class SettingsPageTemplate extends StatelessWidget {
 
   /// Defaults to `Navigator.maybePop`.
   final VoidCallback? onBack;
+
+  /// Replaces the back-arrow glyph (e.g. with a discard action while a
+  /// profile draft is dirty). Defaults to the back arrow.
+  final Widget? backIcon;
+
+  /// Tooltip for the back pill. Defaults to none.
+  final String? backTooltip;
 
   /// Trailing action widgets, rendered in their own floating pill.
   final List<Widget>? actions;
@@ -97,6 +106,8 @@ class SettingsPageTemplate extends StatelessWidget {
                 subtitle: subtitle,
                 showBack: showBack,
                 onBack: backHandler ?? () => Navigator.of(context).maybePop(),
+                backIcon: backIcon,
+                backTooltip: backTooltip,
                 actions: actions,
                 bottom: bottom,
                 contentOverride: appBarContent,
@@ -115,6 +126,8 @@ class _SettingsFloatingAppBar extends StatelessWidget {
     this.subtitle,
     required this.showBack,
     required this.onBack,
+    this.backIcon,
+    this.backTooltip,
     this.actions,
     this.bottom,
     this.contentOverride,
@@ -124,6 +137,8 @@ class _SettingsFloatingAppBar extends StatelessWidget {
   final String? subtitle;
   final bool showBack;
   final VoidCallback onBack;
+  final Widget? backIcon;
+  final String? backTooltip;
   final List<Widget>? actions;
   final Widget? bottom;
 
@@ -147,9 +162,12 @@ class _SettingsFloatingAppBar extends StatelessWidget {
             FloatingPill(
               padding: FloatingConsts.iconPillPadding,
               child: FloatingIconButton(
-                icon: const AppHugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowLeft01,
-                ),
+                icon:
+                    backIcon ??
+                    const AppHugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowLeft01,
+                    ),
+                tooltip: backTooltip,
                 onPressed: onBack,
               ),
             ),

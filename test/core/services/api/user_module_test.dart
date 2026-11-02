@@ -286,6 +286,47 @@ void main() {
       expect(res.profileEventID, isNull);
     });
 
+    test('partial PATCHes only the provided fields', () async {
+      final http = FakeHttp.always({'profileEventID': 7});
+
+      final res = await UserModule(
+        http.dio,
+      ).profile.updateInfo.partial(surname: 'Hopper');
+
+      expect(http.only.method, 'PATCH');
+      expect(http.only.path, '/user/profile');
+      expect(http.only.json, {'surname': 'Hopper'});
+      expect(res.success, isTrue);
+      expect(res.profileEventID, 7);
+    });
+
+    test('partial sends empty strings when they are explicit edits', () async {
+      final http = FakeHttp.always({'profileEventID': 8});
+
+      await UserModule(http.dio).profile.updateInfo.partial(biography: '');
+
+      expect(http.only.json, {'biography': ''});
+    });
+
+    test('partial skips the network when nothing changed', () async {
+      final http = FakeHttp.always({'profileEventID': 9});
+
+      final res = await UserModule(http.dio).profile.updateInfo.partial();
+
+      expect(res.success, isTrue);
+      expect(res.profileEventID, isNull);
+      expect(http.adapter.callCount, 0);
+    });
+
+    test('partial reports failure when the envelope is not successful', () async {
+      final res = await UserModule(
+        FakeHttp.failure().dio,
+      ).profile.updateInfo.partial(name: 'a');
+
+      expect(res.success, isFalse);
+      expect(res.profileEventID, isNull);
+    });
+
     test(
       'the deprecated updateAll forwards to all with the same args',
       () async {

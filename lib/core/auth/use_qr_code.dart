@@ -37,8 +37,6 @@ class QrCodeState {
 
 /// Controller managing QR Code session generation, status polling,
 /// countdown timer, and automatic refresh upon expiration.
-///
-/// Ported from React Native `useQRCode.ts`.
 class QrCodeController extends ChangeNotifier {
   QrCodeController({this.onAuthorized});
 

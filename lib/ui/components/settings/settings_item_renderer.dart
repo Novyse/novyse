@@ -10,7 +10,9 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_actions.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
+import 'package:novyse/core/stores/profile_draft_store.dart';
 import 'package:novyse/core/stores/status_message_type.dart';
+import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/pages/app/settings/active_devices_page.dart';
 import 'package:novyse/pages/app/settings/api_keys_page.dart';
@@ -25,6 +27,7 @@ import 'package:novyse/ui/components/settings/settings_modal_row.dart';
 import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
 import 'package:novyse/ui/components/settings/settings_sheets.dart';
 import 'package:novyse/ui/components/settings/settings_switch_row.dart';
+import 'package:novyse/ui/components/settings/settings_text_input_row.dart';
 import 'package:novyse/ui/components/settings/settings_value_row.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
 
@@ -182,6 +185,54 @@ class SettingsItemRenderer extends ConsumerWidget {
 
       case SettingComponent.hotkey:
       case SettingComponent.custom:
+        // Inline profile fields (first/last name, biography): title on top,
+        // text field below, pre-filled from the local user. Edits stay local
+        // for now — persistence/sync will be wired up separately.
+        if (item.customRendererId == 'profileFirstName' ||
+            item.customRendererId == 'profileLastName' ||
+            item.customRendererId == 'profileBiography') {
+          final localUser = ref.watch(localUserProvider);
+          final draft = ref.watch(profileDraftProvider);
+          final draftNotifier = ref.read(profileDraftProvider.notifier);
+          final String initial;
+          final int minLines;
+          final int maxLines;
+          final ValueChanged<String> onChanged;
+          switch (item.customRendererId) {
+            case 'profileBiography':
+              initial = draft.biography ?? localUser?.biography ?? '';
+              minLines = 1;
+              maxLines = 10;
+              onChanged = draftNotifier.setBiography;
+            case 'profileLastName':
+              initial = draft.surname ?? localUser?.surname ?? '';
+              minLines = 1;
+              maxLines = 1;
+              onChanged = draftNotifier.setSurname;
+            default:
+              initial = draft.name ?? localUser?.name ?? '';
+              minLines = 1;
+              maxLines = 1;
+              onChanged = draftNotifier.setName;
+          }
+          return wrapDisabled(
+            Padding(
+              padding: const EdgeInsets.all(15),
+              child: SettingsTextInputRow(
+                // The revision forces a rebuild on discard, so abandoned
+                // edits are replaced by the baseline values.
+                key: ValueKey('${item.id}:${draft.revision}'),
+                title: title,
+                initialValue: initial,
+                hintText: subtitleOrNull,
+                minLines: minLines,
+                maxLines: maxLines,
+                textCapitalization: TextCapitalization.words,
+                onChanged: onChanged,
+              ),
+            ),
+          );
+        }
         if (!isDisabled && item.customRendererId == 'passwordManager') {
           return SettingsNavigationRow(
             icon: item.icon,

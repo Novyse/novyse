@@ -1,6 +1,6 @@
 import '../l10n/l10n.dart';
 
-/// Form validation utilities ported from React Native `validator.js`.
+/// Form validation utilities.
 class Validator {
   static final RegExp _nameRegex = RegExp(r'^[a-zA-Z\s]+$');
   static final RegExp _handleRegex = RegExp(

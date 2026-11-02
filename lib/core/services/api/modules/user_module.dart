@@ -184,6 +184,30 @@ class UserProfileUpdateModule {
     }
     return (success: false, profileEventID: null);
   }
+
+  /// Update only the provided profile fields; `null` (untouched) fields are
+  /// omitted from the PATCH body so unchanged values are never re-sent.
+  /// With no fields at all it succeeds without touching the network.
+  Future<({bool success, int? profileEventID})> partial({
+    String? name,
+    String? surname,
+    String? biography,
+  }) async {
+    final data = <String, String>{
+      if (name != null) 'name': name,
+      if (surname != null) 'surname': surname,
+      if (biography != null) 'biography': biography,
+    };
+    if (data.isEmpty) return (success: true, profileEventID: null);
+    final res = await _dio.patch('/user/profile', data: data);
+    if (isOk(res)) {
+      return (
+        success: true,
+        profileEventID: responseData(res)['profileEventID'] as int?,
+      );
+    }
+    return (success: false, profileEventID: null);
+  }
 }
 
 class UserProfileBadgesModule {

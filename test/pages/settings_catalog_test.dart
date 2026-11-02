@@ -507,7 +507,7 @@ void main() {
     await tester.tap(find.text('Delete Profile'));
     await tester.pumpAndSettle();
 
-    // Dedicated sheet ported from the development DeleteAccount modal.
+    // Dedicated sheet.
     expect(find.text('Delete Account'), findsOneWidget);
     expect(
       find.text('Type your username testuser to confirm.'),

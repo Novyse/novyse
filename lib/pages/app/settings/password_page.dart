@@ -5,7 +5,7 @@ import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/settings/settings_page_template.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
 
-/// Password settings page with only the new-password form, as in development.
+/// Password settings page with only the new-password form.
 class PasswordPage extends StatefulWidget {
   const PasswordPage({super.key});
 

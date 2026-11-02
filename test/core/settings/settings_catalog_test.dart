@@ -85,6 +85,9 @@ void main() {
         'share_custom_bitrate',
         'hifi_audio',
         'avatar',
+        'first_name',
+        'last_name',
+        'biography',
         'logout',
         'delete_profile',
         'password',
@@ -158,6 +161,39 @@ void main() {
           expect(item.supportedOS.length, AppOS.values.length, reason: item.id);
         }
       }
+    });
+
+    test('account profile page splits info and media sections', () {
+      final page = SettingsCatalog.findCategory(
+        'account',
+      )!.pages.singleWhere((p) => p.id == 'account_profile');
+      expect(
+        page.groups.map((g) => g.id).toList(),
+        ['profile_fields', 'profile_bio', 'profile_more', 'profile_media'],
+      );
+
+      final fields = page.groups[0].items;
+      expect(
+        fields.map((i) => i.id).toList(),
+        ['first_name', 'last_name'],
+      );
+      expect(fields.every((i) => !i.disabled), isTrue);
+
+      final bio = page.groups[1].items;
+      expect(bio.map((i) => i.id).toList(), ['biography']);
+      expect(bio.single.disabled, isFalse);
+
+      final more = page.groups[2].items;
+      expect(
+        more.map((i) => i.id).toList(),
+        ['bio_status', 'name_color', 'linked_contacts'],
+      );
+      expect(more.every((i) => i.disabled), isTrue);
+
+      final media = page.groups[3].items;
+      expect(media.map((i) => i.id).toList(), ['avatar', 'profile_banner']);
+      expect(media.first.disabled, isFalse);
+      expect(media.last.disabled, isTrue);
     });
 
     test('loose category items follow the wiki layout', () {

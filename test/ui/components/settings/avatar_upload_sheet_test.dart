@@ -14,7 +14,9 @@ import 'package:novyse/ui/components/settings/settings_item_renderer.dart';
 void main() {
   SettingItem item(String id) {
     final page = SettingsCatalog.findCategory('account')!.pages.single;
-    return page.groups.single.items.firstWhere((entry) => entry.id == id);
+    return page.groups
+        .expand((group) => group.items)
+        .firstWhere((entry) => entry.id == id);
   }
 
   Widget app(Widget home) {

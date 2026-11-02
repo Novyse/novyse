@@ -222,7 +222,7 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
 
     final widgets = <Widget>[];
 
-    // Group files by type for rendering (mirrors React Native groupBy pattern)
+    // Group files by type for rendering
     final images = files
         .where((f) => f.isImage && !f.mimeType.contains('gif'))
         .toList();
