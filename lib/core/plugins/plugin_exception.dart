@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 
 /// A failed call of the plugin or activity API.
 ///
-/// The [code] is the one the SDK surfaces to the plugins (§10.5), so the
+/// The [code] is the one the SDK surfaces to the plugins, so the
 /// bridge can map a failed request to the same vocabulary the plugin checks.
 class PluginApiException implements Exception {
   const PluginApiException(this.status, this.code, this.message);

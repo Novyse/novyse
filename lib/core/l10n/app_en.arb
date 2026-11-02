@@ -1316,5 +1316,15 @@
   "updaterLinuxRpm": "This install uses an RPM package, which does not support in-app updates. Download the new .rpm from the website and install it with your package manager (e.g. sudo dnf install ./novyse-*.rpm).",
   "updaterLinuxDeb": "This install uses a DEB package, which does not support in-app updates. Download the new .deb from the website and install it with your package manager (e.g. sudo apt install ./novyse-*.deb).",
   "updaterLinuxAppImage": "This install is an AppImage, which does not support in-app updates. Download the new .AppImage from the website and replace the old file (then chmod +x).",
-  "updaterReadOnlyInstall": "This install location is not writable, so in-app updates are unavailable. Please download the new version from the website."
+  "updaterReadOnlyInstall": "This install location is not writable, so in-app updates are unavailable. Please download the new version from the website.",
+  "activitiesStoreTitle": "Activities",
+  "activitiesOpenStore": "Activities",
+  "activitiesStoreEmpty": "No activities are available yet",
+  "activitiesStoreError": "The activity library is not available",
+  "activitiesStoreRetry": "Retry",
+  "activitiesStart": "Start activity",
+  "activitiesLimit": "Three activities are already running",
+  "activitiesReadOnly": "You can watch the activities but not start them",
+  "activitiesIncompatible": "Needs a newer app version",
+  "activitiesClose": "Close activity"
 }

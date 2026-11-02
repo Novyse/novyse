@@ -300,7 +300,7 @@ const String appSdkSource = r'''
 })();
 ''';
 
-/// Content Security Policy injected into every plugin document (§11).
+/// Content Security Policy injected into every plugin document.
 ///
 /// Inline script and style are needed because the bundle is a single
 /// self-contained HTML file; everything else is limited to `https:`, `data:`

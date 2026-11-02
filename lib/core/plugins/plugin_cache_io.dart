@@ -301,7 +301,7 @@ class PluginCache {
   }
 
   /// Validates the layout and rewrites the entry document with the CSP and
-  /// the SDK bootstrap (§11).
+  /// the SDK bootstrap.
   Future<void> _prepare(Directory staged) async {
     final entry = File(p.join(staged.path, 'index.html'));
     if (!entry.existsSync() || entry.lengthSync() == 0) {

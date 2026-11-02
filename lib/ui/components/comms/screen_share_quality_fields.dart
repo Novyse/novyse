@@ -40,7 +40,8 @@ class ScreenShareQualityFields extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final isCustom = CommsMediaConstraints.resolveShareMode(mode) ==
+    final isCustom =
+        CommsMediaConstraints.resolveShareMode(mode) ==
         CommsMediaConstraints.shareCustom;
 
     final resolvedQuality = _qualityOrDefault(customQuality);
@@ -63,12 +64,12 @@ class ScreenShareQualityFields extends StatelessWidget {
       quality: resolvedQuality,
       isPremium: isPremium,
     );
-    final errorText = customBitrateError ??
+    final errorText =
+        customBitrateError ??
         switch (bitrateError) {
           CommsBitrateError.none ||
           CommsBitrateError.belowMin ||
-          CommsBitrateError.aboveMax =>
-            null,
+          CommsBitrateError.aboveMax => null,
           CommsBitrateError.premiumLimit =>
             l10n.screenShareBitratePremiumLimitError,
         };

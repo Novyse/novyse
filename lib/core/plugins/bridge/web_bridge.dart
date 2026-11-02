@@ -8,7 +8,7 @@ import 'package:novyse/core/plugins/bridge/plugin_bridge.dart';
 import 'package:novyse/core/plugins/plugin_build.dart';
 import 'package:web/web.dart' as web;
 
-/// The sandbox of the web build: a sandboxed iframe (§9.7).
+/// The sandbox of the web build: a sandboxed iframe.
 ///
 /// The document is a blob built from the fetched bundle, mounted with
 /// `sandbox="allow-scripts"` and nothing else: no `allow-same-origin`, no

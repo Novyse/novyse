@@ -5,7 +5,7 @@ import 'package:novyse/core/plugins/bridge/bridge_protocol.dart';
 import 'package:novyse/core/plugins/bridge/plugin_bridge.dart';
 import 'package:novyse/core/plugins/plugin_build.dart';
 
-/// The sandbox based on `flutter_inappwebview` (§9.6).
+/// The sandbox based on `flutter_inappwebview`.
 ///
 /// One WebView per tile, no shared cookie store, no file access outside the
 /// plugin directory, every permission request denied, downloads refused and
@@ -100,10 +100,10 @@ class NativePluginBridge extends PluginBridge {
     } catch (_) {}
 
     _controller = null;
-  }  Future<List<dynamic>> _onCall(List<dynamic> arguments) async {
-    final reply = await _replyFor(
-      arguments.isEmpty ? null : arguments.first,
-    );
+  }
+
+  Future<List<dynamic>> _onCall(List<dynamic> arguments) async {
+    final reply = await _replyFor(arguments.isEmpty ? null : arguments.first);
 
     return [reply.encode()];
   }

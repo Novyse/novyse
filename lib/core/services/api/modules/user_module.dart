@@ -194,9 +194,9 @@ class UserProfileUpdateModule {
     String? biography,
   }) async {
     final data = <String, String>{
-      if (name != null) 'name': name,
-      if (surname != null) 'surname': surname,
-      if (biography != null) 'biography': biography,
+      'name': ?name,
+      'surname': ?surname,
+      'biography': ?biography,
     };
     if (data.isEmpty) return (success: true, profileEventID: null);
     final res = await _dio.patch('/user/profile', data: data);

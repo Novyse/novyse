@@ -7,6 +7,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/plugins/activity_controller.dart';
 import 'package:novyse/core/plugins/models/activity_instance.dart';
 import 'package:novyse/core/plugins/ui/activity_tile.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
@@ -454,6 +455,15 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
     bool isCommsConnected,
   ) {
     final l10n = AppLocalizations.of(context)!;
+    final status = context.statusColors;
+
+    final readOnly = ref.watch(
+      activityControllerProvider.select((state) => state.readOnly),
+    );
+
+    void close() => unawaited(
+      ref.read(activityControllerProvider.notifier).stop(instance.instanceId),
+    );
 
     final controlsOpacity = !isCommsConnected
         ? 0.0
@@ -500,6 +510,18 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
               ActivityTile(
                 key: ValueKey(instance.instanceId),
                 instance: instance,
+                onCommand: (command) {
+                  final comms = ref.read(commsProvider.notifier);
+
+                  switch (command.kind) {
+                    case ActivityCommandKind.fullscreen:
+                      comms.setFullscreen(widget.tile.id);
+                    case ActivityCommandKind.restore:
+                      comms.exitFullscreen();
+                    case ActivityCommandKind.close:
+                      close();
+                  }
+                },
               ),
 
               // Top-right: pin and fullscreen. An activity has no microphone,
@@ -518,6 +540,13 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          if (!readOnly)
+                            _ChipIconButton(
+                              icon: HugeIcons.strokeRoundedCancel01,
+                              color: status.danger,
+                              tooltip: l10n.activitiesClose,
+                              onPressed: close,
+                            ),
                           if (!widget.isFullScreen)
                             _ChipIconButton(
                               icon: widget.isPinned

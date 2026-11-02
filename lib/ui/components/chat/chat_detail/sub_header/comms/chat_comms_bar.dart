@@ -74,9 +74,7 @@ class ChatCommsBar extends ConsumerWidget {
                     participantsLabel: l10n.notifCommsParticipants(remoteCount),
                   ),
                 ),
-                const SizedBox(
-                  width: FloatingConsts.subHeaderActionsGap,
-                ),
+                const SizedBox(width: FloatingConsts.subHeaderActionsGap),
                 const CommsBarActions(),
               ],
             ),

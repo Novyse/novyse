@@ -25,7 +25,6 @@ class ScreenShareEditResult {
   });
 }
 
-
 class ScreenShareEditModal extends StatefulWidget {
   final ScreenShareConfig current;
   final bool hasAudio;
@@ -136,10 +135,7 @@ class _ScreenShareEditModalState extends State<ScreenShareEditModal> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton.icon(
-              onPressed: () => Navigator.of(
-                context,
-                rootNavigator: true,
-              ).pop(
+              onPressed: () => Navigator.of(context, rootNavigator: true).pop(
                 ScreenShareEditResult(
                   config: widget.current,
                   repickSource: true,

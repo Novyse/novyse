@@ -6,6 +6,7 @@ import 'package:novyse/core/comms/comms_state.dart';
 import 'package:novyse/core/l10n/app_localizations.dart';
 import 'package:novyse/core/l10n/app_localizations_en.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/plugins/activity_controller.dart';
 import 'package:novyse/ui/components/comms/comms_bottom_bar.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
@@ -34,8 +35,7 @@ class _StubCommsNotifier extends CommsNotifier {
   Future<void> toggleVideo() async => calls.add('toggleVideo');
 
   @override
-  Future<void> toggleAudioOutput() async =>
-      calls.add('toggleAudioOutput');
+  Future<void> toggleAudioOutput() async => calls.add('toggleAudioOutput');
 
   @override
   Future<void> leave() async => calls.add('leave');
@@ -56,6 +56,17 @@ class _StubCommsNotifier extends CommsNotifier {
   void clearError() => calls.add('clearError');
 }
 
+/// Activities controller pinned to a state: the bar reads `readOnly` from it
+/// to decide whether the store is offered.
+class _StubActivityController extends ActivityController {
+  _StubActivityController(this.initial);
+
+  final ActivitiesState initial;
+
+  @override
+  ActivitiesState build() => initial;
+}
+
 void main() {
   late _StubCommsNotifier notifier;
 
@@ -65,11 +76,20 @@ void main() {
     CommsState state, {
     String chatUUID = 'chat-1',
     int sub = 0,
+    bool readOnly = false,
   }) async {
     notifier = _StubCommsNotifier(state);
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [commsProvider.overrideWith(() => notifier)],
+        overrides: [
+          commsProvider.overrideWith(() => notifier),
+          if (readOnly)
+            activityControllerProvider.overrideWith(
+              () => _StubActivityController(
+                const ActivitiesState(readOnly: true),
+              ),
+            ),
+        ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -154,7 +174,7 @@ void main() {
     /// A state that matches the default `chat-1` / sub 0.
     const connected = CommsState(connected: true, currentChatUUID: 'chat-1');
 
-    testWidgets('shows the six controls instead of the join button', (
+    testWidgets('shows the seven controls instead of the join button', (
       tester,
     ) async {
       final l10n = await pump(tester, connected);
@@ -164,9 +184,20 @@ void main() {
         l10n.commsTurnOnCamera,
         l10n.commsDeafen,
         l10n.commsShareScreen,
+        l10n.activitiesOpenStore,
         l10n.settings,
         l10n.commsLeaveRoom,
       ]);
+    });
+
+    testWidgets('hides the activities store for a read-only observer', (
+      tester,
+    ) async {
+      final l10n = await pump(tester, connected, readOnly: true);
+
+      expect(tooltips(tester), isNot(contains(l10n.activitiesOpenStore)));
+      // The rest of the bar is unaffected: an observer still talks.
+      expect(tooltips(tester), contains(l10n.commsLeaveRoom));
     });
 
     testWidgets('reflects an enabled microphone', (tester) async {
@@ -209,7 +240,9 @@ void main() {
       expect(tooltips(tester), contains(l10n.commsUndeafen));
     });
 
-    testWidgets('reflects both a deafened speaker and muted microphone', (tester) async {
+    testWidgets('reflects both a deafened speaker and muted microphone', (
+      tester,
+    ) async {
       final l10n = await pump(
         tester,
         const CommsState(
@@ -351,7 +384,7 @@ void main() {
         const CommsState(connected: true, currentChatUUID: 'chat-1'),
       );
 
-      expect(find.byType(AppHugeIcon), findsNWidgets(6));
+      expect(find.byType(AppHugeIcon), findsNWidgets(7));
     });
   });
 }

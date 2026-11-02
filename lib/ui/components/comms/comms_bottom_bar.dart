@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/plugins/activity_controller.dart';
+import 'package:novyse/core/plugins/ui/plugin_store_sheet.dart';
 import 'package:novyse/core/stores/status_message_type.dart';
 import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
@@ -131,6 +135,10 @@ class CommsBottomBar extends ConsumerWidget {
     final idleBg = scheme.surfaceContainerHighest;
     final idleIcon = scheme.onSurfaceVariant;
 
+    final readOnly = ref.watch(
+      activityControllerProvider.select((state) => state.readOnly),
+    );
+
     return FloatingPill(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
       child: Row(
@@ -147,9 +155,7 @@ class CommsBottomBar extends ConsumerWidget {
             backgroundColor: !commsState.isAudioEnabled
                 ? status.danger
                 : idleBg,
-            iconColor: !commsState.isAudioEnabled
-                ? Colors.white
-                : idleIcon,
+            iconColor: !commsState.isAudioEnabled ? Colors.white : idleIcon,
             onPressed: controller.toggleAudio,
           ),
           const SizedBox(width: 8),
@@ -165,9 +171,7 @@ class CommsBottomBar extends ConsumerWidget {
             backgroundColor: commsState.isVideoEnabled
                 ? scheme.primary
                 : idleBg,
-            iconColor: commsState.isVideoEnabled
-                ? scheme.onPrimary
-                : idleIcon,
+            iconColor: commsState.isVideoEnabled ? scheme.onPrimary : idleIcon,
             onPressed: controller.toggleVideo,
           ),
           const SizedBox(width: 8),
@@ -200,7 +204,19 @@ class CommsBottomBar extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
 
-          // 5. Voice & video settings
+          // 5. Activities: the store of the plugins
+          if (!readOnly) ...[
+            _buildControlButton(
+              icon: HugeIcons.strokeRoundedPuzzle,
+              tooltip: l10n.activitiesOpenStore,
+              backgroundColor: idleBg,
+              iconColor: idleIcon,
+              onPressed: () => unawaited(PluginStoreSheet.show(context)),
+            ),
+            const SizedBox(width: 8),
+          ],
+
+          // 6. Voice & video settings
           _buildControlButton(
             icon: HugeIcons.strokeRoundedSettings01,
             tooltip: l10n.settings,
@@ -217,7 +233,7 @@ class CommsBottomBar extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
 
-          // 6. Leave vocal call button
+          // 7. Leave vocal call button
           _buildControlButton(
             icon: HugeIcons.strokeRoundedCall02,
             tooltip: l10n.commsLeaveRoom,

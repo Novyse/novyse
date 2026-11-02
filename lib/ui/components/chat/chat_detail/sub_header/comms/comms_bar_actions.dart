@@ -40,15 +40,11 @@ class CommsBarActions extends ConsumerWidget {
           tooltip: commsState.isAudioEnabled
               ? l10n.commsMuteMic
               : l10n.commsUnmuteMic,
-          backgroundColor: !commsState.isAudioEnabled
-              ? status.danger
-              : idleBg,
+          backgroundColor: !commsState.isAudioEnabled ? status.danger : idleBg,
           iconColor: !commsState.isAudioEnabled ? Colors.white : idleIcon,
           onPressed: () => unawaited(controller.toggleAudio()),
         ),
-        const SizedBox(
-          width: FloatingConsts.subHeaderActionsGap,
-        ),
+        const SizedBox(width: FloatingConsts.subHeaderActionsGap),
         CommsControlButton(
           icon: commsState.isVideoEnabled
               ? HugeIcons.strokeRoundedVideo02
@@ -56,17 +52,11 @@ class CommsBarActions extends ConsumerWidget {
           tooltip: commsState.isVideoEnabled
               ? l10n.commsTurnOffCamera
               : l10n.commsTurnOnCamera,
-          backgroundColor: commsState.isVideoEnabled
-              ? scheme.primary
-              : idleBg,
-          iconColor: commsState.isVideoEnabled
-              ? scheme.onPrimary
-              : idleIcon,
+          backgroundColor: commsState.isVideoEnabled ? scheme.primary : idleBg,
+          iconColor: commsState.isVideoEnabled ? scheme.onPrimary : idleIcon,
           onPressed: () => unawaited(controller.toggleVideo()),
         ),
-        const SizedBox(
-          width: FloatingConsts.subHeaderActionsGap,
-        ),
+        const SizedBox(width: FloatingConsts.subHeaderActionsGap),
         CommsControlButton(
           icon: HugeIcons.strokeRoundedCall02,
           tooltip: l10n.commsLeaveRoom,

@@ -81,7 +81,7 @@ class ActivitiesState {
   );
 }
 
-/// Owner of the activities of the voice room (§9.8).
+/// Owner of the activities of the voice room.
 ///
 /// Holds the instances, the channel of the room and the `STREAM` of each
 /// activity, and answers the SDK calls of the plugins. The server stays the

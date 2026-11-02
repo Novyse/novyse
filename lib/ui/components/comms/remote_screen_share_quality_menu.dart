@@ -31,10 +31,7 @@ class RemoteQualityOption {
     required AppLocalizations l10n,
   }) {
     final options = <RemoteQualityOption>[
-      RemoteQualityOption(
-        id: 'auto',
-        label: l10n.screenShareQualityAuto,
-      ),
+      RemoteQualityOption(id: 'auto', label: l10n.screenShareQualityAuto),
     ];
 
     int? highH;
@@ -122,29 +119,26 @@ class RemoteQualityOption {
 
       final (medQuality, lowQuality) = switch (topH) {
         >= 2160 => (
-            CommsMediaConstraints.video2k,
-            CommsMediaConstraints.video1080p
-          ),
+          CommsMediaConstraints.video2k,
+          CommsMediaConstraints.video1080p,
+        ),
         >= 1440 => (
-            CommsMediaConstraints.video1080p,
-            CommsMediaConstraints.video720p
-          ),
+          CommsMediaConstraints.video1080p,
+          CommsMediaConstraints.video720p,
+        ),
         >= 1080 => (
-            CommsMediaConstraints.video720p,
-            CommsMediaConstraints.video480p
-          ),
+          CommsMediaConstraints.video720p,
+          CommsMediaConstraints.video480p,
+        ),
         >= 720 => (
-            CommsMediaConstraints.video480p,
-            CommsMediaConstraints.video360p
-          ),
+          CommsMediaConstraints.video480p,
+          CommsMediaConstraints.video360p,
+        ),
         >= 480 => (
-            CommsMediaConstraints.video360p,
-            CommsMediaConstraints.video240p
-          ),
-        _ => (
-            CommsMediaConstraints.video720p,
-            CommsMediaConstraints.video480p
-          ),
+          CommsMediaConstraints.video360p,
+          CommsMediaConstraints.video240p,
+        ),
+        _ => (CommsMediaConstraints.video720p, CommsMediaConstraints.video480p),
       };
 
       highH = topH > 0 ? topH : 1080;
@@ -204,10 +198,7 @@ Future<void> showRemoteScreenShareQualityMenu({
   final l10n = AppLocalizations.of(context)!;
   final comms = ref.read(commsProvider.notifier);
   final pub = comms.findRemoteTrackPublication(trackSid);
-  final options = RemoteQualityOption.resolveOptions(
-    pub: pub,
-    l10n: l10n,
-  );
+  final options = RemoteQualityOption.resolveOptions(pub: pub, l10n: l10n);
   final current =
       ref.read(commsProvider).remoteScreenShareQualities[trackSid] ?? 'auto';
 

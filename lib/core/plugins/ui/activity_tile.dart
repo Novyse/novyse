@@ -15,7 +15,7 @@ import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// The states of the tile (§9.3).
+/// The states of the tile.
 ///
 /// There is no `UNTRUSTED_PROMPT`: every plugin comes from our repository, so
 /// a confirmation step would only teach the users to dismiss a warning.
@@ -256,7 +256,7 @@ class _ActivityTileState extends ConsumerState<ActivityTile> {
     unawaited(_emitParticipants());
   }
 
-  /// Launch-time update check (§5.6).
+  /// Launch-time update check.
   ///
   /// Invisible by design: the tile mounts the version pinned in the room, and
   /// a failed check must not change that. On success the current build is

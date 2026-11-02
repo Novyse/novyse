@@ -46,13 +46,11 @@ abstract final class ScreenShareThumbnails {
     void Function()? onChanged,
   }) async {
     if (!hasNativeDesktopCapturer) return;
-    final pending = sources
-        .where((s) {
-          final cached = _cache[s.id];
-          if (cached != null && cached.isNotEmpty) return false;
-          return s.thumbnail == null || s.thumbnail!.isEmpty;
-        })
-        .toList();
+    final pending = sources.where((s) {
+      final cached = _cache[s.id];
+      if (cached != null && cached.isNotEmpty) return false;
+      return s.thumbnail == null || s.thumbnail!.isEmpty;
+    }).toList();
     for (var attempt = 0; attempt < 2 && pending.isNotEmpty; attempt++) {
       if (attempt > 0) {
         await Future.delayed(const Duration(milliseconds: 300));

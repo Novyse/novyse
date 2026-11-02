@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
-/// The wire protocol between the sandbox and the host (§10.3).
+/// The wire protocol between the sandbox and the host.
 ///
 /// One shape for every platform: a JSON `{id, method, params}` request and a
 /// JSON `{id, ok, result|error}` reply. Only the transport changes.
@@ -22,13 +22,13 @@ abstract final class BridgeProtocol {
   /// Function the host calls to answer a request when there is no promise.
   static const String replyFunction = '__appSdkReply';
 
-  /// Ceiling of a `STATE` payload (§10.5).
+  /// Ceiling of a `STATE` payload.
   static const int maxStateBytes = 16 * 1024;
 
-  /// Ceiling of an `ACTION` payload (§10.5).
+  /// Ceiling of an `ACTION` payload.
   static const int maxActionBytes = 4 * 1024;
 
-  /// Ceiling of a `STREAM` packet (§10.5).
+  /// Ceiling of a `STREAM` packet.
   static const int maxStreamBytes = 8 * 1024;
 
   /// Decodes one request, returning `null` when it is not a request.

@@ -88,8 +88,9 @@ void main() {
     expect(find.byType(SettingsTextInputRow), findsOneWidget);
     expect(find.text('Math'), findsOneWidget);
     final field = tester.widget<TextField>(find.byType(TextField));
-    expect(field.minLines, 4);
-    expect(field.maxLines, 4);
+    // The biography row grows from one line to ten (settings_item_renderer).
+    expect(field.minLines, 1);
+    expect(field.maxLines, 10);
     // No background, padding or hover chrome — only text styling.
     final decoration = field.decoration!;
     expect(decoration.filled, isFalse);
@@ -97,10 +98,13 @@ void main() {
     expect(decoration.hoverColor, Colors.transparent);
     expect(decoration.isCollapsed, isTrue);
     expect(decoration.contentPadding, EdgeInsets.zero);
-    expect(decoration.border, isA<InputBorder>().having(
-      (b) => b.borderSide,
-      'borderSide',
-      BorderSide.none,
-    ));
+    expect(
+      decoration.border,
+      isA<InputBorder>().having(
+        (b) => b.borderSide,
+        'borderSide',
+        BorderSide.none,
+      ),
+    );
   });
 }
