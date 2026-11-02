@@ -84,6 +84,7 @@ void main() {
         'share_custom_fps',
         'share_custom_bitrate',
         'hifi_audio',
+        'avatar',
         'logout',
         'delete_profile',
         'password',

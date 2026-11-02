@@ -17,6 +17,7 @@ import 'package:novyse/pages/app/settings/api_keys_page.dart';
 import 'package:novyse/pages/app/settings/password_page.dart';
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
 import 'package:novyse/ui/components/number/number_stepper.dart';
+import 'package:novyse/ui/components/settings/avatar_upload_sheet.dart';
 import 'package:novyse/ui/components/settings/qr_login_scanner_modal.dart';
 import 'package:novyse/ui/components/settings/settings_base_row.dart';
 import 'package:novyse/ui/components/settings/settings_external_link_row.dart';
@@ -219,6 +220,14 @@ class SettingsItemRenderer extends ConsumerWidget {
             title: title,
             subtitle: subtitleOrNull,
             onTap: () => unawaited(showQrLoginScannerModal(context)),
+          );
+        }
+        if (!isDisabled && item.customRendererId == 'avatarEditor') {
+          return SettingsModalRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            onTap: () => unawaited(showAvatarUploadSheet(context)),
           );
         }
         final raw = settingKey == null

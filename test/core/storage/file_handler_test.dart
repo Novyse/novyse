@@ -46,6 +46,7 @@ void main() {
       expect(await FileHandler.pickFile(allowedExtensions: ['pdf']), isEmpty);
       expect(await FileHandler.pickMedia(), isEmpty);
       expect(await FileHandler.pickImage(), isEmpty);
+      expect(await FileHandler.pickSingleImage(), isNull);
       expect(await FileHandler.pickVideo(), isEmpty);
       expect(await FileHandler.pickAudio(), isEmpty);
     });

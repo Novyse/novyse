@@ -76,6 +76,27 @@ void main() {
       },
     );
 
+    test('uploadProfilePicture rejects an empty user or empty bytes', () async {
+      expect(
+        await service.uploadProfilePicture(
+          userUUID: '',
+          name: 'a.png',
+          mimeType: 'image/png',
+          bytes: Uint8List.fromList([1]),
+        ),
+        isFalse,
+      );
+      expect(
+        await service.uploadProfilePicture(
+          userUUID: 'user-1',
+          name: 'a.png',
+          mimeType: 'image/png',
+          bytes: Uint8List(0),
+        ),
+        isFalse,
+      );
+    });
+
     test('downloadProfilePicture returns null for empty UUID', () async {
       expect(await service.downloadProfilePicture(''), isNull);
     });

@@ -107,6 +107,18 @@ class FileHandler {
     return [];
   }
 
+  /// Picks a single image. The system picker is limited to one file.
+  static Future<PickedFileAsset?> pickSingleImage() async {
+    try {
+      final file = await FilePicker.pickFile(type: FileType.image);
+      if (file == null) return null;
+      return await PickedFileAsset.fromPlatformFile(file);
+    } catch (e) {
+      debugPrint('FileHandler pickSingleImage error: $e');
+    }
+    return null;
+  }
+
   /// Picks images only.
   static Future<List<PickedFileAsset>> pickImage() async {
     try {

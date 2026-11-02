@@ -28,12 +28,20 @@ final List<SettingCategory> accountCategory = [
                 disabled: true,
               ),
               SettingItem(
-                id: 'avatar_banner',
-                title: (l) => l.settingsItemAvatarBannerTitle,
-                subtitle: (l) => l.settingsItemAvatarBannerSubtitle,
+                id: 'avatar',
+                title: (l) => l.settingsItemAvatarTitle,
+                subtitle: (l) => l.settingsItemAvatarSubtitle,
                 component: SettingComponent.custom,
                 scope: SettingScope.synchronized,
                 customRendererId: 'avatarEditor',
+              ),
+              SettingItem(
+                id: 'profile_banner',
+                title: (l) => l.settingsItemBannerTitle,
+                subtitle: (l) => l.settingsItemBannerSubtitle,
+                component: SettingComponent.custom,
+                scope: SettingScope.synchronized,
+                customRendererId: 'bannerEditor',
                 disabled: true,
               ),
               SettingItem(

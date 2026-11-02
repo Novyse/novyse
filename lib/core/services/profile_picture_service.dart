@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:novyse/core/events/global_event_emitter.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/storage/database/database.dart';
 import 'package:novyse/core/storage/file/file_storage.dart';
@@ -22,6 +23,94 @@ class ProfilePictureService {
 
   /// In-flight downloads map to avoid concurrent duplicate requests.
   final Map<String, Future<String?>> _inFlightDownloads = {};
+
+  /// Same ceiling the previous client enforced for a profile photo.
+  static const int maxProfilePictureBytes = 5 * 1024 * 1024;
+
+  /// Requests a presigned upload, puts the bytes on S3, confirms with the
+  /// backend, then stores the file locally and links it to [userUUID].
+  ///
+  /// Mirrors the React Native `uploadProfilePicture` sequence:
+  /// `picture.update` → S3 PUT → `picture.confirm` → local file + profile event.
+  Future<bool> uploadProfilePicture({
+    required String userUUID,
+    required String name,
+    required String mimeType,
+    required Uint8List bytes,
+    String? sourcePath,
+  }) async {
+    if (userUUID.isEmpty || bytes.isEmpty) return false;
+    if (bytes.length > maxProfilePictureBytes) return false;
+    final safeName = name.trim().isEmpty ? 'avatar.jpg' : name.trim();
+    final safeMime = mimeType.trim().isEmpty
+        ? 'application/octet-stream'
+        : mimeType;
+
+    try {
+      final presign = await _gateway.user.profile.picture.update(
+        safeName,
+        safeMime,
+        bytes.length,
+      );
+      final fileUUID = presign.fileUUID;
+      final uploadURL = presign.uploadURL;
+      if (!presign.success ||
+          fileUUID == null ||
+          fileUUID.isEmpty ||
+          uploadURL == null ||
+          uploadURL.isEmpty) {
+        return false;
+      }
+
+      final uploaded = await _s3Adapter.upload(
+        uploadURL: uploadURL,
+        fileUUID: fileUUID,
+        bytes: bytes,
+        mimeType: safeMime,
+      );
+      if (!uploaded) return false;
+
+      final confirm = await _gateway.user.profile.picture.confirm(fileUUID);
+      if (!confirm.success) return false;
+
+      final linkedUUID =
+          (confirm.profilePictureUUID != null &&
+              confirm.profilePictureUUID!.isNotEmpty)
+          ? confirm.profilePictureUUID!
+          : fileUUID;
+
+      var ref = '';
+      try {
+        final path = sourcePath;
+        if (path != null && path.isNotEmpty) {
+          ref = (await _storage.save.byUri(path, linkedUUID)).ref;
+        }
+      } catch (e) {
+        debugPrint('ProfilePictureService: save by uri failed: $e');
+      }
+      if (ref.isEmpty) {
+        ref = (await _storage.save.byBytes(bytes, linkedUUID)).ref;
+      }
+
+      await _database.file.add(
+        linkedUUID,
+        safeName,
+        safeMime,
+        bytes.length,
+        ref: ref,
+      );
+
+      await GlobalEventEmitter.instance.user.profile.update({
+        'userUUID': userUUID,
+        'profilePictureUUID': linkedUUID,
+      }, confirm.profileEventID);
+
+      return true;
+    } catch (e) {
+      debugPrint('ProfilePictureService: uploadProfilePicture error: $e');
+      return false;
+    }
+  }
 
   /// Downloads profile picture metadata from the server, fetches file bytes from S3,
   /// saves to local storage, and updates SQLite database ref.
