@@ -175,6 +175,8 @@ class ChatActiveVoiceBar extends ConsumerWidget {
     if (messageID.isNotEmpty) {
       notifier.jumpToMessage(messageID, subID: subID);
     }
-    context.go(chatSubPath(chatUUID, subID));
+    // Replace invece di go: non distrugge lo stack sotto (il back torna
+    // comunque alla lista chat).
+    context.pushReplacement(chatSubPath(chatUUID, subID));
   }
 }

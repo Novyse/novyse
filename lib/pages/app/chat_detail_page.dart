@@ -573,7 +573,10 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
           !_searching &&
           !hasSelection &&
           !_isAttachMenuOpen &&
-          !_isEmojiMenuOpen,
+          !_isEmojiMenuOpen &&
+          // Con una sola route nello stack (apertura via go/deep link) il
+          // pop svuoterebbe lo shell: veto e torna alla lista a mano.
+          Navigator.of(context).canPop(),
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (_isEmojiMenuOpen) {
@@ -596,7 +599,13 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         }
         if (ref.read(activeChatProvider).contentView == 'vocal') {
           _closeCall();
+          return;
         }
+        // Veto per stack a route singola (non per overlay): niente uscita
+        // dall'app, torna alla lista chat.
+        if (callOpen) return;
+        if (!mounted) return;
+        context.go('/chats');
       },
       child: Focus(
         autofocus: true,

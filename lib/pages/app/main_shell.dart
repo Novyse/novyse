@@ -81,12 +81,14 @@ class _HomeShellState extends ConsumerState<HomeShell>
   final _settingsTabNavKey = GlobalKey<NavigatorState>();
   final _profileTabNavKey = GlobalKey<NavigatorState>();
   double _masterPaneWidth = kMasterPaneWidth;
+  int _lastTabIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_syncUrlWhenNoChat);
+    _tabController.addListener(_handleTabIndexChanged);
 
     // Trigger account initialization / delta sync and resume persistent message queue
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -155,8 +157,19 @@ class _HomeShellState extends ConsumerState<HomeShell>
   @override
   void dispose() {
     _tabController.removeListener(_syncUrlWhenNoChat);
+    _tabController.removeListener(_handleTabIndexChanged);
     _tabController.dispose();
     super.dispose();
+  }
+
+  /// Mantiene freschi gli handler del back (abilitati solo sul tab visibile
+  /// e veto solo fuori dal tab chat) anche quando il tab cambia con swipe
+  /// o da URL, non solo dai tap sulla tab bar.
+  void _handleTabIndexChanged() {
+    if (!mounted || _tabController.indexIsChanging) return;
+    if (_tabController.index == _lastTabIndex) return;
+    _lastTabIndex = _tabController.index;
+    setState(() {});
   }
 
   void _onTabPressed(int index) {
@@ -169,35 +182,74 @@ class _HomeShellState extends ConsumerState<HomeShell>
   }
 
   Widget _masterPane({required Widget tabBar}) {
-    return Stack(
-      children: [
-        HomeTabBarView(
-          children: [
-            _TabNavigator(
-              navigatorKey: _chatTabNavKey,
-              root: const ChatListPage(),
-            ),
-            _TabNavigator(
-              navigatorKey: _settingsTabNavKey,
-              root: const SettingsPage(),
-            ),
-            _TabNavigator(
-              navigatorKey: _profileTabNavKey,
-              root: const ProfilePage(),
-            ),
-          ],
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: ProgressiveOpacityBackground(
-            direction: ProgressiveOpacityDirection.bottomToTop,
-            child: tabBar,
+    // Dalla radice di settings/profilo il back di sistema torna al tab chat
+    // invece di uscire dall'app. Sul tab chat lascia passare (exit).
+    // Se il tab corrente può ancora fare pop (gestito dal
+    // NavigatorPopHandler con animazione predittiva), non fare nulla:
+    // a callback invariata lo stack annidato risulta ancora intatto perché
+    // quel pop è asincrono, quindi il controllo è race-free.
+    return PopScope(
+      canPop: _tabController.index == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if ((_activeTabNavigator?.canPop() ?? false)) return;
+        if (_tabController.index != 0) _onTabPressed(0);
+      },
+      child: Stack(
+        children: [
+          HomeTabBarView(
+            children: [
+              _handledTab(index: 0, navigatorKey: _chatTabNavKey, root: const ChatListPage()),
+              _handledTab(
+                index: 1,
+                navigatorKey: _settingsTabNavKey,
+                root: const SettingsPage(),
+              ),
+              _handledTab(
+                index: 2,
+                navigatorKey: _profileTabNavKey,
+                root: const ProfilePage(),
+              ),
+            ],
           ),
-        ),
-      ],
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: ProgressiveOpacityBackground(
+              direction: ProgressiveOpacityDirection.bottomToTop,
+              child: tabBar,
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  /// Tab con back di sistema funzionante: [NavigatorPopHandler] inoltra il
+  /// back al navigator annidato (con animazione predittiva) quando il suo
+  /// stack può fare pop. Solo il tab visibile è abilitato, così un back non
+  /// fa mai pop a uno stack nascosto.
+  Widget _handledTab({
+    required int index,
+    required GlobalKey<NavigatorState> navigatorKey,
+    required Widget root,
+  }) {
+    return NavigatorPopHandler(
+      enabled: _tabController.index == index,
+      onPopWithResult: (_) => navigatorKey.currentState?.maybePop(),
+      child: _TabNavigator(navigatorKey: navigatorKey, root: root),
+    );
+  }
+
+  /// Navigator del tab correntemente visibile.
+  NavigatorState? get _activeTabNavigator {
+    final key = switch (_tabController.index) {
+      1 => _settingsTabNavKey,
+      2 => _profileTabNavKey,
+      _ => _chatTabNavKey,
+    };
+    return key.currentState;
   }
 
   void _resizeMasterPane(double delta, double screenWidth) {

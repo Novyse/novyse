@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -85,7 +86,9 @@ class SubList extends ConsumerWidget {
     ref.read(activeChatProvider.notifier).setSelectedSub(subId);
     final target = chatSubPath(chat.uuid, subId);
     if (goRouter.state.uri.path != target) {
-      goRouter.go(target);
+      // Replace invece di go: non distrugge lo stack sotto (il back torna
+      // comunque alla lista chat).
+      unawaited(goRouter.pushReplacement(target));
     }
   }
 

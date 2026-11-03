@@ -22,6 +22,8 @@ import 'package:novyse/ui/components/chat/create_chat_modal.dart';
 import 'package:novyse/ui/components/chat/join_or_create_chat_modal.dart';
 import 'package:novyse/ui/components/status/global_status_bar.dart';
 
+import 'adaptive.dart';
+
 const _statusBarPadding = EdgeInsets.only(top: 8);
 
 class ChatListPage extends ConsumerStatefulWidget {
@@ -175,6 +177,16 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     }
   }
 
+  /// Apre una chat: `push` su stretto (il back di sistema torna alla lista
+  /// con animazione predittiva), `go` su largo (replace del pannello).
+  void _openChatLocation(String target) {
+    if (isMasterDetailLayout(context)) {
+      context.go(target);
+    } else {
+      context.push(target);
+    }
+  }
+
   void _openChat(String chatUUID) {
     final active = ref.read(activeChatProvider);
     final storedSub = active.selectedChatUUID == chatUUID
@@ -194,7 +206,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     ref
         .read(activeChatProvider.notifier)
         .setSelectedChatUUID(chatUUID, subOverride: sub);
-    context.go(target);
+    _openChatLocation(target);
   }
 
   void _onChatSelected(ChatModel chat) {
@@ -228,7 +240,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     final currentPath = GoRouterState.of(context).uri.path;
     final target = chatSubPath(chatUUID, subID);
     if (currentPath == target) return;
-    context.go(target);
+    _openChatLocation(target);
   }
 
   @override

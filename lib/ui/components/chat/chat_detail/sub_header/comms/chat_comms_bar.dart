@@ -60,7 +60,9 @@ class ChatCommsBar extends ConsumerWidget {
               subOverride: targetSub,
             );
             notifier.setContentView('vocal');
-            context.go(chatSubPath(targetChatUUID, targetSub));
+            // Replace invece di go: non distrugge lo stack sotto (il back
+            // torna comunque alla lista chat).
+            context.pushReplacement(chatSubPath(targetChatUUID, targetSub));
           },
           child: Padding(
             padding: FloatingConsts.subHeaderInnerPadding,
