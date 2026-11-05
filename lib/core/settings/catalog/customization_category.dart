@@ -125,6 +125,36 @@ final List<SettingCategory> customizationCategory = [
         ],
       ),
       SettingPage(
+        id: 'customization_app_icon',
+        title: (l) => l.settingsPageCustomizationAppIconTitle,
+        subtitle: (l) => l.settingsPageCustomizationAppIconSubtitle,
+        groups: [
+          SettingGroup(
+            id: 'app_icon_icon',
+            title: (l) => l.settingsGroupAppIconIconTitle,
+            items: [
+              SettingItem(
+                id: 'app_icon_notice',
+                title: (l) => l.appIconAndroidOnlyPreview,
+                subtitle: (l) => l.appIconAndroidOnlyPreview,
+                component: SettingComponent.custom,
+                customRendererId: 'appIconNotice',
+              ),
+              SettingItem(
+                id: 'app_icon_editor',
+                title: (l) => l.settingsPageCustomizationAppIconTitle,
+                subtitle: (l) => l.settingsPageCustomizationAppIconSubtitle,
+                component: SettingComponent.custom,
+                settingKey: 'appearance.appIconId',
+                scope: SettingScope.local,
+                defaultValue: 'white',
+                customRendererId: 'appIconEditor',
+              ),
+            ],
+          ),
+        ],
+      ),
+      SettingPage(
         id: 'customization_visual',
         title: (l) => l.settingsPageCustomizationVisualTitle,
         subtitle: (l) => l.settingsPageCustomizationVisualSubtitle,
@@ -141,6 +171,7 @@ final List<SettingCategory> customizationCategory = [
                 settingKey: 'appearance.appIcon',
                 scope: SettingScope.local,
                 defaultValue: 'classic',
+                hidden: true,
                 options: [
                   SettingOption(
                     'classic',

@@ -72,6 +72,8 @@ void main() {
         'theme_selector',
         'theme_mode',
         'surface_mode',
+        'app_icon_notice',
+        'app_icon_editor',
         'input_device',
         'output_device',
         'mute_mic_with_speaker',

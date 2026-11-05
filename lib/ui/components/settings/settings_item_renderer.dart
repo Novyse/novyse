@@ -16,6 +16,7 @@ import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/pages/app/settings/active_devices_page.dart';
 import 'package:novyse/pages/app/settings/api_keys_page.dart';
+import 'package:novyse/pages/app/settings/app_icon_editor_page.dart';
 import 'package:novyse/pages/app/settings/password_page.dart';
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
 import 'package:novyse/ui/components/number/number_stepper.dart';
@@ -280,6 +281,12 @@ class SettingsItemRenderer extends ConsumerWidget {
             subtitle: subtitleOrNull,
             onTap: () => unawaited(showAvatarUploadSheet(context)),
           );
+        }
+        if (item.customRendererId == 'appIconNotice') {
+          return const AppIconNotice();
+        }
+        if (item.customRendererId == 'appIconEditor') {
+          return wrapDisabled(const AppIconGlyphList());
         }
         final raw = settingKey == null
             ? null

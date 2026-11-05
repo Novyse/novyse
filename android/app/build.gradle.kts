@@ -144,3 +144,49 @@ tasks.register("printApplicationId") {
         println("CONFIG_APP_DESCRIPTION: $currentAppDescription")
     }
 }
+
+// Regenerates the launcher icons by compositing the glyph + background
+// sources (see tool/gen_launcher_icons.dart). Runs automatically before
+// every build; up-to-date checks make it a no-op when the sources have
+// not changed. `dart` is resolved from the Flutter SDK (it is not on
+// PATH for the Gradle daemon).
+tasks.register<Exec>("genLauncherIcons") {
+    val localProps = Properties().apply {
+        rootProject.file("local.properties").takeIf { it.exists() }
+            ?.inputStream()?.use(::load)
+    }
+    val flutterSdk = System.getenv("FLUTTER_ROOT")
+        ?: localProps.getProperty("flutter.sdk")
+        ?: throw GradleException(
+            "Flutter SDK not found: build with `flutter build`/`flutter run`",
+        )
+    val dartBin = if (System.getProperty("os.name").contains(
+            "windows",
+            ignoreCase = true,
+        )) {
+        "$flutterSdk\\bin\\dart.bat"
+    } else {
+        "$flutterSdk/bin/dart"
+    }
+    workingDir = projectDir.resolve("../..")
+    commandLine(dartBin, "tool/gen_launcher_icons.dart")
+    inputs.dir("../../assets/images/icons")
+    inputs.dir("../../assets/images/icons_backgrounds")
+    inputs.file("../../assets/images/tray_icon.png")
+    inputs.file("../../tool/gen_launcher_icons.dart")
+    outputs.dir("src/main/res/mipmap-xxxhdpi")
+    outputs.dir("src/main/res/mipmap-anydpi-v26")
+    outputs.dir("../../assets/images/icons/generated")
+}
+
+afterEvaluate {
+    // The generator emits files consumed all over the build (Flutter
+    // assets, Android res, the manifest). Gradle 9 fails validation on
+    // every consumer without an explicit edge, so the generator is
+    // ordered before everything: up-to-date checks make it a no-op when
+    // the sources have not changed.
+    val gen = tasks.named("genLauncherIcons")
+    tasks.configureEach {
+        if (name != "genLauncherIcons") dependsOn(gen)
+    }
+}
