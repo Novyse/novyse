@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/attach_menu/attach_menu_handler.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/attach_menu/attach_menu_item.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
@@ -10,18 +11,19 @@ import 'package:novyse/ui/components/switch/segmented_switch.dart';
 /// Content of the attach (message-type) menu, hosted inside a
 /// [ResponsiveOverlay] (bottom sheet on mobile, dialog on desktop/web).
 ///
-/// The [SegmentedSwitch] acts as a floating bar pinned to the bottom of
-/// this component (absolute, overlapping the panel): switching segment
-/// switches the panel itself, so each message type gets its own screen
-/// and the user can compose different content without leaving the sheet.
+/// The [SegmentedSwitch] switches the panel itself, so each message type
+/// gets its own screen and the user can compose different content without
+/// leaving the sheet. Layout is adaptive:
+/// - mobile: the switch is a floating bar pinned to the bottom of this
+///   component (absolute, overlapping the panel);
+/// - desktop/web: the switch is a vertical rail on the left of the panel.
 ///
-/// Layout / insets note: the bar sits at the bottom of this component's
-/// box, so it inherits the host's insets — [OverlayBottomSheet] already
-/// offsets its content with `SafeArea(top: false)` (system navigation bar
-/// on mobile, zero on desktop/web where [MediaQuery] padding is zero).
-/// No extra bottom padding is added here on purpose to avoid doubling
-/// that inset. The panel scrolls full-bleed behind the floating bar
-/// (see [_kPanelBottomPad]).
+/// The bottom bar inherits the host's insets — [OverlayBottomSheet]
+/// already offsets its content with `SafeArea(top: false)` (system
+/// navigation bar on mobile, zero on desktop/web where [MediaQuery]
+/// padding is zero). No extra bottom padding is added here on purpose to
+/// avoid doubling that inset. The panel scrolls full-bleed behind the
+/// floating bar (see [_kPanelBottomPad]).
 class AttachMenuSheetContent extends ConsumerStatefulWidget {
   const AttachMenuSheetContent({super.key, required this.chatUUID});
 
@@ -56,6 +58,37 @@ class _AttachMenuSheetContentState
 
   @override
   Widget build(BuildContext context) {
+    // Desktop/web (everything non-mobile): vertical rail on the left.
+    // Mobile keeps the bottom floating bar.
+    if (currentPlatform != AppPlatform.mobile) return _buildSideRail(context);
+    return _buildFloatingBar(context);
+  }
+
+  List<SegmentedOption<AttachMenuAction>> _buildOptions(
+    AppLocalizations l10n,
+    ColorScheme scheme,
+  ) => [
+    for (final action in AttachMenuSheetContent.menuItems)
+      SegmentedOption(
+        value: action,
+        label: action.label(l10n),
+        icon: AppHugeIcon(
+          icon: action.icon,
+          size: 18,
+          color: action == _selected
+              ? scheme.onPrimary
+              : scheme.onSurfaceVariant,
+        ),
+        // Disabled segments are not selectable: SegmentedSwitch
+        // already ignores taps on them.
+        enabled: action.enabled,
+      ),
+  ];
+
+  void _onChanged(AttachMenuAction value) =>
+      setState(() => _selected = value);
+
+  Widget _buildFloatingBar(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
 
@@ -80,25 +113,39 @@ class _AttachMenuSheetContentState
             right: 0,
             bottom: 0,
             child: SegmentedSwitch<AttachMenuAction>(
-              options: [
-                for (final action in AttachMenuSheetContent.menuItems)
-                  SegmentedOption(
-                    value: action,
-                    label: action.label(l10n),
-                    icon: AppHugeIcon(
-                      icon: action.icon,
-                      size: 18,
-                      color: action == _selected
-                          ? scheme.onPrimary
-                          : scheme.onSurfaceVariant,
-                    ),
-                    // Disabled segments are not selectable: SegmentedSwitch
-                    // already ignores taps on them.
-                    enabled: action.enabled,
-                  ),
-              ],
+              options: _buildOptions(l10n, scheme),
               value: _selected,
-              onChanged: (value) => setState(() => _selected = value),
+              onChanged: _onChanged,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSideRail(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+
+    return SizedBox(
+      height: _kSheetBodyHeight,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SegmentedSwitch<AttachMenuAction>(
+            scrollDirection: Axis.vertical,
+            options: _buildOptions(l10n, scheme),
+            value: _selected,
+            onChanged: _onChanged,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: SingleChildScrollView(
+              child: _AttachPanel(
+                key: ValueKey(_selected),
+                action: _selected,
+                chatUUID: widget.chatUUID,
+              ),
             ),
           ),
         ],
@@ -312,11 +359,13 @@ class _PlaceholderAttachPanel extends StatelessWidget {
 
 /// Opens the attach menu as an adaptive overlay: bottom sheet on mobile,
 /// dialog on desktop/web (same component, [ResponsiveOverlayMode.dynamic]).
+/// The dialog gets a wider budget to fit the vertical side rail + panel.
 Future<void> showAttachMenuSheet(BuildContext context, String chatUUID) {
   final l10n = AppLocalizations.of(context)!;
   return ResponsiveOverlay.show<void>(
     context: context,
     title: l10n.attachFilesTooltip,
+    maxWidth: 600,
     child: AttachMenuSheetContent(chatUUID: chatUUID),
   );
 }
