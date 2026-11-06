@@ -6,7 +6,6 @@ import 'package:novyse/ui/components/chat/bottom_bar/actions/edit_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/files_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/mention_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/reply_bar.dart';
-import 'package:novyse/ui/components/chat/bottom_bar/attach_menu/attach_menu_overlay.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/left_button_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/message_send_handler.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/default/middle_bar_bottom_bar.dart';
@@ -22,9 +21,6 @@ class DefaultBottomBar extends ConsumerStatefulWidget {
     super.key,
     required this.chatUUID,
     this.subID = 0,
-    this.onToggleAttachMenu,
-    this.isAttachMenuOpen = false,
-    this.onCloseAttachMenu,
     this.onToggleEmojiMenu,
     this.isEmojiMenuOpen = false,
     this.onCloseEmojiMenu,
@@ -32,9 +28,6 @@ class DefaultBottomBar extends ConsumerStatefulWidget {
 
   final String chatUUID;
   final int subID;
-  final VoidCallback? onToggleAttachMenu;
-  final bool isAttachMenuOpen;
-  final VoidCallback? onCloseAttachMenu;
   final VoidCallback? onToggleEmojiMenu;
   final bool isEmojiMenuOpen;
   final VoidCallback? onCloseEmojiMenu;
@@ -45,9 +38,7 @@ class DefaultBottomBar extends ConsumerStatefulWidget {
 
 class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
   final FocusNode _focusNode = FocusNode();
-  final LayerLink _attachMenuLink = LayerLink();
   final LayerLink _emojiMenuLink = LayerLink();
-  OverlayEntry? _attachMenuEntry;
   OverlayEntry? _emojiMenuEntry;
   bool _isSending = false;
   TextEditingController? _textController;
@@ -71,11 +62,10 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
     if (mounted) setState(() {});
   }
 
-  /// Closes the attach/emoji menus when the text input gains focus,
+  /// Closes the emoji menu when the text input gains focus.
+  /// The attach menu is a modal [ResponsiveOverlay] now, so it needs
+  /// no focus handling here.
   void _onFocusChanged() {
-    if (_focusNode.hasFocus && widget.isAttachMenuOpen) {
-      widget.onCloseAttachMenu?.call();
-    }
     if (_focusNode.hasFocus && widget.isEmojiMenuOpen) {
       widget.onCloseEmojiMenu?.call();
     }
@@ -97,12 +87,6 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
         _textController!.text = draftText;
       }
     }
-    if (widget.isAttachMenuOpen != oldWidget.isAttachMenuOpen ||
-        widget.chatUUID != oldWidget.chatUUID) {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => _syncAttachMenuOverlay(),
-      );
-    }
     if (widget.isEmojiMenuOpen != oldWidget.isEmojiMenuOpen ||
         widget.chatUUID != oldWidget.chatUUID) {
       WidgetsBinding.instance.addPostFrameCallback(
@@ -116,34 +100,6 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
         (_) => _syncEmojiMenuOverlay(),
       );
     }
-  }
-
-  void _syncAttachMenuOverlay() {
-    if (!mounted) return;
-    if (widget.isAttachMenuOpen) {
-      _showAttachMenuOverlay();
-    } else {
-      _hideAttachMenuOverlay();
-    }
-  }
-
-  void _showAttachMenuOverlay() {
-    if (_attachMenuEntry != null) return;
-    final overlay = Overlay.maybeOf(context);
-    if (overlay == null) return;
-    _attachMenuEntry = OverlayEntry(
-      builder: (context) => AttachMenuOverlay(
-        link: _attachMenuLink,
-        chatUUID: widget.chatUUID,
-        onClose: () => widget.onCloseAttachMenu?.call(),
-      ),
-    );
-    overlay.insert(_attachMenuEntry!);
-  }
-
-  void _hideAttachMenuOverlay() {
-    _attachMenuEntry?.remove();
-    _attachMenuEntry = null;
   }
 
   void _syncEmojiMenuOverlay() {
@@ -201,7 +157,6 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
 
   @override
   void dispose() {
-    _hideAttachMenuOverlay();
     _hideEmojiMenuOverlay();
     _textController?.removeListener(_onControllerChanged);
     _focusNode.removeListener(_onFocusChanged);
@@ -267,14 +222,10 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            CompositedTransformTarget(
-              link: _attachMenuLink,
-              child: LeftButtonBottomBar(
-                isRecording: recorderState.isRecording,
-                isAttachMenuOpen: widget.isAttachMenuOpen,
-                onToggleAttachMenu: widget.onToggleAttachMenu,
-                onCancelRecording: () => recorderNotifier.cancelRecording(),
-              ),
+            LeftButtonBottomBar(
+              chatUUID: chatUUID,
+              isRecording: recorderState.isRecording,
+              onCancelRecording: () => recorderNotifier.cancelRecording(),
             ),
             const SizedBox(width: FloatingConsts.pillSpacing),
             Expanded(

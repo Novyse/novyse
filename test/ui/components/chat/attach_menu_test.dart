@@ -2,25 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/ui/components/chat/bottom_bar/attach_menu/attach_menu.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/attach_menu/attach_menu_item.dart';
+import 'package:novyse/ui/components/chat/bottom_bar/attach_menu/attach_menu_sheet.dart';
+import 'package:novyse/ui/components/switch/segmented_switch.dart';
 
 void main() {
-  var closeCalls = 0;
-
-  Future<void> pumpPopover(WidgetTester tester, {String locale = 'en'}) async {
-    closeCalls = 0;
+  Future<void> pumpSheet(WidgetTester tester, {String locale = 'en'}) async {
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
           localizationsDelegates: localizationsDelegates,
           supportedLocales: supportedLocales,
           locale: Locale(locale),
-          home: Scaffold(
-            body: AttachMenuPopover(
-              chatUUID: 'chat-test-1',
-              onClose: () => closeCalls++,
-            ),
+          home: const Scaffold(
+            body: AttachMenuSheetContent(chatUUID: 'chat-test-1'),
           ),
         ),
       ),
@@ -28,16 +23,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  group('AttachMenuPopover', () {
-    testWidgets('shows 7 icon-only entries in development order (en)', (
-      tester,
-    ) async {
-      await pumpPopover(tester);
+  SegmentedSwitch<AttachMenuAction> findSwitch(WidgetTester tester) =>
+      tester.widget<SegmentedSwitch<AttachMenuAction>>(
+        find.byType(SegmentedSwitch<AttachMenuAction>),
+      );
 
-      final items = tester
-          .widgetList<AttachMenuItem>(find.byType(AttachMenuItem))
-          .toList();
-      expect(items.map((i) => i.action).toList(), [
+  group('AttachMenuSheetContent', () {
+    testWidgets('shows 7 segments in development order (en)', (tester) async {
+      await pumpSheet(tester);
+
+      final sw = findSwitch(tester);
+      expect(sw.options.map((o) => o.value).toList(), [
         AttachMenuAction.media,
         AttachMenuAction.camera,
         AttachMenuAction.file,
@@ -46,11 +42,7 @@ void main() {
         AttachMenuAction.todo,
         AttachMenuAction.poll,
       ]);
-      expect(items.every((i) => i.iconOnly), isTrue);
 
-      // Icon-only: no text labels, labels exposed via tooltips.
-      expect(find.text('Media'), findsNothing);
-      expect(find.text('File'), findsNothing);
       for (final label in [
         'Media',
         'Camera',
@@ -60,18 +52,15 @@ void main() {
         'Todo',
         'Poll',
       ]) {
-        expect(find.byTooltip(label), findsOneWidget);
+        expect(find.text(label), findsWidgets);
       }
     });
 
-    testWidgets('only Media and File are enabled', (tester) async {
-      await pumpPopover(tester);
+    testWidgets('only Media and File segments are enabled', (tester) async {
+      await pumpSheet(tester);
 
       final byAction = {
-        for (final i in tester.widgetList<AttachMenuItem>(
-          find.byType(AttachMenuItem),
-        ))
-          i.action: i.enabled,
+        for (final o in findSwitch(tester).options) o.value: o.enabled,
       };
       expect(byAction[AttachMenuAction.media], isTrue);
       expect(byAction[AttachMenuAction.file], isTrue);
@@ -82,21 +71,52 @@ void main() {
       expect(byAction[AttachMenuAction.poll], isFalse);
     });
 
-    testWidgets('tapping disabled entries does nothing', (tester) async {
-      await pumpPopover(tester);
+    testWidgets('tapping a disabled segment does not switch panel', (
+      tester,
+    ) async {
+      await pumpSheet(tester);
 
-      for (final label in ['Recording', 'Camera', 'Location', 'Todo', 'Poll']) {
-        await tester.tap(find.byTooltip(label));
-        await tester.pumpAndSettle();
-      }
+      expect(findSwitch(tester).value, AttachMenuAction.media);
 
-      // Disabled taps neither close the popover nor crash.
-      expect(closeCalls, 0);
-      expect(find.byType(AttachMenuPopover), findsOneWidget);
+      await tester.tap(find.text('Camera'));
+      await tester.pumpAndSettle();
+
+      expect(findSwitch(tester).value, AttachMenuAction.media);
+      expect(find.byType(AttachMenuSheetContent), findsOneWidget);
     });
 
-    testWidgets('shows italian tooltips', (tester) async {
-      await pumpPopover(tester, locale: 'it');
+    testWidgets('tapping File switches panel', (tester) async {
+      await pumpSheet(tester);
+
+      await tester.tap(find.text('File'));
+      await tester.pumpAndSettle();
+
+      expect(findSwitch(tester).value, AttachMenuAction.file);
+    });
+
+    testWidgets('media and file panels expose a Select action button', (
+      tester,
+    ) async {
+      await pumpSheet(tester);
+
+      // Media panel (default): action button opens the picker, no auto-open.
+      expect(find.text('Select'), findsOneWidget);
+      await tester.tap(find.text('Select'));
+      await tester.pumpAndSettle();
+      // Picker unavailable in tests: panel stays open.
+      expect(find.byType(AttachMenuSheetContent), findsOneWidget);
+
+      await tester.tap(find.text('File'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Select'), findsOneWidget);
+      await tester.tap(find.text('Select'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AttachMenuSheetContent), findsOneWidget);
+    });
+
+    testWidgets('shows italian segment labels', (tester) async {
+      await pumpSheet(tester, locale: 'it');
 
       for (final label in [
         'Media',
@@ -107,7 +127,7 @@ void main() {
         'Lista',
         'Sondaggio',
       ]) {
-        expect(find.byTooltip(label), findsOneWidget);
+        expect(find.text(label), findsWidgets);
       }
     });
   });

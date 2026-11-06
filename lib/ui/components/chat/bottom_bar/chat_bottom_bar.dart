@@ -10,9 +10,6 @@ class ChatBottomBar extends ConsumerWidget {
     required this.chatUUID,
     this.subID = 0,
     this.readOnly = false,
-    this.onToggleAttachMenu,
-    this.isAttachMenuOpen = false,
-    this.onCloseAttachMenu,
     this.onToggleEmojiMenu,
     this.isEmojiMenuOpen = false,
     this.onCloseEmojiMenu,
@@ -21,9 +18,6 @@ class ChatBottomBar extends ConsumerWidget {
   final String chatUUID;
   final int subID;
   final bool readOnly;
-  final VoidCallback? onToggleAttachMenu;
-  final bool isAttachMenuOpen;
-  final VoidCallback? onCloseAttachMenu;
   final VoidCallback? onToggleEmojiMenu;
   final bool isEmojiMenuOpen;
   final VoidCallback? onCloseEmojiMenu;
@@ -40,9 +34,6 @@ class ChatBottomBar extends ConsumerWidget {
           : DefaultBottomBar(
               chatUUID: chatUUID,
               subID: subID,
-              isAttachMenuOpen: isAttachMenuOpen,
-              onToggleAttachMenu: onToggleAttachMenu,
-              onCloseAttachMenu: onCloseAttachMenu,
               isEmojiMenuOpen: isEmojiMenuOpen,
               onToggleEmojiMenu: onToggleEmojiMenu,
               onCloseEmojiMenu: onCloseEmojiMenu,

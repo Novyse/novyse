@@ -101,10 +101,7 @@ class _EmojiMenuPanelState extends ConsumerState<EmojiMenuPanel> {
   }
 }
 
-/// Non-modal floating layer hosting the emoji menu (desktop/web).
-///
-/// Mirrors [AttachMenuOverlay]: transparent tap-outside-to-dismiss barrier
-/// plus a follower anchored to the bottom bar.
+
 class EmojiMenuOverlay extends StatelessWidget {
   const EmojiMenuOverlay({
     super.key,

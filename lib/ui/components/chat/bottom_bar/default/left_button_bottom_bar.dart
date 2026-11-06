@@ -1,76 +1,32 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/chat/bottom_bar/attach_menu/attach_menu_sheet.dart';
 import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
-class LeftButtonBottomBar extends StatefulWidget {
+/// Left composer button: opens the attach menu, or cancels an ongoing
+/// voice recording.
+///
+/// Plain [FloatingPill] icon button (same 48 outer box as the right button
+/// and the composer pill) — no rotation animation.
+class LeftButtonBottomBar extends StatelessWidget {
   const LeftButtonBottomBar({
     super.key,
+    required this.chatUUID,
     required this.isRecording,
-    this.isAttachMenuOpen = false,
-    this.onToggleAttachMenu,
     required this.onCancelRecording,
   });
 
+  final String chatUUID;
   final bool isRecording;
-  final bool isAttachMenuOpen;
-  final VoidCallback? onToggleAttachMenu;
   final VoidCallback onCancelRecording;
 
-  @override
-  State<LeftButtonBottomBar> createState() => _LeftButtonBottomBarState();
-}
-
-class _LeftButtonBottomBarState extends State<LeftButtonBottomBar>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _animController;
-  late final Animation<double> _rotationAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _rotationAnim = Tween<double>(begin: 0.0, end: math.pi / 4).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
-    );
-
-    if (widget.isRecording || widget.isAttachMenuOpen) {
-      _animController.value = 1.0;
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant LeftButtonBottomBar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final shouldRotate = widget.isRecording || widget.isAttachMenuOpen;
-    final wasRotated = oldWidget.isRecording || oldWidget.isAttachMenuOpen;
-
-    if (shouldRotate != wasRotated) {
-      if (shouldRotate) {
-        _animController.forward();
-      } else {
-        _animController.reverse();
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _animController.dispose();
-    super.dispose();
-  }
-
-  void _handlePress() {
-    if (widget.isRecording) {
-      widget.onCancelRecording();
+  void _handlePress(BuildContext context) {
+    if (isRecording) {
+      onCancelRecording();
     } else {
-      widget.onToggleAttachMenu?.call();
+      showAttachMenuSheet(context, chatUUID);
     }
   }
 
@@ -80,7 +36,7 @@ class _LeftButtonBottomBarState extends State<LeftButtonBottomBar>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final tooltip = widget.isRecording
+    final tooltip = isRecording
         ? l10n.cancelRecordingTooltip
         : l10n.attachFilesTooltip;
 
@@ -91,7 +47,7 @@ class _LeftButtonBottomBarState extends State<LeftButtonBottomBar>
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: _handlePress,
+            onTap: () => _handlePress(context),
             borderRadius: BorderRadius.circular(
               FloatingConsts.pillRadius,
             ),
@@ -99,18 +55,9 @@ class _LeftButtonBottomBarState extends State<LeftButtonBottomBar>
               width: FloatingConsts.iconButtonSize,
               height: FloatingConsts.iconButtonSize,
               child: Center(
-                child: AnimatedBuilder(
-                  animation: _rotationAnim,
-                  builder: (context, child) {
-                    return Transform.rotate(
-                      angle: _rotationAnim.value,
-                      child: child,
-                    );
-                  },
-                  child: AppHugeIcon(
-                    icon: HugeIcons.strokeRoundedPlus,
-                    color: colorScheme.onSurface,
-                  ),
+                child: AppHugeIcon(
+                  icon: HugeIcons.strokeRoundedPlus,
+                  color: colorScheme.onSurface,
                 ),
               ),
             ),

@@ -58,7 +58,6 @@ class AttachMenuItem extends StatelessWidget {
     required this.enabled,
     required this.onPressed,
     this.axis = Axis.horizontal,
-    this.iconOnly = false,
   });
 
   final AttachMenuAction action;
@@ -67,7 +66,6 @@ class AttachMenuItem extends StatelessWidget {
   final bool enabled;
   final VoidCallback onPressed;
   final Axis axis;
-  final bool iconOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -76,29 +74,6 @@ class AttachMenuItem extends StatelessWidget {
     final iconColor = enabled
         ? colorScheme.onSurface
         : colorScheme.onSurfaceVariant.withValues(alpha: 0.4);
-
-    if (iconOnly) {
-      return Tooltip(
-        message: label,
-        child: Opacity(
-          opacity: enabled ? 1.0 : 0.45,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: enabled ? onPressed : null,
-              borderRadius: BorderRadius.circular(20),
-              child: SizedBox(
-                width: 40,
-                height: 40,
-                child: Center(
-                  child: AppHugeIcon(icon: icon, size: 20, color: iconColor),
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
 
     final content = axis == Axis.horizontal
         ? Column(

@@ -46,7 +46,6 @@ class ChatDetailPage extends ConsumerStatefulWidget {
 
 class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   bool _searching = false;
-  bool _isAttachMenuOpen = false;
   bool _isEmojiMenuOpen = false;
   bool _routeSyncPending = false;
   final _searchController = TextEditingController();
@@ -106,7 +105,6 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   void didUpdateWidget(covariant ChatDetailPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.chatUUID != widget.chatUUID) {
-      _isAttachMenuOpen = false;
       _isEmojiMenuOpen = false;
       _closeSearch(resetText: true);
     }
@@ -198,18 +196,6 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     _jumpToSearchMatch();
   }
 
-  void _closeAttachMenu() {
-    if (!_isAttachMenuOpen) return;
-    setState(() => _isAttachMenuOpen = false);
-  }
-
-  void _toggleAttachMenu() {
-    setState(() {
-      _isAttachMenuOpen = !_isAttachMenuOpen;
-      if (_isAttachMenuOpen) _isEmojiMenuOpen = false;
-    });
-  }
-
   void _closeEmojiMenu() {
     if (!_isEmojiMenuOpen) return;
     setState(() => _isEmojiMenuOpen = false);
@@ -223,17 +209,12 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     }
     setState(() {
       _isEmojiMenuOpen = opening;
-      if (opening) _isAttachMenuOpen = false;
     });
   }
 
   void _handleBack() {
     if (_isEmojiMenuOpen) {
       _closeEmojiMenu();
-      return;
-    }
-    if (_isAttachMenuOpen) {
-      _closeAttachMenu();
       return;
     }
     final hasSelection = ref
@@ -522,9 +503,6 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
                     chatUUID: chatUUID,
                     subID: selectedSub,
                     readOnly: !canSendMessage,
-                    isAttachMenuOpen: _isAttachMenuOpen,
-                    onToggleAttachMenu: _toggleAttachMenu,
-                    onCloseAttachMenu: _closeAttachMenu,
                     isEmojiMenuOpen: _isEmojiMenuOpen,
                     onToggleEmojiMenu: _toggleEmojiMenu,
                     onCloseEmojiMenu: _closeEmojiMenu,
@@ -572,7 +550,6 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
           !callOpen &&
           !_searching &&
           !hasSelection &&
-          !_isAttachMenuOpen &&
           !_isEmojiMenuOpen &&
           // Con una sola route nello stack (apertura via go/deep link) il
           // pop svuoterebbe lo shell: veto e torna alla lista a mano.
@@ -581,10 +558,6 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         if (didPop) return;
         if (_isEmojiMenuOpen) {
           _closeEmojiMenu();
-          return;
-        }
-        if (_isAttachMenuOpen) {
-          _closeAttachMenu();
           return;
         }
         if (hasSelection) {
