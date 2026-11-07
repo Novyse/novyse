@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:sqflite/sqflite.dart';
 
@@ -27,50 +29,13 @@ class UserRepository {
   }
 
   /// Adds a single user and their handle to the database.
+  ///
+  /// Only the fields present in [user] are written: a chat member event
+  /// carries the name alone, and replacing the whole row would drop the banner
+  /// and the customization pulled earlier.
   Future<bool> add(Map<String, dynamic> user) async {
     try {
-      final uuid = user['uuid'] as String?;
-      final name = user['name'] as String?;
-      final handle = user['handle'] as String?;
-
-      if (uuid == null || name == null) {
-        debugPrint('Missing required user fields: uuid=$uuid, name=$name');
-        return false;
-      }
-
-      await db.execute(
-        '''
-        INSERT OR REPLACE INTO user (
-          uuid, name, surname, profilePictureUUID, bannerPictureUUID,
-          biography, birthday, region, country, color, profileEventID
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        ''',
-        [
-          uuid,
-          name,
-          user['surname'],
-          user['profilePictureUUID'],
-          user['bannerPictureUUID'],
-          user['biography'],
-          user['birthday'],
-          user['region'],
-          user['country'],
-          user['color'] is String ? user['color'] : user['color']?.toString(),
-          user['profileEventID'] ?? 0,
-        ],
-      );
-
-      if (handle != null && handle.isNotEmpty) {
-        await db.execute(
-          '''
-          INSERT INTO handle (userUUID, type, handle) VALUES (?, 'USER', ?)
-          ON CONFLICT(handle) DO UPDATE SET userUUID = excluded.userUUID;
-          ''',
-          [uuid, handle],
-        );
-      }
-
-      return true;
+      return await _upsertUser(db, user);
     } catch (e) {
       debugPrint('Error adding user: $e');
       return false;
@@ -84,44 +49,7 @@ class UserRepository {
 
       for (final raw in users) {
         if (raw is! Map) continue;
-        final user = Map<String, dynamic>.from(raw);
-        final uuid = user['uuid'] as String?;
-        final name = user['name'] as String?;
-        final handle = user['handle'] as String?;
-
-        if (uuid == null || name == null) continue;
-
-        await db.execute(
-          '''
-          INSERT OR REPLACE INTO user (
-            uuid, name, surname, profilePictureUUID, bannerPictureUUID,
-            biography, birthday, region, country, color, profileEventID
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-          ''',
-          [
-            uuid,
-            name,
-            user['surname'],
-            user['profilePictureUUID'],
-            user['bannerPictureUUID'],
-            user['biography'],
-            user['birthday'],
-            user['region'],
-            user['country'],
-            user['color'] is String ? user['color'] : user['color']?.toString(),
-            user['profileEventID'] ?? 0,
-          ],
-        );
-
-        if (handle != null && handle.isNotEmpty) {
-          await db.execute(
-            '''
-            INSERT INTO handle (userUUID, type, handle) VALUES (?, 'USER', ?)
-            ON CONFLICT(handle) DO UPDATE SET userUUID = excluded.userUUID;
-            ''',
-            [uuid, handle],
-          );
-        }
+        await _upsertUser(db, Map<String, dynamic>.from(raw));
       }
 
       return true;
@@ -130,6 +58,86 @@ class UserRepository {
       return false;
     }
   }
+}
+
+/// Inserts [user] or merges the fields it carries into the existing row.
+Future<bool> _upsertUser(DatabaseExecutor db, Map<String, dynamic> user) async {
+  final uuid = user['uuid'] as String?;
+  final name = user['name'] as String?;
+
+  if (uuid == null || name == null) {
+    debugPrint('Missing required user fields: uuid=$uuid, name=$name');
+    return false;
+  }
+
+  final customization = user['customization'] is Map
+      ? Map<String, dynamic>.from(user['customization'] as Map)
+      : const <String, dynamic>{};
+
+  dynamic pick(String key) =>
+      customization.containsKey(key) ? customization[key] : user[key];
+  bool has(String key) =>
+      customization.containsKey(key) || user.containsKey(key);
+
+  final columns = <String, dynamic>{
+    'name': name,
+    if (user.containsKey('surname')) 'surname': user['surname'],
+    if (user.containsKey('profilePictureUUID'))
+      'profilePictureUUID': user['profilePictureUUID'],
+    if (user.containsKey('bannerPictureUUID'))
+      'bannerPictureUUID': user['bannerPictureUUID'],
+    if (user.containsKey('biography')) 'biography': user['biography'],
+    if (user.containsKey('birthday')) 'birthday': user['birthday'],
+    if (user.containsKey('region')) 'region': user['region'],
+    if (user.containsKey('country')) 'country': user['country'],
+    if (user.containsKey('profileEventID'))
+      'profileEventID': user['profileEventID'],
+    if (has('lastActive'))
+      'lastActive': pick('lastActive') ?? pick('last_active'),
+    if (has('cardPictureUUID'))
+      'cardPictureUUID': pick('cardPictureUUID')?.toString(),
+    if (has('cardColor')) 'cardColor': _jsonColumnValue(pick('cardColor')),
+    if (has('cardEffect')) 'cardEffect': pick('cardEffect')?.toString(),
+    if (has('cardBorder')) 'cardBorder': pick('cardBorder')?.toString(),
+    if (has('nameColor')) 'nameColor': _jsonColumnValue(pick('nameColor')),
+    if (has('nameFont')) 'nameFont': pick('nameFont')?.toString(),
+    if (has('nameEffect')) 'nameEffect': pick('nameEffect')?.toString(),
+    if (has('avatarEffect')) 'avatarEffect': pick('avatarEffect')?.toString(),
+    if (has('avatarBorder')) 'avatarBorder': pick('avatarBorder')?.toString(),
+    if (has('bannerColor'))
+      'bannerColor': _jsonColumnValue(pick('bannerColor')),
+  };
+
+  await db.execute('INSERT OR IGNORE INTO user (uuid, name) VALUES (?, ?);', [
+    uuid,
+    name,
+  ]);
+  final assignments = columns.keys.map((column) => '$column = ?').join(', ');
+  await db.execute('UPDATE user SET $assignments WHERE uuid = ?;', [
+    ...columns.values,
+    uuid,
+  ]);
+
+  final handle = user['handle'] as String?;
+  if (handle != null && handle.isNotEmpty) {
+    await db.execute(
+      '''
+      INSERT INTO handle (userUUID, type, handle) VALUES (?, 'USER', ?)
+      ON CONFLICT(handle) DO UPDATE SET userUUID = excluded.userUUID;
+      ''',
+      [uuid, handle],
+    );
+  }
+
+  return true;
+}
+
+/// Stores maps and lists (the gradients) as JSON text in their column.
+dynamic _jsonColumnValue(dynamic value) {
+  if (value == null) return null;
+  if (value is String) return value.isEmpty ? null : value;
+  if (value is Map || value is List) return jsonEncode(value);
+  return value.toString();
 }
 
 class UserGetRepository {
@@ -283,7 +291,19 @@ class ProfileRepository {
   late final region = ProfileFieldUpdateRepository(this, 'region');
   late final country = ProfileFieldUpdateRepository(this, 'country');
   late final banner = ProfileFieldUpdateRepository(this, 'bannerPictureUUID');
-  late final color = ProfileFieldUpdateRepository(this, 'color');
+  late final cardPicture = ProfileFieldUpdateRepository(
+    this,
+    'cardPictureUUID',
+  );
+  late final cardColor = ProfileFieldUpdateRepository(this, 'cardColor');
+  late final cardEffect = ProfileFieldUpdateRepository(this, 'cardEffect');
+  late final cardBorder = ProfileFieldUpdateRepository(this, 'cardBorder');
+  late final nameColor = ProfileFieldUpdateRepository(this, 'nameColor');
+  late final nameFont = ProfileFieldUpdateRepository(this, 'nameFont');
+  late final nameEffect = ProfileFieldUpdateRepository(this, 'nameEffect');
+  late final avatarEffect = ProfileFieldUpdateRepository(this, 'avatarEffect');
+  late final avatarBorder = ProfileFieldUpdateRepository(this, 'avatarBorder');
+  late final bannerColor = ProfileFieldUpdateRepository(this, 'bannerColor');
   late final picture = ProfilePictureRepository(this);
 }
 
@@ -296,7 +316,7 @@ class ProfileFieldUpdateRepository {
   Future<bool> update(String userUUID, dynamic value) async {
     try {
       if (userUUID.isEmpty) return false;
-      final val = value is String || value == null ? value : value.toString();
+      final val = _jsonColumnValue(value);
       await _repo.db.execute('UPDATE user SET $_column = ? WHERE uuid = ?;', [
         val,
         userUUID,

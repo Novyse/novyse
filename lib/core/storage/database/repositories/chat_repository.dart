@@ -44,6 +44,38 @@ class ChatRepository {
     _handleRepository = handleRepo;
   }
 
+  /// Updates the name and/or the picture of [chatUUID], leaving the fields
+  /// that are not given untouched.
+  Future<bool> updateInfo(
+    String chatUUID, {
+    String? name,
+    String? pictureUUID,
+  }) async {
+    try {
+      if (chatUUID.isEmpty) return false;
+      final assignments = <String>[];
+      final arguments = <dynamic>[];
+      if (name != null) {
+        assignments.add('name = ?');
+        arguments.add(name);
+      }
+      if (pictureUUID != null) {
+        assignments.add('profilePictureUUID = ?');
+        arguments.add(pictureUUID);
+      }
+      if (assignments.isEmpty) return false;
+      arguments.add(chatUUID);
+      await db.execute(
+        'UPDATE chat SET ${assignments.join(', ')} WHERE uuid = ?;',
+        arguments,
+      );
+      return true;
+    } catch (e) {
+      debugPrint('Error updating chat info: $e');
+      return false;
+    }
+  }
+
   MessageRepository? get messageRepository => _messageRepository;
 
   HandleRepository? get handleRepository => _handleRepository;

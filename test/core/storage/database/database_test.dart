@@ -118,7 +118,12 @@ void main() {
       await db.user.profile.region.update('user-4', 'Lombardia');
       await db.user.profile.country.update('user-4', 'Italy');
       await db.user.profile.banner.update('user-4', 'banner-123');
-      await db.user.profile.color.update('user-4', '#FF5733');
+      await db.user.profile.bannerColor.update('user-4', {
+        'angle': 0,
+        'stops': [
+          {'color': '#FF5733', 'position': 0},
+        ],
+      });
 
       final updated = await db.user.get.byUUID('user-4');
       expect(updated!['name'], 'David');
@@ -128,7 +133,7 @@ void main() {
       expect(updated['region'], 'Lombardia');
       expect(updated['country'], 'Italy');
       expect(updated['bannerPictureUUID'], 'banner-123');
-      expect(updated['color'], '#FF5733');
+      expect(updated['bannerColor'], contains('#FF5733'));
 
       final pic = await db.user.profile.picture.get('user-4');
       expect(pic, 'pic-123');

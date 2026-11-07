@@ -77,6 +77,22 @@ class HandleUpdateRepository {
     }
   }
 
+  /// Points the USER handle of [userUUID] at [handle], dropping the previous
+  /// handle so `byHandle` cannot resolve a stale one.
+  Future<bool> replaceUser(String userUUID, String handle) async {
+    try {
+      if (userUUID.isEmpty || handle.isEmpty) return false;
+      await _repo.db.execute(
+        "DELETE FROM handle WHERE userUUID = ? AND type = 'USER' AND handle <> ?;",
+        [userUUID, handle],
+      );
+      return await user(userUUID, handle);
+    } catch (e) {
+      debugPrint('Error replacing user handle: $e');
+      return false;
+    }
+  }
+
   Future<bool> chat(String chatUUID, String handle) async {
     try {
       if (chatUUID.isEmpty || handle.isEmpty) return false;

@@ -23,8 +23,18 @@ CREATE TABLE IF NOT EXISTS user (
     birthday DATE,
     region TEXT,
     country TEXT,
-    color TEXT,
-    profileEventID INTEGER DEFAULT 0
+    profileEventID INTEGER DEFAULT 0,
+    lastActive TIMESTAMP,
+    cardPictureUUID TEXT,
+    cardColor TEXT,
+    cardEffect TEXT,
+    cardBorder TEXT,
+    nameColor TEXT,
+    nameFont TEXT,
+    nameEffect TEXT,
+    avatarEffect TEXT,
+    avatarBorder TEXT,
+    bannerColor TEXT
 );
 
 INSERT OR IGNORE INTO user (uuid, name, surname, biography)

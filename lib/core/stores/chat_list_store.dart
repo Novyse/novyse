@@ -250,9 +250,7 @@ class ChatListNotifier extends Notifier<ChatListState> {
       }),
     );
 
-    _subscriptions.add(
-      bus.on<FileDownloadedEvent>().listen(onFileDownloaded),
-    );
+    _subscriptions.add(bus.on<FileDownloadedEvent>().listen(onFileDownloaded));
   }
 
   /// Initializes the chat list by loading all chats from SQLite.
@@ -303,7 +301,7 @@ class ChatListNotifier extends Notifier<ChatListState> {
         case 'picture':
           if (chat.type == 'DM') return chat;
           return chat.copyWith(
-            profilePictureUUID: data['profilePictureUUID'] as String?,
+            profilePictureUUID: data['pictureUUID'] as String?,
           );
 
         case 'sub_create':
@@ -445,9 +443,7 @@ class ChatListNotifier extends Notifier<ChatListState> {
 
       if (!chatChanged) return chat;
       updatedAny = true;
-      return chat.copyWith(
-        lastMessage: {...lastMessage, 'files': mergedFiles},
-      );
+      return chat.copyWith(lastMessage: {...lastMessage, 'files': mergedFiles});
     }).toList();
 
     if (updatedAny) {

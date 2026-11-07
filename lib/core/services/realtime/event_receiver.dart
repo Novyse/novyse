@@ -63,7 +63,7 @@ class EventReceiver {
 
     final event = envelope['event']?.toString();
     if (event == null || event.isEmpty) return;
-      handleEvent(event, envelope['payload']);
+    handleEvent(event, envelope['payload']);
   }
 
   /// Handles one received [event] with its [payload].
@@ -84,7 +84,7 @@ class EventReceiver {
         return unawaited(
           emitter.user.profile.update(
             payload,
-            payload['profileEventID'] as int?,
+            (payload['userProfileEventID'] as num?)?.toInt(),
           ),
         );
 

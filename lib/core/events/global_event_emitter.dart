@@ -242,56 +242,55 @@ class UserProfileEmitter {
   UserProfileEmitter(this._bus, this._db);
 
   Future<void> update(Map<String, dynamic> data, int? eventID) async {
-    final userUUID = data['userUUID'] as String?;
-    if (userUUID == null || userUUID.isEmpty) return;
+    final userUUID = data['userUUID']?.toString() ?? '';
+    if (userUUID.isEmpty) return;
 
-    final name = data['name'] as String?;
-    final surname = data['surname'] as String?;
-    final biography = data['biography'] as String?;
-    final profilePictureUUID = data['profilePictureUUID'] as String?;
-    final bannerPictureUUID = data['bannerPictureUUID'] as String?;
-    final birthday = data['birthday'];
-    final region = data['region'] as String?;
-    final country = data['country'] as String?;
-    final color = data['color'];
-    final handle = data['handle'] as String?;
+    final payload = Map<String, dynamic>.from(data);
+    final customization = payload['customization'];
+    if (customization is Map) {
+      for (final entry in customization.entries) {
+        payload.putIfAbsent(entry.key.toString(), () => entry.value);
+      }
+    }
 
-    if (name != null) {
-      await _db.user.profile.name.update(userUUID, name);
+    final profile = _db.user.profile;
+    final writes = <String, Future<bool> Function(Object?)>{
+      'name': (value) => profile.name.update(userUUID, value),
+      'surname': (value) => profile.surname.update(userUUID, value),
+      'biography': (value) => profile.biography.update(userUUID, value),
+      'profilePictureUUID': (value) =>
+          profile.picture.update(userUUID, value?.toString() ?? ''),
+      'birthday': (value) => profile.birthday.update(userUUID, value),
+      'region': (value) => profile.region.update(userUUID, value),
+      'country': (value) => profile.country.update(userUUID, value),
+      'bannerPictureUUID': (value) => profile.banner.update(userUUID, value),
+      'cardPictureUUID': (value) => profile.cardPicture.update(userUUID, value),
+      'cardColor': (value) => profile.cardColor.update(userUUID, value),
+      'cardEffect': (value) => profile.cardEffect.update(userUUID, value),
+      'cardBorder': (value) => profile.cardBorder.update(userUUID, value),
+      'nameColor': (value) => profile.nameColor.update(userUUID, value),
+      'nameFont': (value) => profile.nameFont.update(userUUID, value),
+      'nameEffect': (value) => profile.nameEffect.update(userUUID, value),
+      'avatarEffect': (value) => profile.avatarEffect.update(userUUID, value),
+      'avatarBorder': (value) => profile.avatarBorder.update(userUUID, value),
+      'bannerColor': (value) => profile.bannerColor.update(userUUID, value),
+    };
+
+    for (final entry in writes.entries) {
+      if (!payload.containsKey(entry.key)) continue;
+      await entry.value(payload[entry.key]);
     }
-    if (surname != null) {
-      await _db.user.profile.surname.update(userUUID, surname);
-    }
-    if (biography != null) {
-      await _db.user.profile.biography.update(userUUID, biography);
-    }
-    if (profilePictureUUID != null) {
-      await _db.user.profile.picture.update(userUUID, profilePictureUUID);
-    }
-    if (birthday != null) {
-      await _db.user.profile.birthday.update(userUUID, birthday);
-    }
-    if (region != null) {
-      await _db.user.profile.region.update(userUUID, region);
-    }
-    if (country != null) {
-      await _db.user.profile.country.update(userUUID, country);
-    }
-    if (bannerPictureUUID != null) {
-      await _db.user.profile.banner.update(userUUID, bannerPictureUUID);
-    }
-    if (color != null) {
-      await _db.user.profile.color.update(userUUID, color);
-    }
-    if (handle != null) {
-      await _db.handle.update.user(userUUID, handle);
+
+    final handle = payload['handle']?.toString();
+    if (handle != null && handle.isNotEmpty) {
+      await _db.handle.update.replaceUser(userUUID, handle);
     }
 
     if (eventID != null) {
       await _db.event.user.profile.update(userUUID, eventID);
     }
 
-    _bus.emit(UserProfileUpdateEvent(userUUID: userUUID, data: data));
+    _bus.emit(UserProfileUpdateEvent(userUUID: userUUID, data: payload));
   }
 }
 
@@ -463,6 +462,15 @@ class ChatEmitter {
     Map<String, dynamic> data,
   ) async {
     switch (action) {
+      case 'rename':
+        await _db.chat.updateInfo(chatUUID, name: data['name']?.toString());
+        break;
+      case 'picture':
+        await _db.chat.updateInfo(
+          chatUUID,
+          pictureUUID: data['pictureUUID']?.toString(),
+        );
+        break;
       case 'sub_create':
         final subData = data['sub'] is Map
             ? Map<String, dynamic>.from(data['sub'] as Map)

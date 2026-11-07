@@ -30,6 +30,8 @@ abstract class SyncChatEventType {
   static const subDeleted = 'SUB_DELETED';
   static const memberJoined = 'MEMBER_JOINED';
   static const memberLeft = 'MEMBER_LEFT';
+  static const chatRenamed = 'CHAT_RENAMED';
+  static const chatPictureChanged = 'CHAT_PICTURE_CHANGED';
   static const messageRead = 'MESSAGE_READ';
 }
 
@@ -410,6 +412,16 @@ class SyncService {
                 eventId,
                 payload,
               );
+              break;
+            case SyncChatEventType.chatRenamed:
+              await _emitter.chat.update(chatUUID, 'rename', eventId, {
+                'name': payload['name'],
+              });
+              break;
+            case SyncChatEventType.chatPictureChanged:
+              await _emitter.chat.update(chatUUID, 'picture', eventId, {
+                'pictureUUID': payload['pictureUUID'],
+              });
               break;
             case SyncChatEventType.subCreated:
               await _emitter.chat.update(chatUUID, 'sub_create', eventId, {

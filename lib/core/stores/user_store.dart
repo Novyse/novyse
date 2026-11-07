@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/auth/onboarding_manager.dart';
 import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
+import 'package:novyse/core/services/api/modules/user_module.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/storage/database/database.dart';
 
@@ -22,7 +24,16 @@ class UserModel {
   final String? birthday;
   final String? region;
   final String? country;
-  final String? color;
+  final String? cardPictureUUID;
+  final ProfileGradient? cardColor;
+  final String? cardEffect;
+  final String? cardBorder;
+  final ProfileGradient? nameColor;
+  final String? nameFont;
+  final String? nameEffect;
+  final String? avatarEffect;
+  final String? avatarBorder;
+  final ProfileGradient? bannerColor;
   final String status; // 'ONLINE' | 'OFFLINE'
   final DateTime? lastAccessAt;
 
@@ -38,7 +49,16 @@ class UserModel {
     this.birthday,
     this.region,
     this.country,
-    this.color,
+    this.cardPictureUUID,
+    this.cardColor,
+    this.cardEffect,
+    this.cardBorder,
+    this.nameColor,
+    this.nameFont,
+    this.nameEffect,
+    this.avatarEffect,
+    this.avatarBorder,
+    this.bannerColor,
     this.status = 'OFFLINE',
     this.lastAccessAt,
   });
@@ -66,7 +86,16 @@ class UserModel {
       'birthday': birthday,
       'region': region,
       'country': country,
-      'color': color,
+      'cardPictureUUID': cardPictureUUID,
+      'cardColor': cardColor?.toJson(),
+      'cardEffect': cardEffect,
+      'cardBorder': cardBorder,
+      'nameColor': nameColor?.toJson(),
+      'nameFont': nameFont,
+      'nameEffect': nameEffect,
+      'avatarEffect': avatarEffect,
+      'avatarBorder': avatarBorder,
+      'bannerColor': bannerColor?.toJson(),
       'status': status,
       'lastAccessAt': lastAccessAt?.toIso8601String(),
     };
@@ -82,6 +111,13 @@ class UserModel {
       return null;
     }
 
+    final customization = map['customization'] is Map
+        ? Map<String, dynamic>.from(map['customization'] as Map)
+        : const <String, dynamic>{};
+
+    dynamic pick(String key) =>
+        customization.containsKey(key) ? customization[key] : map[key];
+
     return UserModel(
       uuid: (map['uuid'] ?? map['userUUID'] ?? '') as String,
       email: map['email'] as String?,
@@ -89,17 +125,77 @@ class UserModel {
       surname: map['surname'] as String?,
       handle: map['handle'] as String?,
       profilePictureUUID: map['profilePictureUUID'] as String?,
-      bannerPictureUUID:
-          (map['bannerPictureUUID'] ?? map['bannerPictureUuid']) as String?,
+      bannerPictureUUID: map['bannerPictureUUID'] as String?,
       biography: map['biography'] as String?,
       birthday: map['birthday']?.toString(),
       region: map['region'] as String?,
       country: map['country'] as String?,
-      color: map['color']?.toString(),
+      cardPictureUUID: pick('cardPictureUUID')?.toString(),
+      cardColor: _parseGradient(pick('cardColor')),
+      cardEffect: pick('cardEffect')?.toString(),
+      cardBorder: pick('cardBorder')?.toString(),
+      nameColor: _parseGradient(pick('nameColor')),
+      nameFont: pick('nameFont')?.toString(),
+      nameEffect: pick('nameEffect')?.toString(),
+      avatarEffect: pick('avatarEffect')?.toString(),
+      avatarBorder: pick('avatarBorder')?.toString(),
+      bannerColor: _parseGradient(pick('bannerColor')),
       status:
           (map['status'] ?? (map['isOnline'] == true ? 'ONLINE' : 'OFFLINE'))
               as String,
-      lastAccessAt: parseDate(map['lastAccessAt'] ?? map['last_access_at']),
+      lastAccessAt: parseDate(map['lastAccessAt']),
+    );
+  }
+
+  /// Applies a delta payload of the profile.
+  ///
+  /// Only the keys the payload carries are changed: an explicit `null` clears
+  /// the field (the backend sends one when a banner or a color is removed),
+  /// a missing key leaves the current value untouched.
+  UserModel mergeProfile(Map<String, dynamic> updates) {
+    final customization = updates['customization'] is Map
+        ? Map<String, dynamic>.from(updates['customization'] as Map)
+        : const <String, dynamic>{};
+
+    dynamic pick(String key) =>
+        customization.containsKey(key) ? customization[key] : updates[key];
+    bool has(String key) =>
+        customization.containsKey(key) || updates.containsKey(key);
+
+    String? pickString(String key, String? current) {
+      if (!has(key)) return current;
+      return pick(key)?.toString();
+    }
+
+    ProfileGradient? pickGradient(String key, ProfileGradient? current) {
+      if (!has(key)) return current;
+      return _parseGradient(pick(key));
+    }
+
+    return UserModel(
+      uuid: uuid,
+      email: pickString('email', email),
+      name: has('name') && pick('name') != null ? '${pick('name')}' : name,
+      surname: pickString('surname', surname),
+      handle: pickString('handle', handle),
+      profilePictureUUID: pickString('profilePictureUUID', profilePictureUUID),
+      bannerPictureUUID: pickString('bannerPictureUUID', bannerPictureUUID),
+      biography: pickString('biography', biography),
+      birthday: pickString('birthday', birthday),
+      region: pickString('region', region),
+      country: pickString('country', country),
+      cardPictureUUID: pickString('cardPictureUUID', cardPictureUUID),
+      cardColor: pickGradient('cardColor', cardColor),
+      cardEffect: pickString('cardEffect', cardEffect),
+      cardBorder: pickString('cardBorder', cardBorder),
+      nameColor: pickGradient('nameColor', nameColor),
+      nameFont: pickString('nameFont', nameFont),
+      nameEffect: pickString('nameEffect', nameEffect),
+      avatarEffect: pickString('avatarEffect', avatarEffect),
+      avatarBorder: pickString('avatarBorder', avatarBorder),
+      bannerColor: pickGradient('bannerColor', bannerColor),
+      status: status,
+      lastAccessAt: lastAccessAt,
     );
   }
 
@@ -115,7 +211,16 @@ class UserModel {
     String? birthday,
     String? region,
     String? country,
-    String? color,
+    String? cardPictureUUID,
+    ProfileGradient? cardColor,
+    String? cardEffect,
+    String? cardBorder,
+    ProfileGradient? nameColor,
+    String? nameFont,
+    String? nameEffect,
+    String? avatarEffect,
+    String? avatarBorder,
+    ProfileGradient? bannerColor,
     String? status,
     DateTime? lastAccessAt,
   }) {
@@ -131,11 +236,35 @@ class UserModel {
       birthday: birthday ?? this.birthday,
       region: region ?? this.region,
       country: country ?? this.country,
-      color: color ?? this.color,
+      cardPictureUUID: cardPictureUUID ?? this.cardPictureUUID,
+      cardColor: cardColor ?? this.cardColor,
+      cardEffect: cardEffect ?? this.cardEffect,
+      cardBorder: cardBorder ?? this.cardBorder,
+      nameColor: nameColor ?? this.nameColor,
+      nameFont: nameFont ?? this.nameFont,
+      nameEffect: nameEffect ?? this.nameEffect,
+      avatarEffect: avatarEffect ?? this.avatarEffect,
+      avatarBorder: avatarBorder ?? this.avatarBorder,
+      bannerColor: bannerColor ?? this.bannerColor,
       status: status ?? this.status,
       lastAccessAt: lastAccessAt ?? this.lastAccessAt,
     );
   }
+}
+
+/// Parses a gradient coming from the API (a map) or from SQLite (a JSON
+/// string), returning `null` when the value is absent or malformed.
+ProfileGradient? _parseGradient(Object? value) {
+  if (value == null) return null;
+  if (value is String) {
+    if (value.isEmpty) return null;
+    try {
+      return _parseGradient(jsonDecode(value));
+    } catch (_) {
+      return null;
+    }
+  }
+  return ProfileGradient.fromJson(value);
 }
 
 /// State for the user cache store.
@@ -259,19 +388,7 @@ class UserNotifier extends Notifier<UserStoreState> {
     final existing = state.users[userUUID];
     if (existing == null) return;
 
-    final updated = existing.copyWith(
-      name: updates['name'] as String?,
-      surname: updates['surname'] as String?,
-      handle: updates['handle'] as String?,
-      profilePictureUUID: updates['profilePictureUUID'] as String?,
-      bannerPictureUUID: updates['bannerPictureUUID'] as String?,
-      biography: updates['biography'] as String?,
-      birthday: updates['birthday']?.toString(),
-      region: updates['region'] as String?,
-      country: updates['country'] as String?,
-      color: updates['color']?.toString(),
-    );
-
+    final updated = existing.mergeProfile(updates);
     state = state.copyWith(users: {...state.users, userUUID: updated});
   }
 
