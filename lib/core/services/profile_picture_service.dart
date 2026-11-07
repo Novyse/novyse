@@ -29,7 +29,7 @@ class ProfilePictureService {
 
   /// Requests a presigned upload, puts the bytes on S3, confirms with the
   /// backend, then stores the file locally and links it to [userUUID].
-  /// 
+  ///
   /// `picture.update` → S3 PUT → `picture.confirm` → local file + profile event.
   Future<bool> uploadProfilePicture({
     required String userUUID,
@@ -71,10 +71,9 @@ class ProfilePictureService {
       final confirm = await _gateway.user.profile.picture.confirm(fileUUID);
       if (!confirm.success) return false;
 
-      final linkedUUID =
-          (confirm.profilePictureUUID != null &&
-              confirm.profilePictureUUID!.isNotEmpty)
-          ? confirm.profilePictureUUID!
+      final confirmedUUID = confirm.fileUUID;
+      final linkedUUID = (confirmedUUID != null && confirmedUUID.isNotEmpty)
+          ? confirmedUUID
           : fileUUID;
 
       // Persist the same bytes that were PUT to S3 (the cropped PNG). Copying

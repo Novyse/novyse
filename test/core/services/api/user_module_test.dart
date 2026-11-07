@@ -235,7 +235,7 @@ void main() {
       expect(http.only.path, '/user/profile/picture/confirm');
       expect(http.only.json, {'fileUUID': 'file-1'});
       expect(res.success, isTrue);
-      expect(res.profilePictureUUID, 'pic-1');
+      expect(res.fileUUID, 'pic-1');
       expect(res.profileEventID, 8);
     });
 
@@ -246,10 +246,158 @@ void main() {
             .confirm('file-1');
 
         expect(res.success, isFalse);
-        expect(res.profilePictureUUID, isNull);
+        expect(res.fileUUID, isNull);
         expect(res.profileEventID, isNull);
       },
     );
+  });
+
+  group('UserProfileImageModule', () {
+    test('banner update PATCHes the banner endpoint', () async {
+      final http = FakeHttp.always({
+        'fileUUID': 'file-2',
+        'uploadURL': 'https://s3.test/banner',
+        'expiresAt': '2026-01-01T00:00:00Z',
+      });
+
+      final res = await UserModule(http.dio).profile.banner
+          .update('banner.png', 'image/png', 2048);
+
+      expect(http.only.method, 'PATCH');
+      expect(http.only.path, '/user/profile/banner');
+      expect(http.only.json, {
+        'name': 'banner.png',
+        'mimeType': 'image/png',
+        'size': 2048,
+      });
+      expect(res.success, isTrue);
+      expect(res.fileUUID, 'file-2');
+      expect(res.uploadURL, 'https://s3.test/banner');
+    });
+
+    test('card update PATCHes the card endpoint', () async {
+      final http = FakeHttp.always({
+        'fileUUID': 'file-3',
+        'uploadURL': 'https://s3.test/card',
+        'expiresAt': '2026-01-01T00:00:00Z',
+      });
+
+      final res = await UserModule(http.dio).profile.card
+          .update('card.gif', 'image/gif', 4096);
+
+      expect(http.only.path, '/user/profile/card');
+      expect(http.only.json['mimeType'], 'image/gif');
+      expect(res.success, isTrue);
+    });
+
+    test('card confirm POSTs to the card endpoint and reads its key', () async {
+      final http = FakeHttp.always({
+        'cardPictureUUID': 'card-1',
+        'profileEventID': 21,
+      });
+
+      final res = await UserModule(http.dio).profile.card.confirm('file-3');
+
+      expect(http.only.method, 'POST');
+      expect(http.only.path, '/user/profile/card/confirm');
+      expect(http.only.json, {'fileUUID': 'file-3'});
+      expect(res.success, isTrue);
+      expect(res.fileUUID, 'card-1');
+      expect(res.profileEventID, 21);
+    });
+
+    test(
+      'confirm falls back to the requested file when no uuid is sent',
+      () async {
+        final http = FakeHttp.always({'profileEventID': 22});
+
+        final res = await UserModule(http.dio).profile.banner.confirm('file-4');
+
+        expect(res.fileUUID, 'file-4');
+        expect(res.profileEventID, 22);
+      },
+    );
+  });
+
+  group('UserProfileCustomizationModule', () {
+    test('cardColor PATCHes the gradient of the card', () async {
+      final http = FakeHttp.always({'profileEventID': 30});
+
+      final res = await UserModule(http.dio).profile.customization.cardColor(
+        const ProfileGradient(
+          angle: 45,
+          stops: [
+            ProfileGradientStop(color: '#112233', position: 0),
+            ProfileGradientStop(color: '#445566', position: 100),
+          ],
+        ),
+      );
+
+      expect(http.only.method, 'PATCH');
+      expect(http.only.path, '/user/profile/card/color');
+      expect(http.only.json, {
+        'color': {
+          'angle': 45,
+          'stops': [
+            {'color': '#112233', 'position': 0},
+            {'color': '#445566', 'position': 100},
+          ],
+        },
+      });
+      expect(res.success, isTrue);
+      expect(res.profileEventID, 30);
+    });
+
+    test('a null gradient is sent to remove the color', () async {
+      final http = FakeHttp.always({'profileEventID': 31});
+
+      await UserModule(http.dio).profile.customization.bannerColor(null);
+
+      expect(http.only.json.containsKey('color'), isTrue);
+      expect(http.only.json['color'], isNull);
+    });
+
+    test('the scalar fields hit their own route', () async {
+      final http = FakeHttp.always({'profileEventID': 32});
+      final customization = UserModule(http.dio).profile.customization;
+
+      await customization.cardEffect('glow');
+      await customization.cardBorder('neon');
+      await customization.nameFont('serif');
+      await customization.nameEffect('shadow');
+      await customization.avatarEffect('pulse');
+      await customization.avatarBorder('ring');
+      await customization.nameColor(ProfileGradient.solid('#000000'));
+
+      expect(http.requests.map((r) => r.path).toList(), [
+        '/user/profile/card/effect',
+        '/user/profile/card/border',
+        '/user/profile/name/font',
+        '/user/profile/name/effect',
+        '/user/profile/avatar/effect',
+        '/user/profile/avatar/border',
+        '/user/profile/name/color',
+      ]);
+      expect(http.requests[0].json, {'effect': 'glow'});
+      expect(http.requests[1].json, {'border': 'neon'});
+      expect(http.requests[2].json, {'font': 'serif'});
+      expect(http.requests[6].json, {
+        'color': {
+          'angle': 0,
+          'stops': [
+            {'color': '#000000', 'position': 0},
+          ],
+        },
+      });
+    });
+
+    test('reports failure when the envelope is not successful', () async {
+      final res = await UserModule(FakeHttp.failure().dio).profile.customization
+          .nameFont('serif');
+
+      expect(res.success, isFalse);
+      expect(res.profileEventID, isNull);
+    });
   });
 
   group('UserProfileUpdateModule', () {
@@ -289,9 +437,8 @@ void main() {
     test('partial PATCHes only the provided fields', () async {
       final http = FakeHttp.always({'profileEventID': 7});
 
-      final res = await UserModule(
-        http.dio,
-      ).profile.updateInfo.partial(surname: 'Hopper');
+      final res = await UserModule(http.dio).profile.updateInfo
+          .partial(surname: 'Hopper');
 
       expect(http.only.method, 'PATCH');
       expect(http.only.path, '/user/profile');
@@ -318,37 +465,51 @@ void main() {
       expect(http.adapter.callCount, 0);
     });
 
-    test('partial reports failure when the envelope is not successful', () async {
-      final res = await UserModule(
-        FakeHttp.failure().dio,
-      ).profile.updateInfo.partial(name: 'a');
-
-      expect(res.success, isFalse);
-      expect(res.profileEventID, isNull);
-    });
-
     test(
-      'the deprecated updateAll forwards to all with the same args',
+      'partial reports failure when the envelope is not successful',
       () async {
-        final http = FakeHttp.always({'profileEventID': 13});
-        final module = UserModule(http.dio);
+        final res = await UserModule(FakeHttp.failure().dio).profile.updateInfo
+            .partial(name: 'a');
 
-        // ignore: deprecated_member_use_from_same_package
-        final res = await module.profile.updateAll(
-          name: 'Grace',
-          surname: 'Hopper',
-          biography: 'COBOL',
-        );
-
-        expect(res.success, isTrue);
-        expect(res.profileEventID, 13);
-        expect(http.only.json, {
-          'name': 'Grace',
-          'surname': 'Hopper',
-          'biography': 'COBOL',
-        });
+        expect(res.success, isFalse);
+        expect(res.profileEventID, isNull);
       },
     );
+
+    test('partial serializes the birthday and the customization', () async {
+      final http = FakeHttp.always({'profileEventID': 14});
+
+      await UserModule(http.dio).profile.updateInfo.partial(
+        birthday: '1990-04-01',
+        cardBorder: 'neon',
+        cardColor: ProfileGradient.solid('#abcdef'),
+      );
+
+      expect(http.only.json, {
+        'birthday': '1990-04-01',
+        'cardBorder': 'neon',
+        'cardColor': {
+          'angle': 0,
+          'stops': [
+            {'color': '#abcdef', 'position': 0},
+          ],
+        },
+      });
+    });
+
+    test('birthday PATCHes its own route and allows a removal', () async {
+      final http = FakeHttp.always({'profileEventID': 15});
+
+      await UserModule(http.dio).profile.updateInfo.birthday('1240-03-02 BC');
+      await UserModule(http.dio).profile.updateInfo.birthday(null);
+
+      expect(http.requests.map((r) => r.path).toList(), [
+        '/user/profile/birthday',
+        '/user/profile/birthday',
+      ]);
+      expect(http.requests.first.json, {'birthday': '1240-03-02 BC'});
+      expect(http.requests.last.json, {'birthday': null});
+    });
   });
 
   group('UserProfileBadgesModule', () {
