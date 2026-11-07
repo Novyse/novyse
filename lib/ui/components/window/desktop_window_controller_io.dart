@@ -39,11 +39,20 @@ abstract final class DesktopWindowController {
 
   static Window? get current {
     try {
+      // La main window viene cachata all'init: getCurrent() dopo hide()
+      // ritorna null (nessuna finestra a fuoco) e dopo l'apertura del
+      // context menu ritorna la finestra del menu, non quella principale.
+      if (_mainWindowId != null) {
+        final w = WindowManager.instance.get(_mainWindowId!);
+        if (w != null) return w;
+      }
       return WindowManager.instance.getCurrent();
     } catch (_) {
       return null;
     }
   }
+
+  static int? _mainWindowId;
 
   static bool _isAppFocused = false;
   static DateTime? _lastFocusLoss;
@@ -79,6 +88,7 @@ abstract final class DesktopWindowController {
       _setupLifecycleListener();
       final window = WindowManager.instance.getCurrent();
       if (window == null) return;
+      _mainWindowId = window.id;
       if (!Platform.isLinux) {
         window.titleBarStyle = TitleBarStyle.hidden;
       }
@@ -144,7 +154,21 @@ abstract final class DesktopWindowController {
 
   static void showWindow() {
     _guard('showWindow', () {
-      final window = current;
+      var window = current;
+      if (window == null) {
+        try {
+          final all = WindowManager.instance.getAll();
+          if (_mainWindowId != null) {
+            for (final w in all) {
+              if (w.id == _mainWindowId) {
+                window = w;
+                break;
+              }
+            }
+          }
+          window ??= all.isNotEmpty ? all.first : null;
+        } catch (_) {}
+      }
       if (window == null) return;
       if (window.isMinimized) {
         window.restore();
@@ -157,7 +181,23 @@ abstract final class DesktopWindowController {
 
   static void toggleWindow() {
     _guard('toggleWindow', () {
-      final window = current;
+      var window = current;
+      if (window == null) {
+        try {
+          final all = WindowManager.instance.getAll();
+          if (_mainWindowId != null) {
+            for (final w in all) {
+              if (w.id == _mainWindowId) {
+                window = w;
+                break;
+              }
+            }
+          }
+          window ??= all.isNotEmpty ? all.first : null;
+        } catch (_) {
+          return;
+        }
+      }
       if (window == null) return;
 
       final isVis = window.isVisible;
@@ -169,7 +209,6 @@ abstract final class DesktopWindowController {
               DateTime.now().difference(_lastFocusLoss!).inMilliseconds < 600);
 
       final isForeground = isVis && !isMin && (isFoc || wasRecentlyFocused);
-
       if (isForeground) {
         _isAppFocused = false;
         window.hide();
