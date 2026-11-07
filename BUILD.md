@@ -51,6 +51,21 @@ Outputs are generated in the `dist/` directory.
 
 ---
 
+## Desktop Update Helper Policy
+
+`desktop_updater` checks a "portable helper policy" next to the install helper before applying an update. The upstream `release helper-policy` command only produces the macOS variant, so `scripts/build.sh` generates the Linux/Windows policy itself with `tool/generate_helper_policy.dart` right after `flutter build` and before packaging.
+
+| Platform | Policy file | Location |
+| :--- | :--- | :--- |
+| Linux | `desktop-updater-helper.policy.json` | `bundle/lib/`, next to `desktop-updater-helper` |
+| Windows | `desktop_updater_helper_policy.json` | `Release/`, next to `desktop_updater_install_helper.exe` |
+
+It pins the SHA-256 of that build's application executable and install helper, the app id, and the public release keys from `desktop_updater.keys.json`, so it must be regenerated (never hand-edited) for every build. Generation is mandatory: if the policy cannot be written, `build.sh` aborts the build rather than shipping a client that cannot update itself. Without it, installs fail with `Unable to serialize helper request: packaged helper policy identity rejected` (Linux) or `Windows helper preparation failed: Required install metadata file is unavailable` (Windows).
+
+Existing clients installed before this policy shipped cannot self-update: they need one manual reinstall of a build that contains it.
+
+---
+
 ## Verifying Release Artifacts
 
 Every official GitHub Release includes a verification table containing the SHA-256 checksums of all distributed binaries. Use the instructions and matrix below to verify that your downloaded files are authentic, intact, and untampered.

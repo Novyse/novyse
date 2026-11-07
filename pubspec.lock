@@ -349,10 +349,10 @@ packages:
     dependency: "direct main"
     description:
       name: desktop_updater
-      sha256: a959e71df6759d8f7d22be1c7b23ef9e016f9490c9a7d33af639bb5505f50d98
+      sha256: "934599c5f4e848e15d806c9f873d494539cb6f8b3d0bbab3a551f52bdb9710bb"
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.9"
+    version: "3.2.11"
   dev_build:
     dependency: transitive
     description:

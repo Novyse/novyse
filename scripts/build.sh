@@ -338,12 +338,41 @@ seed_install_identity_marker() {
   echo "✅ [DESKTOP-UPDATER] Seeded install identity marker (packageId=$APP_ID)."
 }
 
+# Writes the portable helper policy Linux/Windows install helpers require.
+# desktop_updater only generates one for macOS, so without this file clients
+# fail every install ("packaged helper policy identity rejected" on Linux,
+# "Required install metadata file is unavailable" on Windows).
+generate_helper_policy() {
+  local du_platform="$1" bundle_dir="$2"
+  if [ -z "${APP_ID:-}" ]; then
+    echo "❌ [DESKTOP-UPDATER] APP_ID empty; cannot generate the $du_platform helper policy." >&2
+    exit 1
+  fi
+  if [ ! -d "$bundle_dir" ]; then
+    echo "❌ [DESKTOP-UPDATER] Bundle not found: $bundle_dir; cannot generate the $du_platform helper policy." >&2
+    exit 1
+  fi
+  echo "🔐 [DESKTOP-UPDATER] Generating $du_platform helper policy..."
+  # A missing policy means the released client cannot auto-update at all, so a
+  # generation failure must abort the build instead of shipping a broken bundle.
+  dart run "$ROOT_DIR/tool/generate_helper_policy.dart" \
+    --platform "$du_platform" \
+    --bundle "$bundle_dir" \
+    --app-id "$APP_ID" || {
+    echo "❌ [DESKTOP-UPDATER] Helper policy generation failed for $du_platform; aborting build." >&2
+    exit 1
+  }
+  echo "✅ [DESKTOP-UPDATER] Helper policy ready for $du_platform."
+}
+
 build_linux() {
   echo "🐧 Building Linux for $APP_NAME..."
   flutter build linux --release
 
   # Ensure helper binaries retain executable permissions
   find "$ROOT_DIR/build/linux/x64/release/bundle" -type f -name "desktop-updater-helper" -exec chmod 755 {} + 2>/dev/null || true
+
+  generate_helper_policy "linux" "$ROOT_DIR/build/linux/x64/release/bundle"
 
   if [ "$SKIP_PACKAGING" -eq 0 ]; then
     echo "📦 Packaging Linux distributables..."
@@ -378,6 +407,8 @@ build_linux() {
 build_windows() {
   echo "🪟 Building Windows for $APP_NAME..."
   flutter build windows --release
+
+  generate_helper_policy "windows" "$ROOT_DIR/build/windows/x64/runner/Release"
 
   if [ "$SKIP_PACKAGING" -eq 0 ]; then
     echo "📦 Packaging Windows distributables..."
