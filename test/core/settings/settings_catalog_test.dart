@@ -90,6 +90,12 @@ void main() {
         'first_name',
         'last_name',
         'biography',
+        'birthday',
+        'name_color',
+        'banner_color',
+        'card_color',
+        'profile_banner',
+        'card_gif',
         'logout',
         'delete_profile',
         'password',
@@ -177,7 +183,7 @@ void main() {
       final fields = page.groups[0].items;
       expect(
         fields.map((i) => i.id).toList(),
-        ['first_name', 'last_name'],
+        ['first_name', 'last_name', 'birthday'],
       );
       expect(fields.every((i) => !i.disabled), isTrue);
 
@@ -188,14 +194,25 @@ void main() {
       final more = page.groups[2].items;
       expect(
         more.map((i) => i.id).toList(),
-        ['bio_status', 'name_color', 'linked_contacts'],
+        [
+          'bio_status',
+          'name_color',
+          'banner_color',
+          'card_color',
+          'linked_contacts',
+        ],
       );
-      expect(more.every((i) => i.disabled), isTrue);
+      expect(
+        more.map((i) => i.disabled).toList(),
+        [true, false, false, false, true],
+      );
 
       final media = page.groups[3].items;
-      expect(media.map((i) => i.id).toList(), ['avatar', 'profile_banner']);
-      expect(media.first.disabled, isFalse);
-      expect(media.last.disabled, isTrue);
+      expect(
+        media.map((i) => i.id).toList(),
+        ['avatar', 'profile_banner', 'card_gif'],
+      );
+      expect(media.every((i) => !i.disabled), isTrue);
     });
 
     test('loose category items follow the wiki layout', () {

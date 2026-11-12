@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Shared layout for every settings row (adapts the `production`
@@ -112,6 +113,40 @@ class SettingsBaseRow extends StatelessWidget {
     return Material(
       type: MaterialType.transparency,
       child: InkWell(onTap: tap, child: content),
+    );
+  }
+}
+
+/// Square hit target so the ripple stays circular (compact IconButton was oval).
+class SettingsClearButton extends StatelessWidget {
+  const SettingsClearButton({
+    super.key,
+    required this.onPressed,
+    this.tooltip,
+  });
+
+  final VoidCallback onPressed;
+  final String? tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 32,
+      height: 32,
+      child: IconButton(
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+        style: IconButton.styleFrom(
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: const CircleBorder(),
+        ),
+        tooltip: tooltip,
+        icon: const AppHugeIcon(
+          icon: HugeIcons.strokeRoundedCancel01,
+          size: 18,
+        ),
+        onPressed: onPressed,
+      ),
     );
   }
 }

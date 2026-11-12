@@ -63,7 +63,7 @@ class AppMenuShell extends StatelessWidget {
 /// Visual tokens shared by every context menu.
 abstract final class AppMenuTokens {
   static const double borderRadius = 24.0;
-  static const double padding = 10.0;
+  static const double padding = 8.0;
   static const double blurSigma = 18.0;
   static const double cardOpacity = 0.88;
   static const double borderOpacity = 0.35;

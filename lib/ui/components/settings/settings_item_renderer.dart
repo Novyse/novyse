@@ -19,10 +19,15 @@ import 'package:novyse/pages/app/settings/api_keys_page.dart';
 import 'package:novyse/pages/app/settings/app_icon_editor_page.dart';
 import 'package:novyse/pages/app/settings/password_page.dart';
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
+import 'package:novyse/ui/components/datetime/datetime_picker.dart';
 import 'package:novyse/ui/components/number/number_stepper.dart';
 import 'package:novyse/ui/components/settings/avatar_upload_sheet.dart';
+import 'package:novyse/ui/components/settings/banner_upload_sheet.dart';
+import 'package:novyse/ui/components/settings/card_gif_upload_sheet.dart';
 import 'package:novyse/ui/components/settings/qr_login_scanner_modal.dart';
 import 'package:novyse/ui/components/settings/settings_base_row.dart';
+import 'package:novyse/ui/components/settings/settings_color_row.dart';
+import 'package:novyse/ui/components/settings/settings_datetime_row.dart';
 import 'package:novyse/ui/components/settings/settings_external_link_row.dart';
 import 'package:novyse/ui/components/settings/settings_modal_row.dart';
 import 'package:novyse/ui/components/settings/settings_navigation_row.dart';
@@ -105,7 +110,6 @@ class SettingsItemRenderer extends ConsumerWidget {
       case SettingComponent.multiSelect:
       case SettingComponent.slider:
       case SettingComponent.textInput:
-      case SettingComponent.colorPicker:
         final raw = settingKey == null
             ? null
             : ref.watch(settingValueProvider(settingKey));
@@ -121,6 +125,57 @@ class SettingsItemRenderer extends ConsumerWidget {
             subtitle: subtitleOrNull,
             valueText: valueText,
             onTap: isDisabled ? null : () => _openSheet(context, ref),
+          ),
+        );
+
+      case SettingComponent.dateTime:
+        final dateMode =
+            switch (item.dateTimeMode ?? SettingDateTimeMode.dateTime) {
+              SettingDateTimeMode.date => DatetimePickerMode.date,
+              SettingDateTimeMode.time => DatetimePickerMode.time,
+              SettingDateTimeMode.dateTime => DatetimePickerMode.dateTime,
+            };
+        return wrapDisabled(
+          SettingsDatetimeRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            mode: dateMode,
+            value: item.dateTimeValue?.call(ref),
+            yearsBack: item.yearsBack ?? 50,
+            yearsForward: item.yearsForward ?? 50,
+            notSetLabel: context.l10n.settingsCommonNotSet,
+            clearTooltip: context.l10n.settingsCommonRemove,
+            confirmLabel: context.l10n.settingsCommonConfirm,
+            cancelLabel: context.l10n.settingsCommonCancel,
+            onChanged: isDisabled || item.onDateTimeChanged == null
+                ? null
+                : (value) => item.onDateTimeChanged!(ref, value),
+            onCleared: isDisabled || item.onDateTimeCleared == null
+                ? null
+                : () => item.onDateTimeCleared!(ref),
+          ),
+        );
+
+      case SettingComponent.colorPicker:
+        final color = item.colorValue?.call(ref) ?? const SettingColorValue();
+        return wrapDisabled(
+          SettingsColorRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            value: color.gradient,
+            angle: color.angle,
+            notSetLabel: context.l10n.settingsCommonNotSet,
+            clearTooltip: context.l10n.settingsCommonRemove,
+            gradientPreviewText: color.previewText,
+            onChanged: isDisabled || item.onColorChanged == null
+                ? null
+                : (gradient, angle) =>
+                      item.onColorChanged!(ref, gradient, angle),
+            onCleared: isDisabled || item.onColorCleared == null
+                ? null
+                : () => item.onColorCleared!(ref),
           ),
         );
 
@@ -186,9 +241,6 @@ class SettingsItemRenderer extends ConsumerWidget {
 
       case SettingComponent.hotkey:
       case SettingComponent.custom:
-        // Inline profile fields (first/last name, biography): title on top,
-        // text field below, pre-filled from the local user. Edits stay local
-        // for now — persistence/sync will be wired up separately.
         if (item.customRendererId == 'profileFirstName' ||
             item.customRendererId == 'profileLastName' ||
             item.customRendererId == 'profileBiography') {
@@ -220,8 +272,6 @@ class SettingsItemRenderer extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.all(15),
               child: SettingsTextInputRow(
-                // The revision forces a rebuild on discard, so abandoned
-                // edits are replaced by the baseline values.
                 key: ValueKey('${item.id}:${draft.revision}'),
                 title: title,
                 initialValue: initial,
@@ -280,6 +330,22 @@ class SettingsItemRenderer extends ConsumerWidget {
             title: title,
             subtitle: subtitleOrNull,
             onTap: () => unawaited(showAvatarUploadSheet(context)),
+          );
+        }
+        if (!isDisabled && item.customRendererId == 'bannerEditor') {
+          return SettingsModalRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            onTap: () => unawaited(showBannerUploadSheet(context)),
+          );
+        }
+        if (!isDisabled && item.customRendererId == 'cardGifEditor') {
+          return SettingsModalRow(
+            icon: item.icon,
+            title: title,
+            subtitle: subtitleOrNull,
+            onTap: () => unawaited(showCardGifUploadSheet(context)),
           );
         }
         if (item.customRendererId == 'appIconNotice') {
@@ -430,8 +496,6 @@ class SettingsItemRenderer extends ConsumerWidget {
         showSettingsSliderSheet(context: context, ref: ref, item: item);
       case SettingComponent.textInput:
         showSettingsTextSheet(context: context, ref: ref, item: item);
-      case SettingComponent.colorPicker:
-        showSettingsColorSheet(context: context, ref: ref, item: item);
       default:
         break;
     }

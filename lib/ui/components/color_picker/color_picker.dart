@@ -5,17 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/onboarding/onboarding_text_field.dart';
+import 'package:novyse/ui/components/switch/segmented_switch.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// Colore -> "RRGGBB" maiuscolo, senza '#'.
 String _toHex(Color c) =>
     (c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase();
 
-/// "RRGGBB" o "RGB" -> Color, null se non valido.
 Color? _parseHex(String input) {
   var t = input.trim();
   if (t.length == 3) t = t.split('').map((ch) => '$ch$ch').join();
@@ -24,7 +21,6 @@ Color? _parseHex(String input) {
   return v == null ? null : Color(0xFF000000 | v);
 }
 
-/// 0.5 -> "50%", 0.333 -> "33.3%"
 String _fmtPct(double pos) {
   final v = (pos * 1000).round() / 10;
   return v == v.roundToDouble() ? '${v.round()}%' : '${v.toStringAsFixed(1)}%';
@@ -37,86 +33,65 @@ class _UpperCaseFormatter extends TextInputFormatter {
       newValue.copyWith(text: newValue.text.toUpperCase());
 }
 
-/// Uno stop del gradiente: posizione 0..1 + colore (HSV, così non perdiamo
-/// la tonalità quando saturazione/luminosità vanno a zero).
 class _GradientStop {
   _GradientStop(this.position, this.color);
   double position;
   HSVColor color;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// NovyseColorPicker (riutilizzabile, in stile Novyse)
-// ─────────────────────────────────────────────────────────────────────────────
-
-enum NovyseColorPickerMode {
-  /// Solo colore singolo.
+enum ColorPickerMode {
   color,
-
-  /// Solo gradient con [NovyseColorPicker.gradientColors] stop iniziali.
   gradient,
 }
 
-class NovyseColorPicker extends StatefulWidget {
-  const NovyseColorPicker({
+class ColorPicker extends StatefulWidget {
+  const ColorPicker({
     super.key,
-    this.mode = NovyseColorPickerMode.color,
+    this.mode = ColorPickerMode.color,
+    this.allowModeSwitch = false,
     this.gradientColors = 2,
     this.initialColor = const Color(0xFF0F6FFF),
+    this.initialGradientColors,
+    this.initialGradientPositions,
     this.initialAngle = 90.0,
     this.showGradientAngle = false,
     this.gradientPreviewText,
     this.onColorChanged,
     this.onGradientChanged,
     this.onAngleChanged,
-  }) : assert(gradientColors >= 2, 'Un gradient ha almeno 2 colori');
+  }) : assert(gradientColors >= 2, 'gradient needs at least 2 colors');
 
-  final NovyseColorPickerMode mode;
-
-  /// Numero di colori iniziali del gradient (>= 2).
+  final ColorPickerMode mode;
+  final bool allowModeSwitch;
   final int gradientColors;
-
-  /// Colore iniziale in modalità tinta unita (blu Novyse di default).
   final Color initialColor;
+  final List<Color>? initialGradientColors;
+  final List<double>? initialGradientPositions;
 
-  /// Angolo iniziale del gradient in gradi, convenzione CSS
-  /// (0 = verso l'alto, 90 = verso destra, 180 = verso il basso,
-  /// 270 = verso sinistra). Default 90 = orizzontale verso destra.
+  /// CSS degrees: 0 = up, 90 = right, clockwise.
   final double initialAngle;
-
-  /// Se true, in modalità gradient mostra lo slider 0-360° per la direzione.
   final bool showGradientAngle;
-
-  /// Se non null, in modalità gradient mostra questo testo di esempio con
-  /// il gradient applicato sopra (live preview). Null = nascosto.
   final String? gradientPreviewText;
-
   final ValueChanged<Color>? onColorChanged;
   final ValueChanged<LinearGradient>? onGradientChanged;
   final ValueChanged<double>? onAngleChanged;
 
   @override
-  State<NovyseColorPicker> createState() => _NovyseColorPickerState();
+  State<ColorPicker> createState() => _ColorPickerState();
 }
 
-class _NovyseColorPickerState extends State<NovyseColorPicker> {
+class _ColorPickerState extends State<ColorPicker> {
   late HSVColor _solid;
 
   late List<_GradientStop> _stops;
   late _GradientStop _selected;
-
-  /// Angolo del gradient in gradi, convenzione CSS
-  /// (0 = alto, 90 = destra, 180 = basso, 270 = sinistra).
   late double _angleDegrees;
+  late bool _gradientMode;
 
   final TextEditingController _hexCtrl = TextEditingController();
   final FocusNode _hexFocus = FocusNode();
 
-  /// La modalità è decisa dal chiamante via [NovyseColorPicker.mode]:
-  /// niente switch interno, si mostra o il colore singolo o il gradient.
-  bool get _gradientMode => widget.mode == NovyseColorPickerMode.gradient;
-
-  // Blocca lo scroll del foglio mentre trascini la wheel.
+  // Locks sheet scroll while dragging the wheel / angle dial.
   bool _scrollLocked = false;
 
   @override
@@ -124,7 +99,8 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
     super.initState();
     _solid = HSVColor.fromColor(widget.initialColor);
     _angleDegrees = widget.initialAngle.clamp(0.0, 360.0);
-    _stops = _initialStops(widget.gradientColors);
+    _gradientMode = widget.mode == ColorPickerMode.gradient;
+    _stops = _buildInitialStops();
     _selected = _stops.first;
     _hexFocus.addListener(() {
       if (!_hexFocus.hasFocus) _syncHex();
@@ -133,10 +109,15 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
   }
 
   @override
-  void didUpdateWidget(NovyseColorPicker old) {
+  void didUpdateWidget(ColorPicker old) {
     super.didUpdateWidget(old);
-    if (old.gradientColors != widget.gradientColors) {
-      _stops = _initialStops(widget.gradientColors);
+    if (!widget.allowModeSwitch && old.mode != widget.mode) {
+      _gradientMode = widget.mode == ColorPickerMode.gradient;
+    }
+    if (old.gradientColors != widget.gradientColors ||
+        old.initialGradientColors != widget.initialGradientColors ||
+        old.initialGradientPositions != widget.initialGradientPositions) {
+      _stops = _buildInitialStops();
       _selected = _stops.first;
     }
     if (old.initialColor != widget.initialColor && !_gradientMode) {
@@ -155,7 +136,25 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
     super.dispose();
   }
 
-  List<_GradientStop> _initialStops(int n) {
+  List<_GradientStop> _buildInitialStops() {
+    final colors = widget.initialGradientColors;
+    if (colors != null && colors.length >= 2) {
+      final positions = widget.initialGradientPositions;
+      return [
+        for (var i = 0; i < colors.length; i++)
+          _GradientStop(
+            (positions != null && i < positions.length
+                    ? positions[i]
+                    : i / (colors.length - 1))
+                .clamp(0.0, 1.0),
+            HSVColor.fromColor(colors[i]),
+          ),
+      ];
+    }
+    return _defaultStops(widget.gradientColors);
+  }
+
+  List<_GradientStop> _defaultStops(int n) {
     n = math.max(2, n);
     if (n == 2) {
       return [
@@ -166,11 +165,40 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
     return List.generate(n, (i) {
       final t = i / (n - 1);
       return _GradientStop(
-          t, HSVColor.fromAHSV(1, (215 + 300 * t) % 360, 0.8, 0.9));
+        t,
+        HSVColor.fromAHSV(1, (215 + 300 * t) % 360, 0.8, 0.9),
+      );
     });
   }
 
-  // Colore attualmente "sotto modifica": quello solido o lo stop selezionato.
+  void _setMode(ColorPickerMode next) {
+    if (!widget.allowModeSwitch) return;
+    final toGradient = next == ColorPickerMode.gradient;
+    if (toGradient == _gradientMode) return;
+    setState(() {
+      if (toGradient) {
+        if (_stops.length < 2) {
+          _stops = [
+            _GradientStop(0.0, _solid),
+            _GradientStop(
+              1.0,
+              _solid.withHue((_solid.hue + 40) % 360),
+            ),
+          ];
+        } else {
+          _stops.first.color = _solid;
+        }
+        _selected = _stops.first;
+        _gradientMode = true;
+      } else {
+        _solid = _selected.color;
+        _gradientMode = false;
+      }
+    });
+    _syncHex();
+    _notify();
+  }
+
   HSVColor get _active => _gradientMode ? _selected.color : _solid;
 
   void _setActive(HSVColor c, {bool syncHex = true}) {
@@ -200,7 +228,7 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
     if (c == null) return;
     var hsv = HSVColor.fromColor(c);
     final old = _active;
-    // Grigi e nero: la tonalità non è definita, teniamo quella di prima.
+    // Greys/black have no hue — keep the previous one.
     if (hsv.saturation == 0 || hsv.value == 0) hsv = hsv.withHue(old.hue);
     if (hsv.value == 0) hsv = hsv.withSaturation(old.saturation);
     _setActive(hsv, syncHex: false);
@@ -218,16 +246,12 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
     }
   }
 
-  // ── Gradient ──────────────────────────────────────────────────────────────
-
   List<_GradientStop> get _sortedStops =>
       [..._stops]..sort((a, b) => a.position.compareTo(b.position));
 
   LinearGradient _buildGradient() {
     final s = _sortedStops;
-    // Stessa convenzione del CSS: 0° = verso l'alto, angoli in senso orario.
-    // In coordinate Flutter (y verso il basso) la direzione è
-    // (sin, -cos): 0° -> alto, 90° -> destra, 180° -> basso, 270° -> sinistra.
+    // CSS angle → Flutter (y down): direction (sin, -cos).
     final rad = _angleDegrees * math.pi / 180;
     final dx = math.sin(rad);
     final dy = -math.cos(rad);
@@ -243,38 +267,6 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
     setState(() => _angleDegrees = value.clamp(0.0, 360.0));
     widget.onAngleChanged?.call(_angleDegrees);
     _notify();
-  }
-
-  /// Testo leggibile + riga CSS, è quello mostrato (e copiato) dal campo risultato.
-  String _gradientText() {
-    final s = _sortedStops;
-    final b = StringBuffer('Gradient lineare · ${s.length} colori\n');
-    for (var i = 0; i < s.length; i++) {
-      b.writeln(
-          '${i + 1}) #${_toHex(s[i].color.toColor())} — ${_fmtPct(s[i].position)}');
-    }
-    final css = s
-        .map((e) => '#${_toHex(e.color.toColor())} ${_fmtPct(e.position)}')
-        .join(', ');
-    // Slider e CSS parlano la stessa lingua: il valore dello slider
-    // È già l'angolo CSS (0° = verso l'alto, 90° = verso destra).
-    final cssDeg = _angleDegrees % 360;
-    final cssDegText = cssDeg == cssDeg.roundToDouble()
-        ? '${cssDeg.round()}°'
-        : '${cssDeg.toStringAsFixed(1)}°';
-    b.write('CSS: linear-gradient($cssDegText, $css)');
-    return b.toString();
-  }
-
-  Future<void> _copyResult() async {
-    await Clipboard.setData(ClipboardData(text: _gradientText()));
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Copiato negli appunti'),
-        duration: Duration(seconds: 2),
-      ),
-    );
   }
 
   HSVColor _colorAt(double t) {
@@ -313,7 +305,6 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
     _notify();
   }
 
-  /// Bottone "+": aggiunge un colore a metà del buco più largo.
   void _addStopAtLargestGap() {
     final s = _sortedStops;
     var bestPos = 0.5;
@@ -339,13 +330,13 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
     _notify();
   }
 
-  // ── UI ────────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     final active = _active;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final l10n = context.l10n;
+    final selectedIndex = _sortedStops.indexOf(_selected) + 1;
 
     return SingleChildScrollView(
       physics: _scrollLocked ? const NeverScrollableScrollPhysics() : null,
@@ -356,13 +347,33 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Wheel + quadrato S/V
+              if (widget.allowModeSwitch) ...[
+                SegmentedSwitch<ColorPickerMode>(
+                  value: _gradientMode
+                      ? ColorPickerMode.gradient
+                      : ColorPickerMode.color,
+                  segmentMinWidth: 110,
+                  options: [
+                    SegmentedOption(
+                      value: ColorPickerMode.color,
+                      label: l10n.colorPickerModeColor,
+                    ),
+                    SegmentedOption(
+                      value: ColorPickerMode.gradient,
+                      label: l10n.colorPickerModeGradient,
+                    ),
+                  ],
+                  onChanged: _setMode,
+                ),
+                const SizedBox(height: 20),
+              ],
+
               Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 320),
                   child: AspectRatio(
                     aspectRatio: 1,
-                    child: NovyseColorWheel(
+                    child: ColorWheel(
                       color: active,
                       onChanged: _setActive,
                       onDragging: _setScrollLocked,
@@ -372,7 +383,6 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
               ),
               const SizedBox(height: 24),
 
-              // Preview live
               if (!_gradientMode)
                 Container(
                   height: 72,
@@ -395,19 +405,23 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Colore ${_sortedStops.indexOf(_selected) + 1} di '
-                        '${_stops.length} · ${_fmtPct(_selected.position)}',
+                        '${l10n.colorPickerStopLabel(selectedIndex, _stops.length)}'
+                        ' · ${_fmtPct(_selected.position)}',
                         style: theme.textTheme.bodyMedium,
                       ),
                     ),
-                    Text('Colori', style: theme.textTheme.bodyMedium),
+                    Text(
+                      l10n.colorPickerColors,
+                      style: theme.textTheme.bodyMedium,
+                    ),
                     const SizedBox(width: 4),
                     IconButton.outlined(
                       visualDensity: VisualDensity.compact,
-                      tooltip: 'Rimuovi il colore selezionato',
+                      tooltip: l10n.colorPickerRemoveColor,
                       onPressed: _stops.length > 2 ? _removeSelected : null,
                       icon: const AppHugeIcon(
-                          icon: HugeIcons.strokeRoundedMinusSign),
+                        icon: HugeIcons.strokeRoundedMinusSign,
+                      ),
                     ),
                     SizedBox(
                       width: 30,
@@ -419,52 +433,27 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
                     ),
                     IconButton.outlined(
                       visualDensity: VisualDensity.compact,
-                      tooltip: 'Aggiungi un colore',
+                      tooltip: l10n.colorPickerAddColor,
                       onPressed: _addStopAtLargestGap,
-                      icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedPlus),
+                      icon: const AppHugeIcon(
+                        icon: HugeIcons.strokeRoundedPlus,
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Minimo 2 colori. Tocca la barra per aggiungerne uno, '
-                  'trascina i marker per spostarli.',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: scheme.onSurfaceVariant),
-                ),
-                // Slider direzione 0-360° (solo se richiesto via proprietà).
                 if (widget.showGradientAngle) ...[
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Angolo',
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ),
-                      Text(
-                        '${_angleDegrees.round()}°',
-                        style: theme.textTheme.titleMedium,
-                      ),
-                    ],
-                  ),
-                  Slider(
-                    value: _angleDegrees,
-                    min: 0,
-                    max: 360,
-                    divisions: 360,
-                    label: '${_angleDegrees.round()}°',
+                  const SizedBox(height: 16),
+                  _GradientAngleControl(
+                    angleDegrees: _angleDegrees,
+                    gradient: _buildGradient(),
                     onChanged: _setAngle,
+                    onDragging: _setScrollLocked,
                   ),
                 ],
-                // Testo di esempio con il gradient applicato (solo se
-                // richiesto via proprietà). Live: segue colori e angolo.
                 if (widget.gradientPreviewText != null) ...[
                   const SizedBox(height: 12),
                   ShaderMask(
-                    shaderCallback: (bounds) =>
-                        _buildGradient().createShader(
+                    shaderCallback: (bounds) => _buildGradient().createShader(
                       Rect.fromLTWH(0, 0, bounds.width, bounds.height),
                     ),
                     child: Text(
@@ -472,7 +461,7 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
                       textAlign: TextAlign.center,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.white, // necessario per lo ShaderMask
+                        color: Colors.white, // required by ShaderMask
                       ),
                     ),
                   ),
@@ -480,52 +469,38 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
               ],
               const SizedBox(height: 20),
 
-              // Hex (del colore singolo o dello stop selezionato)
-              TextField(
+              OnboardingTextField(
+                label: l10n.colorPickerHexLabel,
+                hint: l10n.colorPickerHexHint,
                 controller: _hexCtrl,
                 focusNode: _hexFocus,
                 maxLength: 6,
                 autocorrect: false,
                 enableSuggestions: false,
                 textCapitalization: TextCapitalization.characters,
+                keyboardType: TextInputType.visiblePassword,
+                textInputAction: TextInputAction.done,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp('[0-9a-fA-F]')),
                   _UpperCaseFormatter(),
                 ],
-                decoration: const InputDecoration(
-                  labelText: 'HEX',
-                  prefixText: '#',
-                  counterText: '',
-                  border: OutlineInputBorder(),
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 4),
+                  child: Align(
+                    widthFactor: 1,
+                    alignment: Alignment.center,
+                    child: Text(
+                      '#',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ),
                 onChanged: _onHexChanged,
-                onSubmitted: (_) => _syncHex(),
+                onFieldSubmitted: (_) => _syncHex(),
               ),
-
-              // Risultato del gradient: sola lettura + copia
-              if (_gradientMode) ...[
-                const SizedBox(height: 16),
-                InputDecorator(
-                  decoration: InputDecoration(
-                    labelText: 'Risultato gradient',
-                    border: const OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      tooltip: 'Copia',
-                      icon: const AppHugeIcon(
-                          icon: HugeIcons.strokeRoundedCopy01),
-                      onPressed: _copyResult,
-                    ),
-                  ),
-                  child: SelectableText(
-                    _gradientText(),
-                    style: const TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 13,
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -534,9 +509,204 @@ class _NovyseColorPickerState extends State<NovyseColorPicker> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Color wheel + quadrato saturazione/luminosità
-// ─────────────────────────────────────────────────────────────────────────────
+class _GradientAngleControl extends StatelessWidget {
+  const _GradientAngleControl({
+    required this.angleDegrees,
+    required this.gradient,
+    required this.onChanged,
+    this.onDragging,
+  });
+
+  final double angleDegrees;
+  final LinearGradient gradient;
+  final ValueChanged<double> onChanged;
+  final ValueChanged<bool>? onDragging;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        _GradientAngleDial(
+          angleDegrees: angleDegrees,
+          gradient: gradient,
+          onChanged: onChanged,
+          onDragging: onDragging,
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.colorPickerAngle,
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ),
+                  Text(
+                    '${angleDegrees.round()}°',
+                    style: theme.textTheme.titleMedium,
+                  ),
+                ],
+              ),
+              Slider(
+                value: angleDegrees,
+                min: 0,
+                max: 360,
+                divisions: 360,
+                label: '${angleDegrees.round()}°',
+                onChanged: onChanged,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GradientAngleDial extends StatefulWidget {
+  const _GradientAngleDial({
+    required this.angleDegrees,
+    required this.gradient,
+    required this.onChanged,
+    this.onDragging,
+  });
+
+  final double angleDegrees;
+  final LinearGradient gradient;
+  final ValueChanged<double> onChanged;
+  final ValueChanged<bool>? onDragging;
+
+  @override
+  State<_GradientAngleDial> createState() => _GradientAngleDialState();
+}
+
+class _GradientAngleDialState extends State<_GradientAngleDial> {
+  static const double _size = 88;
+
+  void _updateFromLocal(Offset local) {
+    const center = Offset(_size / 2, _size / 2);
+    final dx = local.dx - center.dx;
+    final dy = local.dy - center.dy;
+    if (dx == 0 && dy == 0) return;
+    // Screen atan2 → CSS degrees (0 = up, clockwise).
+    var deg = math.atan2(dx, -dy) * 180 / math.pi;
+    if (deg < 0) deg += 360;
+    widget.onChanged(deg);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return SizedBox(
+      width: _size,
+      height: _size,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        dragStartBehavior: DragStartBehavior.down,
+        onPanStart: (d) {
+          widget.onDragging?.call(true);
+          _updateFromLocal(d.localPosition);
+        },
+        onPanUpdate: (d) => _updateFromLocal(d.localPosition),
+        onPanEnd: (_) => widget.onDragging?.call(false),
+        onPanCancel: () => widget.onDragging?.call(false),
+        child: CustomPaint(
+          painter: _AngleDialPainter(
+            angleDegrees: widget.angleDegrees,
+            gradient: widget.gradient,
+            outline: scheme.outlineVariant,
+            arrow: scheme.onSurface,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AngleDialPainter extends CustomPainter {
+  _AngleDialPainter({
+    required this.angleDegrees,
+    required this.gradient,
+    required this.outline,
+    required this.arrow,
+  });
+
+  final double angleDegrees;
+  final LinearGradient gradient;
+  final Color outline;
+  final Color arrow;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.shortestSide / 2;
+
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()..shader = gradient.createShader(rect),
+    );
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..color = outline,
+    );
+
+    final rad = angleDegrees * math.pi / 180;
+    final dir = Offset(math.sin(rad), -math.cos(rad));
+    final tip = center + dir * (radius * 0.78);
+    final tail = center - dir * (radius * 0.28);
+
+    final line = Paint()
+      ..color = arrow
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(tail, tip, line);
+
+    final ortho = Offset(-dir.dy, dir.dx);
+    final headBase = tip - dir * 10;
+    final head = Path()
+      ..moveTo(tip.dx, tip.dy)
+      ..lineTo(
+        headBase.dx + ortho.dx * 6,
+        headBase.dy + ortho.dy * 6,
+      )
+      ..lineTo(
+        headBase.dx - ortho.dx * 6,
+        headBase.dy - ortho.dy * 6,
+      )
+      ..close();
+    canvas.drawPath(head, Paint()..color = arrow);
+
+    canvas.drawCircle(center, 4, Paint()..color = arrow);
+    canvas.drawCircle(
+      center,
+      4,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..color = Colors.white,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_AngleDialPainter old) =>
+      old.angleDegrees != angleDegrees ||
+      old.gradient != gradient ||
+      old.outline != outline ||
+      old.arrow != arrow;
+}
 
 enum _Zone { ring, square }
 
@@ -554,8 +724,8 @@ class _WheelGeometry {
       center: center, width: innerR * 1.28, height: innerR * 1.28);
 }
 
-class NovyseColorWheel extends StatefulWidget {
-  const NovyseColorWheel({
+class ColorWheel extends StatefulWidget {
+  const ColorWheel({
     super.key,
     required this.color,
     required this.onChanged,
@@ -567,10 +737,10 @@ class NovyseColorWheel extends StatefulWidget {
   final ValueChanged<bool>? onDragging;
 
   @override
-  State<NovyseColorWheel> createState() => _NovyseColorWheelState();
+  State<ColorWheel> createState() => _ColorWheelState();
 }
 
-class _NovyseColorWheelState extends State<NovyseColorWheel> {
+class _ColorWheelState extends State<ColorWheel> {
   _Zone? _zone;
 
   void _handle(Offset p, Size size, {bool start = false}) {
@@ -613,12 +783,8 @@ class _NovyseColorWheelState extends State<NovyseColorWheel> {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, c) {
       final size = Size.square(c.biggest.shortestSide);
-      // Claim immediato: con DragStartBehavior.down questo detector vince
-      // l'arena dei gesture AL TOCCO, prima che la scroll view del foglio
-      // (o il drag-to-dismiss del bottom sheet) possa partire. Così
-      // trascinare il pallino non scrolla più la pagina. I due assi fanno
-      // la stessa cosa: basta che uno dei due vinca, la posizione del
-      // dito è comunque 2D.
+      // DragStartBehavior.down wins the gesture arena on touch so the
+      // sheet does not scroll while dragging. Both axes do the same work.
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
         dragStartBehavior: DragStartBehavior.down,
@@ -674,7 +840,6 @@ class _WheelPainter extends CustomPainter {
     final g = _WheelGeometry(size);
     final pureHue = HSVColor.fromAHSV(1, color.hue, 1, 1).toColor();
 
-    // Anello delle tonalità
     canvas.drawCircle(
       g.center,
       g.outerR - g.ringW / 2,
@@ -685,7 +850,6 @@ class _WheelPainter extends CustomPainter {
             .createShader(Rect.fromCircle(center: g.center, radius: g.outerR)),
     );
 
-    // Quadrato: bianco -> colore (orizzontale), trasparente -> nero (verticale)
     final rect = g.square;
     final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(6));
     canvas.drawRRect(
@@ -704,7 +868,6 @@ class _WheelPainter extends CustomPainter {
         ).createShader(rect),
     );
 
-    // Thumb tonalità
     final ang = color.hue * math.pi / 180;
     final ringR = g.outerR - g.ringW / 2;
     _thumb(
@@ -715,7 +878,6 @@ class _WheelPainter extends CustomPainter {
       pureHue,
     );
 
-    // Thumb saturazione/luminosità
     _thumb(
       canvas,
       Offset(rect.left + color.saturation * rect.width,
@@ -729,18 +891,9 @@ class _WheelPainter extends CustomPainter {
   bool shouldRepaint(_WheelPainter old) => old.color != color;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Editor gradient: barra + marker trascinabili
-//
-// FIX teletrasporto: i marker sono solo grafica (IgnorePointer). UN SOLO
-// GestureDetector copre tutta la corsia dei marker: al tocco aggancia lo
-// stop più vicino entro il raggio di presa, lo seleziona e muove SOLO
-// quello. Prima invece ogni marker aveva un suo detector con area di tocco
-// larga 36px: con stop vicini le aree si sovrapponevano, il marker
-// selezionato (disegnato sopra) vinceva l'arena dei gesture anche premendo
-// sull'altro, e lo stop vecchio veniva trascinato al dito ("teletrasporto").
-// Ora è strutturalmente impossibile muovere lo stop sbagliato.
-// ─────────────────────────────────────────────────────────────────────────────
+// Gradient bar: markers are paint-only (IgnorePointer). One GestureDetector
+// on the lane grabs the nearest stop within [_grabRadius] — per-marker
+// hitboxes used to overlap and drag the wrong stop ("teleport").
 
 class _GradientEditor extends StatefulWidget {
   const _GradientEditor({
@@ -766,8 +919,6 @@ class _GradientEditorState extends State<_GradientEditor> {
   static const double _markerW = 22;
   static const double _markerH = 30;
 
-  /// Raggio di presa in px: oltre questa distanza dal marker più vicino
-  /// il tocco sulla corsia viene ignorato.
   static const double _grabRadius = 32;
 
   _GradientStop? _dragging;
@@ -789,14 +940,11 @@ class _GradientEditorState extends State<_GradientEditor> {
         stops: sorted.map((s) => s.position).toList(),
       );
 
-      // Lo stop selezionato va in cima (ultimo = sopra).
       final ordered = [
         ...widget.stops.where((s) => s != widget.selected),
         widget.selected,
       ];
 
-      /// Stop più vicino a [dx] (px dalla sinistra della barra), null se
-      /// troppo lontano.
       _GradientStop? nearestStop(double dx) {
         _GradientStop? best;
         var bestDist = _grabRadius;
@@ -815,7 +963,6 @@ class _GradientEditorState extends State<_GradientEditor> {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            // Barra: tocco = aggiungi stop.
             Positioned(
               left: pad,
               right: pad,
@@ -834,8 +981,6 @@ class _GradientEditorState extends State<_GradientEditor> {
                 ),
               ),
             ),
-            // Corsia marker: UN SOLO detector. Al tocco trascina lo stop
-            // più vicino; gli altri non si muovono mai.
             Positioned(
               left: 0,
               right: 0,
@@ -869,7 +1014,6 @@ class _GradientEditorState extends State<_GradientEditor> {
                 onHorizontalDragCancel: () => _dragging = null,
               ),
             ),
-            // Marker: solo grafica, nessun gesture (vedi FIX sopra).
             for (final s in ordered)
               Positioned(
                 left: pad + s.position * barW - _markerW / 2,

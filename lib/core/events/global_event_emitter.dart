@@ -258,8 +258,12 @@ class UserProfileEmitter {
       'name': (value) => profile.name.update(userUUID, value),
       'surname': (value) => profile.surname.update(userUUID, value),
       'biography': (value) => profile.biography.update(userUUID, value),
-      'profilePictureUUID': (value) =>
-          profile.picture.update(userUUID, value?.toString() ?? ''),
+      'profilePictureUUID': (value) {
+        // Explicit null clears; '' used to be a silent no-op.
+        final uuid = value?.toString() ?? '';
+        if (uuid.isEmpty) return profile.picture.clear(userUUID);
+        return profile.picture.update(userUUID, uuid);
+      },
       'birthday': (value) => profile.birthday.update(userUUID, value),
       'region': (value) => profile.region.update(userUUID, value),
       'country': (value) => profile.country.update(userUUID, value),

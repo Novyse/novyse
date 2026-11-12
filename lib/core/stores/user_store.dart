@@ -147,11 +147,7 @@ class UserModel {
     );
   }
 
-  /// Applies a delta payload of the profile.
-  ///
-  /// Only the keys the payload carries are changed: an explicit `null` clears
-  /// the field (the backend sends one when a banner or a color is removed),
-  /// a missing key leaves the current value untouched.
+  /// Delta apply: present keys update (`null` clears); missing keys untouched.
   UserModel mergeProfile(Map<String, dynamic> updates) {
     final customization = updates['customization'] is Map
         ? Map<String, dynamic>.from(updates['customization'] as Map)
@@ -345,6 +341,7 @@ class UserNotifier extends Notifier<UserStoreState> {
     try {
       final db = AppDatabase.instance;
       final rawUsers = await db.user.get.all();
+      final localUUID = await onboardingManager.getUserUUID() ?? '';
 
       final usersMap = <String, UserModel>{};
       for (final raw in rawUsers) {
@@ -352,7 +349,6 @@ class UserNotifier extends Notifier<UserStoreState> {
         usersMap[user.uuid] = user;
       }
 
-      final localUUID = await onboardingManager.getUserUUID() ?? '';
       if (usersMap.containsKey(localUUID)) {
         usersMap[localUUID] = usersMap[localUUID]!.copyWith(status: 'ONLINE');
       }

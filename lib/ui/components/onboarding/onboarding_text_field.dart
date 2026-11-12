@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
@@ -8,6 +9,7 @@ class OnboardingTextField extends StatefulWidget {
     required this.label,
     required this.hint,
     this.controller,
+    this.focusNode,
     this.keyboardType,
     this.obscureText = false,
     this.prefixIcon,
@@ -21,11 +23,17 @@ class OnboardingTextField extends StatefulWidget {
     this.onEditingComplete,
     this.onFieldSubmitted,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
+    this.inputFormatters,
+    this.maxLength,
+    this.textCapitalization = TextCapitalization.none,
+    this.enableSuggestions = true,
+    this.autocorrect = true,
   });
 
   final String label;
   final String hint;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final TextInputType? keyboardType;
   final bool obscureText;
   final Widget? prefixIcon;
@@ -40,6 +48,11 @@ class OnboardingTextField extends StatefulWidget {
   final VoidCallback? onEditingComplete;
   final ValueChanged<String>? onFieldSubmitted;
   final AutovalidateMode autovalidateMode;
+  final List<TextInputFormatter>? inputFormatters;
+  final int? maxLength;
+  final TextCapitalization textCapitalization;
+  final bool enableSuggestions;
+  final bool autocorrect;
 
   @override
   State<OnboardingTextField> createState() => _OnboardingTextFieldState();
@@ -84,6 +97,7 @@ class _OnboardingTextFieldState extends State<OnboardingTextField> {
   Widget _input(ThemeData theme, Widget? suffix) {
     final field = TextFormField(
           controller: widget.controller,
+          focusNode: widget.focusNode,
           keyboardType: widget.keyboardType,
           obscureText: _obscured,
           validator: widget.validator,
@@ -93,13 +107,17 @@ class _OnboardingTextFieldState extends State<OnboardingTextField> {
           onEditingComplete: widget.onEditingComplete,
           onFieldSubmitted: widget.onFieldSubmitted,
           autovalidateMode: widget.autovalidateMode,
-          enableSuggestions: !widget.obscureText,
-          autocorrect: !widget.obscureText,
+          inputFormatters: widget.inputFormatters,
+          maxLength: widget.maxLength,
+          textCapitalization: widget.textCapitalization,
+          enableSuggestions: widget.obscureText ? false : widget.enableSuggestions,
+          autocorrect: widget.obscureText ? false : widget.autocorrect,
           style: TextStyle(color: theme.colorScheme.onSurface),
           decoration: InputDecoration(
             hintText: widget.hint,
             hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
             errorStyle: TextStyle(color: theme.colorScheme.error),
+            counterText: '',
             prefixIcon: widget.prefixIcon,
             suffixIcon: suffix,
             filled: true,

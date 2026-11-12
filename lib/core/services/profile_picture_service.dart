@@ -101,6 +101,192 @@ class ProfilePictureService {
     }
   }
 
+  Future<bool> uploadBannerPicture({
+    required String userUUID,
+    required String name,
+    required String mimeType,
+    required Uint8List bytes,
+  }) async {
+    if (userUUID.isEmpty || bytes.isEmpty) return false;
+    if (bytes.length > maxProfilePictureBytes) return false;
+    final safeName = name.trim().isEmpty ? 'banner.jpg' : name.trim();
+    final safeMime = mimeType.trim().isEmpty
+        ? 'application/octet-stream'
+        : mimeType;
+
+    try {
+      final presign = await _gateway.user.profile.banner.update(
+        safeName,
+        safeMime,
+        bytes.length,
+      );
+      final fileUUID = presign.fileUUID;
+      final uploadURL = presign.uploadURL;
+      if (!presign.success ||
+          fileUUID == null ||
+          fileUUID.isEmpty ||
+          uploadURL == null ||
+          uploadURL.isEmpty) {
+        return false;
+      }
+
+      final uploaded = await _s3Adapter.upload(
+        uploadURL: uploadURL,
+        fileUUID: fileUUID,
+        bytes: bytes,
+        mimeType: safeMime,
+      );
+      if (!uploaded) return false;
+
+      final confirm = await _gateway.user.profile.banner.confirm(fileUUID);
+      if (!confirm.success) return false;
+
+      final confirmedUUID = confirm.fileUUID;
+      final linkedUUID = (confirmedUUID != null && confirmedUUID.isNotEmpty)
+          ? confirmedUUID
+          : fileUUID;
+
+      final ref = (await _storage.save.byBytes(bytes, linkedUUID)).ref;
+
+      await _database.file.add(
+        linkedUUID,
+        safeName,
+        safeMime,
+        bytes.length,
+        ref: ref,
+      );
+
+      await GlobalEventEmitter.instance.user.profile.update({
+        'userUUID': userUUID,
+        'bannerPictureUUID': linkedUUID,
+      }, confirm.profileEventID);
+
+      return true;
+    } catch (e) {
+      debugPrint('ProfilePictureService: uploadBannerPicture error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> removeProfilePicture({required String userUUID}) async {
+    if (userUUID.isEmpty) return false;
+    try {
+      final res = await _gateway.user.profile.picture.remove();
+      if (!res.success) return false;
+
+      await GlobalEventEmitter.instance.user.profile.update({
+        'userUUID': userUUID,
+        'profilePictureUUID': null,
+      }, res.profileEventID);
+
+      return true;
+    } catch (e) {
+      debugPrint('ProfilePictureService: removeProfilePicture error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> removeBannerPicture({required String userUUID}) async {
+    if (userUUID.isEmpty) return false;
+    try {
+      final res = await _gateway.user.profile.banner.remove();
+      if (!res.success) return false;
+
+      await GlobalEventEmitter.instance.user.profile.update({
+        'userUUID': userUUID,
+        'bannerPictureUUID': null,
+      }, res.profileEventID);
+
+      return true;
+    } catch (e) {
+      debugPrint('ProfilePictureService: removeBannerPicture error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> uploadCardPicture({
+    required String userUUID,
+    required String name,
+    required String mimeType,
+    required Uint8List bytes,
+  }) async {
+    if (userUUID.isEmpty || bytes.isEmpty) return false;
+    if (bytes.length > maxProfilePictureBytes) return false;
+    final safeName = name.trim().isEmpty ? 'card.gif' : name.trim();
+    final safeMime = mimeType.trim().isEmpty ? 'image/gif' : mimeType;
+
+    try {
+      final presign = await _gateway.user.profile.card.update(
+        safeName,
+        safeMime,
+        bytes.length,
+      );
+      final fileUUID = presign.fileUUID;
+      final uploadURL = presign.uploadURL;
+      if (!presign.success ||
+          fileUUID == null ||
+          fileUUID.isEmpty ||
+          uploadURL == null ||
+          uploadURL.isEmpty) {
+        return false;
+      }
+
+      final uploaded = await _s3Adapter.upload(
+        uploadURL: uploadURL,
+        fileUUID: fileUUID,
+        bytes: bytes,
+        mimeType: safeMime,
+      );
+      if (!uploaded) return false;
+
+      final confirm = await _gateway.user.profile.card.confirm(fileUUID);
+      if (!confirm.success) return false;
+
+      final confirmedUUID = confirm.fileUUID;
+      final linkedUUID = (confirmedUUID != null && confirmedUUID.isNotEmpty)
+          ? confirmedUUID
+          : fileUUID;
+
+      final ref = (await _storage.save.byBytes(bytes, linkedUUID)).ref;
+
+      await _database.file.add(
+        linkedUUID,
+        safeName,
+        safeMime,
+        bytes.length,
+        ref: ref,
+      );
+
+      await GlobalEventEmitter.instance.user.profile.update({
+        'userUUID': userUUID,
+        'cardPictureUUID': linkedUUID,
+      }, confirm.profileEventID);
+
+      return true;
+    } catch (e) {
+      debugPrint('ProfilePictureService: uploadCardPicture error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> removeCardPicture({required String userUUID}) async {
+    if (userUUID.isEmpty) return false;
+    try {
+      final res = await _gateway.user.profile.card.remove();
+      if (!res.success) return false;
+
+      await GlobalEventEmitter.instance.user.profile.update({
+        'userUUID': userUUID,
+        'cardPictureUUID': null,
+      }, res.profileEventID);
+
+      return true;
+    } catch (e) {
+      debugPrint('ProfilePictureService: removeCardPicture error: $e');
+      return false;
+    }
+  }
+
   /// Downloads profile picture metadata from the server, fetches file bytes from S3,
   /// saves to local storage, and updates SQLite database ref.
   Future<String?> downloadProfilePicture(String fileUUID) async {

@@ -119,6 +119,20 @@ class FileHandler {
     return null;
   }
 
+  static Future<PickedFileAsset?> pickSingleGif() async {
+    try {
+      final file = await FilePicker.pickFile(
+        type: FileType.custom,
+        allowedExtensions: const ['gif'],
+      );
+      if (file == null) return null;
+      return await PickedFileAsset.fromPlatformFile(file);
+    } catch (e) {
+      debugPrint('FileHandler pickSingleGif error: $e');
+    }
+    return null;
+  }
+
   /// Picks images only.
   static Future<List<PickedFileAsset>> pickImage() async {
     try {

@@ -14,17 +14,17 @@ import 'package:novyse/ui/components/image_crop/image_crop.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
 
-/// Opens the system image picker and returns one file, or null if cancelled.
 typedef AvatarImagePicker = Future<PickedFileAsset?> Function();
 
-/// Uploads the chosen image. Returns true when the profile photo is updated.
 typedef AvatarImageUploader = Future<bool> Function(PickedFileAsset asset);
 
-/// Profile photo editor. Bottom sheet on mobile, dialog on larger screens.
+typedef AvatarImageRemover = Future<bool> Function();
+
 Future<void> showAvatarUploadSheet(
   BuildContext context, {
   AvatarImagePicker? pickImage,
   AvatarImageUploader? uploadImage,
+  AvatarImageRemover? removeImage,
 }) {
   final l10n = context.l10n;
   return ResponsiveOverlay.show<void>(
@@ -32,15 +32,25 @@ Future<void> showAvatarUploadSheet(
     title: l10n.settingsAvatarUploadTitle,
     subtitle: l10n.settingsAvatarUploadSubtitle,
     mode: ResponsiveOverlayMode.dynamic,
-    child: AvatarUploadSheet(pickImage: pickImage, uploadImage: uploadImage),
+    child: AvatarUploadSheet(
+      pickImage: pickImage,
+      uploadImage: uploadImage,
+      removeImage: removeImage,
+    ),
   );
 }
 
 class AvatarUploadSheet extends ConsumerStatefulWidget {
-  const AvatarUploadSheet({super.key, this.pickImage, this.uploadImage});
+  const AvatarUploadSheet({
+    super.key,
+    this.pickImage,
+    this.uploadImage,
+    this.removeImage,
+  });
 
   final AvatarImagePicker? pickImage;
   final AvatarImageUploader? uploadImage;
+  final AvatarImageRemover? removeImage;
 
   @override
   ConsumerState<AvatarUploadSheet> createState() => _AvatarUploadSheetState();
@@ -52,12 +62,14 @@ class _AvatarUploadSheetState extends ConsumerState<AvatarUploadSheet> {
   String? _validationError;
   String? _uploadError;
   bool _uploading = false;
+  bool _removing = false;
 
   bool get _canUpload {
     final file = _file;
     if (file == null ||
         _selection == null ||
         _uploading ||
+        _removing ||
         _validationError != null) {
       return false;
     }
@@ -66,7 +78,7 @@ class _AvatarUploadSheetState extends ConsumerState<AvatarUploadSheet> {
   }
 
   Future<void> _chooseImage() async {
-    if (_uploading) return;
+    if (_uploading || _removing) return;
     final picked = await (widget.pickImage ?? FileHandler.pickSingleImage)();
     if (!mounted || picked == null) return;
 
@@ -150,6 +162,33 @@ class _AvatarUploadSheetState extends ConsumerState<AvatarUploadSheet> {
     );
   }
 
+  Future<void> _remove() async {
+    if (_uploading || _removing) return;
+    setState(() {
+      _removing = true;
+      _uploadError = null;
+    });
+    final ok = await (widget.removeImage ?? _removeWithService)();
+    if (!mounted) return;
+    if (ok) {
+      ref.invalidate(profilePictureUriProvider);
+      ref.invalidate(avatarBackdropGradientProvider);
+      Navigator.of(context, rootNavigator: true).pop();
+      return;
+    }
+    setState(() {
+      _removing = false;
+      _uploadError = context.l10n.settingsAvatarRemoveError;
+    });
+  }
+
+  Future<bool> _removeWithService() {
+    final userUUID = ref.read(userStoreProvider).localUserUUID;
+    return ProfilePictureService.instance.removeProfilePicture(
+      userUUID: userUUID,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -159,6 +198,10 @@ class _AvatarUploadSheetState extends ConsumerState<AvatarUploadSheet> {
     final message = _uploadError ?? _validationError;
     final previewBytes = _validationError == null ? file?.bytes : null;
     final showGuide = previewBytes != null && previewBytes.isNotEmpty;
+    final hasAvatar =
+        file == null &&
+        user?.profilePictureUUID != null &&
+        user!.profilePictureUUID!.isNotEmpty;
     final displayName = [
       user?.name,
       user?.surname,
@@ -187,17 +230,10 @@ class _AvatarUploadSheetState extends ConsumerState<AvatarUploadSheet> {
           )
         else
           Center(
-            child: Container(
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: theme.colorScheme.primary, width: 2),
-              ),
-              child: Avatar(
-                uuid: user?.profilePictureUUID,
-                name: displayName,
-                size: 120,
-              ),
+            child: Avatar(
+              uuid: user?.profilePictureUUID,
+              name: displayName,
+              size: 120,
             ),
           ),
         if (showGuide) ...[
@@ -225,8 +261,17 @@ class _AvatarUploadSheetState extends ConsumerState<AvatarUploadSheet> {
         const SizedBox(height: 20),
         AppButton(
           label: l10n.settingsAvatarChooseImage,
-          onPressed: _uploading ? null : _chooseImage,
+          onPressed: (_uploading || _removing) ? null : _chooseImage,
         ),
+        if (hasAvatar) ...[
+          const SizedBox(height: 12),
+          AppButton(
+            label: l10n.settingsAvatarRemoveAction,
+            variant: AppButtonVariant.danger,
+            isLoading: _removing,
+            onPressed: (_uploading || _removing) ? null : _remove,
+          ),
+        ],
         if (message != null) ...[
           const SizedBox(height: 12),
           StatusMessage(
@@ -244,7 +289,7 @@ class _AvatarUploadSheetState extends ConsumerState<AvatarUploadSheet> {
             Expanded(
               child: AppButton(
                 label: l10n.settingsCommonCancel,
-                onPressed: _uploading
+                onPressed: (_uploading || _removing)
                     ? null
                     : () => Navigator.of(context, rootNavigator: true).pop(),
               ),

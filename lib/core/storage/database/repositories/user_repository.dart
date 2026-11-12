@@ -5,6 +5,7 @@ import 'package:sqflite/sqflite.dart';
 
 class UserRepository {
   DatabaseExecutor? _db;
+
   late final ProfileRepository profile;
   late final UserGetRepository get;
   late final UserUpdateRepository update;
@@ -363,7 +364,17 @@ class ProfilePictureRepository {
     }
   }
 
-  Future<bool> set(String userUUID, String pictureUUID) async {
-    return update(userUUID, pictureUUID);
+  Future<bool> clear(String userUUID) async {
+    try {
+      if (userUUID.isEmpty) return false;
+      await _repo.db.execute(
+        'UPDATE user SET profilePictureUUID = NULL WHERE uuid = ?;',
+        [userUUID],
+      );
+      return true;
+    } catch (e) {
+      debugPrint('Error clearing user profile picture: $e');
+      return false;
+    }
   }
 }

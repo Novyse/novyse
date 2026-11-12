@@ -241,9 +241,9 @@ class UserProfileImageModule {
     return (success: false, fileUUID: null, uploadURL: null, expiresAt: null);
   }
 
-  /// Confirm the update of the image after the upload has completed.
+  /// Confirm after upload. Pass `null` to remove the image.
   Future<({bool success, String? fileUUID, int? profileEventID})> confirm(
-    String fileUUID,
+    String? fileUUID,
   ) async {
     final res = await _dio.post('$path/confirm', data: {'fileUUID': fileUUID});
     if (isOk(res)) {
@@ -259,49 +259,16 @@ class UserProfileImageModule {
     }
     return (success: false, fileUUID: null, profileEventID: null);
   }
+
+  Future<({bool success, int? profileEventID})> remove() async {
+    final res = await confirm(null);
+    return (success: res.success, profileEventID: res.profileEventID);
+  }
 }
 
 class UserProfileUpdateModule {
   final Dio _dio;
   UserProfileUpdateModule(this._dio);
-
-  /// Update user's profile information, customization included.
-  ///
-  /// The three text fields are always sent, empty strings included, so the
-  /// call overwrites whatever the profile had. The birthday and the
-  /// customization fields are sent only when they are given, which leaves
-  /// them untouched otherwise.
-  Future<({bool success, int? profileEventID})> all({
-    String name = '',
-    String surname = '',
-    String biography = '',
-    String? birthday,
-    ProfileGradient? cardColor,
-    String? cardEffect,
-    String? cardBorder,
-    ProfileGradient? nameColor,
-    String? nameFont,
-    String? nameEffect,
-    String? avatarEffect,
-    String? avatarBorder,
-    ProfileGradient? bannerColor,
-  }) => _send(
-    _fields(
-      name: name,
-      surname: surname,
-      biography: biography,
-      birthday: birthday,
-      cardColor: cardColor,
-      cardEffect: cardEffect,
-      cardBorder: cardBorder,
-      nameColor: nameColor,
-      nameFont: nameFont,
-      nameEffect: nameEffect,
-      avatarEffect: avatarEffect,
-      avatarBorder: avatarBorder,
-      bannerColor: bannerColor,
-    ),
-  );
 
   /// Update only the provided profile fields; `null` (untouched) fields are
   /// omitted from the PATCH body so unchanged values are never re-sent.

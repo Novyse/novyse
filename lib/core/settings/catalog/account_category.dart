@@ -1,4 +1,5 @@
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/settings/profile_settings_bindings.dart';
 import 'package:novyse/core/settings/settings_models.dart';
 
 /// Account settings.
@@ -34,6 +35,19 @@ final List<SettingCategory> accountCategory = [
                 scope: SettingScope.synchronized,
                 customRendererId: 'profileLastName',
               ),
+              SettingItem(
+                id: 'birthday',
+                title: (l) => l.settingsItemBirthdayTitle,
+                subtitle: (l) => l.settingsItemBirthdaySubtitle,
+                component: SettingComponent.dateTime,
+                scope: SettingScope.synchronized,
+                dateTimeMode: SettingDateTimeMode.date,
+                yearsBack: 120,
+                yearsForward: 0,
+                dateTimeValue: loadProfileBirthday,
+                onDateTimeChanged: saveProfileBirthday,
+                onDateTimeCleared: clearProfileBirthday,
+              ),
             ],
           ),
           SettingGroup(
@@ -68,10 +82,30 @@ final List<SettingCategory> accountCategory = [
                 title: (l) => l.settingsItemNameColorTitle,
                 subtitle: (l) => l.settingsItemNameColorSubtitle,
                 component: SettingComponent.colorPicker,
-                settingKey: 'account.nameColor',
                 scope: SettingScope.synchronized,
-                defaultValue: '#0F6FFF',
-                disabled: true,
+                colorValue: loadProfileNameColor,
+                onColorChanged: saveProfileNameColor,
+                onColorCleared: clearProfileNameColor,
+              ),
+              SettingItem(
+                id: 'banner_color',
+                title: (l) => l.settingsItemBannerColorTitle,
+                subtitle: (l) => l.settingsItemBannerColorSubtitle,
+                component: SettingComponent.colorPicker,
+                scope: SettingScope.synchronized,
+                colorValue: loadProfileBannerColor,
+                onColorChanged: saveProfileBannerColor,
+                onColorCleared: clearProfileBannerColor,
+              ),
+              SettingItem(
+                id: 'card_color',
+                title: (l) => l.settingsItemCardColorTitle,
+                subtitle: (l) => l.settingsItemCardColorSubtitle,
+                component: SettingComponent.colorPicker,
+                scope: SettingScope.synchronized,
+                colorValue: loadProfileCardColor,
+                onColorChanged: saveProfileCardColor,
+                onColorCleared: clearProfileCardColor,
               ),
               SettingItem(
                 id: 'linked_contacts',
@@ -103,7 +137,14 @@ final List<SettingCategory> accountCategory = [
                 component: SettingComponent.custom,
                 scope: SettingScope.synchronized,
                 customRendererId: 'bannerEditor',
-                disabled: true,
+              ),
+              SettingItem(
+                id: 'card_gif',
+                title: (l) => l.settingsItemCardGifTitle,
+                subtitle: (l) => l.settingsItemCardGifSubtitle,
+                component: SettingComponent.custom,
+                scope: SettingScope.synchronized,
+                customRendererId: 'cardGifEditor',
               ),
             ],
           ),

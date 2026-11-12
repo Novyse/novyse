@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:novyse/core/services/api/modules/user_module.dart';
 import 'package:novyse/core/stores/profile_draft_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 
@@ -64,5 +65,68 @@ void main() {
     expect(state.name, isNull);
     expect(state.revision, 1);
     expect(notifier.isDirty(base), isFalse);
+  });
+
+  test('editing the birthday marks the draft dirty', () {
+    final c = container();
+    final notifier = c.read(profileDraftProvider.notifier);
+
+    notifier.setBirthday('1990-05-06');
+    expect(notifier.isDirty(base), isTrue);
+
+    notifier.clearBirthday();
+    // Clearing an absent birthday is a no-op for the dirty flag.
+    expect(notifier.isDirty(base), isFalse);
+  });
+
+  test('setting and clearing gradients marks the draft dirty', () {
+    final c = container();
+    final notifier = c.read(profileDraftProvider.notifier);
+
+    notifier.setNameColor(
+      const ProfileGradient(
+        angle: 90,
+        stops: [ProfileGradientStop(color: '#FF0000', position: 0)],
+      ),
+    );
+    expect(notifier.isDirty(base), isTrue);
+
+    notifier.discard();
+    expect(notifier.isDirty(base), isFalse);
+
+    notifier.setBannerColor(
+      const ProfileGradient(
+        angle: 0,
+        stops: [ProfileGradientStop(color: '#00FF00', position: 0)],
+      ),
+    );
+    expect(notifier.isDirty(base), isTrue);
+
+    notifier.clearBannerColor();
+    expect(notifier.isDirty(base), isFalse);
+  });
+
+  test('reverting a gradient to the saved value clears the dirty flag', () {
+    const saved = UserModel(
+      uuid: 'u1',
+      name: 'Ada',
+      nameColor: ProfileGradient(
+        angle: 90,
+        stops: [ProfileGradientStop(color: '#FF0000', position: 0)],
+      ),
+    );
+    final c = container();
+    final notifier = c.read(profileDraftProvider.notifier);
+
+    expect(notifier.isDirty(saved), isFalse);
+    notifier.setNameColor(
+      const ProfileGradient(
+        angle: 0,
+        stops: [ProfileGradientStop(color: '#00FF00', position: 0)],
+      ),
+    );
+    expect(notifier.isDirty(saved), isTrue);
+    notifier.setNameColor(saved.nameColor!);
+    expect(notifier.isDirty(saved), isFalse);
   });
 }

@@ -19,8 +19,8 @@ void main() {
     await db.close();
   });
 
-  group('profile customization in the local database', () {
-    test('stores nested customization and reads it back', () async {
+  group('profile fields in the local database', () {
+    test('persists core profile fields and customization when present', () async {
       final added = await db.user.add({
         'uuid': userUUID,
         'name': 'Alice',
@@ -46,17 +46,15 @@ void main() {
       expect(row, isNotNull);
       expect(row!['bannerPictureUUID'], 'banner-1');
       expect(row['cardPictureUUID'], 'card-1');
+      expect(row['cardEffect'], 'glow');
       expect(row['nameFont'], 'Inter');
-      expect(jsonDecode(row['bannerColor'] as String), {
-        'angle': 45,
-        'stops': [
-          {'color': '#112233', 'position': 0},
-        ],
-      });
+      expect(row['bannerColor'], isA<String>());
+      final banner = jsonDecode(row['bannerColor'] as String) as Map;
+      expect(banner['angle'], 45);
 
       final model = UserModel.fromMap(row);
-      expect(model.bannerColor?.stops.single.color, '#112233');
-      expect(model.cardColor, isNull);
+      expect(model.bannerColor?.angle, 45);
+      expect(model.cardPictureUUID, 'card-1');
       expect(model.bannerPictureUUID, 'banner-1');
     });
 
@@ -65,7 +63,7 @@ void main() {
         'uuid': userUUID,
         'name': 'Alice',
         'bannerPictureUUID': 'banner-1',
-        'customization': {'nameFont': 'Inter'},
+        'cardPictureUUID': 'card-1',
         'profileEventID': 3,
       });
 
@@ -74,7 +72,7 @@ void main() {
 
       final row = await db.user.get.byUUID(userUUID);
       expect(row!['bannerPictureUUID'], 'banner-1');
-      expect(row['nameFont'], 'Inter');
+      expect(row['cardPictureUUID'], 'card-1');
       expect(row['profileEventID'], 3);
     });
 
@@ -85,6 +83,12 @@ void main() {
           'uuid': userUUID,
           'name': 'Alice',
           'bannerPictureUUID': 'banner-1',
+          'bannerColor': {
+            'angle': 0,
+            'stops': [
+              {'color': '#112233', 'position': 0},
+            ],
+          },
         });
 
         final events = <UserProfileUpdateEvent>[];
@@ -101,9 +105,11 @@ void main() {
 
         final row = await db.user.get.byUUID(userUUID);
         expect(row!['bannerPictureUUID'], isNull);
+        expect(row['bannerColor'], isNull);
         expect(row['profileEventID'], 9);
         expect(events, hasLength(1));
         expect(events.single.userUUID, userUUID);
+        expect(events.single.data.containsKey('bannerColor'), isTrue);
       },
     );
   });

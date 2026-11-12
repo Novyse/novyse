@@ -22,6 +22,30 @@ typedef SettingOptionPicked = Future<void> Function(
   String value,
 );
 
+typedef SettingDateTimeValue = DateTime? Function(WidgetRef ref);
+
+typedef SettingDateTimeChanged =
+    void Function(WidgetRef ref, DateTime value);
+
+typedef SettingValueCleared = void Function(WidgetRef ref);
+
+class SettingColorValue {
+  final LinearGradient? gradient;
+  final double angle;
+  final String? previewText;
+
+  const SettingColorValue({
+    this.gradient,
+    this.angle = 90,
+    this.previewText,
+  });
+}
+
+typedef SettingColorValueLoader = SettingColorValue Function(WidgetRef ref);
+
+typedef SettingColorChanged =
+    void Function(WidgetRef ref, LinearGradient gradient, double angle);
+
 /// Conditional visibility: the item renders only when the persisted setting
 /// at [settingKey] equals [equals] (falls back to [defaultValue] when unset).
 class SettingVisibleWhen {
@@ -53,12 +77,19 @@ enum SettingComponent {
   slider,
   textInput,
   colorPicker,
+  dateTime,
   value,
   staticText,
   action,
   custom,
   hotkey,
   stepper,
+}
+
+enum SettingDateTimeMode {
+  date,
+  time,
+  dateTime,
 }
 
 /// A stable selectable value with a localized label ([label]).
@@ -87,6 +118,8 @@ class SettingOption {
 ///   catalog references top-level feature functions, so settings never
 ///   imports feature code.
 /// - [valueProviderId]: provider id for read-only values (e.g. app version).
+/// - [dateTime*]/[color*]: feature bindings for date/color rows
+///   (same pattern as [optionsLoader]).
 /// - [disabled]: when true the row renders non-interactive (WIP placeholder).
 ///   Defaults to false.
 /// - [disabledWhen]: when set, the row also renders non-interactive while
@@ -113,6 +146,15 @@ class SettingItem {
   final SettingOptionPicked? onOptionPicked;
   final String? valueProviderId;
   final String? targetPageId;
+  final SettingDateTimeMode? dateTimeMode;
+  final int? yearsBack;
+  final int? yearsForward;
+  final SettingDateTimeValue? dateTimeValue;
+  final SettingDateTimeChanged? onDateTimeChanged;
+  final SettingValueCleared? onDateTimeCleared;
+  final SettingColorValueLoader? colorValue;
+  final SettingColorChanged? onColorChanged;
+  final SettingValueCleared? onColorCleared;
   final List<List<dynamic>>? icon;
   final String Function(AppLocalizations) title;
   final String Function(AppLocalizations) subtitle;
@@ -142,6 +184,15 @@ class SettingItem {
     this.onOptionPicked,
     this.valueProviderId,
     this.targetPageId,
+    this.dateTimeMode,
+    this.yearsBack,
+    this.yearsForward,
+    this.dateTimeValue,
+    this.onDateTimeChanged,
+    this.onDateTimeCleared,
+    this.colorValue,
+    this.onColorChanged,
+    this.onColorCleared,
     this.icon,
     this.danger = false,
     this.disabled = false,

@@ -49,6 +49,7 @@ void main() {
     expect(find.text('Software developer'), findsOneWidget);
     expect(find.text('Italy'), findsOneWidget);
     expect(find.text('mario@example.com'), findsNothing);
+    expect(find.text('Edit profile'), findsOneWidget);
 
     // Tap the QR button and verify the profile QR modal opens.
     final qrButton = find.byWidgetPredicate(

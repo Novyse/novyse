@@ -250,6 +250,27 @@ void main() {
         expect(res.profileEventID, isNull);
       },
     );
+
+    test('remove confirms an explicit null to clear the picture', () async {
+      final http = FakeHttp.always({'profileEventID': 9});
+
+      final res = await UserModule(http.dio).profile.picture.remove();
+
+      expect(http.only.path, '/user/profile/picture/confirm');
+      expect(http.only.json, {'fileUUID': null});
+      expect(res.success, isTrue);
+      expect(res.profileEventID, 9);
+    });
+
+    test('remove reports failure when the envelope is not successful',
+        () async {
+      final res = await UserModule(
+        FakeHttp.failure().dio,
+      ).profile.banner.remove();
+
+      expect(res.success, isFalse);
+      expect(res.profileEventID, isNull);
+    });
   });
 
   group('UserProfileImageModule', () {
@@ -401,39 +422,6 @@ void main() {
   });
 
   group('UserProfileUpdateModule', () {
-    test('all PATCHes the three fields and returns the event id', () async {
-      final http = FakeHttp.always({'profileEventID': 12});
-
-      final res = await UserModule(http.dio).profile.updateInfo
-          .all(name: 'Ada', surname: 'Lovelace', biography: 'Math');
-
-      expect(http.only.method, 'PATCH');
-      expect(http.only.path, '/user/profile');
-      expect(http.only.json, {
-        'name': 'Ada',
-        'surname': 'Lovelace',
-        'biography': 'Math',
-      });
-      expect(res.success, isTrue);
-      expect(res.profileEventID, 12);
-    });
-
-    test('all sends empty strings when the fields are omitted', () async {
-      final http = FakeHttp.always({'profileEventID': 1});
-
-      await UserModule(http.dio).profile.updateInfo.all();
-
-      expect(http.only.json, {'name': '', 'surname': '', 'biography': ''});
-    });
-
-    test('all reports failure when the envelope is not successful', () async {
-      final res = await UserModule(FakeHttp.failure().dio).profile.updateInfo
-          .all(name: 'a');
-
-      expect(res.success, isFalse);
-      expect(res.profileEventID, isNull);
-    });
-
     test('partial PATCHes only the provided fields', () async {
       final http = FakeHttp.always({'profileEventID': 7});
 
