@@ -118,8 +118,10 @@ abstract final class FloatingConsts {
   static const double leadingSize = barContentSize;
   static const double leadingGap = 12.0;
 
-  /// Outer skin of the sub-header stacked under every chat app bar ([ChatSubHeader])
-  static const double subHeaderRadius = 50.0;
+  /// Outer skin of the sub-header stacked under every chat app bar
+  /// ([ChatSubHeader]): 24px radius glass card holding the 48px rows.
+  /// Cap at 24 so stacked rows (pinned / voice / comms) don't look over-rounded.
+  static const double subHeaderRadius = 26.0;
 
   /// Outer padding of the sub-header card. Equals [barInset] so the card
   /// carries the same glass frame as every other pill; inner rows are

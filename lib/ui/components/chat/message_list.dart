@@ -222,13 +222,20 @@ class _MessageListState extends ConsumerState<MessageList>
       }
     }
 
+    // Top inset mirrors SubList / ChatCallPage: measured floating header
+    // height (+ 12 breathing room), with a safe fallback before measure.
+    final fallbackTop = MediaQuery.paddingOf(context).top + kToolbarHeight + 8;
+    final measuredTop =
+        ref.watch(activeChatProvider.select((s) => s.headerHeight)) + 12;
+    final topInset = measuredTop > fallbackTop ? measuredTop : fallbackTop;
+
     return NotificationListener<ScrollNotification>(
       onNotification: onScrollNotification,
       child: ListView.builder(
         key: listKey,
         controller: effectiveController,
         reverse: true,
-        padding: EdgeInsets.fromLTRB(12, 12, 12, widget.bottomInset),
+        padding: EdgeInsets.fromLTRB(12, topInset, 12, widget.bottomInset),
         itemCount: items.length,
         itemBuilder: (context, index) {
           final entry = items[index];
