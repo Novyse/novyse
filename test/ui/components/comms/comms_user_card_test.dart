@@ -81,8 +81,7 @@ void main() {
     VoidCallback? onFullScreen,
     List<Override> overrides = const [],
   }) async {
-    final effectiveCommsState =
-        commsState ?? CommsState(connected: connected);
+    final effectiveCommsState = commsState ?? CommsState(connected: connected);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -157,7 +156,6 @@ void main() {
       final l10n = await pump(tester, item: tile(isScreenShare: true));
 
       expect(find.text(l10n.commsUserScreenShare(l10n.user)), findsOneWidget);
-      expect(find.byIcon(Icons.screen_share_rounded), findsOneWidget);
     });
 
     testWidgets('shows a remote participant name unchanged', (tester) async {
@@ -609,10 +607,16 @@ void main() {
     );
 
     Color borderColor(WidgetTester tester) =>
-        (frame(tester).foregroundDecoration! as BoxDecoration).border!.top.color;
+        (frame(tester).foregroundDecoration! as BoxDecoration)
+            .border!
+            .top
+            .color;
 
     Color borderColorFromForeground(WidgetTester tester) =>
-        (frame(tester).foregroundDecoration! as BoxDecoration).border!.top.color;
+        (frame(tester).foregroundDecoration! as BoxDecoration)
+            .border!
+            .top
+            .color;
 
     testWidgets('the border colour matches the foreground decoration', (
       tester,
@@ -646,19 +650,13 @@ void main() {
     testWidgets('a remote self-muted participant is not speaking', (
       tester,
     ) async {
-      await pump(
-        tester,
-        item: tile(isSpeaking: true, isRemoteMuted: true),
-      );
+      await pump(tester, item: tile(isSpeaking: true, isRemoteMuted: true));
 
       expect(borderColor(tester).a, lessThan(1));
     });
 
     testWidgets('a locally muted participant is not speaking', (tester) async {
-      await pump(
-        tester,
-        item: tile(isSpeaking: true, isLocallyMuted: true),
-      );
+      await pump(tester, item: tile(isSpeaking: true, isLocallyMuted: true));
 
       expect(borderColor(tester).a, lessThan(1));
     });
@@ -691,7 +689,9 @@ void main() {
   });
 
   group('outside voice chat (connected: false or room mismatch)', () {
-    testWidgets('top-right controls are hidden when disconnected', (tester) async {
+    testWidgets('top-right controls are hidden when disconnected', (
+      tester,
+    ) async {
       final l10n = await pump(
         tester,
         item: tile(id: 'TR_1', isScreenShare: true, isLocal: true),
@@ -709,21 +709,20 @@ void main() {
       expect(find.byTooltip(l10n.commsStopScreenShare), findsNothing);
     });
 
-    testWidgets('tap and right-click do not open the context menu when disconnected', (tester) async {
-      final l10n = await pump(
-        tester,
-        item: tile(),
-        connected: false,
-      );
+    testWidgets(
+      'tap and right-click do not open the context menu when disconnected',
+      (tester) async {
+        final l10n = await pump(tester, item: tile(), connected: false);
 
-      await tester.tap(find.byType(CommsUserCard));
-      await tester.pumpAndSettle();
-      expect(find.text(l10n.commsMuteUser), findsNothing);
+        await tester.tap(find.byType(CommsUserCard));
+        await tester.pumpAndSettle();
+        expect(find.text(l10n.commsMuteUser), findsNothing);
 
-      await tester.tap(find.byType(CommsUserCard), buttons: kSecondaryButton);
-      await tester.pumpAndSettle();
-      expect(find.text(l10n.commsMuteUser), findsNothing);
-    });
+        await tester.tap(find.byType(CommsUserCard), buttons: kSecondaryButton);
+        await tester.pumpAndSettle();
+        expect(find.text(l10n.commsMuteUser), findsNothing);
+      },
+    );
 
     testWidgets(
       'user connected to a different room cannot interact with other room cards',
@@ -734,7 +733,10 @@ void main() {
           overrides: [
             activeChatProvider.overrideWith(
               () => _FakeActiveChatNotifier(
-                const ActiveChatState(selectedChatUUID: 'chat-room-B', selectedSub: 0),
+                const ActiveChatState(
+                  selectedChatUUID: 'chat-room-B',
+                  selectedSub: 0,
+                ),
               ),
             ),
           ],
@@ -746,7 +748,9 @@ void main() {
         );
 
         // Hover should not reveal controls
-        final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+        final gesture = await tester.createGesture(
+          kind: PointerDeviceKind.mouse,
+        );
         await gesture.addPointer(location: Offset.zero);
         await gesture.moveTo(tester.getCenter(find.byType(CommsUserCard)));
         await tester.pumpAndSettle();
@@ -765,42 +769,44 @@ void main() {
       },
     );
 
-    testWidgets(
-      'user connected to the same room can interact with cards',
-      (tester) async {
-        final l10n = await pump(
-          tester,
-          item: tile(id: 'tile-room-A', isLocal: false),
-          overrides: [
-            activeChatProvider.overrideWith(
-              () => _FakeActiveChatNotifier(
-                const ActiveChatState(selectedChatUUID: 'chat-room-A', selectedSub: 0),
+    testWidgets('user connected to the same room can interact with cards', (
+      tester,
+    ) async {
+      final l10n = await pump(
+        tester,
+        item: tile(id: 'tile-room-A', isLocal: false),
+        overrides: [
+          activeChatProvider.overrideWith(
+            () => _FakeActiveChatNotifier(
+              const ActiveChatState(
+                selectedChatUUID: 'chat-room-A',
+                selectedSub: 0,
               ),
             ),
-          ],
-          commsState: const CommsState(
-            connected: true,
-            currentChatUUID: 'chat-room-A',
-            currentSub: 0,
           ),
-        );
+        ],
+        commsState: const CommsState(
+          connected: true,
+          currentChatUUID: 'chat-room-A',
+          currentSub: 0,
+        ),
+      );
 
-        // Hover reveals controls
-        final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
-        await gesture.addPointer(location: Offset.zero);
-        await gesture.moveTo(tester.getCenter(find.byType(CommsUserCard)));
-        await tester.pumpAndSettle();
+      // Hover reveals controls
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await gesture.addPointer(location: Offset.zero);
+      await gesture.moveTo(tester.getCenter(find.byType(CommsUserCard)));
+      await tester.pumpAndSettle();
 
-        expect(find.byTooltip(l10n.commsPin), findsOneWidget);
-        expect(find.byTooltip(l10n.commsFullScreen), findsOneWidget);
+      expect(find.byTooltip(l10n.commsPin), findsOneWidget);
+      expect(find.byTooltip(l10n.commsFullScreen), findsOneWidget);
 
-        // Tap opens menu
-        await tester.tap(find.byType(CommsUserCard));
-        await tester.pump(kDoubleTapTimeout);
-        await tester.pumpAndSettle();
-        expect(find.text(l10n.commsMuteUser), findsOneWidget);
-      },
-    );
+      // Tap opens menu
+      await tester.tap(find.byType(CommsUserCard));
+      await tester.pump(kDoubleTapTimeout);
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.commsMuteUser), findsOneWidget);
+    });
   });
 
   group('profile gradient', () {
@@ -868,8 +874,7 @@ void main() {
         },
         overrides: [
           avatarBackdropGradientProvider.overrideWith(
-            (ref, args) async =>
-                args.pfpUUID == pfpUUID ? extracted : null,
+            (ref, args) async => args.pfpUUID == pfpUUID ? extracted : null,
           ),
         ],
       );

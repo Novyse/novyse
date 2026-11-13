@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
+import 'package:novyse/core/comms/comms_data_provider.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/plugins/activity_controller.dart';
 import 'package:novyse/core/plugins/ui/plugin_store_sheet.dart';
@@ -26,7 +27,9 @@ class CommsBottomBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final commsState = ref.watch(commsProvider);
-    final isConnected = commsState.isRoomMatch(chatUUID, sub);
+    final isConnected = ref.watch(
+      commsRoomConnectedProvider((chatUUID: chatUUID, sub: sub)),
+    );
     final controller = ref.read(commsProvider.notifier);
 
     final hasError =

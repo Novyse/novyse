@@ -52,6 +52,30 @@ class AvatarBackdrop {
 /// Arguments for [avatarBackdropGradientProvider].
 typedef AvatarBackdropArgs = ({String pfpUUID, Brightness brightness});
 
+/// Arguments for [avatarBackdropUriGradientProvider].
+typedef AvatarBackdropUriArgs = ({String uri, Brightness brightness});
+
+/// Resolves a two-stop gradient from the image at [AvatarBackdropUriArgs.uri].
+///
+/// A card that shows an icon — the logo of a plugin, not a profile picture —
+/// needs the backdrop of *that* image: seeding it from a slug produces a color
+/// that has nothing to do with what the user sees in the middle of the card.
+final avatarBackdropUriGradientProvider =
+    FutureProvider.family<List<Color>?, AvatarBackdropUriArgs>((
+      ref,
+      args,
+    ) async {
+      if (args.uri.isEmpty) return null;
+
+      final scheme = await AvatarBackdrop.schemeFromImageProvider(
+        NetworkImage(args.uri),
+        brightness: args.brightness,
+      );
+      if (scheme == null) return null;
+
+      return AvatarBackdrop.gradientFromScheme(scheme);
+    });
+
 /// Resolves a two-stop gradient from the profile picture identified by
 /// [AvatarBackdropArgs.pfpUUID].
 ///

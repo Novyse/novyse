@@ -30,9 +30,13 @@ Future<void> showCommsUserContextMenu({
     trackSid: tile.trackSid,
   );
 
+  // An activity has no microphone and no volume of its own: the audio section
+  // exists only for participants and screen shares.
+  final hasAudioControls = !tile.isLocal && !tile.isActivity;
+
   const menuWidth = 220.0;
   var estimatedHeight = 140.0;
-  if (!tile.isLocal) estimatedHeight += 56.0 + 128.0;
+  if (hasAudioControls) estimatedHeight += 56.0 + 128.0;
   if (!isFullScreen) estimatedHeight += 52.0;
   if (!tile.isLocal && tile.isScreenShare) estimatedHeight += 44.0;
 
@@ -104,11 +108,7 @@ class _CommsUserMenuContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Header: member name (optional profile hook, no navigation by default).
-        AppMenuHeader(
-          icon: HugeIcons.strokeRoundedUser,
-          label: displayName,
-          onTap: onProfileTap,
-        ),
+        AppMenuHeader(label: displayName, onTap: onProfileTap),
         const AppMenuDivider(),
         if (!tile.isLocal && tile.isScreenShare && tile.trackSid != null) ...[
           AppMenuItem(
@@ -126,7 +126,7 @@ class _CommsUserMenuContent extends ConsumerWidget {
           ),
           const AppMenuDivider(),
         ],
-        if (!tile.isLocal) ...[
+        if (!tile.isLocal && !tile.isActivity) ...[
           AppMenuItem(
             icon: isMuted
                 ? HugeIcons.strokeRoundedMicOff02

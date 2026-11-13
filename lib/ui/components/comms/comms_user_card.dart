@@ -5,17 +5,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
+import 'package:novyse/core/comms/comms_data_provider.dart';
 import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/plugins/activity_controller.dart';
 import 'package:novyse/core/plugins/models/activity_instance.dart';
+import 'package:novyse/core/plugins/plugin_entry_provider.dart';
 import 'package:novyse/core/plugins/ui/activity_tile.dart';
-import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/avatar/avatar_backdrop.dart';
+import 'package:novyse/ui/components/comms/comms_tile_controls.dart';
 import 'package:novyse/ui/components/comms/comms_user_context_menu.dart';
 import 'package:novyse/ui/components/comms/remote_screen_share_quality_menu.dart';
 import 'package:novyse/ui/components/floating/floating_style.dart';
@@ -52,9 +54,6 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
   /// Corner radius of the tile. Shared by the clip, the background and the
   /// border so the three always describe the same shape.
   static const _tileRadius = 24.0;
-
-  /// Touch box of the small overlay buttons (pin, fullscreen, ...).
-  static const _chipButtonSize = 32.0;
 
   bool _isHovered = false;
 
@@ -121,16 +120,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
     final tile = widget.tile;
     final colorScheme = Theme.of(context).colorScheme;
 
-    final activeChat = ref.watch(activeChatProvider);
-    final targetChatUUID = activeChat.selectedChatUUID;
-    final targetSub = activeChat.selectedSub;
-    final isCommsConnected = ref.watch(
-      commsProvider.select(
-        (s) => targetChatUUID != null
-            ? s.isRoomMatch(targetChatUUID, targetSub)
-            : s.connected,
-      ),
-    );
+    final isCommsConnected = ref.watch(activeCommsRoomConnectedProvider);
 
     // An activity tile carries a plugin, not a participant: it keeps the same
     // frame and the same controls, and the sandbox replaces the video/avatar.
@@ -150,16 +140,14 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
         user?.displayName ?? (tile.isLocal ? l10n.chatYou : l10n.user);
     final pfpUUID = user?.profilePictureUUID;
 
-    final String labelText;
-    if (tile.isScreenShare) {
-      labelText = l10n.commsUserScreenShare(displayName);
-    } else if (tile.isLocal) {
-      labelText = l10n.commsUserYou(displayName);
-    } else {
-      labelText = displayName;
-    }
-
     final videoTrack = tile.hasActiveVideo ? tile.videoTrack : null;
+
+    final labelText = tile.isScreenShare
+        ? l10n.commsUserScreenShare(displayName)
+        : tile.isLocal
+        ? l10n.commsUserYou(displayName)
+        : displayName;
+
     final status = context.statusColors;
 
     // Mute badges (bottom-right):
@@ -261,36 +249,17 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                     child: FloatingPill(
                       padding: const EdgeInsets.all(2),
                       enforceMinSize: false,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (!widget.isFullScreen)
-                            _ChipIconButton(
-                              icon: widget.isPinned
-                                  ? HugeIcons.strokeRoundedPinOff
-                                  : HugeIcons.strokeRoundedPin,
-                              color: widget.isPinned
-                                  ? colorScheme.primary
-                                  : colorScheme.onSurfaceVariant,
-                              tooltip: widget.isPinned
-                                  ? l10n.commsUnpin
-                                  : l10n.commsPin,
-                              onPressed: widget.onPin,
-                            ),
-                          _ChipIconButton(
-                            icon: widget.isFullScreen
-                                ? HugeIcons.strokeRoundedArrowShrink01
-                                : HugeIcons.strokeRoundedArrowExpand01,
-                            tooltip: widget.isFullScreen
-                                ? l10n.commsExitFullScreen
-                                : l10n.commsFullScreen,
-                            onPressed: widget.onFullScreen,
-                          ),
+                      child: CommsTileControls(
+                        isPinned: widget.isPinned,
+                        isFullScreen: widget.isFullScreen,
+                        onPin: widget.onPin,
+                        onFullScreen: widget.onFullScreen,
+                        trailing: [
                           if (tile.isScreenShare &&
                               !tile.isLocal &&
                               tile.trackSid != null)
                             Builder(
-                              builder: (btnContext) => _ChipIconButton(
+                              builder: (btnContext) => CommsChipIconButton(
                                 icon: HugeIcons.strokeRoundedSlidersVertical,
                                 tooltip: l10n.screenShareQualityTooltip,
                                 onPressed: () {
@@ -314,7 +283,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                           if (tile.isScreenShare &&
                               tile.isLocal &&
                               onEditShare != null)
-                            _ChipIconButton(
+                            CommsChipIconButton(
                               icon: HugeIcons.strokeRoundedPencilEdit02,
                               tooltip: l10n.screenShareEditShare,
                               onPressed: onEditShare,
@@ -322,7 +291,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                           if (tile.isScreenShare &&
                               tile.isLocal &&
                               onStopShare != null)
-                            _ChipIconButton(
+                            CommsChipIconButton(
                               icon: HugeIcons.strokeRoundedComputerRemove,
                               color: status.danger,
                               tooltip: l10n.commsStopScreenShare,
@@ -350,14 +319,6 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (tile.isScreenShare) ...[
-                          Icon(
-                            Icons.screen_share_rounded,
-                            size: 14,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 6),
-                        ],
                         ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 160),
                           child: Text(
@@ -423,7 +384,7 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                               !tile.isScreenShare &&
                               videoTrack != null &&
                               currentPlatform == AppPlatform.mobile)
-                            _ChipIconButton(
+                            CommsChipIconButton(
                               icon: HugeIcons.strokeRoundedCameraRotated01,
                               tooltip: l10n.commsSwitchCamera,
                               onPressed: () => ref
@@ -455,11 +416,14 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
     bool isCommsConnected,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    final status = context.statusColors;
 
     final readOnly = ref.watch(
       activityControllerProvider.select((state) => state.readOnly),
     );
+
+    final entry = ref.watch(pluginEntryProvider(instance.slug)).valueOrNull;
+    final pluginName = entry?.name ?? instance.slug;
+    final badgeLabel = '$pluginName (${l10n.activitiesBadge})';
 
     void close() => unawaited(
       ref.read(activityControllerProvider.notifier).stop(instance.instanceId),
@@ -474,6 +438,62 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
     final cardRadius = BorderRadius.circular(
       widget.isFullScreen ? 0 : _tileRadius,
     );
+
+    // Outside the room the activity is a presence, not a place: the card
+    // shows who is running it, with no sandbox mounted and no way to take
+    // part in it. Same frame and same fallback of a participant without a
+    // video, icon in the middle and the name underneath.
+    if (!isCommsConnected) {
+      return Container(
+        key: const ValueKey('comms_user_card_frame'),
+        decoration: BoxDecoration(
+          borderRadius: cardRadius,
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        ),
+        foregroundDecoration: BoxDecoration(
+          borderRadius: cardRadius,
+          border: Border.all(
+            color: colorScheme.outline.withValues(alpha: 0.25),
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            _buildAvatarFallback(
+              null,
+              pluginName,
+              instance.slug,
+              imageUri: entry?.iconUrl,
+            ),
+            Positioned(
+              left: 10,
+              bottom: 10,
+              child: FloatingPill(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
+                enforceMinSize: false,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 160),
+                  child: Text(
+                    badgeLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: colorScheme.onSurface,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -502,120 +522,97 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
               color: colorScheme.outline.withValues(alpha: 0.25),
             ),
           ),
-          clipBehavior: Clip.antiAlias,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // The plugin: installs the pinned build and mounts the sandbox.
-              ActivityTile(
-                key: ValueKey(instance.instanceId),
-                instance: instance,
-                onCommand: (command) {
-                  final comms = ref.read(commsProvider.notifier);
-
-                  switch (command.kind) {
-                    case ActivityCommandKind.fullscreen:
-                      comms.setFullscreen(widget.tile.id);
-                    case ActivityCommandKind.restore:
-                      comms.exitFullscreen();
-                    case ActivityCommandKind.close:
-                      close();
-                  }
-                },
-              ),
-
-              // Top-right: pin and fullscreen. An activity has no microphone,
-              // no volume and no share, so the menu of a participant would be
-              // a list of things that do not apply.
-              if (isCommsConnected)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: AnimatedOpacity(
-                    opacity: controlsOpacity,
-                    duration: const Duration(milliseconds: 150),
-                    child: FloatingPill(
-                      padding: const EdgeInsets.all(2),
-                      enforceMinSize: false,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+          child: ClipRRect(
+            borderRadius: cardRadius,
+            clipBehavior: Clip.antiAlias,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: Center(
+                    child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: Stack(
+                        fit: StackFit.expand,
                         children: [
-                          if (!readOnly)
-                            _ChipIconButton(
-                              icon: HugeIcons.strokeRoundedCancel01,
-                              color: status.danger,
-                              tooltip: l10n.activitiesClose,
-                              onPressed: close,
+                          // The plugin: installs the pinned build and mounts
+                          // the sandbox.
+                          ActivityTile(
+                            key: ValueKey(instance.instanceId),
+                            instance: instance,
+                            onCommand: (command) {
+                              final comms = ref.read(commsProvider.notifier);
+
+                              switch (command.kind) {
+                                case ActivityCommandKind.fullscreen:
+                                  comms.setFullscreen(widget.tile.id);
+                                case ActivityCommandKind.restore:
+                                  comms.exitFullscreen();
+                                case ActivityCommandKind.close:
+                                  close();
+                              }
+                            },
+                          ),
+
+                          // Bottom-left: the plugin the tile is running.
+                          Positioned(
+                            left: 10,
+                            bottom: 10,
+                            child: AnimatedOpacity(
+                              opacity: widget.isFullScreen
+                                  ? controlsOpacity
+                                  : 1.0,
+                              duration: const Duration(milliseconds: 150),
+                              child: FloatingPill(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 7,
+                                ),
+                                enforceMinSize: false,
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 160,
+                                  ),
+                                  child: Text(
+                                    badgeLabel,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: colorScheme.onSurface,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
-                          if (!widget.isFullScreen)
-                            _ChipIconButton(
-                              icon: widget.isPinned
-                                  ? HugeIcons.strokeRoundedPinOff
-                                  : HugeIcons.strokeRoundedPin,
-                              color: widget.isPinned
-                                  ? colorScheme.primary
-                                  : colorScheme.onSurfaceVariant,
-                              tooltip: widget.isPinned
-                                  ? l10n.commsUnpin
-                                  : l10n.commsPin,
-                              onPressed: widget.onPin,
-                            ),
-                          _ChipIconButton(
-                            icon: widget.isFullScreen
-                                ? HugeIcons.strokeRoundedArrowShrink01
-                                : HugeIcons.strokeRoundedArrowExpand01,
-                            tooltip: widget.isFullScreen
-                                ? l10n.commsExitFullScreen
-                                : l10n.commsFullScreen,
-                            onPressed: widget.onFullScreen,
                           ),
                         ],
                       ),
                     ),
                   ),
                 ),
-
-              // Bottom-left: the plugin the tile is running.
-              Positioned(
-                left: 10,
-                bottom: 10,
-                child: AnimatedOpacity(
-                  opacity: widget.isFullScreen ? controlsOpacity : 1.0,
-                  duration: const Duration(milliseconds: 150),
-                  child: FloatingPill(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 7,
-                    ),
-                    enforceMinSize: false,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.extension_rounded,
-                          size: 14,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 6),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 160),
-                          child: Text(
-                            instance.slug,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: colorScheme.onSurface,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
+                if (isCommsConnected)
+                  CommsActivityControlRail(
+                    isPinned: widget.isPinned,
+                    isFullScreen: widget.isFullScreen,
+                    readOnly: readOnly,
+                    onClose: close,
+                    onPin: widget.onPin,
+                    onFullScreen: widget.onFullScreen,
+                    onMore: (anchor) => showCommsUserContextMenu(
+                      context: context,
+                      tile: widget.tile,
+                      displayName: badgeLabel,
+                      isPinned: widget.isPinned,
+                      isFullScreen: widget.isFullScreen,
+                      anchor: anchor,
+                      onPin: widget.onPin,
+                      onFullScreen: widget.onFullScreen,
                     ),
                   ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -625,18 +622,33 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
   Widget _buildAvatarFallback(
     String? pfpUUID,
     String displayName,
-    String userUUID,
-  ) {
-    final extracted = (pfpUUID != null && pfpUUID.isNotEmpty)
-        ? ref
-              .watch(
-                avatarBackdropGradientProvider((
-                  pfpUUID: pfpUUID,
-                  brightness: Theme.of(context).brightness,
-                )),
-              )
-              .valueOrNull
-        : null;
+    String userUUID, {
+    String? imageUri,
+  }) {
+    final brightness = Theme.of(context).brightness;
+    final List<Color>? extracted;
+
+    if (pfpUUID != null && pfpUUID.isNotEmpty) {
+      extracted = ref
+          .watch(
+            avatarBackdropGradientProvider((
+              pfpUUID: pfpUUID,
+              brightness: brightness,
+            )),
+          )
+          .valueOrNull;
+    } else if (imageUri != null && imageUri.isNotEmpty) {
+      extracted = ref
+          .watch(
+            avatarBackdropUriGradientProvider((
+              uri: imageUri,
+              brightness: brightness,
+            )),
+          )
+          .valueOrNull;
+    } else {
+      extracted = null;
+    }
     final gradientColors =
         extracted ?? Avatar.gradientColorsFor(seed: userUUID);
     return Container(
@@ -659,54 +671,12 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
 
             return Avatar(
               uuid: pfpUUID,
+              uri: imageUri,
               name: displayName,
               seedKey: userUUID,
               size: avatarSize,
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-/// Small round button for the overlay chips. 32px box, 18px icon —
-/// same proportions as the 42/20 app-bar buttons, one step smaller.
-class _ChipIconButton extends StatelessWidget {
-  const _ChipIconButton({
-    required this.icon,
-    this.color,
-    required this.tooltip,
-    required this.onPressed,
-  });
-
-  final dynamic icon;
-  final Color? color;
-  final String tooltip;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: Material(
-        color: Colors.transparent,
-        shape: const CircleBorder(),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: onPressed,
-          child: SizedBox(
-            width: _CommsUserCardState._chipButtonSize,
-            height: _CommsUserCardState._chipButtonSize,
-            child: Center(
-              child: AppHugeIcon(
-                icon: icon,
-                color: color ?? Theme.of(context).colorScheme.onSurfaceVariant,
-                size: 18,
-              ),
-            ),
-          ),
         ),
       ),
     );

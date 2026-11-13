@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
+import 'package:novyse/core/comms/comms_data_provider.dart';
 import 'package:novyse/core/comms/comms_fullscreen.dart';
 import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/ui/components/comms/comms_tile_controls.dart';
 import 'package:novyse/ui/components/comms/comms_user_card.dart';
 import 'package:novyse/ui/components/comms/screen_share_actions.dart';
 import 'package:novyse/ui/components/comms/screen_share_stream_switcher.dart';
@@ -184,6 +186,8 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
     );
     final pinnedId = ref.watch(commsProvider.select((s) => s.pinnedStreamId));
 
+    final isConnectedToRoom = ref.watch(activeCommsRoomConnectedProvider);
+
     final controller = ref.read(commsProvider.notifier);
 
     final fullscreenTile = fullscreenId == null
@@ -270,8 +274,17 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
                     spacing: margin,
                     runSpacing: margin,
                     children: visibleTiles.map((tile) {
+                      final rail = tile.isActivity && isConnectedToRoom
+                          ? kCommsActivityRailWidth
+                          : 0.0;
+                      final maxBaseWidth = math.max(1.0, availableWidth - rail);
+                      final baseWidth = targetWidth.clamp(
+                        math.min(140.0, maxBaseWidth),
+                        maxBaseWidth,
+                      );
+
                       return SizedBox(
-                        width: targetWidth.clamp(140.0, availableWidth),
+                        width: baseWidth + rail,
                         height: targetHeight.clamp(100.0, availableHeight),
                         child: CommsUserCard(
                           key: ValueKey(tile.id),
