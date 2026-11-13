@@ -2,12 +2,15 @@
 /// its own scripts run.
 ///
 /// The plugin talks to the host through one JSON request/response channel and
-/// receives events through `window.__appSdkEmit`. Three transports, chosen at
+/// receives events through `window.__appSdkEmit`. Two transports, chosen at
 /// runtime so the same bundle runs unchanged everywhere:
 ///
-/// - native (`flutter_inappwebview`): `callHandler`, which returns a promise;
-/// - Linux (`webview_all`): a JavaScript channel, answered by `__appSdkReply`;
-/// - web: `postMessage` to the parent frame, answered by `__appSdkReply`.
+/// - every engine that has one: the `window.appSdk` JavaScript channel the host
+///   registers under that name;
+/// - Windows: the WebView2 message pipe, `window.chrome.webview.postMessage`.
+///
+/// Neither has a promise to settle, so both are answered by
+/// `window.__appSdkReply`.
 ///
 /// The SDK is a thin transport: every decision (permissions, limits, the
 /// snapshot) belongs to the host, so nothing here can be trusted by a plugin
@@ -18,8 +21,12 @@ const String appSdkSource = r'''
 
   var pending = new Map();
   var nextId = 1;
-  var handlers = { participants: [], ended: [], action: [], stream: [] };
+  var handlers = { participants: [], ended: [], action: [], stream: [], playerClosed: [], playerIntent: [] };
   var stateHandlers = new Map();
+
+  var statePending = new Map();
+  var stateInitSeq = null;
+  var STATE_PENDING_MAX = 64;
 
   function sdkError(code, message) {
     var error = new Error(message || code);
@@ -46,6 +53,11 @@ const String appSdkSource = r'''
     pending.delete(reply.id);
 
     if (reply.ok) {
+      if (entry.method === 'init' && reply.result && reply.result.state) {
+        stateInitSeq = Number(reply.result.state.seq) || 0;
+        flushStates();
+      }
+
       entry.resolve(reply.result === undefined ? null : reply.result);
       return;
     }
@@ -55,21 +67,18 @@ const String appSdkSource = r'''
   }
 
   function transmit(message) {
-    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-      window.flutter_inappwebview
-        .callHandler('appSdk', message)
-        .then(settle)
-        .catch(settle);
+    // The channel the host registered, with the same name on every engine, so
+    // a plugin never learns which platform it is running on.
+    var channel = window.appSdk;
+    if (channel && channel.postMessage) {
+      channel.postMessage(message);
       return;
     }
 
-    if (window.appSdkHost && window.appSdkHost.postMessage) {
-      window.appSdkHost.postMessage(message);
-      return;
-    }
-
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({ source: 'app-sdk', payload: message }, '*');
+    // Windows: WebView2 hands the page one message pipe, read by the host.
+    var webview = window.chrome && window.chrome.webview;
+    if (webview && webview.postMessage) {
+      webview.postMessage(message);
       return;
     }
 
@@ -79,7 +88,7 @@ const String appSdkSource = r'''
   function request(method, params) {
     return new Promise(function (resolve, reject) {
       var id = nextId++;
-      pending.set(id, { resolve: resolve, reject: reject });
+      pending.set(id, { resolve: resolve, reject: reject, method: method });
 
       var message = JSON.stringify({
         id: id,
@@ -144,20 +153,73 @@ const String appSdkSource = r'''
       return;
     }
 
-    if (event === 'activity:state') {
-      var type = payload && payload.type ? payload.type : '';
-      var callbacks = stateHandlers.get(type) || [];
-      callbacks.slice().forEach(function (callback) {
-        dispatch('state', function () { callback(payload || {}); });
-      });
-
-      var wildcard = stateHandlers.get('*') || [];
-      if (type !== '*') {
-        wildcard.slice().forEach(function (callback) {
-          dispatch('state', function () { callback(payload || {}); });
+    if (event === 'activity:player') {
+      if (payload && payload.state === 'closed') {
+        handlers.playerClosed.slice().forEach(function (callback) {
+          dispatch('playerClosed', function () { callback(); });
         });
       }
+
+      if (payload && payload.state === 'intent') {
+        var playing = !!payload.playing;
+        var position = Number(payload.position) || 0;
+        handlers.playerIntent.slice().forEach(function (callback) {
+          dispatch('playerIntent', function () { callback(playing, position); });
+        });
+      }
+      return;
     }
+
+    if (event === 'activity:state') {
+      var type = payload && payload.type ? payload.type : '';
+      var waiting =
+        (stateHandlers.get(type) || []).length +
+        (type === '*' ? 0 : (stateHandlers.get('*') || []).length);
+
+      if (waiting === 0) {
+        var queued = statePending.get(type) || [];
+        if (queued.length >= STATE_PENDING_MAX) queued.shift();
+        queued.push(payload || {});
+        statePending.set(type, queued);
+        return;
+      }
+
+      deliverState(type, [payload || {}]);
+    }
+  }
+
+  function deliverState(type, events) {
+    var callbacks = (stateHandlers.get(type) || []).slice();
+    if (type !== '*') {
+      callbacks = callbacks.concat((stateHandlers.get('*') || []).slice());
+    }
+
+    events.forEach(function (mutation) {
+      callbacks.forEach(function (callback) {
+        dispatch('state', function () { callback(mutation); });
+      });
+    });
+  }
+
+  // Hands the queued mutations to the subscribers that exist now, in order.
+  function flushStates() {
+    if (stateInitSeq === null) return;
+
+    statePending.forEach(function (events, type) {
+      var listening =
+        (stateHandlers.get(type) || []).length > 0 ||
+        (type !== '*' && (stateHandlers.get('*') || []).length > 0);
+
+      if (!listening) return;
+
+      statePending.delete(type);
+
+      var fresh = events.filter(function (mutation) {
+        return Number(mutation && mutation.seq) > stateInitSeq;
+      });
+
+      if (fresh.length > 0) deliverState(type, fresh);
+    });
   }
 
   window.__appSdkEmit = function (raw) {
@@ -175,19 +237,6 @@ const String appSdkSource = r'''
   };
 
   window.__appSdkReply = settle;
-
-  window.addEventListener('message', function (message) {
-    var data = message.data;
-    if (!data || data.source !== 'app-sdk-host') return;
-
-    var payload = data.payload;
-    if (payload && typeof payload === 'object' && payload.event) {
-      emit(payload.event, payload.payload);
-      return;
-    }
-
-    settle(payload);
-  });
 
   function toBase64(bytes) {
     var view = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes || 0);
@@ -233,6 +282,8 @@ const String appSdkSource = r'''
         if (!stateHandlers.has(key)) stateHandlers.set(key, []);
         var bucket = stateHandlers.get(key);
         bucket.push(callback);
+
+        flushStates();
 
         return function () {
           var index = bucket.indexOf(callback);
@@ -280,6 +331,27 @@ const String appSdkSource = r'''
       }
     },
 
+    player: {
+      open: function (url) {
+        return request('player.open', { url: url }).then(function () { return undefined; });
+      },
+      close: function () {
+        return request('player.close', null).then(function () { return undefined; });
+      },
+      onClosed: function (callback) {
+        return subscribe('playerClosed', callback);
+      },
+      onIntent: function (callback) {
+        return subscribe('playerIntent', callback);
+      },
+      sync: function (playing, position) {
+        return request('player.sync', {
+          playing: !!playing,
+          position: position
+        }).then(function () { return undefined; });
+      }
+    },
+
     storage: {
       get: function (key) {
         return request('storage.get', { key: key });
@@ -302,15 +374,21 @@ const String appSdkSource = r'''
 
 /// Content Security Policy injected into every plugin document.
 ///
-/// Inline script and style are needed because the bundle is a single
-/// self-contained HTML file; everything else is limited to `https:`, `data:`
-/// and `blob:`. Frames are disabled outright.
-const String pluginContentSecurityPolicy =
+/// Every frame is refused unless the plugin declared its origin in
+/// `manifest.json`: [frameSources] is the `frame-src` list built from that
+/// declaration, `'none'` when the plugin embeds nothing.
+///
+/// [allowEval] is on only for the web build: the age gate of the embedded
+/// player compiles a function at runtime.
+String pluginContentSecurityPolicy(
+  String frameSources, {
+  bool allowEval = false,
+}) =>
     "default-src 'none'; "
-    "script-src 'unsafe-inline' https:; "
+    "script-src 'unsafe-inline'${allowEval ? " 'unsafe-eval'" : ''} https:; "
     "style-src 'unsafe-inline' https:; "
     "img-src https: data: blob:; "
     "media-src https: blob:; "
     "font-src https: data:; "
     "connect-src https:; "
-    "frame-src 'none'";
+    "frame-src $frameSources";
