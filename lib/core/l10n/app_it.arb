@@ -363,6 +363,7 @@
   "commsPin": "Fissa",
   "commsExitFullScreen": "Riduci",
   "commsFullScreen": "Schermo intero",
+  "commsMoreOptions": "Altre opzioni",
   "commsStopScreenShare": "Interrompi condivisione",
   "commsPreviousShare": "Condivisione precedente",
   "commsNextShare": "Condivisione successiva",
@@ -745,7 +746,6 @@
       }
     }
   },
-  
   "overviewSettings": "Impostazioni",
   "overviewFavouriteMessages": "Preferiti",
   "overviewLeave": "Abbandona",
@@ -1372,9 +1372,29 @@
   "activitiesStoreEmpty": "Nessuna attività disponibile",
   "activitiesStoreError": "La libreria delle attività non è disponibile",
   "activitiesStoreRetry": "Riprova",
+  "activitiesStoreSearch": "Cerca attività",
+  "activitiesStoreNoResults": "Nessuna attività corrisponde alla ricerca",
   "activitiesStart": "Avvia attività",
   "activitiesLimit": "Ci sono già tre attività in corso",
   "activitiesReadOnly": "Puoi guardare le attività ma non avviarle",
   "activitiesIncompatible": "Richiede una versione più recente",
-  "activitiesClose": "Chiudi attività"
+  "activitiesClose": "Chiudi attività",
+  "activitiesInfo": "Dettagli",
+  "pluginDetailVersion": "Versione",
+  "pluginDetailDescription": "Descrizione",
+  "pluginDetailAuthor": "Autore",
+  "pluginDetailSize": "Dimensione",
+  "pluginDetailLanguages": "Lingue",
+  "pluginDetailMinAppVersion": "Versione minima dell'app",
+  "pluginDetailCapabilities": "Capacità",
+  "pluginDetailChannels": "Canali",
+  "pluginDetailFrame": "Siti incorporati",
+  "pluginDetailNone": "Nessuno",
+  "pluginDetailReadmeError": "Impossibile caricare il README",
+  "pluginDetailReadmeRetry": "Riprova",
+  "pluginDetailReadmeEmpty": "Questo plugin non ha un README",
+  "activitiesBadge": "Attività",
+  "@activitiesBadge": {
+    "description": "Label after the plugin name on an activity tile"
+  }
 }

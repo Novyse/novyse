@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:novyse/core/plugins/models/activity_instance.dart';
 import 'package:novyse/core/plugins/models/plugin_entry.dart';
 import 'package:novyse/core/plugins/plugin_exception.dart';
@@ -119,8 +120,19 @@ class PluginActivityModule {
         data: {'chatUUID': chatUUID, 'subID': sub.toString(), 'slug': slug},
       );
 
+      // The status of the server is the error
+      if (!isOk(res)) {
+        throw PluginApiException.fromDio(
+          DioException(
+            requestOptions: res.requestOptions,
+            response: res,
+            type: DioExceptionType.badResponse,
+          ),
+        );
+      }
+
       final data = responseData(res);
-      if (!isOk(res) || data is! Map<String, dynamic>) {
+      if (data is! Map<String, dynamic>) {
         throw PluginApiException(
           res.statusCode ?? 0,
           'E_INTERNAL',
@@ -129,6 +141,10 @@ class PluginActivityModule {
       }
 
       return ActivityInstance.fromJson(data);
+    } on PluginApiException catch (error) {
+      debugPrint('[CommsActivities] start failed: $error');
+
+      rethrow;
     } on DioException catch (error) {
       throw PluginApiException.fromDio(error);
     }

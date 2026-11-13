@@ -363,6 +363,7 @@
   "commsPin": "Pin",
   "commsExitFullScreen": "Exit full screen",
   "commsFullScreen": "Full screen",
+  "commsMoreOptions": "More options",
   "commsStopScreenShare": "Stop sharing",
   "commsPreviousShare": "Previous screen share",
   "commsNextShare": "Next screen share",
@@ -745,7 +746,6 @@
       }
     }
   },
-  
   "overviewSettings": "Settings",
   "overviewFavouriteMessages": "Favorite messages",
   "overviewLeave": "Leave",
@@ -1380,9 +1380,29 @@
   "activitiesStoreEmpty": "No activities are available yet",
   "activitiesStoreError": "The activity library is not available",
   "activitiesStoreRetry": "Retry",
+  "activitiesStoreSearch": "Search activities",
+  "activitiesStoreNoResults": "No activity matches this search",
   "activitiesStart": "Start activity",
   "activitiesLimit": "Three activities are already running",
   "activitiesReadOnly": "You can watch the activities but not start them",
   "activitiesIncompatible": "Needs a newer app version",
-  "activitiesClose": "Close activity"
+  "activitiesClose": "Close activity",
+  "activitiesInfo": "Details",
+  "pluginDetailVersion": "Version",
+  "pluginDetailDescription": "Description",
+  "pluginDetailAuthor": "Author",
+  "pluginDetailSize": "Size",
+  "pluginDetailLanguages": "Languages",
+  "pluginDetailMinAppVersion": "Minimum app version",
+  "pluginDetailCapabilities": "Capabilities",
+  "pluginDetailChannels": "Channels",
+  "pluginDetailFrame": "Embedded sites",
+  "pluginDetailNone": "None",
+  "pluginDetailReadmeError": "The README could not be loaded",
+  "pluginDetailReadmeRetry": "Retry",
+  "pluginDetailReadmeEmpty": "This plugin has no README",
+  "activitiesBadge": "Activity",
+  "@activitiesBadge": {
+    "description": "Label after the plugin name on an activity tile"
+  }
 }
