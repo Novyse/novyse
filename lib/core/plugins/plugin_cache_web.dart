@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:novyse/core/plugins/models/frame_origins.dart';
 import 'package:novyse/core/plugins/models/plugin_entry.dart';
 import 'package:novyse/core/plugins/plugin_build.dart';
 import 'package:novyse/core/plugins/plugin_exception.dart';
@@ -59,11 +63,59 @@ class PluginCache {
 
     onProgress?.call(document.length, document.length);
 
+    final frameOrigins = await _frameOriginsOf(bundle.manifestUrl);
+
     return PluginBuild(
       slug: slug,
       version: version,
-      html: prepareDocument(document),
+      frameOrigins: frameOrigins,
+      html: prepareDocument(document, frameOrigins: frameOrigins),
     );
+  }
+
+  /// Reads the origins the build declares, from the manifest of the release.
+  ///
+  /// The registry carries a link, never a copy, so the permissions cannot
+  /// drift from the build they belong to. A manifest that cannot be fetched
+  /// leaves the sandbox with no frame at all: the plugin still renders, the
+  /// player does not, and the card never gains access it did not declare.
+  Future<FrameOrigins> _frameOriginsOf(String manifestUrl) async {
+    if (manifestUrl.isEmpty) return FrameOrigins.none;
+
+    // Fetched as text: a raw file is served as `text/plain`, so a JSON
+    // response type would hand Dio a string it cannot cast, and the failure
+    // would leave the sandbox with no frame at all (a player that never
+    // loads, without an error the user could see).
+    try {
+      final response = await _dio.get<String>(
+        manifestUrl,
+        options: Options(
+          responseType: ResponseType.plain,
+          followRedirects: true,
+        ),
+      );
+
+      final raw = response.data;
+      if (raw == null || raw.isEmpty) return FrameOrigins.none;
+
+      final manifest = jsonDecode(raw);
+
+      return manifest is Map<String, dynamic>
+          ? FrameOrigins.fromManifest(manifest)
+          : FrameOrigins.none;
+    } on DioException catch (error) {
+      debugPrint('[PluginCache] manifest unavailable: ${error.message}');
+
+      return FrameOrigins.none;
+    } on FormatException catch (error) {
+      debugPrint('[PluginCache] manifest unreadable: ${error.message}');
+
+      return FrameOrigins.none;
+    } catch (error) {
+      debugPrint('[PluginCache] manifest failed: $error');
+
+      return FrameOrigins.none;
+    }
   }
 
   /// No-op on the web: nothing is written to disk.

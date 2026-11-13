@@ -5,6 +5,9 @@ import 'dart:io';
 import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:novyse/core/plugins/bridge/app_sdk_js.dart';
+import 'package:novyse/core/plugins/models/frame_origins.dart';
 import 'package:novyse/core/plugins/models/plugin_entry.dart';
 import 'package:novyse/core/plugins/plugin_build.dart';
 import 'package:novyse/core/plugins/plugin_exception.dart';
@@ -23,13 +26,23 @@ import 'package:path_provider/path_provider.dart';
 class PluginCache {
   PluginCache._({Dio? dio}) : _dio = dio ?? Dio();
 
+  /// A cache rooted in `root`, for tests that must not touch the app data.
+  @visibleForTesting
+  PluginCache.forTesting(this._root, {Dio? dio}) : _dio = dio ?? Dio();
+
   static final PluginCache instance = PluginCache._();
 
   /// Total size allowed on disk.
   static const int budgetBytes = 50 * 1024 * 1024;
 
+  /// How long a single filesystem step of an install may take.
+  static const Duration installStepTimeout = Duration(seconds: 15);
+
   /// Marker written on every successful mount, used by the LRU sweep.
   static const String usedMarker = '.used';
+
+  /// Marker of the SDK and CSP digest the cached builds were prepared with.
+  static const String sdkMarker = '.sdk';
 
   final Dio _dio;
 
@@ -40,12 +53,6 @@ class PluginCache {
   final Set<String> _protected = {};
 
   Directory? _root;
-
-  /// The directory of the installed build, or `null` when it is missing.
-  Future<bool> isCached(String slug, String version) async {
-    final entry = await _entryFile(slug, version);
-    return entry.existsSync() && entry.lengthSync() > 0;
-  }
 
   /// Returns the build, installing it when it is not on disk.
   ///
@@ -60,14 +67,26 @@ class PluginCache {
     final key = '$slug@$version';
 
     final running = _inflight[key];
-    if (running != null) return running;
+    if (running != null) {
+      debugPrint('[PluginCache] $key: joining the install in flight');
 
-    final future = _load(
-      slug: slug,
-      version: version,
-      bundle: bundle,
-      onProgress: onProgress,
-    ).whenComplete(() => _inflight.remove(key));
+      return running;
+    }
+
+    debugPrint('[PluginCache] $key: load requested');
+
+    final future =
+        _load(
+          slug: slug,
+          version: version,
+          bundle: bundle,
+          onProgress: onProgress,
+        ).whenComplete(() {
+          // Block body on purpose: an arrow would return the removed future, and
+          // `whenComplete` waits for the future a callback returns. Here that
+          // future is the one being completed, so the install would never finish.
+          _inflight.remove(key);
+        });
 
     _inflight[key] = future;
 
@@ -86,6 +105,8 @@ class PluginCache {
   Future<void> clear() async {
     final root = await _rootDirectory();
     for (final entity in root.listSync()) {
+      if (p.basename(entity.path) == sdkMarker) continue;
+
       try {
         entity.deleteSync(recursive: true);
       } catch (_) {}
@@ -101,8 +122,14 @@ class PluginCache {
     final entry = await _entryFile(slug, version);
 
     if (entry.existsSync() && entry.lengthSync() > 0) {
-      await _touch(entry.parent);
-      return PluginBuild(slug: slug, version: version, filePath: entry.path);
+      _touch(entry.parent);
+
+      return PluginBuild(
+        slug: slug,
+        version: version,
+        filePath: entry.path,
+        frameOrigins: _frameOrigins(entry.parent),
+      );
     }
 
     if (bundle.downloadUrl.isEmpty) {
@@ -126,19 +153,39 @@ class PluginCache {
       if (staged.existsSync()) staged.deleteSync(recursive: true);
       await staged.create(recursive: true);
 
+      final bytes = archive.lengthSync();
+      debugPrint('[PluginCache] $slug@$version: $bytes bytes, extracting');
+
       await _extract(archive, staged);
-      await _prepare(staged);
+      final frameOrigins = await _prepare(staged);
+
+      debugPrint('[PluginCache] $slug@$version: extracted and prepared');
 
       if (target.existsSync()) target.deleteSync(recursive: true);
-      await staged.rename(target.path);
+      await staged.rename(target.path).timeout(installStepTimeout);
 
-      await _collectVersions(slug, version);
-      await _enforceBudget();
+      debugPrint('[PluginCache] $slug@$version: moved into ${target.path}');
 
-      return PluginBuild(slug: slug, version: version, filePath: entry.path);
+      await _collectVersions(slug, version).timeout(installStepTimeout);
+      await _enforceBudget().timeout(installStepTimeout);
+
+      debugPrint('[PluginCache] $slug@$version: cache ready');
+
+      return PluginBuild(
+        slug: slug,
+        version: version,
+        filePath: entry.path,
+        frameOrigins: frameOrigins,
+      );
     } on PluginCacheException {
       if (staged.existsSync()) staged.deleteSync(recursive: true);
       rethrow;
+    } on TimeoutException {
+      if (staged.existsSync()) staged.deleteSync(recursive: true);
+      throw const PluginCacheException(
+        'cache_unavailable',
+        'The build did not reach the cache in time',
+      );
     } catch (error) {
       if (staged.existsSync()) staged.deleteSync(recursive: true);
       throw PluginCacheException(
@@ -154,12 +201,88 @@ class PluginCache {
     final cached = _root;
     if (cached != null) return cached;
 
-    final support = await getApplicationSupportDirectory();
+    final support = await _supportDirectory();
     final directory = Directory(p.join(support.path, 'plugins'));
     await directory.create(recursive: true);
     _root = directory;
 
+    _invalidateStaleBuilds(directory);
+
+    debugPrint('[PluginCache] cache directory: ${directory.path}');
+
     return directory;
+  }
+
+  /// Drops every installed build when the injected SDK changed.
+  ///
+  /// The SDK is baked into the document at install time, so a document that
+  /// carries another version of it would run the old transport forever: the
+  /// digest of the SDK is the cache key of the whole cache.
+  void _invalidateStaleBuilds(Directory root) {
+    final marker = File(p.join(root.path, sdkMarker));
+    // The policy is baked into every document: a change to it must invalidate
+    // the builds written with the previous one. Both variants are hashed, so a
+    // policy change never leaves a stale document behind, whichever platform
+    // wrote the cache.
+    final digest = sha256
+        .convert(
+          utf8.encode(
+            '$appSdkSource'
+            '${pluginContentSecurityPolicy('')}'
+            '${pluginContentSecurityPolicy('', allowEval: true)}',
+          ),
+        )
+        .toString();
+
+    try {
+      if (marker.existsSync() && marker.readAsStringSync() == digest) return;
+    } catch (_) {}
+
+    for (final entity in root.listSync()) {
+      try {
+        entity.deleteSync(recursive: true);
+      } catch (_) {}
+    }
+
+    try {
+      marker.writeAsStringSync(digest, flush: false);
+    } catch (_) {}
+  }
+
+  /// The directory of the data of the application.
+  ///
+  /// On Linux the platform plugin asks the desktop session for the identifier
+  /// of the application, which can block on a session that never answers: the
+  /// XDG data directory is the same place and it is read from the environment.
+  Future<Directory> _supportDirectory() async {
+    if (Platform.isLinux) {
+      final dataHome = Platform.environment['XDG_DATA_HOME'];
+      final home = Platform.environment['HOME'];
+
+      final base = dataHome != null && dataHome.isNotEmpty
+          ? dataHome
+          : (home != null && home.isNotEmpty
+                ? p.join(home, '.local', 'share')
+                : null);
+
+      if (base != null) return Directory(p.join(base, 'novyse'));
+    }
+
+    try {
+      return await getApplicationSupportDirectory().timeout(
+        const Duration(seconds: 10),
+      );
+    } on TimeoutException {
+      throw const PluginCacheException(
+        'cache_unavailable',
+        'The application directory did not answer',
+      );
+    } catch (error) {
+      throw PluginCacheException(
+        'cache_unavailable',
+        'The application directory is not available: $error',
+      );
+    }
   }
 
   Future<File> _entryFile(String slug, String version) async {
@@ -187,6 +310,8 @@ class PluginCache {
     var received = 0;
 
     try {
+      debugPrint('[PluginCache] $slug@$version: GET ${bundle.downloadUrl}');
+
       final response = await _dio.get<ResponseBody>(
         bundle.downloadUrl,
         options: Options(
@@ -194,6 +319,10 @@ class PluginCache {
           followRedirects: true,
           receiveTimeout: const Duration(minutes: 2),
         ),
+      );
+
+      debugPrint(
+        '[PluginCache] $slug@$version: HTTP ${response.statusCode}, reading',
       );
 
       final body = response.data;
@@ -300,9 +429,9 @@ class PluginCache {
     }
   }
 
-  /// Validates the layout and rewrites the entry document with the CSP and
-  /// the SDK bootstrap.
-  Future<void> _prepare(Directory staged) async {
+  /// Validates the layout, rewrites the entry document with the CSP and the SDK
+  /// bootstrap, and returns the frame origins of the manifest.
+  Future<FrameOrigins> _prepare(Directory staged) async {
     final entry = File(p.join(staged.path, 'index.html'));
     if (!entry.existsSync() || entry.lengthSync() == 0) {
       throw const PluginCacheException(
@@ -319,8 +448,9 @@ class PluginCache {
       );
     }
 
+    final Object? decoded;
     try {
-      jsonDecode(manifest.readAsStringSync());
+      decoded = jsonDecode(manifest.readAsStringSync());
     } catch (_) {
       throw const PluginCacheException(
         'corrupt_bundle',
@@ -328,10 +458,33 @@ class PluginCache {
       );
     }
 
+    final frameOrigins = decoded is Map<String, dynamic>
+        ? FrameOrigins.fromManifest(decoded)
+        : FrameOrigins.none;
+
     await entry.writeAsString(
-      prepareDocument(entry.readAsStringSync()),
+      prepareDocument(entry.readAsStringSync(), frameOrigins: frameOrigins),
       flush: true,
     );
+
+    return frameOrigins;
+  }
+
+  /// What the manifest of an installed build allows in a frame.
+  ///
+  /// A build that cannot be read declares nothing: the tile still mounts, with
+  /// no frame allowed at all.
+  FrameOrigins _frameOrigins(Directory directory) {
+    final manifest = File(p.join(directory.path, 'manifest.json'));
+
+    try {
+      final decoded = jsonDecode(manifest.readAsStringSync());
+      return decoded is Map<String, dynamic>
+          ? FrameOrigins.fromManifest(decoded)
+          : FrameOrigins.none;
+    } catch (_) {
+      return FrameOrigins.none;
+    }
   }
 
   /// Deletes the other builds of the same plugin, except the pinned ones.
@@ -410,10 +563,15 @@ class PluginCache {
     }
   }
 
-  Future<void> _touch(Directory directory) async {
+  /// Writes the LRU marker of a build.
+  ///
+  /// Synchronous on purpose: marking a build as used must never be a future a
+  /// tile can wait on, and a marker that cannot be written is not an error.
+  void _touch(Directory directory) {
+    final marker = File(p.join(directory.path, usedMarker));
+
     try {
-      final marker = File(p.join(directory.path, usedMarker));
-      await marker.writeAsString('', flush: false);
+      marker.writeAsStringSync('', flush: false);
     } catch (_) {}
   }
 }

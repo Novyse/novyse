@@ -12,14 +12,20 @@ class PluginEntry {
     required this.name,
     required this.description,
     required this.version,
-    required this.tag,
     required this.iconUrl,
     required this.downloadUrl,
+    required this.author,
     required this.entryUrl,
     required this.sha256,
     required this.sizeBytes,
     required this.minAppVersion,
     required this.capabilities,
+    required this.manifestUrl,
+    required this.bannerUrl,
+    required this.readmeUrl,
+    required this.locales,
+    required this.channels,
+    required this.frameOrigins,
   });
 
   /// Identifier of the plugin, `[a-z0-9-]`, at most 64 chars.
@@ -28,17 +34,32 @@ class PluginEntry {
   /// Display name shown in the store and on the tile.
   final String name;
 
+  /// Author declared by the manifest.
+  final PluginAuthor author;
+
   /// Short description shown in the store.
   final String description;
 
   /// Published version, the semver of the release.
   final String version;
 
-  /// Git tag of the release (`<slug>@<version>`).
-  final String tag;
-
   /// Absolute URL of the icon, empty when the plugin has none.
   final String iconUrl;
+
+  /// Absolute URL of the store banner, empty when the plugin has none.
+  final String bannerUrl;
+
+  /// Absolute URL of the README at the tag of the release, empty when unknown.
+  final String readmeUrl;
+
+  /// Languages the UI of the plugin is translated into.
+  final List<String> locales;
+
+  /// Communication channels the plugin declares.
+  final List<String> channels;
+
+  /// Origins the plugin loads into a frame.
+  final List<String> frameOrigins;
 
   /// Absolute URL of the bundle archive (`.zip`).
   final String downloadUrl;
@@ -58,15 +79,27 @@ class PluginEntry {
   /// Capabilities granted to the plugin, from the registry.
   final List<String> capabilities;
 
+  /// Absolute URL of the manifest of this build, at the tag of the release.
+  ///
+  /// The registry carries a link, never a copy: whoever needs the permissions
+  /// fetches the manifest from the repository, so what it reads cannot drift
+  /// from the build it belongs to. On native the same file is already inside
+  /// the bundle, and the cache reads it from there.
+  final String manifestUrl;
+
   factory PluginEntry.fromJson(Map<String, dynamic> json) {
     final capabilities = json['capabilities'];
+    final locales = json['locales'];
+    final permissions = json['permissions'];
+    final channels = permissions is Map ? permissions['channels'] : null;
+    final frame = permissions is Map ? permissions['frame'] : null;
 
     return PluginEntry(
       slug: json['slug']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
+      author: PluginAuthor.fromJson(json['author']),
       description: json['description']?.toString() ?? '',
       version: json['version']?.toString() ?? '',
-      tag: json['tag']?.toString() ?? '',
       iconUrl: json['iconUrl']?.toString() ?? '',
       downloadUrl: json['downloadUrl']?.toString() ?? '',
       entryUrl: json['entryUrl']?.toString() ?? '',
@@ -75,6 +108,18 @@ class PluginEntry {
       minAppVersion: json['minAppVersion']?.toString() ?? '',
       capabilities: capabilities is List
           ? capabilities.map((entry) => entry.toString()).toList()
+          : const [],
+      manifestUrl: json['manifestUrl']?.toString() ?? '',
+      bannerUrl: json['bannerUrl']?.toString() ?? '',
+      readmeUrl: json['readmeUrl']?.toString() ?? '',
+      locales: locales is List
+          ? locales.map((entry) => entry.toString()).toList()
+          : const [],
+      channels: channels is List
+          ? channels.map((entry) => entry.toString()).toList()
+          : const [],
+      frameOrigins: frame is List
+          ? frame.map((entry) => entry.toString()).toList()
           : const [],
     );
   }
@@ -86,6 +131,8 @@ class PluginEntry {
     sha256: sha256,
     sizeBytes: sizeBytes,
     capabilities: capabilities,
+    manifestUrl: manifestUrl,
+    channels: channels,
   );
 
   /// True when the entry carries everything needed to install the build.
@@ -97,6 +144,37 @@ class PluginEntry {
   /// plugin works with every client.
   bool isCompatibleWith(String appVersion) =>
       minAppVersion.isEmpty || compareVersions(appVersion, minAppVersion) >= 0;
+}
+
+/// Who published a plugin: the display name and, when declared, the page of the
+/// author.
+///
+/// The URL is optional: the store makes the name clickable only when the
+/// registry declared one. A plain string is still accepted as the bare name, so
+/// an older registry keeps working.
+@immutable
+class PluginAuthor {
+  const PluginAuthor({required this.name, this.url = ''});
+
+  /// Display name of the author, `Novyse` for the official library.
+  final String name;
+
+  /// Page of the author, empty when unknown.
+  final String url;
+
+  /// True when there is no name to show.
+  bool get isEmpty => name.isEmpty;
+
+  factory PluginAuthor.fromJson(Object? json) {
+    if (json is Map) {
+      return PluginAuthor(
+        name: json['name']?.toString() ?? '',
+        url: json['url']?.toString() ?? '',
+      );
+    }
+
+    return PluginAuthor(name: json?.toString() ?? '');
+  }
 }
 
 /// The build of a plugin pinned by an activity.
@@ -111,6 +189,8 @@ class PluginBundle {
     required this.sha256,
     required this.sizeBytes,
     required this.capabilities,
+    required this.manifestUrl,
+    required this.channels,
   });
 
   final String downloadUrl;
@@ -119,8 +199,15 @@ class PluginBundle {
   final int sizeBytes;
   final List<String> capabilities;
 
+  /// Communication channels the manifest declares.
+  final List<String> channels;
+
+  /// Absolute URL of the manifest of this build, empty when unknown.
+  final String manifestUrl;
+
   factory PluginBundle.fromJson(Map<String, dynamic> json) {
     final capabilities = json['capabilities'];
+    final channels = json['channels'];
 
     return PluginBundle(
       downloadUrl: json['downloadUrl']?.toString() ?? '',
@@ -130,14 +217,18 @@ class PluginBundle {
       capabilities: capabilities is List
           ? capabilities.map((entry) => entry.toString()).toList()
           : const [],
+      manifestUrl: json['manifestUrl']?.toString() ?? '',
+      channels: channels is List
+          ? channels.map((entry) => entry.toString()).toList()
+          : const [],
     );
   }
 
-  /// True when the descriptor cannot install anything.
-  bool get isEmpty => downloadUrl.isEmpty && entryUrl.isEmpty;
-
   /// True when the plugin declares [capability].
   bool allows(String capability) => capabilities.contains(capability);
+
+  /// True when the plugin may write on [channel].
+  bool allowsChannel(String channel) => channels.contains(channel);
 }
 
 /// Compares two `MAJOR.MINOR.PATCH[-YYYYMMDD.BUILD]` versions.
