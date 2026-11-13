@@ -235,3 +235,4 @@ jobs:
           name: web-dist
           path: build/web/
           retention-days: 1
+          include-hidden-files: true
