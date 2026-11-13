@@ -35,8 +35,11 @@ class CommsRoomModule {
   final Dio _dio;
   CommsRoomModule(this._dio);
 
-  /// Get room info and participants.
-  Future<({bool success, dynamic room, dynamic participants})> get(
+  /// Get room info, participants and activities.
+  Future<
+    ({bool success, dynamic room, dynamic participants, dynamic activities})
+  >
+  get(
     String chatUUID, {
     int sub = 0,
   }) async {
@@ -51,12 +54,18 @@ class CommsRoomModule {
           success: true,
           room: d['room'],
           participants: d['participants'],
+          activities: d['activities'],
         );
       }
-      return (success: false, room: null, participants: null);
+      return (
+        success: false,
+        room: null,
+        participants: null,
+        activities: null,
+      );
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
-        return (success: true, room: [], participants: []);
+        return (success: true, room: [], participants: [], activities: []);
       }
       rethrow;
     }

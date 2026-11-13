@@ -13,6 +13,12 @@ String extractUserUUID(String identity) {
   return identity;
 }
 
+/// Identifier of a screen share tile: `share:` plus the track SID.
+///
+/// The polling snapshot and the live room build the same IDs, and the
+/// controller comparisons use this helper too.
+String screenShareTileId(String trackSid) => 'share:$trackSid';
+
 /// Represents a single visual tile in the Comms Members grid.
 /// This can be either:
 /// 1. A user's camera / avatar tile (`isScreenShare == false`)
@@ -21,7 +27,7 @@ String extractUserUUID(String identity) {
 class CommsTileItem {
   /// Unique identifier for this tile.
   /// For user avatar/camera: participant's identity (userUUID + deviceID).
-  /// For screen share: the track's SID.
+  /// For screen share: `share:` plus the track SID.
   final String id;
 
   /// The UUID of the user owning this stream/tile.
@@ -173,17 +179,20 @@ class CommsRoomRemoteData {
   final List<String> participantUserUUIDs;
 
   final List<CommsRemoteScreenShare> screenShares;
+  final List<ActivityInstance> activities;
 
   const CommsRoomRemoteData({
     this.roomInfo,
     this.participantUserUUIDs = const [],
     this.screenShares = const [],
+    this.activities = const [],
   });
 
   factory CommsRoomRemoteData.fromApi(
     dynamic rawRoom,
-    dynamic rawParticipants,
-  ) {
+    dynamic rawParticipants, {
+    dynamic rawActivities,
+  }) {
     Map<String, dynamic>? info;
     if (rawRoom is Map<String, dynamic>) {
       info = rawRoom;
@@ -223,10 +232,23 @@ class CommsRoomRemoteData {
       }
     }
 
+    final activities = <ActivityInstance>[];
+
+    if (rawActivities is List) {
+      for (final raw in rawActivities) {
+        if (raw is Map) {
+          activities.add(
+            ActivityInstance.fromJson(Map<String, dynamic>.from(raw)),
+          );
+        }
+      }
+    }
+
     return CommsRoomRemoteData(
       roomInfo: info,
       participantUserUUIDs: userUUIDs,
       screenShares: shares,
+      activities: activities,
     );
   }
 }
@@ -298,17 +320,15 @@ bool _isScreenShareTrack(Map t) {
     // livekit_client stringifies as e.g. "screenShareVideo".
     if (source.toLowerCase().contains('screenshare')) return true;
   } else if (source is int) {
-    // LiveKit Track.Source enum: CAMERA=1, SCREEN_SHARE=2 (protobuf).
-    // Only treat 2 as screen share to avoid false positives.
-    if (source == 2) return true;
+    // LiveKit `TrackSource`, as the API serializes the protobuf enum:
+    // UNKNOWN=0, CAMERA=1, MICROPHONE=2, SCREEN_SHARE=3,
+    // SCREEN_SHARE_AUDIO=4
+    if (source == 3) return true;
   }
   final name = t['name'];
   if (name is String) {
     final lower = name.toLowerCase();
     if (lower.contains('screen') && lower.contains('share')) return true;
   }
-  final type = t['type'];
-  // Explicit boolean flag used by some backends.
-  if (t['isScreenShare'] == true && type != null) return true;
   return false;
 }

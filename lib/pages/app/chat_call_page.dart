@@ -49,9 +49,9 @@ class _ChatCallPageState extends ConsumerState<ChatCallPage> {
 
   @override
   void dispose() {
-    // Leaving the room drops the tiles and the Redis state of this client,
-    // which is what makes an activity disappear with the call.
-    unawaited(_activities?.leave());
+    // Closing the view is not leaving the call: the activities belong to the
+    // room and the controller drops them when the call itself ends.
+    _activities = null;
     super.dispose();
   }
 

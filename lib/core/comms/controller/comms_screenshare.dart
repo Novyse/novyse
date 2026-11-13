@@ -200,10 +200,7 @@ mixin CommsScreenshareMixin
         state.screenShareConfigs[trackSid] ?? const ScreenShareConfig();
     try {
       await track.restartTrack(
-        config.captureOptions(
-          sourceId: newSourceId,
-          captureScreenAudio: false,
-        ),
+        config.captureOptions(sourceId: newSourceId, captureScreenAudio: false),
       );
       await track.replaceTrackForMultiCodecSimulcast(track.mediaStreamTrack);
       state = state.copyWith(
@@ -312,10 +309,10 @@ mixin CommsScreenshareMixin
         screenShareConfigs: updatedConfigs,
       );
 
-      if (state.pinnedStreamId == targetSid) {
+      if (state.pinnedStreamId == screenShareTileId(targetSid)) {
         state = state.copyWith(pinnedStreamId: () => null);
       }
-      if (state.fullscreenStreamId == targetSid) {
+      if (state.fullscreenStreamId == screenShareTileId(targetSid)) {
         state = state.copyWith(fullscreenStreamId: () => null);
       }
 

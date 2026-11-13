@@ -65,6 +65,30 @@ void main() {
       expect(data.screenShares, isEmpty);
     });
 
+    test('a microphone is not a screen share', () {
+      // `TrackSource` serialized as a number: MICROPHONE is 2 and
+      // SCREEN_SHARE is 3. Reading 2 as a share gave every participant with
+      // a microphone a phantom "(Sharing)" tile.
+      final rawParticipants = [
+        {
+          'identity': 'uuid-aaa_session1',
+          'tracks': [
+            {'sid': 'sid-mic-1', 'source': 2},
+            {'sid': 'sid-share-1', 'source': 3},
+          ],
+        },
+      ];
+
+      final data = CommsRoomRemoteData.fromApi(null, rawParticipants);
+
+      expect(data.screenShares, [
+        const CommsRemoteScreenShare(
+          ownerUUID: 'uuid-aaa',
+          trackSid: 'sid-share-1',
+        ),
+      ]);
+    });
+
     test('CommsRoomRemoteData.fromApi extracts screen shares from tracks', () {
       final rawParticipants = [
         {

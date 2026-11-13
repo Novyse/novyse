@@ -9,6 +9,7 @@ import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/plugins/activity_controller.dart';
 import 'package:novyse/core/plugins/models/activity_instance.dart';
 import 'package:novyse/core/services/api_gateway.dart';
+import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 
 /// Aggregated view data for a specific room (chatUUID, sub).
@@ -71,18 +72,16 @@ class CommsDataNotifier
     final commsState = ref.watch(commsProvider);
     final activities = ref.watch(activityControllerProvider);
 
-    final activityTiles = activities.isRoom(arg.chatUUID, arg.sub)
-        ? _buildActivityTiles(activities.instances)
-        : const <CommsTileItem>[];
-
-    final isMatch = commsState.isRoomMatch(arg.chatUUID, arg.sub);
+    final isMatch = ref.watch(commsRoomConnectedProvider(arg));
 
     if (isMatch && commsState.room != null) {
       _stopPolling();
       return _buildTilesFromLiveRoom(
         commsState.room!,
         commsState.speakingParticipants,
-        activities: activityTiles,
+        activities: activities.isRoom(arg.chatUUID, arg.sub)
+            ? activities.instances
+            : const [],
         remoteVolumes: commsState.remoteVolumes,
         localMuted: commsState.localMuted,
         outputEnabled: commsState.isAudioOutputEnabled,
@@ -91,22 +90,10 @@ class CommsDataNotifier
       _startPolling();
       return CommsRoomViewData(
         isConnectedToThisRoom: false,
-        tiles: [...activityTiles, ..._lastTiles],
-        isLoading: _lastTiles.isEmpty && activityTiles.isEmpty,
+        tiles: _lastTiles,
+        isLoading: _lastTiles.isEmpty,
       );
     }
-  }
-
-  /// One tile per running activity, identified by its instance.
-  List<CommsTileItem> _buildActivityTiles(List<ActivityInstance> instances) {
-    return [
-      for (final instance in instances)
-        CommsTileItem(
-          id: 'activity:${instance.instanceId}',
-          userUUID: '',
-          activity: instance,
-        ),
-    ];
   }
 
   void _startPolling() {
@@ -138,38 +125,44 @@ class CommsDataNotifier
       final remoteData = CommsRoomRemoteData.fromApi(
         result.room,
         result.participants,
+        rawActivities: result.activities,
       );
 
       final localUserUUID = ref.read(userStoreProvider).localUserUUID;
 
       final tiles = <CommsTileItem>[
         for (final uuid in remoteData.participantUserUUIDs)
-          CommsTileItem(
-            id: uuid,
-            userUUID: uuid,
-            isScreenShare: false,
-            isLocal: uuid == localUserUUID,
-            videoTrack: null,
-            isSpeaking: false,
-            isRemoteMuted: false,
-          ),
+          if (uuid != localUserUUID)
+            CommsTileItem(
+              id: uuid,
+              userUUID: uuid,
+              isScreenShare: false,
+              isLocal: false,
+              videoTrack: null,
+              isSpeaking: false,
+              isRemoteMuted: false,
+            ),
         for (final share in remoteData.screenShares)
+          if (share.ownerUUID != localUserUUID)
+            CommsTileItem(
+              id: screenShareTileId(share.trackSid),
+              userUUID: share.ownerUUID,
+              isScreenShare: true,
+              trackSid: share.trackSid,
+            ),
+        for (final activity in remoteData.activities)
           CommsTileItem(
-            id: share.trackSid,
-            userUUID: share.ownerUUID,
-            isScreenShare: true,
-            isLocal: share.ownerUUID == localUserUUID,
-            videoTrack: null,
-            trackSid: share.trackSid,
-            isSpeaking: false,
-            isRemoteMuted: false,
+            id: 'activity:${activity.instanceId}',
+            userUUID: '',
+            activity: activity,
           ),
       ];
 
       _lastTiles = tiles;
+
       state = CommsRoomViewData(
         isConnectedToThisRoom: false,
-        tiles: tiles,
+        tiles: _lastTiles,
         isLoading: false,
       );
     } catch (e) {
@@ -180,12 +173,19 @@ class CommsDataNotifier
   CommsRoomViewData _buildTilesFromLiveRoom(
     Room room,
     Set<String> speakingParticipants, {
-    List<CommsTileItem> activities = const [],
+    List<ActivityInstance> activities = const [],
     Map<String, double> remoteVolumes = const {},
     Map<String, bool> localMuted = const {},
     bool outputEnabled = true,
   }) {
-    final tiles = <CommsTileItem>[...activities];
+    final tiles = <CommsTileItem>[
+      for (final instance in activities)
+        CommsTileItem(
+          id: 'activity:${instance.instanceId}',
+          userUUID: '',
+          activity: instance,
+        ),
+    ];
 
     final participants = <Participant>[
       if (room.localParticipant != null) room.localParticipant!,
@@ -243,10 +243,12 @@ class CommsDataNotifier
       );
 
       for (final screenPub in screenPubs) {
+        if (screenPub.track == null || screenPub.muted) continue;
+
         final shareVolKey = screenPub.sid;
         tiles.add(
           CommsTileItem(
-            id: screenPub.sid,
+            id: screenShareTileId(screenPub.sid),
             userUUID: userUUID,
             isScreenShare: true,
             isLocal: isLocal,
@@ -279,3 +281,26 @@ final commsDataProvider =
       CommsRoomViewData,
       CommsRoomKey
     >(CommsDataNotifier.new);
+
+/// Whether we are connected to the given room.
+final commsRoomConnectedProvider = Provider.autoDispose
+    .family<bool, CommsRoomKey>(
+      (ref, room) => ref.watch(
+        commsProvider.select((s) => s.isRoomMatch(room.chatUUID, room.sub)),
+      ),
+    );
+
+/// Whether we are connected to the room open in the chat view.
+final activeCommsRoomConnectedProvider = Provider.autoDispose<bool>((ref) {
+  final activeChat = ref.watch(activeChatProvider);
+  final chatUUID = activeChat.selectedChatUUID;
+  if (chatUUID == null) {
+    return ref.watch(commsProvider.select((s) => s.connected));
+  }
+  return ref.watch(
+    commsRoomConnectedProvider((
+      chatUUID: chatUUID,
+      sub: activeChat.selectedSub,
+    )),
+  );
+});

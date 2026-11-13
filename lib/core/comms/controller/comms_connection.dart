@@ -230,10 +230,12 @@ mixin CommsConnectionMixin
       ..on<TrackUnsubscribedEvent>((event) {
         if (event.track.source == TrackSource.screenShareVideo) {
           SoundPlayer.instance.playSound('comms.screen_share.stop');
-          if (state.pinnedStreamId == event.publication.sid) {
+          if (state.pinnedStreamId ==
+              screenShareTileId(event.publication.sid)) {
             state = state.copyWith(pinnedStreamId: () => null);
           }
-          if (state.fullscreenStreamId == event.publication.sid) {
+          if (state.fullscreenStreamId ==
+              screenShareTileId(event.publication.sid)) {
             state = state.copyWith(fullscreenStreamId: () => null);
           }
         }
@@ -264,10 +266,12 @@ mixin CommsConnectionMixin
           state = state.copyWith(activeScreenShareTrackSids: updatedSids);
           SoundPlayer.instance.playSound('comms.screen_share.stop');
 
-          if (state.pinnedStreamId == event.publication.sid) {
+          if (state.pinnedStreamId ==
+              screenShareTileId(event.publication.sid)) {
             state = state.copyWith(pinnedStreamId: () => null);
           }
-          if (state.fullscreenStreamId == event.publication.sid) {
+          if (state.fullscreenStreamId ==
+              screenShareTileId(event.publication.sid)) {
             state = state.copyWith(fullscreenStreamId: () => null);
           }
           if (updatedSids.isEmpty) {

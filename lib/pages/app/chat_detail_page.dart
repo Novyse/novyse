@@ -48,6 +48,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   bool _searching = false;
   bool _isEmojiMenuOpen = false;
   bool _routeSyncPending = false;
+  bool _callOpened = false;
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
   String _searchQuery = '';
@@ -110,6 +111,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     }
     if (oldWidget.chatUUID != widget.chatUUID ||
         oldWidget.subID != widget.subID) {
+      _callOpened = false;
       _routeSyncPending = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -514,8 +516,22 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
       ],
     );
 
-    final contentPane = showVocal
-        ? ChatCallPage(chatUUID: chatUUID, subID: selectedSub)
+    // The call view, once opened, is kept in the tree until the sub changes:
+    // going back to the chat hides it instead of disposing its tiles.
+    if (callOpen) _callOpened = true;
+    final mountCall = subType == 'VOCAL' || (showViewToggle && _callOpened);
+
+    final contentPane = mountCall
+        ? Stack(
+            fit: StackFit.expand,
+            children: [
+              Offstage(
+                offstage: !showVocal,
+                child: ChatCallPage(chatUUID: chatUUID, subID: selectedSub),
+              ),
+              if (!showVocal) messagePane,
+            ],
+          )
         : messagePane;
 
     final chatBody = forum
