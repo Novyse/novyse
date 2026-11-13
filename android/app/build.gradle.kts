@@ -41,6 +41,8 @@ val currentAppDescription = getMetadataFromGlobalConfig("appDescription", curren
 val currentApplicationId = getMetadataFromGlobalConfig("appId", currentBranch).ifEmpty { "com.${currentAppName.lowercase()}" }
 val currentScheme = getMetadataFromGlobalConfig("appScheme", currentBranch).ifEmpty { currentAppName.lowercase() }
 
+var releaseSigningConfigured = false
+
 val currentHostSuffix = when (currentBranch) {
     "production" -> ""
     else -> ".dev"
@@ -111,18 +113,29 @@ android {
                 storePassword = sPassword
                 keyAlias = kAlias
                 keyPassword = kPassword
+                releaseSigningConfigured = true
             }
         }
     }
 
     buildTypes {
         release {
-            val releaseSigning = signingConfigs.getByName("release")
-            signingConfig = if (releaseSigning.storeFile != null) {
-                releaseSigning
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
+}
+
+// Fail release builds early when no signing key is configured. Debug builds
+// keep working without the gitignored key.properties file.
+tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    doFirst {
+        if (!releaseSigningConfigured) {
+            throw GradleException(
+                "Release signing is not configured. Provide android/key.properties " +
+                    "(storeFile, storePassword, keyAlias, keyPassword) or set " +
+                    "ANDROID_KEYSTORE_FILE, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS " +
+                    "and ANDROID_KEY_PASSWORD. Refusing to build an unsigned release.",
+            )
         }
     }
 }
