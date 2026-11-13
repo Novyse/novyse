@@ -7,10 +7,9 @@ import 'package:novyse/core/plugins/bridge/bridge_protocol.dart';
 
 /// The `chat:<chatUUID>:<subID>` channel of a voice room.
 ///
-/// It carries the `activity:*` events the gateway publishes and the
-/// `activity:action` events the participants publish, and it is subscribed
-/// only by the participants of the room: nothing here reaches a chat member
-/// who is not in the call.
+/// It carries the `activity:*` events the gateway publishes, and it is
+/// subscribed only by the participants of the room: nothing here reaches a chat
+/// member who is not in the call.
 ///
 /// The connection is read lazily and rebound when it is replaced: the app
 /// discards its client on every reconnect, and a channel bound to the old one
@@ -42,12 +41,16 @@ class ActivityChannel {
   centrifuge.Subscription? _subscription;
   centrifuge.Client? _bound;
   bool _disposed = false;
+  bool _rebinding = false;
+  bool _subscribing = false;
+  Timer? _watchdog;
 
   /// Name of the channel the room listens on.
   String get name => 'chat:$chatUUID:$subID';
 
-  /// True when the channel is bound to the live connection.
-  bool get isBound => _subscription != null && identical(_bound, client());
+  /// How often the watchdog checks that the subscription is still on the live
+  /// connection: a replaced client stops delivering without an error.
+  static const Duration watchdogInterval = Duration(seconds: 5);
 
   /// Binds the channel, resubscribing when the connection was replaced.
   ///
@@ -56,13 +59,21 @@ class ActivityChannel {
   Future<void> subscribe({bool resync = false}) async {
     if (_disposed) return;
 
+    _watchdog ??= Timer.periodic(
+      watchdogInterval,
+      (_) => unawaited(_ensureBound()),
+    );
+
     final current = client();
     if (current == null) {
       debugPrint('Activity channel $name: the connection is down');
       return;
     }
 
-    if (identical(current, _bound) && _subscription != null) {
+    final alive =
+        _subscription?.state == centrifuge.SubscriptionState.subscribed;
+
+    if (identical(current, _bound) && _subscription != null && alive) {
       if (resync) await onResynced();
       return;
     }
@@ -73,7 +84,8 @@ class ActivityChannel {
 
     _bound = current;
 
-    final subscription = current.newSubscription(name);
+    final subscription =
+        current.getSubscription(name) ?? current.newSubscription(name);
     _subscription = subscription;
 
     _listeners.add(
@@ -84,51 +96,56 @@ class ActivityChannel {
       ),
     );
 
+    _subscribing = true;
+
     try {
       await subscription.subscribe();
     } catch (error) {
       debugPrint('Activity channel $name: subscribe failed: $error');
+
+      // Only the attempt that still owns the field may unbind: the watchdog
+      // may have replaced it while this one was failing.
+      if (identical(_subscription, subscription)) await _unbind();
+
       return;
+    } finally {
+      _subscribing = false;
     }
 
     if (rebound || resync) await onResynced();
   }
 
-  /// Publishes an `activity:action` on the room channel.
+  /// Rebinds the subscription when the connection was replaced or the
+  /// subscription died.
   ///
-  /// Transient by design: it reaches whoever is in the room now and is never
-  /// replayed, so a late joiner cannot rebuild anything from it.
-  ///
-  /// Returns false when the channel is not usable: the caller decides whether
-  /// to surface that or to let the next attempt re-apply the state.
-  Future<bool> publishAction({
-    required String instanceId,
-    required String type,
-    Object? data,
-  }) async {
+  /// The app discards its realtime client on every reconnect: a channel left on
+  /// the old one stops receiving without an error, which is why the state of an
+  /// activity froze until the room was joined again.
+  Future<void> _ensureBound() async {
+    if (_disposed || _rebinding || _subscribing) return;
+
     final current = client();
-    if (current == null || _subscription == null) return false;
+    if (current == null) return;
+
+    if (identical(current, _bound) &&
+        _subscription?.state == centrifuge.SubscriptionState.subscribed) {
+      return;
+    }
+
+    _rebinding = true;
 
     try {
-      await current.publish(
-        name,
-        utf8.encode(
-          jsonEncode({
-            'event': 'activity:action',
-            'payload': {'instanceId': instanceId, 'type': type, 'data': ?data},
-          }),
-        ),
-      );
-      return true;
-    } catch (error) {
-      debugPrint('Activity channel $name: publish failed: $error');
-      return false;
+      await subscribe(resync: !identical(current, _bound));
+    } finally {
+      _rebinding = false;
     }
   }
 
   /// Leaves the channel. The connection itself stays untouched.
   Future<void> dispose() async {
     _disposed = true;
+    _watchdog?.cancel();
+    _watchdog = null;
     await _unbind();
   }
 
@@ -141,6 +158,7 @@ class ActivityChannel {
     _listeners.clear();
 
     final subscription = _subscription;
+    final owner = _bound ?? client();
     _subscription = null;
     _bound = null;
 
@@ -150,6 +168,12 @@ class ActivityChannel {
       await subscription.unsubscribe();
     } catch (error) {
       debugPrint('Activity channel $name: unsubscribe failed: $error');
+
+      if (owner != null) {
+        try {
+          await owner.removeSubscription(subscription);
+        } catch (_) {}
+      }
     }
   }
 

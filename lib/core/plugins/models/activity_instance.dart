@@ -69,6 +69,8 @@ class ActivityInstance {
               sha256: '',
               sizeBytes: 0,
               capabilities: [],
+              channels: [],
+              manifestUrl: '',
             ),
       events: events is List
           ? events
@@ -78,9 +80,6 @@ class ActivityInstance {
           : const [],
     );
   }
-
-  /// The build key used by the cache and by the bridge.
-  String get buildKey => '$slug@$version';
 
   ActivityInstance copyWith({
     int? seq,

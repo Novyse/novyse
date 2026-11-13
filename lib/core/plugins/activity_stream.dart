@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:novyse/core/plugins/bridge/bridge_protocol.dart';
 import 'package:novyse/core/plugins/plugin_exception.dart';
@@ -19,6 +19,7 @@ class ActivityStream {
     required this.instanceId,
     required this.room,
     required this.onPacket,
+    this.onAction,
   });
 
   final String instanceId;
@@ -29,11 +30,18 @@ class ActivityStream {
   /// Receives a packet: identity of the sender and its bytes.
   final void Function(String sender, Uint8List bytes) onPacket;
 
+  /// Receives an action of the room: identity of the sender and its envelope.
+  final void Function(String sender, Uint8List bytes)? onAction;
+
   EventsListener<RoomEvent>? _listener;
   Room? _bound;
 
   /// Topic of this activity.
   static String topicFor(String instanceId) => 'act.$instanceId';
+
+  /// Topic of the actions of this activity.
+  static String controlTopicFor(String instanceId) =>
+      '${topicFor(instanceId)}.ctl';
 
   /// Starts listening on the current room, rebinding when it changes.
   void bind() {
@@ -70,6 +78,29 @@ class ActivityStream {
     );
   }
 
+  /// Publishes one action of the room.
+
+  Future<void> publishAction(Uint8List bytes) async {
+    if (bytes.length > BridgeProtocol.maxActionBytes) {
+      throw const PluginCacheException(
+        'E_TOO_LARGE',
+        'The action is over 4 KiB',
+      );
+    }
+
+    final current = room();
+    final participant = current?.localParticipant;
+    if (current == null || participant == null) {
+      throw const PluginCacheException('E_NOT_IN_ROOM', 'The room is gone');
+    }
+
+    await participant.publishData(
+      bytes,
+      reliable: true,
+      topic: controlTopicFor(instanceId),
+    );
+  }
+
   /// Stops listening. The room stays untouched.
   void unbind() {
     try {
@@ -81,24 +112,19 @@ class ActivityStream {
   }
 
   void _onDataReceived(DataReceivedEvent event) {
-    if (event.topic != topicFor(instanceId)) return;
-
     final sender = event.participant?.identity;
     if (sender == null || sender.isEmpty) return;
 
-    onPacket(sender, Uint8List.fromList(event.data));
+    if (event.topic == topicFor(instanceId)) {
+      onPacket(sender, Uint8List.fromList(event.data));
+      return;
+    }
+
+    if (event.topic == controlTopicFor(instanceId)) {
+      onAction?.call(sender, Uint8List.fromList(event.data));
+    }
   }
 
   /// Releases the listener.
   Future<void> dispose() async => unbind();
-
-  /// Debug helper: the payload of a packet, when it is text.
-  @visibleForTesting
-  static String? decodeText(Uint8List bytes) {
-    try {
-      return String.fromCharCodes(bytes);
-    } catch (_) {
-      return null;
-    }
-  }
 }
