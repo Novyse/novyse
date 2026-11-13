@@ -10,12 +10,6 @@ abstract final class BridgeProtocol {
   /// Name of the native handler and of the JavaScript channel.
   static const String handlerName = 'appSdk';
 
-  /// Tag of the `postMessage`s the iframe sends to the host.
-  static const String webSource = 'app-sdk';
-
-  /// Tag of the replies the host sends back to the iframe.
-  static const String webReplySource = 'app-sdk-host';
-
   /// Function the host calls to deliver an event to the plugin.
   static const String emitFunction = '__appSdkEmit';
 
@@ -88,9 +82,6 @@ class BridgeRequest {
 
   /// Reads a decoded parameter, `null` when missing.
   Object? value(String key) => params?[key];
-
-  /// The size of any parameter once serialised, used for the payload caps.
-  int get sizeBytes => jsonEncode(params?['data'] ?? params).length;
 }
 
 /// The answer to a [BridgeRequest].

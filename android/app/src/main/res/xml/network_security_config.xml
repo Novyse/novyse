@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The plugin sandbox is served to the system WebView from a loopback server, so
+  the document has a real origin (an embedded player refuses a `file://` one).
+  Only the host itself is allowed in cleartext: no other domain is affected.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>

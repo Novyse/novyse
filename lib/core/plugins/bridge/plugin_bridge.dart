@@ -35,11 +35,12 @@ abstract class PluginBridge {
 String emitScript(String event, Object? payload) {
   final envelope = BridgeProtocol.encodeEvent(event, payload);
   final literal = _jsString(envelope);
-  return 'window.${BridgeProtocol.emitFunction}($literal);';
+  return 'window.${BridgeProtocol.emitFunction}&&'
+      'window.${BridgeProtocol.emitFunction}($literal);';
 }
 
-/// The JavaScript call that answers a request when the transport has no
-/// promise to resolve (Linux channel, web `postMessage`).
+/// The JavaScript call that answers a request: no engine hands the transport a
+/// promise to settle, so the reply travels back as a call.
 String replyScript(BridgeReply reply) {
   final literal = _jsString(reply.encode());
   return 'window.${BridgeProtocol.replyFunction}($literal);';
@@ -57,6 +58,3 @@ String _jsString(String value) {
 
   return "'$escaped'";
 }
-
-/// Runs [action] for an `http(s)` URL in the system browser.
-typedef ExternalUrlOpener = Future<void> Function(String url);
