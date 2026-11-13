@@ -67,7 +67,8 @@ dependencies:
   go_router: ^18.0.0
   qr: ^4.0.0
   mobile_scanner: ^7.4.2
-  webview_all: ^1.4.0
+  webview_all: ^1.4.12
+  webview_all_web: ^1.4.12
   url_launcher: ^6.3.2
   flutter_markdown_plus: ^1.0.12
   markdown_editor_live: ^0.6.0
@@ -92,7 +93,6 @@ dependencies:
   ffi: ^2.2.0
   flutter_web_plugins:
     sdk: flutter
-  flutter_inappwebview: ^6.1.5
   archive: ^4.6.0
   crypto: ^3.0.8
   flutter_dynamic_launcher_icon: ^1.0.0
