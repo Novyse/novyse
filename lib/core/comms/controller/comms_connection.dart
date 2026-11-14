@@ -100,14 +100,8 @@ mixin CommsConnectionMixin
       (this as CommsNotifier).syncCommsNotification();
 
       // Route playout to the saved output device
-      try {
-        await CommsDevicesPlatform.applyAudioOutput(
-          room: newRoom,
-          savedId: _savedDeviceId(CommsDevicesDefaults.kAudioOutputKey),
-        );
-      } catch (e) {
-        debugPrint('[CommsController] Error applying audio output: $e');
-      }
+      await applySavedAudioOutput();
+      _watchDevices();
 
       // Play join sound
       try {
@@ -294,6 +288,7 @@ mixin CommsConnectionMixin
     _speakingDebounce?.cancel();
     _speakingDebounce = null;
     _pendingSpeakers = null;
+    _unwatchDevices();
 
     // Flush pending volume writes, then keep saved volumes across rooms.
     await _persistVolumesNow();

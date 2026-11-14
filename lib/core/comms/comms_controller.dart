@@ -11,6 +11,7 @@ import 'package:novyse/core/comms/comms_state.dart';
 import 'package:novyse/core/comms/devices/comms_device.dart';
 import 'package:novyse/core/comms/devices/comms_devices_controller.dart';
 import 'package:novyse/core/comms/devices/comms_devices_platform.dart';
+import 'package:novyse/core/comms/devices/comms_devices_state.dart';
 import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
 import 'package:novyse/core/comms/devices/comms_screenshare_android.dart';
 import 'package:novyse/core/notifications/comms_notification_service.dart';
@@ -56,6 +57,7 @@ class CommsNotifier extends Notifier<CommsState>
       _isDisposed = true;
       _volumesPersistDebounce?.cancel();
       _volumesPersistDebounce = null;
+      _unwatchDevices();
       unawaited(leave());
     });
     ref.listen<Map<String, Object?>>(settingsControllerProvider, (prev, next) {

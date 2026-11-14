@@ -2,6 +2,133 @@ part of '../comms_controller.dart';
 
 /// Live device switching + audio-output routing.
 mixin CommsDevicesLiveMixin on Notifier<CommsState>, CommsMediaSettingsMixin {
+  /// Output devices the current playout route was last applied on.
+  String? _appliedOutputSignature;
+
+  /// Subscription to the enumerated device set while a room is connected.
+  StreamSubscription<void>? _devicesSub;
+
+  /// Debounces the playout re-route after a device-set change.
+  Timer? _outputReapplyDebounce;
+
+  /// Debounces the microphone re-open after a device-set change.
+  Timer? _inputReapplyDebounce;
+
+  /// Identity of the enumerated output devices, used to tell a real topology
+  /// change from the state churn of every re-enumeration.
+  String _outputSignature(CommsDevicesState state) {
+    final ids = [
+      for (final device in state.audioOutputs) '${device.id}|${device.label}',
+    ]..sort();
+    return '${state.systemDefaultAudioOutput.id}|${ids.join(',')}';
+  }
+
+  /// Watches the device set while a room is connected.
+  ///
+  /// Both directions are routed only on join, on track subscribe and when the
+  /// user picks a device, so a source or sink that disappears or is re-created
+  /// under a running call stays dead for the rest of it: playout goes silent for
+  /// the local user, capture goes silent for everyone else.
+  void _watchDevices() {
+    unawaited(_devicesSub?.cancel());
+    try {
+      _devicesSub = ref
+          .read(commsDevicesProvider.notifier)
+          .deviceChanges
+          .listen((_) {
+            _reapplyOutputAfterDeviceChange();
+            _reapplyInputAfterDeviceChange();
+          });
+    } catch (e) {
+      debugPrint('[CommsController] Device watch failed: $e');
+    }
+  }
+
+  void _unwatchDevices() {
+    unawaited(_devicesSub?.cancel());
+    _devicesSub = null;
+    _outputReapplyDebounce?.cancel();
+    _outputReapplyDebounce = null;
+    _inputReapplyDebounce?.cancel();
+    _inputReapplyDebounce = null;
+  }
+
+  void _reapplyOutputAfterDeviceChange() {
+    if (state.room == null) return;
+    final signature = _outputSignature(ref.read(commsDevicesProvider));
+    // Re-enumerations that end up with the same devices are not a reason to
+    // restart the playout stream.
+    if (signature == _appliedOutputSignature) return;
+    _outputReapplyDebounce?.cancel();
+    _outputReapplyDebounce = Timer(const Duration(milliseconds: 400), () {
+      _outputReapplyDebounce = null;
+      if (state.room == null) return;
+      unawaited(applySavedAudioOutput());
+    });
+  }
+
+  /// Whether the published microphone is bound to a capture device the app
+  /// would no longer open (removed, or no longer the resolved default).
+  bool _inputNeedsReopen() {
+    final local = state.room?.localParticipant;
+    if (local == null || !state.isAudioEnabled) return false;
+    final target = _microphoneDeviceId();
+    for (final publication in local.audioTrackPublications) {
+      final track = publication.track;
+      if (track is LocalAudioTrack &&
+          track.source == TrackSource.microphone &&
+          track.currentOptions.deviceId != target) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _reapplyInputAfterDeviceChange() {
+    if (!_inputNeedsReopen()) return;
+    _inputReapplyDebounce?.cancel();
+    _inputReapplyDebounce = Timer(const Duration(milliseconds: 400), () {
+      _inputReapplyDebounce = null;
+      if (!_inputNeedsReopen()) return;
+      unawaited(_reopenMicrophone());
+    });
+  }
+
+  /// Re-opens the microphone on the current capture device.
+  ///
+  /// Capture is otherwise opened once: a stream whose source disappeared stays
+  /// silent for the rest of the call and remote participants stop hearing the
+  /// local user, with nothing in the app re-opening it.
+  Future<void> _reopenMicrophone() async {
+    final local = state.room?.localParticipant;
+    if (local == null) return;
+    final target = _microphoneDeviceId();
+    try {
+      var reopened = false;
+      for (final publication in local.audioTrackPublications.toList()) {
+        final track = publication.track;
+        if (track is! LocalAudioTrack ||
+            track.source != TrackSource.microphone) {
+          continue;
+        }
+        await track.restartTrack(
+          CommsMediaConstraints.audioCapture(deviceId: target),
+        );
+        reopened = true;
+      }
+      if (!reopened) {
+        await local.setMicrophoneEnabled(
+          true,
+          audioCaptureOptions: CommsMediaConstraints.audioCapture(
+            deviceId: target,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('[CommsController] Failed to reopen microphone: $e');
+    }
+  }
+
   /// Persist + immediately apply a new microphone (live switch if publishing).
   Future<void> setAudioInputDevice(String deviceId) async {
     await ref.read(commsDevicesProvider.notifier).setAudioInput(deviceId);
@@ -301,11 +428,32 @@ mixin CommsDevicesLiveMixin on Notifier<CommsState>, CommsMediaSettingsMixin {
     try {
       await CommsDevicesPlatform.applyAudioOutput(
         room: room,
-        savedId: _savedDeviceId(CommsDevicesDefaults.kAudioOutputKey),
+        savedId: _resolvedOutputDeviceId(),
+      );
+      _appliedOutputSignature = _outputSignature(
+        ref.read(commsDevicesProvider),
       );
     } catch (e) {
       debugPrint('[CommsController] Failed to apply audio output: $e');
     }
+  }
+
+  /// Saved output id, resolved to a device that routing can actually apply.
+  ///
+  /// `'default'` carries no device for the routing layer, and a saved device
+  /// that is no longer enumerated matches nothing: both would make the route
+  /// re-apply a no-op exactly when it is needed (the device went away), so the
+  /// concrete OS default endpoint is used instead.
+  String _resolvedOutputDeviceId() {
+    final saved = _savedDeviceId(CommsDevicesDefaults.kAudioOutputKey);
+    final devices = ref.read(commsDevicesProvider);
+    if (saved != CommsDevicesDefaults.kDefaultId &&
+        devices.audioOutputs.any((device) => device.id == saved)) {
+      return saved;
+    }
+    final fallback = devices.systemDefaultAudioOutput.id;
+    if (fallback != null && fallback.isNotEmpty) return fallback;
+    return saved;
   }
 
   /// Toggles remote audio output (deafen mode).

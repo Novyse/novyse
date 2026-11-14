@@ -42,15 +42,22 @@ mixin CommsMediaSettingsMixin on Notifier<CommsState> {
 
   /// Whether muting the speaker automatically mutes the microphone.
   bool get isMuteMicWithSpeakerEnabled =>
-      ref.read(settingsControllerProvider)[
-          CommsNotifier.muteMicWithSpeakerSettingsKey] as bool? ??
+      ref.read(
+            settingsControllerProvider,
+          )[CommsNotifier.muteMicWithSpeakerSettingsKey]
+          as bool? ??
       true;
 
   /// Capture device id. On desktop `default` resolves to the concrete OS
   /// default device — an empty id opens a silent virtual entry instead.
   String? _microphoneDeviceId() {
     final saved = _savedDeviceId(CommsDevicesDefaults.kAudioInputKey);
-    if (saved != CommsDevicesDefaults.kDefaultId) return saved;
+    if (saved != CommsDevicesDefaults.kDefaultId) {
+      final inputs = ref.read(commsDevicesProvider).audioInputs;
+      if (inputs.isEmpty || inputs.any((device) => device.id == saved)) {
+        return saved;
+      }
+    }
     if (currentPlatform != AppPlatform.desktop) return null;
     try {
       return ref.read(commsDevicesProvider).systemDefaultAudioInput.id;

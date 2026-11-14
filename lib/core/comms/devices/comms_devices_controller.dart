@@ -18,7 +18,15 @@ import 'package:novyse/core/settings/settings_controller.dart';
 ///   this notifier only enumerates + persists.
 class CommsDevicesNotifier extends Notifier<CommsDevicesState> {
   StreamSubscription<List<MediaDevice>>? _deviceSub;
+  final _deviceChanges = StreamController<void>.broadcast();
   bool _refreshing = false;
+
+  /// Fires after every OS device-set change has been re-enumerated.
+  ///
+  /// Live playout routing listens here: the device set changing under a running
+  /// call is the only chance the app gets to re-apply the output route before
+  /// the room is left and rejoined.
+  Stream<void> get deviceChanges => _deviceChanges.stream;
 
   @override
   CommsDevicesState build() {
@@ -42,8 +50,11 @@ class CommsDevicesNotifier extends Notifier<CommsDevicesState> {
 
     _deviceSub?.cancel();
     try {
-      _deviceSub = Hardware.instance.onDeviceChange.stream.listen((_) {
-        unawaited(refresh());
+      _deviceSub = Hardware.instance.onDeviceChange.stream.listen((_) async {
+        // Emit after re-enumerating, so listeners see the new device set: the
+        // event on its own says nothing about what is available now.
+        await refresh();
+        if (!_deviceChanges.isClosed) _deviceChanges.add(null);
       });
     } catch (_) {}
 
