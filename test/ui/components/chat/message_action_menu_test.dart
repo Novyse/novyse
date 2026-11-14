@@ -617,5 +617,61 @@ void main() {
         expect(currentSelection, isNull);
       },
     );
+
+    testWidgets(
+      'Delete from the action menu opens the confirmation dialog',
+      (tester) async {
+        final container = ProviderContainer(
+          overrides: [
+            userStoreProvider.overrideWith(() => FakeUserNotifier('user-xyz')),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: const Locale('en'),
+              home: Scaffold(
+                body: Builder(
+                  builder: (hostContext) => Center(
+                    child: ElevatedButton(
+                      onPressed: () => MessageActionMenu.show(
+                        context: hostContext,
+                        position: const Offset(100, 100),
+                        message: testMsg,
+                      ),
+                      child: const Text('open menu'),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('open menu'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Are you sure you want to delete this message?'),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Are you sure you want to delete this message?'),
+          findsNothing,
+        );
+      },
+    );
   });
 }
