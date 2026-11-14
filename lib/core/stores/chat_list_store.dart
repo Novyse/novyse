@@ -118,6 +118,7 @@ class ChatModel {
     List<Map<String, dynamic>>? roles,
     List<Map<String, dynamic>>? pinnedMessages,
     Map<String, dynamic>? lastMessage,
+    bool clearLastMessage = false,
     int? pinPosition,
     DateTime? createdAt,
   }) {
@@ -132,7 +133,7 @@ class ChatModel {
       subs: subs ?? this.subs,
       roles: roles ?? this.roles,
       pinnedMessages: pinnedMessages ?? this.pinnedMessages,
-      lastMessage: lastMessage ?? this.lastMessage,
+      lastMessage: clearLastMessage ? null : (lastMessage ?? this.lastMessage),
       pinPosition: pinPosition ?? this.pinPosition,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -572,7 +573,62 @@ class ChatListNotifier extends Notifier<ChatListState> {
           _lastReadIdBySub[key] = msgId;
         }
         break;
+      case 'delete':
+        unawaited(_applyDeletedMessage(chatUUID, subID, msgId));
+        break;
     }
+  }
+
+  /// Replaces the chat preview (and re-sorts the list) when the message shown
+  /// as last message is deleted, without waiting for a reload from SQLite.
+  Future<void> _applyDeletedMessage(
+    String chatUUID,
+    int subID,
+    int messageId,
+  ) async {
+    final chat = state.chats.where((c) => c.uuid == chatUUID).firstOrNull;
+    if (chat == null || !_isPreviewMessage(chat.lastMessage, subID, messageId)) {
+      return;
+    }
+
+    Map<String, dynamic>? fallback;
+    try {
+      final rows = await ref.read(databaseProvider).message.last.get(chatUUID);
+      fallback = rows.isNotEmpty ? rows.first : null;
+    } catch (e) {
+      debugPrint('ChatListStore delete preview error: $e');
+      return;
+    }
+
+    // A newer message may have arrived while the fallback was being read: only
+    // apply it when the preview still is the deleted message.
+    final current = state.chats.where((c) => c.uuid == chatUUID).firstOrNull;
+    if (current == null) return;
+    if (!_isPreviewMessage(current.lastMessage, subID, messageId)) return;
+
+    final updated = state.chats.map((chat) {
+      if (chat.uuid != chatUUID) return chat;
+      return chat.copyWith(
+        lastMessage: fallback,
+        clearLastMessage: fallback == null,
+      );
+    }).toList();
+
+    _sortChats(updated);
+    state = state.copyWith(chats: updated);
+  }
+
+  bool _isPreviewMessage(
+    Map<String, dynamic>? preview,
+    int subID,
+    int messageId,
+  ) {
+    if (preview == null) return false;
+    if (MessageFieldParser.parseSubID(preview['subID']) != subID) return false;
+    final previewId = MessageFieldParser.parseId(
+      preview['id'] ?? preview['messageID'],
+    );
+    return previewId == messageId;
   }
 
   void _sortChats(List<ChatModel> list) {

@@ -471,5 +471,92 @@ void main() {
       expect(chat?.lastMessage?['content'], equals('xxxxx'));
       expect(chat?.lastMessage?['files'], isNull);
     });
+
+    test(
+      'deleting the last message falls back to the previous preview and re-sorts',
+      () async {
+        await db.chat.add({
+          'uuid': 'chat-del',
+          'name': 'Delete',
+          'type': 'DM',
+        });
+        await db.chat.add({
+          'uuid': 'chat-other',
+          'name': 'Other',
+          'type': 'DM',
+        });
+
+        await db.message.add({
+          'id': 1,
+          'chatUUID': 'chat-del',
+          'subID': 0,
+          'senderUUID': 'other',
+          'content': 'older',
+          'created_at': '2026-10-19T08:00:00.000Z',
+        });
+        await db.message.add({
+          'id': 2,
+          'chatUUID': 'chat-del',
+          'subID': 0,
+          'senderUUID': 'other',
+          'content': 'deleted',
+          'created_at': '2026-10-19T10:00:00.000Z',
+        });
+        await db.message.add({
+          'id': 3,
+          'chatUUID': 'chat-other',
+          'subID': 0,
+          'senderUUID': 'other',
+          'content': 'other chat',
+          'created_at': '2026-10-19T09:00:00.000Z',
+        });
+
+        await container.read(chatListProvider.notifier).init();
+        expect(
+          container.read(chatListProvider).chats.first.uuid,
+          equals('chat-del'),
+        );
+
+        final bus = container.read(eventBusProvider);
+
+        // Delete the newest message: the preview must fall back to the
+        // previous one and the chat must drop below the newer conversation.
+        await db.message.delete('chat-del', 0, 2);
+        bus.emit(
+          const MessageUpdateEvent(
+            chatUUID: 'chat-del',
+            subID: 0,
+            messageID: '2',
+            action: 'delete',
+            data: {},
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+
+        expect(
+          container.read(chatProvider('chat-del'))?.lastMessage?['content'],
+          equals('older'),
+        );
+        expect(
+          container.read(chatListProvider).chats.map((c) => c.uuid).toList(),
+          equals(['chat-other', 'chat-del']),
+        );
+
+        // Deleting the only remaining message leaves an empty preview.
+        await db.message.delete('chat-del', 0, 1);
+        bus.emit(
+          const MessageUpdateEvent(
+            chatUUID: 'chat-del',
+            subID: 0,
+            messageID: '1',
+            action: 'delete',
+            data: {},
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+
+        expect(container.read(chatProvider('chat-del'))?.lastMessage, isNull);
+      },
+    );
   });
 }
