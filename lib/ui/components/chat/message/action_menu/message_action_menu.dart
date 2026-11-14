@@ -38,11 +38,14 @@ class MessageActionMenu extends ConsumerStatefulWidget {
     required this.position,
     required this.message,
     this.selectedText,
+    this.hostContext,
   });
 
   final Offset position;
   final MessageModel message;
   final String? selectedText;
+
+  final BuildContext? hostContext;
 
   static const double menuWidth = 175.0;
   static const double edgePadding = AppMenuTokens.edgePadding;
@@ -67,6 +70,7 @@ class MessageActionMenu extends ConsumerStatefulWidget {
             position: position,
             message: message,
             selectedText: selectedText,
+            hostContext: context,
           ),
         );
       },
@@ -86,9 +90,10 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
     final position = widget.position;
     final selectedText = widget.selectedText;
 
+    final hostContext = widget.hostContext ?? context;
     final methods = MessageActionMethods(
       ref: ref,
-      context: context,
+      context: hostContext,
       chatUUID: message.chatUUID,
       subID: message.subID,
     );
@@ -260,7 +265,7 @@ class _MessageActionMenuState extends ConsumerState<MessageActionMenu> {
                 isDanger: true,
                 onTap: () {
                   Navigator.of(context).pop();
-                  unawaited(methods.delete(context, message));
+                  unawaited(methods.delete(hostContext, message));
                 },
               ),
           ];

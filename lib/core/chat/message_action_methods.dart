@@ -28,21 +28,28 @@ class MessageActionMethods {
   });
 
   void _fail(String op, Object e) {
-    debugPrint('[MessageAction] $op failed: $e');
+    StatusNotifier? status;
     try {
-      ref
-          .read(statusProvider.notifier)
-          .showStatus(
-            StatusItem(
-              id: 'message_action_$op',
-              source: StatusSource.general,
-              type: StatusMessageType.danger,
-              titleBuilder: (l10n) => l10n.statusError,
-              contentBuilders: [(l10n) => l10n.messageActionFailed],
-              closable: true,
-              timeout: const Duration(seconds: 4),
-            ),
-          );
+      status = ref.read(statusProvider.notifier);
+    } catch (_) {}
+    _failWith(status, op, e);
+  }
+
+  void _failWith(StatusNotifier? status, String op, Object e) {
+    debugPrint('[MessageAction] $op failed: $e');
+    if (status == null) return;
+    try {
+      status.showStatus(
+        StatusItem(
+          id: 'message_action_$op',
+          source: StatusSource.general,
+          type: StatusMessageType.danger,
+          titleBuilder: (l10n) => l10n.statusError,
+          contentBuilders: [(l10n) => l10n.messageActionFailed],
+          closable: true,
+          timeout: const Duration(seconds: 4),
+        ),
+      );
     } catch (_) {}
   }
 
@@ -217,7 +224,10 @@ class MessageActionMethods {
 
   /// Prompts for confirmation and deletes the message.
   Future<void> delete(BuildContext context, MessageModel message) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return;
+    final service = ref.read(messageActionsServiceProvider);
+    final status = ref.read(statusProvider.notifier);
 
     final confirmed = await showOverlayConfirm(
       context,
@@ -229,16 +239,16 @@ class MessageActionMethods {
     );
     if (!context.mounted) return;
 
-    if (confirmed != true) return;
+    if (!confirmed) return;
 
-    final deleted = await ref
-        .read(messageActionsServiceProvider)
-        .delete(
-          chatUUID: chatUUID,
-          subID: subID,
-          messageID: message.id.toString(),
-        );
-    if (!deleted) _fail('delete', 'server did not confirm the delete');
+    final deleted = await service.delete(
+      chatUUID: chatUUID,
+      subID: subID,
+      messageID: message.id.toString(),
+    );
+    if (!deleted) {
+      _failWith(status, 'delete', 'server did not confirm the delete');
+    }
   }
 
   /// Adds or removes a reaction from a message.
