@@ -13,6 +13,9 @@ mixin CommsConnectionMixin
   Timer? _speakingDebounce;
   Set<String>? _pendingSpeakers;
 
+  /// Screen-share publication SIDs that were already live when the room was joined
+  final Set<String> _preJoinScreenShareSids = <String>{};
+
   @override
   bool get _isDisposed;
 
@@ -29,6 +32,8 @@ mixin CommsConnectionMixin
     if (state.room != null || state.connected || state.connecting) {
       await leave();
     }
+
+    _preJoinScreenShareSids.clear();
 
     state = state.copyWith(
       connecting: true,
@@ -214,8 +219,18 @@ mixin CommsConnectionMixin
           }
         });
       })
+      ..on<RoomConnectedEvent>((event) {
+        for (final participant in event.room.remoteParticipants.values) {
+          for (final publication in participant.videoTrackPublications) {
+            if (publication.source == TrackSource.screenShareVideo) {
+              _preJoinScreenShareSids.add(publication.sid);
+            }
+          }
+        }
+      })
       ..on<TrackSubscribedEvent>((event) {
-        if (event.track.source == TrackSource.screenShareVideo) {
+        if (event.track.source == TrackSource.screenShareVideo &&
+            !_preJoinScreenShareSids.contains(event.publication.sid)) {
           SoundPlayer.instance.playSound('comms.screen_share.start');
         }
         unawaited(_applyAudioOutputTrack(event.track));
