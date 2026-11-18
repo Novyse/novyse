@@ -1,12 +1,13 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/comms/comms_audio.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/slider/app_progress_slider.dart';
 
-/// Linear per-user volume slider
+/// Linear per-user volume slider (same control as Active Audio header).
 class CommsVolumeControl extends ConsumerStatefulWidget {
   final String volKey;
 
@@ -27,6 +28,15 @@ class CommsVolumeControl extends ConsumerStatefulWidget {
 class _CommsVolumeControlState extends ConsumerState<CommsVolumeControl> {
   double? _dragValue;
 
+  void _applyVolume(double v) {
+    final clamped = CommsAudio.clampVolume(v);
+    setState(() => _dragValue = clamped);
+    // Live apply while dragging, without awaiting (fire-and-forget).
+    ref
+        .read(commsProvider.notifier)
+        .setRemoteVolume(widget.volKey, clamped, persist: widget.persist);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -35,8 +45,8 @@ class _CommsVolumeControlState extends ConsumerState<CommsVolumeControl> {
           commsProvider.select((s) => s.remoteVolumes[widget.volKey]),
         ) ??
         1.0;
-    final value = _dragValue ?? stored;
-    final percent = (CommsAudio.clampVolume(value) * 100).round();
+    final value = CommsAudio.clampVolume(_dragValue ?? stored);
+    final percent = (value * 100).round();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -66,24 +76,12 @@ class _CommsVolumeControlState extends ConsumerState<CommsVolumeControl> {
               ),
             ],
           ),
-          Slider(
-            value: CommsAudio.clampVolume(value),
-            max: CommsAudio.maxVolume,
-            divisions: 200,
-            label: '$percent%',
-            onChanged: (v) {
-              setState(() => _dragValue = v);
-              // Live apply while dragging, without awaiting (fire-and-forget).
-              ref
-                  .read(commsProvider.notifier)
-                  .setRemoteVolume(widget.volKey, v, persist: widget.persist);
-            },
-            onChangeEnd: (v) {
-              setState(() => _dragValue = null);
-              ref
-                  .read(commsProvider.notifier)
-                  .setRemoteVolume(widget.volKey, v, persist: widget.persist);
-            },
+          const SizedBox(height: 8),
+          AppProgressSlider(
+            positionMs: value,
+            totalMs: CommsAudio.maxVolume,
+            onSeek: _applyVolume,
+            onSeekEnd: () => setState(() => _dragValue = null),
           ),
         ],
       ),
