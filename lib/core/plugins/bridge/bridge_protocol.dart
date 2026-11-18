@@ -25,6 +25,9 @@ abstract final class BridgeProtocol {
   /// Ceiling of a `STREAM` packet.
   static const int maxStreamBytes = 8 * 1024;
 
+  /// Ceiling of a single temp plugin file (50 MiB).
+  static const int maxFileBytes = 50 * 1024 * 1024;
+
   /// Decodes one request, returning `null` when it is not a request.
   static BridgeRequest? decodeRequest(Object? raw) {
     final map = decodeMap(raw);

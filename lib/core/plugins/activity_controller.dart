@@ -624,6 +624,107 @@ class ActivityController extends Notifier<ActivitiesState> {
           _storageOf(instanceId).remove(request.string('key') ?? '');
           return BridgeReply.success(request.id, null);
 
+        case 'file.upload':
+          final uploader = state.byId(instanceId);
+          if (uploader == null) {
+            return BridgeReply.failure(request.id, 'E_FORBIDDEN', 'Gone');
+          }
+          if (!uploader.bundle.allowsChannel('file')) {
+            return BridgeReply.failure(
+              request.id,
+              'E_CAPABILITY',
+              'The plugin did not declare the file channel',
+            );
+          }
+          if (state.readOnly) {
+            return BridgeReply.failure(request.id, 'E_FORBIDDEN', 'Read only');
+          }
+          final name = request.string('name');
+          final mimeType = request.string('mimeType');
+          final size = request.value('size');
+          if (name == null || name.isEmpty || mimeType == null || mimeType.isEmpty || size is! num) {
+            return BridgeReply.failure(request.id, 'E_INTERNAL', 'No file metadata');
+          }
+          if (size.toInt() <= 0 || size.toInt() > BridgeProtocol.maxFileBytes) {
+            return BridgeReply.failure(request.id, 'E_TOO_LARGE', 'File too big');
+          }
+          final chatUUID = state.chatUUID;
+          if (chatUUID == null) {
+            return BridgeReply.failure(request.id, 'E_NOT_IN_ROOM', 'The room is gone');
+          }
+          final prepared = await apiGateway.plugins.files.prepare(
+            chatUUID,
+            state.subID,
+            instanceId,
+            name,
+            mimeType,
+            size.toInt(),
+          );
+          return BridgeReply.success(request.id, {
+            'fileUUID': prepared.fileUUID,
+            'uploadURL': prepared.uploadURL,
+            'expiresAt': prepared.expiresAt,
+          });
+
+        case 'file.confirm':
+          final confirmer = state.byId(instanceId);
+          if (confirmer == null) {
+            return BridgeReply.failure(request.id, 'E_FORBIDDEN', 'Gone');
+          }
+          final confirmUUID = request.string('fileUUID');
+          if (confirmUUID == null || confirmUUID.isEmpty) {
+            return BridgeReply.failure(request.id, 'E_INTERNAL', 'No file');
+          }
+          final cUUID = state.chatUUID;
+          if (cUUID == null) {
+            return BridgeReply.failure(request.id, 'E_NOT_IN_ROOM', 'The room is gone');
+          }
+          await apiGateway.plugins.files.confirm(cUUID, state.subID, instanceId, confirmUUID);
+          return BridgeReply.success(request.id, null);
+
+        case 'file.download':
+          final downloader = state.byId(instanceId);
+          if (downloader == null) {
+            return BridgeReply.failure(request.id, 'E_FORBIDDEN', 'Gone');
+          }
+          final downloadUUID = request.string('fileUUID');
+          if (downloadUUID == null || downloadUUID.isEmpty) {
+            return BridgeReply.failure(request.id, 'E_INTERNAL', 'No file');
+          }
+          final dUUID = state.chatUUID;
+          if (dUUID == null) {
+            return BridgeReply.failure(request.id, 'E_NOT_IN_ROOM', 'The room is gone');
+          }
+          final got = await apiGateway.plugins.files.download(dUUID, state.subID, instanceId, downloadUUID);
+          if (got.downloadURL == null) {
+            return BridgeReply.failure(request.id, 'E_NOT_FOUND', 'Gone');
+          }
+          return BridgeReply.success(request.id, {
+            'downloadURL': got.downloadURL,
+            'name': got.name,
+            'size': got.size,
+            'mimeType': got.mimeType,
+          });
+
+        case 'file.remove':
+          final remover = state.byId(instanceId);
+          if (remover == null) {
+            return BridgeReply.failure(request.id, 'E_FORBIDDEN', 'Gone');
+          }
+          if (state.readOnly) {
+            return BridgeReply.failure(request.id, 'E_FORBIDDEN', 'Read only');
+          }
+          final removeUUID = request.string('fileUUID');
+          if (removeUUID == null || removeUUID.isEmpty) {
+            return BridgeReply.failure(request.id, 'E_INTERNAL', 'No file');
+          }
+          final rUUID = state.chatUUID;
+          if (rUUID == null) {
+            return BridgeReply.failure(request.id, 'E_NOT_IN_ROOM', 'The room is gone');
+          }
+          await apiGateway.plugins.files.remove(rUUID, state.subID, instanceId, removeUUID);
+          return BridgeReply.success(request.id, null);
+
         case 'ui.fullscreen':
           _commands.add(
             ActivityCommand(instanceId, ActivityCommandKind.fullscreen),

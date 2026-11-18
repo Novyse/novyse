@@ -251,7 +251,7 @@ class WebViewAllPluginBridge extends PluginBridge {
     if (controller == null || _disposed) return false;
 
     try {
-      await controller.runJavaScript(script);
+      await controller.runJavaScriptReturningResult(script);
       return true;
     } catch (error) {
       debugPrint('[PluginBridge] $instanceId: delivery postponed: $error');
@@ -277,13 +277,17 @@ class WebViewAllPluginBridge extends PluginBridge {
     // On Linux the WebView is a native GTK overlay, not a Flutter widget:
     // dropping the reference leaves it on screen, above every other tile and
     // above the input of the app. It has to be destroyed here.
-    try {
-      // The disposal lives on the platform implementation and is not part of
-      // the shared interface, hence the dynamic call.
-      final dynamic platform = controller?.platform;
-      await platform?.dispose();
-    } catch (error) {
-      debugPrint('[PluginBridge] $instanceId: dispose failed: $error');
+    // The web engine owns its iframe and exposes no dispose: the dynamic call
+    // throws `NoSuchMethodError` there on every close of an activity.
+    if (!kIsWeb) {
+      try {
+        // The disposal lives on the platform implementation and is not part of
+        // the shared interface, hence the dynamic call.
+        final dynamic platform = controller?.platform;
+        await platform?.dispose();
+      } catch (error) {
+        debugPrint('[PluginBridge] $instanceId: dispose failed: $error');
+      }
     }
 
     await _document.close();

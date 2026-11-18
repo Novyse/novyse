@@ -364,6 +364,21 @@ const String appSdkSource = r'''
       }
     },
 
+    file: {
+      upload: function (name, mimeType, size) {
+        return request('file.upload', { name: name, mimeType: mimeType, size: size });
+      },
+      confirm: function (fileUUID) {
+        return request('file.confirm', { fileUUID: fileUUID }).then(function () { return undefined; });
+      },
+      download: function (fileUUID) {
+        return request('file.download', { fileUUID: fileUUID });
+      },
+      remove: function (fileUUID) {
+        return request('file.remove', { fileUUID: fileUUID }).then(function () { return undefined; });
+      }
+    },
+
     log: function (level) {
       var args = Array.prototype.slice.call(arguments, 1);
       request('log', { level: level, args: args }).catch(function () {});

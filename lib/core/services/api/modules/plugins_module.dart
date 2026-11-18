@@ -10,10 +10,12 @@ import '../api_response.dart';
 class PluginsModule {
   final PluginRegistryModule registry;
   final PluginActivityModule activities;
+  final PluginFileModule files;
 
   PluginsModule(Dio dio)
     : registry = PluginRegistryModule(dio),
-      activities = PluginActivityModule(dio);
+      activities = PluginActivityModule(dio),
+      files = PluginFileModule(dio);
 }
 
 /// `GET /plugins` and `GET /plugins/{slug}`.
@@ -188,6 +190,48 @@ class PluginActivityModule {
     }
   }
 
+  /// Reserves a temp plugin file on the uploader quota (S3 direct upload).
+  ///
+  /// Returns the S3 `uploadURL` the plugin PUTs to, then call [confirm].
+  Future<({String fileUUID, String uploadURL, String expiresAt})>
+  prepareFile(
+    String chatUUID,
+    int sub,
+    String instanceId,
+    String name,
+    String mimeType,
+    int size,
+  ) async {
+    try {
+      final res = await _dio.post(
+        '/comms/activities/files/prepare',
+        data: {
+          'chatUUID': chatUUID,
+          'subID': sub.toString(),
+          'instanceId': instanceId,
+          'name': name,
+          'mimeType': mimeType,
+          'size': size,
+        },
+      );
+      final payload = responseData(res);
+      if (!isOk(res) || payload is! Map) {
+        throw PluginApiException(
+          res.statusCode ?? 0,
+          'E_INTERNAL',
+          'The upload was not reserved',
+        );
+      }
+      return (
+        fileUUID: payload['fileUUID'] as String,
+        uploadURL: payload['uploadURL'] as String,
+        expiresAt: (payload['expiresAt'] as String?) ?? '',
+      );
+    } on DioException catch (error) {
+      throw PluginApiException.fromDio(error);
+    }
+  }
+
   /// Stops an activity. Any participant with the bit 9 can stop any activity.
   Future<void> stop(String chatUUID, int sub, String instanceId) async {
     try {
@@ -203,6 +247,99 @@ class PluginActivityModule {
       final status = error.response?.statusCode;
       // Stopping an activity that is already gone is not a failure.
       if (status == 404) return;
+      throw PluginApiException.fromDio(error);
+    }
+  }
+}
+
+/// Temp S3 files of the activities: prepare/confirm/download/delete.
+///
+/// The bytes never cross the API or Redis: the host reserves the upload,
+/// the plugin PUTs directly to S3, then the host confirms via StatObject.
+class PluginFileModule {
+  final Dio _dio;
+  PluginFileModule(this._dio);
+
+  Future<({String fileUUID, String uploadURL, String expiresAt})> prepare(
+    String chatUUID,
+    int sub,
+    String instanceId,
+    String name,
+    String mimeType,
+    int size,
+  ) => PluginActivityModule(_dio).prepareFile(
+    chatUUID,
+    sub,
+    instanceId,
+    name,
+    mimeType,
+    size,
+  );
+
+  Future<void> confirm(
+    String chatUUID,
+    int sub,
+    String instanceId,
+    String fileUUID,
+  ) async {
+    try {
+      await _dio.post(
+        '/comms/activities/files/confirm',
+        data: {
+          'chatUUID': chatUUID,
+          'subID': sub.toString(),
+          'instanceId': instanceId,
+          'fileUUID': fileUUID,
+        },
+      );
+    } on DioException catch (error) {
+      throw PluginApiException.fromDio(error);
+    }
+  }
+
+  Future<({String? downloadURL, String? name, int? size, String? mimeType})>
+  download(
+    String chatUUID,
+    int sub,
+    String instanceId,
+    String fileUUID,
+  ) async {
+    final res = await _dio.get(
+      '/comms/activities/files/download',
+      queryParameters: {
+        'chatUUID': chatUUID,
+        'subID': sub.toString(),
+        'instanceId': instanceId,
+        'fileUUID': fileUUID,
+      },
+    );
+    if (!isOk(res)) return (downloadURL: null, name: null, size: null, mimeType: null);
+    final d = responseData(res);
+    return (
+      downloadURL: d['downloadURL'] as String?,
+      name: d['name'] as String?,
+      size: (d['size'] as num?)?.toInt(),
+      mimeType: d['mimeType'] as String?,
+    );
+  }
+
+  Future<void> remove(
+    String chatUUID,
+    int sub,
+    String instanceId,
+    String fileUUID,
+  ) async {
+    try {
+      await _dio.delete(
+        '/comms/activities/files/file',
+        data: {
+          'chatUUID': chatUUID,
+          'subID': sub.toString(),
+          'instanceId': instanceId,
+          'fileUUID': fileUUID,
+        },
+      );
+    } on DioException catch (error) {
       throw PluginApiException.fromDio(error);
     }
   }

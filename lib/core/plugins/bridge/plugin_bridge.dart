@@ -35,15 +35,21 @@ abstract class PluginBridge {
 String emitScript(String event, Object? payload) {
   final envelope = BridgeProtocol.encodeEvent(event, payload);
   final literal = _jsString(envelope);
-  return 'window.${BridgeProtocol.emitFunction}&&'
-      'window.${BridgeProtocol.emitFunction}($literal);';
+  return '(function () {'
+      'if (window.${BridgeProtocol.emitFunction}) '
+      'window.${BridgeProtocol.emitFunction}($literal);'
+      'return true;'
+      '})()';
 }
 
 /// The JavaScript call that answers a request: no engine hands the transport a
 /// promise to settle, so the reply travels back as a call.
 String replyScript(BridgeReply reply) {
   final literal = _jsString(reply.encode());
-  return 'window.${BridgeProtocol.replyFunction}($literal);';
+  return '(function () {'
+      'window.${BridgeProtocol.replyFunction}($literal);'
+      'return true;'
+      '})()';
 }
 
 /// Encodes [value] as a JavaScript string literal.
