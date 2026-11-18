@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Shared scrollbar tokens (single source of truth for every overlay
 /// scrollbar in the app).

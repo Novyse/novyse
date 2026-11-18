@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/ui/components/responsiveOverlay/overlay_header.dart';
 
 class OverlayBottomSheet extends StatelessWidget {

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/ui/components/datetime/datetime_picker.dart';
 import 'package:novyse/ui/components/settings/settings_datetime_row.dart';

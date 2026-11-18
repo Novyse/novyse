@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/plugins/models/plugin_entry.dart';
@@ -495,7 +495,7 @@ class _ReadmePanelState extends State<_ReadmePanel> {
     return MarkdownBody(
       data: markdown,
       selectable: true,
-      styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+      styleSheet: MarkdownStyleSheet(
         p: TextStyle(fontSize: 13, height: 1.45, color: scheme.onSurface),
         h1: TextStyle(
           fontSize: 20,

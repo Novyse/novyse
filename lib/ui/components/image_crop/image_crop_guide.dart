@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/ui/components/image_crop/image_crop_encode.dart';
 import 'package:novyse/ui/components/image_crop/image_crop_geometry.dart';
 

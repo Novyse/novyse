@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/ui/components/context_menu/app_context_menu.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 

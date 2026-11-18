@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/ui/components/color_picker/color_picker.dart';
 import 'package:novyse/ui/components/color_picker/color_picker_sheet.dart';
 import 'package:novyse/ui/components/settings/settings_base_row.dart';

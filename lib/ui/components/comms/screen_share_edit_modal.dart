@@ -1,6 +1,6 @@
 import 'dart:async' show StreamSubscription, unawaited;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:novyse/core/comms/comms_share_config.dart';
 import 'package:novyse/core/l10n/l10n.dart';

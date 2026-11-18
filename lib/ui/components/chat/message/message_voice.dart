@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/chat/chat_audio_service.dart';
 import 'package:novyse/core/storage/file/file_utils.dart';
 import 'package:novyse/core/storage/file/playable_uri.dart';

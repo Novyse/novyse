@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Vertical pane-resize handle in 
 /// master/detail divider, forum sub-list divider

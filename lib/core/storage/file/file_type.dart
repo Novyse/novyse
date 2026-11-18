@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' show Color, ColorScheme, Colors;
+import 'package:material_ui/material_ui.dart' show Color, ColorScheme, Colors;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:mime/mime.dart' as mime;
 

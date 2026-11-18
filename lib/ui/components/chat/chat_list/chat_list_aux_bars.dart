@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/ui/components/chat/chat_detail/sub_header/sub_header_aux_bars.dart';

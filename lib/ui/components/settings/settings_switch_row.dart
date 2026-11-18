@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/ui/components/settings/settings_base_row.dart';
 
 /// On/off setting row (`production` `SettingsRow` with `type: SWITCH`).

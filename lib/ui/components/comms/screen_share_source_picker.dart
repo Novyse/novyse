@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:novyse/ui/components/comms/screen_share_source_thumbnail.dart';
 

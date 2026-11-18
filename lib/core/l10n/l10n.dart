@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'app_localizations.dart';
 
@@ -9,9 +8,7 @@ export 'app_localizations.dart';
 /// All localization delegates required by MaterialApp.
 const localizationsDelegates = [
   AppLocalizations.delegate,
-  GlobalMaterialLocalizations.delegate,
-  GlobalCupertinoLocalizations.delegate,
-  GlobalWidgetsLocalizations.delegate,
+  ...GlobalMaterialLocalizations.delegates,
 ];
 
 /// Supported locales, derived from the generated ARB files.

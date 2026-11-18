@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Compact numeric input: a `-` and `+` button on each side of a centred value.
 ///

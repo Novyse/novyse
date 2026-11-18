@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/storage/file/file_uri.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/ui/components/waveform/waveform_view.dart';
 
 /// Generic seekable progress control used by the active-voice bar and by

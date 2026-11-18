@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Sender + position/duration + provenance texts of the active-voice bar.
 class VoiceBarMeta extends StatelessWidget {

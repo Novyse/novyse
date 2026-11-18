@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/responsiveOverlay/overlay_bottom_sheet.dart';
 import 'package:novyse/ui/components/responsiveOverlay/overlay_dialog.dart';

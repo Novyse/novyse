@@ -2,7 +2,7 @@ import 'dart:async' show StreamSubscription, unawaited;
 import 'dart:io' as io;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:novyse/core/comms/comms_share_config.dart';

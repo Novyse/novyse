@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/ui/components/slider/app_progress_slider.dart';
 import 'package:novyse/ui/components/waveform/waveform_view.dart';

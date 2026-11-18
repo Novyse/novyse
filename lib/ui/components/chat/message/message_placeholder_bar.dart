@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Neutral skeleton line shown while voice/audio metadata is loading.
 class MessagePlaceholderBar extends StatelessWidget {

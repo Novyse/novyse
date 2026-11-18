@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/chat/chat_audio_service.dart';
 import 'package:novyse/core/chat/message_file.dart';
 import 'package:novyse/core/l10n/l10n.dart';

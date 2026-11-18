@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Inline text input row for settings pages: a [title] label with a text
 /// field underneath (e.g. first name, surname, phone, biography).

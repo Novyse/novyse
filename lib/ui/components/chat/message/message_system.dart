@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/utils/platform.dart';
 
 /// Displays system messages (date separators, join/leave notifications, etc.)

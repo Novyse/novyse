@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 const double kMasterDetailBreakpoint = 720;
 const double kMasterPaneWidth = 360;

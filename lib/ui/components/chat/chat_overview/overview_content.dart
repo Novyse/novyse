@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/storage/file/file_type.dart';
 import 'package:novyse/core/stores/message_store.dart';

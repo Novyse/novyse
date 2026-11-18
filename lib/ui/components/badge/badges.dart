@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/ui/components/badge/animated_gradient_badge.dart';
