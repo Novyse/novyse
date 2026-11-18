@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_catalog.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
+import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/pages/app/settings/settings_catalog_page.dart';
 
 class _StubSettingsController extends SettingsController {
@@ -56,6 +57,11 @@ Future<void> _pumpEditor(
   await tester.pumpAndSettle();
 }
 
+bool get _desktopHost =>
+    currentOS == AppOS.windows ||
+    currentOS == AppOS.linux ||
+    currentOS == AppOS.macos;
+
 void main() {
   testWidgets('Customization exposes the App Icon page', (tester) async {
     await tester.pumpWidget(
@@ -74,30 +80,35 @@ void main() {
     await tester.tap(find.text('App Icon'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Android only preview'), findsOneWidget);
     expect(find.text('Icon'), findsOneWidget);
-    expect(find.text('White'), findsWidgets);
-    expect(find.text('Dark'), findsOneWidget);
     expect(find.text('Sakura'), findsOneWidget);
+    if (_desktopHost) {
+      expect(find.text('Default'), findsOneWidget);
+      expect(find.text('Dark'), findsNothing);
+    } else {
+      expect(find.text('White'), findsWidgets);
+      expect(find.text('Dark'), findsOneWidget);
+    }
   });
 
   testWidgets('picking an icon persists the setting', (tester) async {
     await _pumpEditor(tester);
 
-    await _tapVisible(tester, find.text('Dark'));
+    await _tapVisible(tester, find.text('Sakura'));
     await tester.pumpAndSettle();
 
-    expect(_stub.writes, {'appearance.appIconId': 'dark'});
+    expect(_stub.writes, {'appearance.appIconId': 'sakura'});
   });
 
-  testWidgets('white resets to the installed icon', (tester) async {
-    await _pumpEditor(tester, preset: {'appearance.appIconId': 'dark'});
+  testWidgets('default resets to the installed icon', (tester) async {
+    await _pumpEditor(tester, preset: {'appearance.appIconId': 'sakura'});
 
-    await tester.ensureVisible(find.text('White'));
+    final label = _desktopHost ? 'Default' : 'White';
+    await tester.ensureVisible(find.text(label));
     await tester.pumpAndSettle();
     await tester.drag(find.byType(CustomScrollView), const Offset(0, 240));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('White'));
+    await tester.tap(find.text(label));
     await tester.pumpAndSettle();
 
     expect(find.text('The default installed icon'), findsWidgets);

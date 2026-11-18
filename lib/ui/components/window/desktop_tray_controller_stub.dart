@@ -5,5 +5,7 @@ abstract final class DesktopTrayController {
 
   static void refreshLabels() {}
 
+  static void setIconAsset(String asset) {}
+
   static Future<void> dispose() async {}
 }

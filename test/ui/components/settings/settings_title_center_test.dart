@@ -1,6 +1,6 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/settings/settings_page_template.dart';

@@ -73,10 +73,8 @@ abstract final class DesktopTrayController {
         }
       });
       trayIcon.setVisible(true);
-      final icon = ImageAsset.fromAsset(WindowDefaults.trayIconAsset);
-      if (icon != null) trayIcon.icon = icon;
-
       _trayIcon = trayIcon;
+      setIconAsset(WindowDefaults.trayIconAsset);
       _menu = menu;
       _openItem = openItem;
       _quitItem = quitItem;
@@ -92,6 +90,16 @@ abstract final class DesktopTrayController {
       _openItem?.label = l10n.trayOpen;
       _quitItem?.label = l10n.trayQuit;
       _trayIcon?.setTooltip(appName);
+    });
+  }
+
+  /// Updates the tray glyph from a Flutter asset path (PNG).
+  static void setIconAsset(String asset) {
+    _guard('setIconAsset', () {
+      final tray = _trayIcon;
+      if (tray == null) return;
+      final icon = ImageAsset.fromAsset(asset);
+      if (icon != null) tray.icon = icon;
     });
   }
 

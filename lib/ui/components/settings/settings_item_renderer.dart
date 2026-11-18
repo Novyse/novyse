@@ -348,9 +348,6 @@ class SettingsItemRenderer extends ConsumerWidget {
             onTap: () => unawaited(showCardGifUploadSheet(context)),
           );
         }
-        if (item.customRendererId == 'appIconNotice') {
-          return const AppIconNotice();
-        }
         if (item.customRendererId == 'appIconEditor') {
           return wrapDisabled(const AppIconGlyphList());
         }

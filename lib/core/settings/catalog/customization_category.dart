@@ -134,13 +134,6 @@ final List<SettingCategory> customizationCategory = [
             title: (l) => l.settingsGroupAppIconIconTitle,
             items: [
               SettingItem(
-                id: 'app_icon_notice',
-                title: (l) => l.appIconAndroidOnlyPreview,
-                subtitle: (l) => l.appIconAndroidOnlyPreview,
-                component: SettingComponent.custom,
-                customRendererId: 'appIconNotice',
-              ),
-              SettingItem(
                 id: 'app_icon_editor',
                 title: (l) => l.settingsPageCustomizationAppIconTitle,
                 subtitle: (l) => l.settingsPageCustomizationAppIconSubtitle,

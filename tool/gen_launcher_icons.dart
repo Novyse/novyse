@@ -24,14 +24,28 @@
 // (committed: the settings preview loads them at runtime) and are copied
 // into the native resources by each target below.
 //
-// Only [AndroidTarget] is implemented. Other operating systems plug in as
-// new [LauncherIconTarget]s with their own canvas size, glyph scale and
-// emitter — no existing code needs to change.
+// Targets: Android mipmaps/aliases, desktop ICO (Windows SetIcon), and iOS
+// alternate AppIcon sets. Other OSes reuse the committed composed PNGs.
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:image/image.dart' as img;
+
+/// How [composeIcon] combines glyph + background.
+enum ComposeMode {
+  /// Draw the glyph (its own colors) centered on the background.
+  overlay,
+
+  /// Photoshop-style clipping mask: the Novyse silhouette stamps a fill onto
+  /// a flat plate. Near-solid plates keep the glyph's own gradient.
+  mask,
+
+  /// Only the logo silhouette, filled with the background image — no plate
+  /// around it (transparent outside the "N"). Used for themed icons like
+  /// sakura on desktop.
+  maskCutout,
+}
 
 /// One composable icon: a glyph PNG drawn over a background PNG, or a
 /// glyph SVG wrapping a single embedded bitmap (used as-is).
@@ -56,6 +70,12 @@ class IconSpec {
   /// (MainActivity, no alias).
   final String? alias;
 
+  final ComposeMode mode;
+
+  /// Also emit a desktop-only cutout (`icon_<id>_desktop.png/.ico`) with no
+  /// plate. Mobile keeps [mode] (usually [ComposeMode.mask] with plate).
+  final bool desktopCutout;
+
   const IconSpec({
     required this.id,
     required this.glyph,
@@ -63,6 +83,8 @@ class IconSpec {
     required this.resource,
     this.alias,
     this.glyphOpacity = 1.0,
+    this.mode = ComposeMode.overlay,
+    this.desktopCutout = false,
   });
 }
 
@@ -82,17 +104,27 @@ const iconSpecs = [
   ),
   IconSpec(
     id: 'sakura',
+    // Mobile/iOS: original overlay (sakura glyph on sakura bg). Untouched.
+    // Desktop-only: separate cutout of the Novyse "N" filled with sakura art.
     glyph: 'assets/images/icons/icon_sakura.svg',
     background: 'assets/images/icons_backgrounds/icons_sakura_bg.png',
     resource: 'ic_launcher_sakura',
     alias: 'AppIconSakura',
     glyphOpacity: 0.84,
+    mode: ComposeMode.overlay,
+    desktopCutout: true,
   ),
 ];
 
 /// Composed full PNGs (also loaded by the settings preview at runtime).
 String composedAsset(IconSpec spec) =>
     'assets/images/icons/generated/icon_${spec.id}.png';
+
+String desktopCutoutAsset(IconSpec spec) =>
+    'assets/images/icons/generated/icon_${spec.id}_desktop.png';
+
+String desktopCutoutIcoAsset(IconSpec spec) =>
+    'assets/images/icons/generated/icon_${spec.id}_desktop.ico';
 
 /// A native target: canvas size, glyph scale and resource emitter.
 /// Android shrinks the (large) glyphs to 50% and centers them.
@@ -103,7 +135,10 @@ abstract class LauncherIconTarget {
   Future<void> emit(Map<IconSpec, img.Image> composed);
 }
 
-const launcherTargets = <LauncherIconTarget>[AndroidTarget()];
+const launcherTargets = <LauncherIconTarget>[
+  AndroidTarget(),
+  IosAlternateTarget(),
+];
 
 /// Glyph artwork as a decoded image: plain PNGs load directly, SVGs
 /// wrapping a single embedded bitmap contribute the decoded bitmap.
@@ -122,56 +157,220 @@ img.Image loadGlyph(IconSpec spec) {
   return img.decodeImage(raw)!;
 }
 
-/// Shared compositor: background fills the canvas, glyph is fitted into the
-/// [glyphScale] box, centered, with [glyphOpacity].
+/// Alpha for masking: prefer the PNG alpha; if the glyph sits on an opaque
+/// near-black plate (common export), treat dark pixels as transparent.
+int _maskAlpha(img.Pixel pixel) {
+  final a = pixel.a.toInt();
+  if (a < 250) return a;
+  final lum = (0.2126 * pixel.r + 0.7152 * pixel.g + 0.0722 * pixel.b);
+  if (lum < 18) return 0;
+  return a;
+}
+
+/// Rough luma variance — near-solid plates (white/dark) score low; sakura high.
+double _lumaVariance(img.Image image) {
+  var sum = 0.0;
+  var sumSq = 0.0;
+  final n = image.width * image.height;
+  if (n == 0) return 0;
+  for (final p in image) {
+    final lum = 0.2126 * p.r + 0.7152 * p.g + 0.0722 * p.b;
+    sum += lum;
+    sumSq += lum * lum;
+  }
+  final mean = sum / n;
+  return sumSq / n - mean * mean;
+}
+
+img.ColorRgba8 _cornerAverage(img.Image image) {
+  final samples = <img.Pixel>[
+    image.getPixel(0, 0),
+    image.getPixel(image.width - 1, 0),
+    image.getPixel(0, image.height - 1),
+    image.getPixel(image.width - 1, image.height - 1),
+  ];
+  var r = 0, g = 0, b = 0;
+  for (final p in samples) {
+    r += p.r.toInt();
+    g += p.g.toInt();
+    b += p.b.toInt();
+  }
+  return img.ColorRgba8(r ~/ 4, g ~/ 4, b ~/ 4, 255);
+}
+
+/// Shared compositor: background plate + glyph (overlay or clipping mask).
 img.Image composeIcon({
   required img.Image glyph,
   required img.Image background,
   required int canvasSize,
   required double glyphScale,
   required double glyphOpacity,
+  ComposeMode mode = ComposeMode.mask,
 }) {
-  final canvas = img.copyResize(
+  // Cutouts trim empty padding first so scale 1.0 actually fills the canvas
+  // (the source logo is padded). Overlay/mask keep the legacy fit behavior.
+  final sourceGlyph =
+      mode == ComposeMode.maskCutout ? trimGlyphToMask(glyph) : glyph;
+  final box = canvasSize * glyphScale;
+  final scale = math.min(
+    box / sourceGlyph.width.toDouble(),
+    box / sourceGlyph.height.toDouble(),
+  );
+  final glyphBox = img.copyResize(
+    sourceGlyph,
+    width: math.max(1, (sourceGlyph.width * scale).round()),
+    height: math.max(1, (sourceGlyph.height * scale).round()),
+    interpolation: img.Interpolation.cubic,
+  );
+  final dstX = ((canvasSize - glyphBox.width) / 2).round();
+  final dstY = ((canvasSize - glyphBox.height) / 2).round();
+
+  if (mode == ComposeMode.overlay) {
+    final canvas = img.copyResize(
+      background,
+      width: canvasSize,
+      height: canvasSize,
+    );
+    if (glyphOpacity < 1.0) {
+      for (final p in glyphBox) {
+        p.a = (p.a * glyphOpacity).round();
+      }
+    }
+    return img.compositeImage(canvas, glyphBox, dstX: dstX, dstY: dstY);
+  }
+
+  final bgFull = img.copyResize(
     background,
     width: canvasSize,
     height: canvasSize,
-  );
-  final box = canvasSize * glyphScale;
-  final scale = math.min(
-    box / glyph.width.toDouble(),
-    box / glyph.height.toDouble(),
-  );
-  final glyphBox = img.copyResize(
-    glyph,
-    width: (glyph.width * scale).round(),
-    height: (glyph.height * scale).round(),
     interpolation: img.Interpolation.cubic,
   );
-  if (glyphOpacity < 1.0) {
-    for (var y = 0; y < glyphBox.height; y++) {
-      for (var x = 0; x < glyphBox.width; x++) {
-        final pixel = glyphBox.getPixel(x, y);
-        glyphBox.setPixelRgba(
-          x,
-          y,
-          pixel.r.toInt(),
-          pixel.g.toInt(),
-          pixel.b.toInt(),
-          (pixel.a * glyphOpacity).round(),
-        );
+  final cutout = mode == ComposeMode.maskCutout;
+  final canvas = img.Image(
+    width: canvasSize,
+    height: canvasSize,
+    numChannels: 4,
+  );
+  if (cutout) {
+    img.fill(canvas, color: img.ColorRgba8(0, 0, 0, 0));
+  } else {
+    img.fill(canvas, color: _cornerAverage(bgFull));
+  }
+
+  // Textured fills (sakura) always stamp the background; near-solid plates
+  // keep the glyph gradient so the logo stays visible.
+  final fillWithBackground = cutout || _lumaVariance(background) > 80;
+  final stamp = img.Image(
+    width: glyphBox.width,
+    height: glyphBox.height,
+    numChannels: 4,
+  );
+  for (var y = 0; y < glyphBox.height; y++) {
+    for (var x = 0; x < glyphBox.width; x++) {
+      final g = glyphBox.getPixel(x, y);
+      final a = (_maskAlpha(g) * glyphOpacity).round().clamp(0, 255);
+      if (a == 0) {
+        stamp.setPixelRgba(x, y, 0, 0, 0, 0);
+        continue;
+      }
+      if (fillWithBackground) {
+        final bx = (dstX + x).clamp(0, canvasSize - 1);
+        final by = (dstY + y).clamp(0, canvasSize - 1);
+        final b = bgFull.getPixel(bx, by);
+        stamp.setPixelRgba(x, y, b.r.toInt(), b.g.toInt(), b.b.toInt(), a);
+      } else {
+        stamp.setPixelRgba(x, y, g.r.toInt(), g.g.toInt(), g.b.toInt(), a);
+      }
+    }
+  }
+  return img.compositeImage(canvas, stamp, dstX: dstX, dstY: dstY);
+}
+
+/// Crops away near-black / transparent padding so the "N" can fill the canvas.
+/// The source logo is 1024² with a lot of empty margin — without this trim,
+/// even scale 1.0 leaves the glyph tiny in the taskbar.
+img.Image trimGlyphToMask(img.Image glyph) {
+  var minX = glyph.width;
+  var minY = glyph.height;
+  var maxX = -1;
+  var maxY = -1;
+  for (var y = 0; y < glyph.height; y++) {
+    for (var x = 0; x < glyph.width; x++) {
+      if (_maskAlpha(glyph.getPixel(x, y)) == 0) continue;
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+    }
+  }
+  if (maxX < minX || maxY < minY) return glyph;
+  return img.copyCrop(
+    glyph,
+    x: minX,
+    y: minY,
+    width: maxX - minX + 1,
+    height: maxY - minY + 1,
+  );
+}
+
+/// Fits [glyph] into [canvasSize] after trimming padding. [fill] is how much
+/// of the canvas the opaque silhouette should cover (1.0 = edge to edge).
+img.Image _desktopFitGlyph(img.Image glyph, int canvasSize, double fill) {
+  final trimmed = trimGlyphToMask(glyph);
+  final box = canvasSize * fill;
+  final scale = math.min(
+    box / trimmed.width.toDouble(),
+    box / trimmed.height.toDouble(),
+  );
+  return img.copyResize(
+    trimmed,
+    width: math.max(1, (trimmed.width * scale).round()),
+    height: math.max(1, (trimmed.height * scale).round()),
+    interpolation: img.Interpolation.cubic,
+  );
+}
+
+/// Base desktop logo: Novyse "N" alone (transparent plate), used when white
+/// or dark is selected on desktop.
+img.Image composeBaseLogo({
+  required img.Image glyph,
+  required int canvasSize,
+  required double glyphScale,
+}) {
+  final glyphBox = _desktopFitGlyph(glyph, canvasSize, glyphScale);
+  final canvas = img.Image(
+    width: canvasSize,
+    height: canvasSize,
+    numChannels: 4,
+  );
+  img.fill(canvas, color: img.ColorRgba8(0, 0, 0, 0));
+  final stamp = img.Image(
+    width: glyphBox.width,
+    height: glyphBox.height,
+    numChannels: 4,
+  );
+  for (var y = 0; y < glyphBox.height; y++) {
+    for (var x = 0; x < glyphBox.width; x++) {
+      final g = glyphBox.getPixel(x, y);
+      final a = _maskAlpha(g);
+      if (a == 0) {
+        stamp.setPixelRgba(x, y, 0, 0, 0, 0);
+      } else {
+        stamp.setPixelRgba(x, y, g.r.toInt(), g.g.toInt(), g.b.toInt(), a);
       }
     }
   }
   return img.compositeImage(
     canvas,
-    glyphBox,
+    stamp,
     dstX: ((canvasSize - glyphBox.width) / 2).round(),
     dstY: ((canvasSize - glyphBox.height) / 2).round(),
   );
 }
 
 void main() {
-  const target = AndroidTarget();
+  // Compose once at the Android canvas size; other targets resize from that.
+  const composeTarget = AndroidTarget();
   final composed = <IconSpec, img.Image>{};
   for (final spec in iconSpecs) {
     final glyph = loadGlyph(spec);
@@ -181,18 +380,153 @@ void main() {
     composed[spec] = composeIcon(
       glyph: glyph,
       background: background,
-      canvasSize: target.canvasSize,
-      glyphScale: target.glyphScale,
+      canvasSize: composeTarget.canvasSize,
+      glyphScale: composeTarget.glyphScale,
       glyphOpacity: spec.glyphOpacity,
+      mode: spec.mode,
     );
     stdout.writeln(
-      '[gen] composed ${spec.id}: '
+      '[gen] composed ${spec.id} (${spec.mode.name}): '
       '${composed[spec]!.width}x${composed[spec]!.height} '
-      'from ${spec.glyph} over ${spec.background}',
+      'from ${spec.glyph} × ${spec.background}',
     );
   }
+  // Desktop assets use the large Novyse logo (1024), trimmed of padding, then
+  // fitted to fill the canvas so the taskbar/dock "N" is actually large.
+  // Mobile composed icons above are unchanged (glyphScale 0.5).
+  const desktopGlyphPath = 'assets/images/novyse-icon-logo.png';
+  const desktopCanvasSize = 1024;
+  // Leave a bit of margin so the "N" isn't edge-to-edge in the taskbar.
+  const desktopGlyphScale = 0.82;
+  final desktopGlyph = img.decodeImage(
+    File(desktopGlyphPath).readAsBytesSync(),
+  )!;
+  final baseLogo = composeBaseLogo(
+    glyph: desktopGlyph,
+    canvasSize: desktopCanvasSize,
+    glyphScale: desktopGlyphScale,
+  );
+  File('assets/images/icons/generated/icon_base.png')
+    ..createSync(recursive: true)
+    ..writeAsBytesSync(img.encodePng(baseLogo));
+  final baseIco = img.IcoEncoder().encodeImages([
+    for (final size in DesktopIcoSizes.values)
+      img.copyResize(
+        baseLogo,
+        width: size,
+        height: size,
+        interpolation: img.Interpolation.cubic,
+      ),
+  ]);
+  File('assets/images/icons/generated/icon_base.ico')
+    ..createSync(recursive: true)
+    ..writeAsBytesSync(baseIco);
+  stdout.writeln(
+    '[gen] desktop base logo ← $desktopGlyphPath '
+    '@ ${desktopGlyphScale}x$desktopCanvasSize → icon_base.png / .ico',
+  );
+
+  // Desktop-only cutouts (no plate). Must not touch Android/iOS assets.
+  for (final spec in iconSpecs) {
+    if (!spec.desktopCutout) continue;
+    final background = img.decodeImage(
+      File(spec.background).readAsBytesSync(),
+    )!;
+    final cutout = composeIcon(
+      glyph: desktopGlyph,
+      background: background,
+      canvasSize: desktopCanvasSize,
+      glyphScale: desktopGlyphScale,
+      glyphOpacity: 1.0,
+      mode: ComposeMode.maskCutout,
+    );
+    File(desktopCutoutAsset(spec))
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(img.encodePng(cutout));
+    final ico = img.IcoEncoder().encodeImages([
+      for (final size in DesktopIcoSizes.values)
+        img.copyResize(
+          cutout,
+          width: size,
+          height: size,
+          interpolation: img.Interpolation.cubic,
+        ),
+    ]);
+    File(desktopCutoutIcoAsset(spec))
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(ico);
+    stdout.writeln(
+      '[gen] desktop cutout ${spec.id} ← $desktopGlyphPath '
+      '× ${spec.background} → ${desktopCutoutAsset(spec)}',
+    );
+  }
+
   for (final target in launcherTargets) {
     target.emit(composed);
+  }
+}
+
+/// Multi-size ICO frames for Windows `Application.setIcon`.
+abstract final class DesktopIcoSizes {
+  static const values = [16, 32, 48, 256];
+}
+
+/// iOS alternate icons (`ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES`).
+/// Single-size 1024×1024 — Xcode generates every device variant.
+class IosAlternateTarget implements LauncherIconTarget {
+  const IosAlternateTarget();
+
+  static const outRoot = 'ios/Runner/Assets.xcassets';
+  static const fileName = 'Icon-App-1024x1024.png';
+
+  @override
+  String get name => 'ios-alternate';
+
+  @override
+  int get canvasSize => 1024;
+
+  @override
+  double get glyphScale => 0.5;
+
+  @override
+  Future<void> emit(Map<IconSpec, img.Image> composed) async {
+    for (final entry in composed.entries) {
+      final spec = entry.key;
+      if (spec.alias == null) continue;
+      final setName = spec.alias!;
+      final dir = Directory('$outRoot/$setName.appiconset');
+      if (dir.existsSync()) {
+        // Drop the old all-sizes matrix if we previously generated it.
+        for (final entity in dir.listSync()) {
+          if (entity is File) entity.deleteSync();
+        }
+      } else {
+        dir.createSync(recursive: true);
+      }
+      final png = img.encodePng(
+        img.copyResize(
+          entry.value,
+          width: 1024,
+          height: 1024,
+          interpolation: img.Interpolation.cubic,
+        ),
+      );
+      File('${dir.path}/$fileName').writeAsBytesSync(png);
+      File('${dir.path}/Contents.json').writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert({
+          'images': [
+            {
+              'filename': fileName,
+              'idiom': 'universal',
+              'platform': 'ios',
+              'size': '1024x1024',
+            },
+          ],
+          'info': {'version': 1, 'author': 'xcode'},
+        }),
+      );
+      stdout.writeln('[ios] alternate icon set $setName (single 1024)');
+    }
   }
 }
 
@@ -296,7 +630,7 @@ $mirrorFilters
     for (final entry in composed.entries) {
       final spec = entry.key;
       final png = img.encodePng(entry.value);
-      // The committed full PNG (settings preview loads it at runtime).
+      // Committed full PNG (settings preview + mobile source).
       File(composedAsset(spec))
         ..createSync(recursive: true)
         ..writeAsBytesSync(png);

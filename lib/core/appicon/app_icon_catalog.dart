@@ -1,35 +1,41 @@
 /// Catalog of the launcher icons shipped with the app.
 ///
-/// Icons are hand-made full PNGs under `assets/images/mobile_icons/`.
-/// Nothing is composed from a glyph + color, neither at runtime nor at
-/// build time (the generator only resizes the PNGs into density buckets).
-/// `flutter_dynamic_launcher_icon` only switches between pre-built native
-/// icons (Android `activity-alias` entries backed by mipmap resources):
-/// every non-default icon below maps to one native alias — see
-/// `android/app/src/main/AndroidManifest.xml` and
-/// `tool/README_app_icons.md` for how they are produced.
-///
-/// Logical model (what the user picks): one glyph ([AppIconGlyph.id]).
-/// [AppIconCatalog.resolveAlias] turns that choice into the native alias
-/// name, or `null` to reset to the icon as installed (MainActivity).
+/// Icons are composed full PNGs under `assets/images/icons/generated/`.
+/// Mobile uses `flutter_dynamic_launcher_icon` (Android `activity-alias` /
+/// iOS alternate App Icon sets) with the plated artwork in [asset].
+/// Desktop only applies *themed* glyphs ([AppIconGlyph.appliesOnDesktop])
+/// using [desktopAsset] / [desktopIcoAsset] (cutout, no plate); white/dark
+/// keep the base Novyse logo.
 library;
 
 class AppIconGlyph {
   /// Stable id, persisted in [AppIconCatalog.iconKey].
   final String id;
 
-  /// Ready-made artwork shown in the editor and resized into the native
-  /// mipmap resources by `tool/gen_launcher_icons.dart`.
+  /// Plated PNG: settings preview + mobile launcher source.
   final String asset;
 
-  /// Native `activity-alias` name, or `null` for the icon as installed
-  /// (selecting it calls `changeIcon(null)` and re-enables MainActivity).
+  /// Desktop cutout PNG (no plate). Null → use [AppIconCatalog.desktopBaseAsset].
+  final String? desktopAsset;
+
+  /// Desktop cutout ICO for Windows. Null → use base ICO.
+  final String? desktopIcoAsset;
+
+  /// Native alias name (Android activity-alias / iOS alternate set), or
+  /// `null` for the icon as installed.
   final String? alias;
+
+  /// When false, desktop keeps the base Novyse logo (white/dark). Themed
+  /// icons like sakura set this to true.
+  final bool appliesOnDesktop;
 
   const AppIconGlyph({
     required this.id,
     required this.asset,
     required this.alias,
+    this.desktopAsset,
+    this.desktopIcoAsset,
+    this.appliesOnDesktop = false,
   });
 }
 
@@ -41,6 +47,12 @@ class AppIconCatalog {
 
   /// The icon as installed is the white one.
   static const defaultIconId = 'white';
+
+  /// Desktop window/tray asset when white/dark (or unknown) is selected.
+  static const desktopBaseAsset =
+      'assets/images/icons/generated/icon_base.png';
+  static const desktopBaseIcoAsset =
+      'assets/images/icons/generated/icon_base.ico';
 
   static const List<AppIconGlyph> glyphs = [
     AppIconGlyph(
@@ -56,7 +68,10 @@ class AppIconCatalog {
     AppIconGlyph(
       id: 'sakura',
       asset: 'assets/images/icons/generated/icon_sakura.png',
+      desktopAsset: 'assets/images/icons/generated/icon_sakura_desktop.png',
+      desktopIcoAsset: 'assets/images/icons/generated/icon_sakura_desktop.ico',
       alias: 'AppIconSakura',
+      appliesOnDesktop: true,
     ),
   ];
 
@@ -65,6 +80,30 @@ class AppIconCatalog {
       if (glyph.id == id) return glyph;
     }
     return glyphs.first;
+  }
+
+  /// Options shown in the editor. On desktop, white+dark collapse into the
+  /// single base logo (they apply the same artwork).
+  static List<AppIconGlyph> pickerGlyphs({required bool desktop}) {
+    if (!desktop) return glyphs;
+    return [
+      glyphs.first, // white stands in for the shared base logo
+      for (final glyph in glyphs)
+        if (glyph.appliesOnDesktop) glyph,
+    ];
+  }
+
+  /// Whether [iconId] should highlight the desktop base (white) row.
+  static bool isDesktopBaseSelection(String? iconId) {
+    final id = iconId ?? defaultIconId;
+    return id == defaultIconId || id == 'dark';
+  }
+
+  /// Preview asset for the current platform (plated mobile vs desktop cutout).
+  static String previewAsset(AppIconGlyph glyph, {required bool desktop}) {
+    if (!desktop) return glyph.asset;
+    if (!glyph.appliesOnDesktop) return desktopBaseAsset;
+    return glyph.desktopAsset ?? glyph.asset;
   }
 
   /// Native alias for a logical choice, or `null` to reset to the icon

@@ -127,9 +127,13 @@ flutter:
     - assets/audio/comms/
     - assets/audio/comms/screen_share/
     - assets/images/
+    - assets/images/icons/generated/icon_base.png
     - assets/images/icons/generated/icon_white.png
     - assets/images/icons/generated/icon_dark.png
     - assets/images/icons/generated/icon_sakura.png
+    - assets/images/icons/generated/icon_sakura_desktop.png
+    - assets/images/icons/generated/icon_base.ico
+    - assets/images/icons/generated/icon_sakura_desktop.ico
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
