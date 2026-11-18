@@ -31,14 +31,15 @@ class MessagePlayButton extends StatelessWidget {
     return GestureDetector(
       onTap: isPlayable && !isPending && !isLoading ? onTap : null,
       child: Container(
-        width: 42,
-        height: 42,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           color: active
               ? colorScheme.primary
               : colorScheme.surfaceContainerHighest,
           shape: BoxShape.circle,
         ),
+        alignment: Alignment.center,
         child: showSpinner
             ? Padding(
                 padding: const EdgeInsets.all(10),
@@ -51,8 +52,6 @@ class MessagePlayButton extends StatelessWidget {
                 icon: isPlaying
                     ? HugeIcons.strokeRoundedPause
                     : HugeIcons.strokeRoundedPlay,
-                color: foreground,
-                size: 24,
               ),
       ),
     );

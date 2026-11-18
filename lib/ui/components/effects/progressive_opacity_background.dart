@@ -59,21 +59,35 @@ class ProgressiveOpacityBackground extends StatelessWidget {
       inner = SafeArea(top: topToBottom, bottom: !topToBottom, child: inner);
     }
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: topToBottom ? Alignment.topCenter : Alignment.bottomCenter,
-          end: topToBottom ? Alignment.bottomCenter : Alignment.topCenter,
-          colors: [surface, surface.withValues(alpha: 0)],
+    // Gradient is visual-only: IgnorePointer so taps reach widgets beneath
+    // the fade (DecoratedBox otherwise hit-tests its full bounds).
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: topToBottom
+                      ? Alignment.topCenter
+                      : Alignment.bottomCenter,
+                  end: topToBottom
+                      ? Alignment.bottomCenter
+                      : Alignment.topCenter,
+                  colors: [surface, surface.withValues(alpha: 0)],
+                ),
+              ),
+            ),
+          ),
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: topToBottom
-            ? [inner, SizedBox(height: fadeHeight)]
-            : [SizedBox(height: fadeHeight), inner],
-      ),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: topToBottom
+              ? [inner, SizedBox(height: fadeHeight)]
+              : [SizedBox(height: fadeHeight), inner],
+        ),
+      ],
     );
   }
 }
