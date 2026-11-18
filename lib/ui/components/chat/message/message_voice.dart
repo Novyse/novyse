@@ -1,15 +1,17 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/chat/chat_audio_service.dart';
 import 'package:novyse/core/storage/file/file_utils.dart';
 import 'package:novyse/core/storage/file/playable_uri.dart';
 import 'package:novyse/core/storage/file/uri_resolver.dart';
 import 'package:novyse/core/storage/file/waveform_generator.dart';
+import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/chat/message/message_placeholder_bar.dart';
 import 'package:novyse/ui/components/chat/message/message_play_button.dart';
 import 'package:novyse/ui/components/slider/app_progress_slider.dart';
 
 /// Displays a voice message with waveform visualization and playback controls.
-class MessageVoice extends StatelessWidget {
+class MessageVoice extends ConsumerWidget {
   const MessageVoice({
     super.key,
     required this.fileRef,
@@ -37,7 +39,7 @@ class MessageVoice extends StatelessWidget {
   final int? subID;
   final String? senderUUID;
 
-  Future<void> _togglePlayPause(String? uri) async {
+  Future<void> _togglePlayPause(WidgetRef ref, String? uri) async {
     if (!isPlayableMediaUri(uri)) return;
 
     await ChatAudioService.instance.togglePlayPause(
@@ -49,11 +51,12 @@ class MessageVoice extends StatelessWidget {
       messageID: messageID,
       senderUUID: senderUUID,
       isVoice: true,
+      title: ref.read(userProvider(senderUUID ?? ''))?.displayLabel,
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -61,19 +64,21 @@ class MessageVoice extends StatelessWidget {
       ref: fileRef,
       fileUUID: uuid,
       autoDownload: true,
-      placeholder: _buildPlayerWidget(colorScheme, null, loading: true),
+      placeholder: _buildPlayerWidget(ref, colorScheme, null, loading: true),
       builder: (context, resolvedUri) {
         final displayUri = resolveMediaUri(resolvedUri, fileRef);
 
         return ListenableBuilder(
           listenable: ChatAudioService.instance,
-          builder: (context, _) => _buildPlayerWidget(colorScheme, displayUri),
+          builder: (context, _) =>
+              _buildPlayerWidget(ref, colorScheme, displayUri),
         );
       },
     );
   }
 
   Widget _buildPlayerWidget(
+    WidgetRef ref,
     ColorScheme colorScheme,
     String? displayUri, {
     bool loading = false,
@@ -105,7 +110,7 @@ class MessageVoice extends StatelessWidget {
             isPlayable: isPlayableMediaUri(displayUri),
             isPending: isPending,
             isLoading: loading,
-            onTap: () => _togglePlayPause(displayUri),
+            onTap: () => _togglePlayPause(ref, displayUri),
           ),
           const SizedBox(width: 10),
           Expanded(

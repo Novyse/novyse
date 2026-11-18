@@ -1,5 +1,5 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/chat/message_action_methods.dart';
 import 'package:novyse/core/chat/message_file.dart';
 import 'package:novyse/core/chat/message_format.dart';
@@ -482,11 +482,7 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final maxBubbleWidth = (screenWidth - 64).clamp(120.0, screenWidth * 0.6);
 
-    final senderName = senderUser?.displayName.isNotEmpty == true
-        ? senderUser!.displayName
-        : (senderUser?.handle?.isNotEmpty == true
-              ? '@${senderUser!.handle}'
-              : (senderUser?.name ?? ''));
+    final senderName = senderUser?.displayLabel ?? '';
 
     final hasBeenRead =
         isSender &&

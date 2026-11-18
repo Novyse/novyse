@@ -755,6 +755,8 @@
   "overviewUnknownFile": "Unnamed file",
   "notifChannelChatMessages": "Chat Messages",
   "notifChannelChatMessagesDesc": "Incoming chat messages",
+  "notifChannelAudio": "Audio playback",
+  "notifChannelAudioDesc": "Controls for voice and audio messages",
   "notifNewMessage": "New message",
   "notifUnknownSender": "Unknown",
   "notifMe": "Me",

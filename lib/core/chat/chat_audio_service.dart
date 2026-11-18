@@ -34,6 +34,13 @@ class ChatAudioService extends ChangeNotifier {
   dynamic _activeMessageID;
   String? _activeSenderUUID;
   bool _activeIsVoice = false;
+  String? _activeTitle;
+  String? _activeSubtitle;
+
+  static final AudioContext _playbackAudioContext = AudioContextConfig(
+    focus: AudioContextConfigFocus.gain,
+    stayAwake: true,
+  ).build();
 
   /// Identifier (UUID or key) of the currently loaded/playing audio item.
   String? get activeId => _activeId;
@@ -67,6 +74,12 @@ class ChatAudioService extends ChangeNotifier {
 
   /// Whether the active item is a voice message (vs plain audio file).
   bool get activeIsVoice => _activeIsVoice;
+
+  /// Primary label for the OS media notification (file name or sender).
+  String? get activeTitle => _activeTitle;
+
+  /// Secondary label for the OS media notification (sender or kind).
+  String? get activeSubtitle => _activeSubtitle;
 
   /// Discrete playback speeds offered by the active-voice bar.
   static const List<double> speedSteps = [
@@ -151,6 +164,8 @@ class ChatAudioService extends ChangeNotifier {
     dynamic messageID,
     String? senderUUID,
     bool isVoice = false,
+    String? title,
+    String? subtitle,
   }) async {
     if (uri.isEmpty) return;
 
@@ -162,12 +177,16 @@ class ChatAudioService extends ChangeNotifier {
       }
 
       if (_activeId == id) {
+        if (title != null) _activeTitle = title;
+        if (subtitle != null) _activeSubtitle = subtitle;
         if (!_isPlaying) {
           if (_position == Duration.zero) {
             await _startPlayback(uri);
           } else {
             await _player.resume();
           }
+        } else {
+          notifyListeners();
         }
         return;
       }
@@ -184,6 +203,8 @@ class ChatAudioService extends ChangeNotifier {
       _activeMessageID = messageID;
       _activeSenderUUID = senderUUID;
       _activeIsVoice = isVoice;
+      _activeTitle = title;
+      _activeSubtitle = subtitle;
       notifyListeners();
 
       await _player.stop();
@@ -228,7 +249,7 @@ class ChatAudioService extends ChangeNotifier {
 
     try {
       await _player
-          .play(source)
+          .play(source, ctx: _playbackAudioContext)
           .timeout(const Duration(seconds: 2), onTimeout: () {});
       if (_speed != 1.0) {
         await _player
@@ -251,6 +272,29 @@ class ChatAudioService extends ChangeNotifier {
       } catch (e) {
         debugPrint('[ChatAudioService] pause error: $e');
       }
+      _isPlaying = false;
+      notifyListeners();
+    }
+  }
+
+  /// Resumes the active track from the media notification or lock screen.
+  ///
+  /// After completion the player position is back to zero, so playback is
+  /// restarted from the beginning instead of resuming a released source.
+  Future<void> resume() async {
+    final uri = _activeUri;
+    if (_activeId == null || uri == null || uri.isEmpty || _isPlaying) return;
+
+    try {
+      if (_position == Duration.zero) {
+        await _startPlayback(uri);
+      } else {
+        await _player.resume();
+        _isPlaying = true;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[ChatAudioService] resume error: $e');
       _isPlaying = false;
       notifyListeners();
     }
@@ -279,6 +323,8 @@ class ChatAudioService extends ChangeNotifier {
     _activeMessageID = null;
     _activeSenderUUID = null;
     _activeIsVoice = false;
+    _activeTitle = null;
+    _activeSubtitle = null;
     notifyListeners();
   }
 
@@ -354,6 +400,8 @@ class ChatAudioService extends ChangeNotifier {
     dynamic messageID,
     String? senderUUID,
     bool isVoice = false,
+    String? title,
+    String? subtitle,
   }) {
     _activeId = id;
     _isPlaying = isPlaying;
@@ -365,6 +413,8 @@ class ChatAudioService extends ChangeNotifier {
     _activeMessageID = messageID;
     _activeSenderUUID = senderUUID;
     _activeIsVoice = isVoice;
+    _activeTitle = title;
+    _activeSubtitle = subtitle;
     notifyListeners();
   }
 
@@ -386,6 +436,8 @@ class ChatAudioService extends ChangeNotifier {
     _activeMessageID = null;
     _activeSenderUUID = null;
     _activeIsVoice = false;
+    _activeTitle = null;
+    _activeSubtitle = null;
     notifyListeners();
   }
 
@@ -410,6 +462,8 @@ class ChatAudioService extends ChangeNotifier {
     dynamic messageID,
     String? senderUUID,
     bool isVoice = false,
+    String? title,
+    String? subtitle,
   }) async {
     if (isItemPlaying(id)) {
       await pause();
@@ -423,6 +477,8 @@ class ChatAudioService extends ChangeNotifier {
         messageID: messageID,
         senderUUID: senderUUID,
         isVoice: isVoice,
+        title: title,
+        subtitle: subtitle,
       );
     }
   }

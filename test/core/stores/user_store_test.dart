@@ -49,6 +49,7 @@ void main() {
       final user = container.read(userProvider('user-1'));
       expect(user?.name, equals('Alice'));
       expect(user?.displayName, equals('Alice Wonder'));
+      expect(user?.displayLabel, equals('Alice Wonder'));
       expect(user?.handle, equals('alice'));
       expect(user?.status, equals('OFFLINE'));
 
@@ -121,6 +122,30 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 10));
 
       expect(container.read(userProvider('user-4'))?.name, equals('David'));
+    });
+
+    test('displayLabel falls back from full name to name to handle', () {
+      expect(
+        const UserModel(
+          uuid: 'u',
+          name: 'Ada',
+          surname: 'Lovelace',
+          handle: 'ada',
+        ).displayLabel,
+        equals('Ada Lovelace'),
+      );
+      expect(
+        const UserModel(uuid: 'u', name: 'Ada', handle: 'ada').displayLabel,
+        equals('Ada'),
+      );
+      expect(
+        const UserModel(uuid: 'u', name: '', handle: 'ada').displayLabel,
+        equals('@ada'),
+      );
+      expect(
+        const UserModel(uuid: 'u', name: '').displayLabel,
+        equals(''),
+      );
     });
   });
 }

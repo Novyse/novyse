@@ -29,6 +29,7 @@ import 'package:shared_preferences_linux/shared_preferences_linux.dart';
 import 'package:shared_preferences_windows/shared_preferences_windows.dart';
 
 import 'core/auth/onboarding_manager.dart';
+import 'core/chat/chat_audio_handler.dart';
 import 'core/router/router.dart';
 import 'core/settings/settings_controller.dart';
 import 'core/themes/themes.dart';
@@ -65,6 +66,7 @@ void main(List<String> args) async {
     }
   }
   await initializeDateFormatting();
+  await ChatAudioBackground.init();
   final startHidden = args.contains('--hidden');
   await _initDesktopWindow(startHidden: startHidden);
   await recoverPendingDesktopInstall();

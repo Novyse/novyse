@@ -1,13 +1,21 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/chat/chat_audio_service.dart';
+import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/chat/message/message_voice.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 Finder findPlayIcon() => find.byWidgetPredicate(
   (w) => w is AppHugeIcon && w.icon == HugeIcons.strokeRoundedPlay,
 );
+
+Widget wrapMessage(Widget child) {
+  return ProviderScope(
+    child: MaterialApp(home: Scaffold(body: child)),
+  );
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -21,14 +29,12 @@ void main() {
       'renders MessageVoice and waveform without RenderBox layout assertion',
       (tester) async {
         await tester.pumpWidget(
-          const MaterialApp(
-            home: Scaffold(
-              body: MessageVoice(
-                fileRef: 'file:///local/v1.aac',
-                uuid: '',
-                duration: 45,
-                waveform: [0.1, 0.4, 0.9, 0.6, 0.3, 0.8, 0.5],
-              ),
+          wrapMessage(
+            const MessageVoice(
+              fileRef: 'file:///local/v1.aac',
+              uuid: '',
+              duration: 45,
+              waveform: [0.1, 0.4, 0.9, 0.6, 0.3, 0.8, 0.5],
             ),
           ),
         );
@@ -46,11 +52,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: MessageVoice(fileRef: 'missing-voice-ref', uuid: ''),
-          ),
-        ),
+        wrapMessage(const MessageVoice(fileRef: 'missing-voice-ref', uuid: '')),
       );
 
       expect(find.byType(MessageVoice), findsOneWidget);
@@ -65,13 +67,11 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: MessageVoice(
-              fileRef: 'file:///local/v2.aac',
-              uuid: '',
-              duration: 10,
-            ),
+        wrapMessage(
+          const MessageVoice(
+            fileRef: 'file:///local/v2.aac',
+            uuid: '',
+            duration: 10,
           ),
         ),
       );
@@ -105,5 +105,33 @@ void main() {
         expect(audioService.isItemActive('voice-2'), isTrue);
       },
     );
+
+    testWidgets('reads the sender name from the user store', (tester) async {
+      const sender = UserModel(uuid: 'sender-2', name: 'Giulia');
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [userProvider('sender-2').overrideWithValue(sender)],
+          child: const MaterialApp(
+            home: Scaffold(
+              body: MessageVoice(
+                fileRef: 'file:///local/voice-notification.aac',
+                uuid: 'voice-notification',
+                duration: 10,
+                senderUUID: 'sender-2',
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      await tester.tap(findPlayIcon());
+      await tester.pump();
+
+      expect(ChatAudioService.instance.activeTitle, 'Giulia');
+      expect(ChatAudioService.instance.activeIsVoice, isTrue);
+    });
   });
 }

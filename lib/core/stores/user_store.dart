@@ -70,6 +70,22 @@ class UserModel {
     return name;
   }
 
+  /// Human-readable label for UI and media notifications: the full name when
+  /// available, otherwise the name, otherwise the handle.
+  String get displayLabel {
+    if (name.isNotEmpty) {
+      final userSurname = surname;
+      return userSurname != null && userSurname.isNotEmpty
+          ? '$name $userSurname'
+          : name;
+    }
+
+    final userHandle = handle;
+    if (userHandle != null && userHandle.isNotEmpty) return '@$userHandle';
+
+    return '';
+  }
+
   bool get isOnline => status.toUpperCase() == 'ONLINE';
 
   Map<String, dynamic> toMap() {
