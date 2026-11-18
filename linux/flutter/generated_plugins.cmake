@@ -5,17 +5,17 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   audioplayers_linux
   desktop_updater
-  flutter_opaque
   flutter_secure_storage_linux
   flutter_webrtc
   irondash_engine_context
   livekit_client
   media_kit_libs_linux
-  media_kit_video
   open_file_linux
   record_linux
+  flutter_opaque
   super_native_extensions
   url_launcher_linux
+  media_kit_video
   webview_all_linux
 )
 

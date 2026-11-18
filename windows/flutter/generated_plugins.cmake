@@ -12,11 +12,11 @@ list(APPEND FLUTTER_PLUGIN_LIST
   irondash_engine_context
   livekit_client
   media_kit_libs_windows_video
-  media_kit_video
   record_windows
-  share_plus
   super_native_extensions
   url_launcher_windows
+  share_plus
+  media_kit_video
   webview_all_windows
 )
 
