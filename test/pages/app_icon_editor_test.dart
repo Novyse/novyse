@@ -57,10 +57,7 @@ Future<void> _pumpEditor(
   await tester.pumpAndSettle();
 }
 
-bool get _desktopHost =>
-    currentOS == AppOS.windows ||
-    currentOS == AppOS.linux ||
-    currentOS == AppOS.macos;
+bool get _desktopHost => isDesktop || isWeb;
 
 void main() {
   testWidgets('Customization exposes the App Icon page', (tester) async {

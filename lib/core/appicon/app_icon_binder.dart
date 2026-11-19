@@ -6,7 +6,8 @@ import 'package:novyse/core/appicon/app_icon_service.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/core/utils/platform.dart';
 
-/// Restores the desktop window/tray icon from settings after load / changes.
+/// Restores the desktop window/tray icon and the web favicon from settings
+/// after load / changes.
 ///
 /// Mobile platforms keep the launcher icon in the OS — no restore needed
 /// (and iOS would show a system alert on every launch).
@@ -30,7 +31,7 @@ class _AppIconBinderState extends ConsumerState<AppIconBinder> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isDesktop) {
+    if (isDesktop || isWeb) {
       ref.listen<Map<String, Object?>>(settingsControllerProvider, (
         previous,
         next,
@@ -54,9 +55,4 @@ class _AppIconBinderState extends ConsumerState<AppIconBinder> {
     }
     return widget.child;
   }
-
-  static bool get _isDesktop =>
-      currentOS == AppOS.windows ||
-      currentOS == AppOS.linux ||
-      currentOS == AppOS.macos;
 }

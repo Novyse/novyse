@@ -21,6 +21,15 @@ AppPlatform? debugOverridePlatform;
 /// Detects the current [AppPlatform] category.
 AppPlatform get currentPlatform => debugOverridePlatform ?? _detectPlatform();
 
+/// Whether the app runs on a desktop OS (Windows, Linux or macOS).
+bool get isDesktop => currentPlatform == AppPlatform.desktop;
+
+/// Whether the app runs on a mobile OS (Android or iOS).
+bool get isMobile => currentPlatform == AppPlatform.mobile;
+
+/// Whether the app runs in a browser.
+bool get isWeb => currentPlatform == AppPlatform.web;
+
 /// Override install source for testing purposes.
 @visibleForTesting
 AppInstallSource? debugOverrideInstallSource;

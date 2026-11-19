@@ -9,6 +9,7 @@ import 'package:novyse/core/utils/platform.dart';
 abstract final class CommsAudio {
   static const double unityVolume = 1.0;
   static const double maxVolume = 2.0;
+
   /// Linear volume key for a tile.
   static String volKeyForTile({
     required String id,
@@ -40,7 +41,7 @@ abstract final class CommsAudio {
   }
 
   static double platformCappedVolume(double value) {
-    if (currentOS == AppOS.web) return value.clamp(0.0, 1.0);
+    if (isWeb) return value.clamp(0.0, 1.0);
     return value;
   }
 
@@ -84,7 +85,7 @@ abstract final class CommsAudio {
   static Future<void> applyToTrack(Track? track, double target) async {
     if (track == null) return;
     final volume = clampVolume(target);
-    if (currentOS == AppOS.web && track is RemoteAudioTrack) {
+    if (isWeb && track is RemoteAudioTrack) {
       applyWebAudioVolume(track.getCid(), platformCappedVolume(volume));
     } else {
       try {

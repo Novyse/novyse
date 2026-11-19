@@ -12,10 +12,7 @@ import 'package:novyse/ui/components/settings/settings_select_row.dart';
 class AppIconGlyphList extends ConsumerWidget {
   const AppIconGlyphList({super.key});
 
-  static bool get _isDesktop =>
-      currentOS == AppOS.windows ||
-      currentOS == AppOS.linux ||
-      currentOS == AppOS.macos;
+  static bool get _usesDesktopArtwork => isDesktop || isWeb;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,7 +21,7 @@ class AppIconGlyphList extends ConsumerWidget {
         ref.watch(settingsControllerProvider)[AppIconCatalog.iconKey]
             as String? ??
         AppIconCatalog.defaultIconId;
-    final options = AppIconCatalog.pickerGlyphs(desktop: _isDesktop);
+    final options = AppIconCatalog.pickerGlyphs(desktop: _usesDesktopArtwork);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -40,11 +37,15 @@ class AppIconGlyphList extends ConsumerWidget {
             glyph: options[i],
             previewAsset: AppIconCatalog.previewAsset(
               options[i],
-              desktop: _isDesktop,
+              desktop: _usesDesktopArtwork,
             ),
             selected: _isSelected(options[i], iconId),
-            label: _glyphLabel(l10n, options[i], desktop: _isDesktop),
-            subtitle: _glyphSubtitle(l10n, options[i], desktop: _isDesktop),
+            label: _glyphLabel(l10n, options[i], desktop: _usesDesktopArtwork),
+            subtitle: _glyphSubtitle(
+              l10n,
+              options[i],
+              desktop: _usesDesktopArtwork,
+            ),
             onSelect: () => _pick(context, ref, options[i]),
           ),
         ],
@@ -53,7 +54,7 @@ class AppIconGlyphList extends ConsumerWidget {
   }
 
   bool _isSelected(AppIconGlyph glyph, String iconId) {
-    if (_isDesktop && !glyph.appliesOnDesktop) {
+    if (_usesDesktopArtwork && !glyph.appliesOnDesktop) {
       return AppIconCatalog.isDesktopBaseSelection(iconId);
     }
     return glyph.id == iconId;
@@ -65,14 +66,14 @@ class AppIconGlyphList extends ConsumerWidget {
     AppIconGlyph glyph,
   ) async {
     // Desktop base row always persists as white (dark is folded into it).
-    final targetId = (_isDesktop && !glyph.appliesOnDesktop)
+    final targetId = (_usesDesktopArtwork && !glyph.appliesOnDesktop)
         ? AppIconCatalog.defaultIconId
         : glyph.id;
     final current =
         ref.read(settingsControllerProvider)[AppIconCatalog.iconKey]
             as String? ??
         AppIconCatalog.defaultIconId;
-    if (_isDesktop && !glyph.appliesOnDesktop) {
+    if (_usesDesktopArtwork && !glyph.appliesOnDesktop) {
       if (AppIconCatalog.isDesktopBaseSelection(current)) return;
     } else if (glyph.id == current) {
       return;
@@ -85,15 +86,13 @@ class AppIconGlyphList extends ConsumerWidget {
           .read(settingsControllerProvider.notifier)
           .set(AppIconCatalog.iconKey, targetId);
       if (!ok && context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.appIconSaveError)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.appIconSaveError)));
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.appIconSaveError)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.appIconSaveError)));
       }
     }
   }

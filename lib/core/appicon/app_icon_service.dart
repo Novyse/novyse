@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:novyse/core/appicon/app_icon_catalog.dart';
 import 'package:novyse/core/appicon/app_icon_desktop.dart';
+import 'package:novyse/core/appicon/app_icon_favicon.dart';
 import 'package:novyse/core/utils/platform.dart';
 
 /// Applies the selected launcher / window icon.
@@ -16,7 +17,8 @@ import 'package:novyse/core/utils/platform.dart';
 /// - Windows / Linux / macOS: best-effort window/dock/tray update via
 ///   nativeapi; Linux also writes a user hicolor override. Not equivalent
 ///   to a permanent Start-menu / .exe resource change.
-/// - Web / others: no-op (preferences are still persisted by the UI).
+/// - Web: swaps the browser favicon with the desktop artwork; the static PWA manifest icons are left untouched.
+/// - Others: no-op (preferences are still persisted by the UI).
 ///
 /// The backend is injectable so the draft store stays unit-testable.
 class AppIconService {
@@ -24,34 +26,33 @@ class AppIconService {
   final Future<String?> Function() _currentIcon;
   final Future<bool> Function() _isSupported;
   final Future<bool> Function(String iconId) _applyDesktop;
+  final Future<bool> Function(String iconId) _applyFavicon;
 
   AppIconService({
     Future<void> Function(String? alias)? changeIcon,
     Future<String?> Function()? currentIcon,
     Future<bool> Function()? isSupported,
     Future<bool> Function(String iconId)? applyDesktop,
+    Future<bool> Function(String iconId)? applyFavicon,
   }) : _changeIcon =
            changeIcon ??
            ((alias) => FlutterDynamicLauncherIcon.changeIcon(alias)),
        _currentIcon =
-           currentIcon ??
-           (() => FlutterDynamicLauncherIcon.alternateIconName),
+           currentIcon ?? (() => FlutterDynamicLauncherIcon.alternateIconName),
        _isSupported =
            isSupported ?? (() => FlutterDynamicLauncherIcon.isSupported),
-       _applyDesktop = applyDesktop ?? AppIconDesktop.applyIconId;
-
-  static bool get _isMobileDynamic =>
-      currentOS == AppOS.android || currentOS == AppOS.ios;
-
-  static bool get _isDesktopDynamic =>
-      currentOS == AppOS.windows ||
-      currentOS == AppOS.linux ||
-      currentOS == AppOS.macos;
+       _applyDesktop = applyDesktop ?? AppIconDesktop.applyIconId,
+       _applyFavicon =
+           applyFavicon ??
+           ((iconId) => AppIconFavicon.applyAsset(
+             AppIconCatalog.desktopArtwork(iconId),
+           ));
 
   /// Whether the running platform can change the visible app icon.
   Future<bool> get supportsDynamicIcons async {
-    if (_isDesktopDynamic) return true;
-    if (!_isMobileDynamic) return false;
+    if (isDesktop) return true;
+    if (isWeb) return true;
+    if (!isMobile) return false;
     try {
       return await _isSupported();
     } catch (e) {
@@ -65,8 +66,7 @@ class AppIconService {
   /// on native failure for mobile.
   Future<void> applyAlias(String? alias) async {
     final iconId =
-        AppIconCatalog.selectionForAlias(alias) ??
-        AppIconCatalog.defaultIconId;
+        AppIconCatalog.selectionForAlias(alias) ?? AppIconCatalog.defaultIconId;
     await applyIconId(iconId);
   }
 
@@ -76,8 +76,12 @@ class AppIconService {
       debugPrint('[AppIcon] dynamic icons not supported, skipping $iconId');
       return;
     }
-    if (_isDesktopDynamic) {
+    if (isDesktop) {
       await _applyDesktop(iconId);
+      return;
+    }
+    if (isWeb) {
+      await _applyFavicon(iconId);
       return;
     }
     final alias = AppIconCatalog.resolveAlias(iconId: iconId);
@@ -87,7 +91,7 @@ class AppIconService {
   /// Currently active mobile alias, or `null` for the default launcher icon.
   /// Desktop has no OS-reported value; returns `null`.
   Future<String?> currentAlias() async {
-    if (!_isMobileDynamic) return null;
+    if (!isMobile) return null;
     if (!await supportsDynamicIcons) return null;
     try {
       return await _currentIcon();

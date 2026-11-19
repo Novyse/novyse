@@ -17,7 +17,7 @@ abstract final class CommsDevicesPlatform {
     final deviceId = CommsDevicesDefaults.resolveLiveKitDeviceId(savedId);
     if (room == null) return;
 
-    if (currentOS == AppOS.web) {
+    if (isWeb) {
       if (deviceId == null) return;
       for (final participant in room.remoteParticipants.values) {
         for (final pub in participant.audioTrackPublications) {
@@ -54,9 +54,7 @@ abstract final class CommsDevicesPlatform {
     required String savedOutputId,
   }) {
     if (currentOS != AppOS.web) return;
-    final deviceId = CommsDevicesDefaults.resolveLiveKitDeviceId(
-      savedOutputId,
-    );
+    final deviceId = CommsDevicesDefaults.resolveLiveKitDeviceId(savedOutputId);
     if (deviceId == null) return;
     if (track is RemoteAudioTrack) {
       try {

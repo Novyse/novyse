@@ -106,6 +106,11 @@ class AppIconCatalog {
     return glyph.desktopAsset ?? glyph.asset;
   }
 
+  static String desktopArtwork(String iconId, {int size = 256}) => previewAsset(
+    glyphById(iconId),
+    desktop: true,
+  ).replaceFirst(RegExp(r'\.png$'), '_$size.png');
+
   /// Native alias for a logical choice, or `null` to reset to the icon
   /// as installed. Unknown ids fall back to the default (white) glyph,
   /// i.e. a reset.

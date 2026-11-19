@@ -21,19 +21,15 @@ void main() {
       },
     );
 
-    // currentOS still reflects the host; force the desktop branch via
-    // supportsDynamicIcons + applyIconId when OS is windows/linux/macos.
-    // On a Windows host this exercises the desktop path.
+    // debugOverridePlatform makes the desktop branch deterministic on any
+    // host, so this exercises the desktop path everywhere.
     await service.applyIconId('sakura');
-    if (currentOS == AppOS.windows ||
-        currentOS == AppOS.linux ||
-        currentOS == AppOS.macos) {
-      expect(desktopId, 'sakura');
-      expect(mobileAlias, isNull);
-    }
+    expect(desktopId, 'sakura');
+    expect(mobileAlias, isNull);
   });
 
   test('applyAlias maps null to the default glyph id', () async {
+    debugOverridePlatform = AppPlatform.desktop;
     String? applied;
     final service = AppIconService(
       isSupported: () async => true,
@@ -44,10 +40,6 @@ void main() {
       },
     );
     await service.applyAlias(null);
-    if (currentOS == AppOS.windows ||
-        currentOS == AppOS.linux ||
-        currentOS == AppOS.macos) {
-      expect(applied, 'white');
-    }
+    expect(applied, 'white');
   });
 }
