@@ -28,11 +28,7 @@ cp -R "$BUNDLE_DIR" "$STAGING_DIR/bundle"
 
 # Stage desktop entry and icon for Snapcraft
 generate_desktop_entry "$STAGING_DIR/snap/gui/${PKG_NAME}.desktop"
-if [ -f "$ROOT_DIR/assets/images/logo-novyse-512.png" ]; then
-  cp "$ROOT_DIR/assets/images/logo-novyse-512.png" "$STAGING_DIR/snap/gui/${PKG_NAME}.png"
-elif [ -f "$ROOT_DIR/assets/images/logo-novyse.png" ]; then
-  cp "$ROOT_DIR/assets/images/logo-novyse.png" "$STAGING_DIR/snap/gui/${PKG_NAME}.png"
-fi
+cp "$ROOT_DIR/assets/images/logo-novyse.png" "$STAGING_DIR/snap/gui/${PKG_NAME}.png"
 
 generate_snapcraft_yaml "$STAGING_DIR/snap/snapcraft.yaml" "bundle"
 

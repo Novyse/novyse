@@ -91,6 +91,10 @@ pkg_check_modules(GTK REQUIRED IMPORTED_TARGET gtk+-3.0)
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
 
+# Compose the launcher icons
+include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/gen_launcher_icons.cmake")
+gen_launcher_icons("${CMAKE_CURRENT_SOURCE_DIR}/.." "${FLUTTER_MANAGED_DIR}")
+
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)
 

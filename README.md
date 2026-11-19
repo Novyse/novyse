@@ -4,7 +4,7 @@
 
 <!-- BANNER -->
 
-<img src="./assets/images/banner-novyse.png" alt="Banner">
+<img src="./branding/banner-novyse.png" alt="Banner">
 
 <br />
 <br />
@@ -65,6 +65,7 @@
     <li>
       <a href="#about-the-project">About The Project</a>
     </li>
+    <li><a href="#screenshots">Screenshots</a></li>
     <li><a href="#updates-and-roadmap">Updates and Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -76,6 +77,12 @@
 ## About The Project
 
 Novyse (/noʊˈvaɪs/) is an open-source messaging application built with Flutter, designed to provide a simple, intuitive, and feature-rich communication platform. It supports real-time text-based chats across various types, including direct messages (DMs), group chats, channels, and forums, while integrating advanced features like voice and video calls powered by LiveKit/WebRTC. The app includes user authentication, customizable themes, privacy settings, and cross-platform compatibility for iOS, Android, web, and desktop. Currently in active development, Novyse emphasizes user privacy, open-source collaboration, and a clean, responsive interface to foster seamless conversations and community interactions.
+
+## Screenshots
+
+<p align="center">
+  <img src="./branding/screenshot.png" alt="Novyse screenshot" width="900">
+</p>
 
 ## Updates and Roadmap
 

@@ -59,6 +59,13 @@ novyse-release.keystore
 /linux/packaging/icons/hicolor/*/apps/com.novyse*.png
 /linux/packaging/icons/hicolor/scalable/apps/com.novyse*.svg
 
+# Generated launcher icons (dart tool/gen_launcher_icons.dart)
+/assets/images/icons/generated/
+/android/app/src/main/res/mipmap-*/ic_launcher*.png
+/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher*.xml
+/ios/Runner/Assets.xcassets/AppIconDark.appiconset/
+/ios/Runner/Assets.xcassets/AppIconSakura.appiconset/
+
 # Build 
 dist/
 .cache/

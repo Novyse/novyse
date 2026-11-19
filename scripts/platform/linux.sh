@@ -79,7 +79,7 @@ ${categories_xml}  </categories>
   <screenshots>
     <screenshot type="default">
       <caption>The main interface of Novyse client</caption>
-      <image>https://raw.githubusercontent.com/Novyse/novyse/production/assets/images/screenshot.png</image>
+      <image>https://raw.githubusercontent.com/Novyse/novyse/production/branding/screenshot.png</image>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1" />

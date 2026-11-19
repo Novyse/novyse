@@ -290,6 +290,9 @@ if [ "$CLEAN_BUILD" -eq 1 ]; then
   flutter pub get
 fi
 
+# 5. Compose the launcher icons
+bash "$SCRIPT_DIR/sync-icons.sh"
+
 build_desktop_updater_zip() {
   local du_platform="$1" input_path="$2" package_id="$3"
   if [ "${BRANCH:-development}" != "production" ]; then

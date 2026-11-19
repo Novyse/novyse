@@ -1,6 +1,7 @@
 /// Catalog of the launcher icons shipped with the app.
 ///
-/// Icons are composed full PNGs under `assets/images/icons/generated/`.
+/// Icons are composed full PNGs under `assets/images/icons/generated/`,
+/// generated at build time by `tool/gen_launcher_icons.dart` (not committed).
 /// Mobile uses `flutter_dynamic_launcher_icon` (Android `activity-alias` /
 /// iOS alternate App Icon sets) with the plated artwork in [asset].
 /// Desktop only applies *themed* glyphs ([AppIconGlyph.appliesOnDesktop])
@@ -49,8 +50,7 @@ class AppIconCatalog {
   static const defaultIconId = 'white';
 
   /// Desktop window/tray asset when white/dark (or unknown) is selected.
-  static const desktopBaseAsset =
-      'assets/images/icons/generated/icon_base.png';
+  static const desktopBaseAsset = 'assets/images/icons/generated/icon_base.png';
   static const desktopBaseIcoAsset =
       'assets/images/icons/generated/icon_base.ico';
 

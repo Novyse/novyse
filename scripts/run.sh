@@ -50,6 +50,9 @@ bash "$SCRIPT_DIR/sync-platform.sh" "$PLATFORM_SYNC_TARGET"
 bash "$SCRIPT_DIR/check/check-dependencies.sh"
 bash "$SCRIPT_DIR/check/check-platform.sh" "$OS_TARGET"
 
+# Compose the launcher icons
+bash "$SCRIPT_DIR/sync-icons.sh"
+
 case "$OS_TARGET" in
   web)
     echo "🚀 Launching on Web (Chrome, port 8081)..."

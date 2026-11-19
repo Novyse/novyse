@@ -41,8 +41,8 @@ generate_appstream_metainfo "$APPDIR/usr/share/metainfo/${APP_ID}.metainfo.xml"
 # Generate icons on-demand
 generate_linux_icons "$APPDIR/usr/share/icons"
 
-cp "$ROOT_DIR/assets/images/logo-novyse-512.png" "$APPDIR/.DirIcon"
-cp "$ROOT_DIR/assets/images/logo-novyse-512.png" "$APPDIR/${APP_ID}.png"
+cp "$ROOT_DIR/assets/images/logo-novyse.png" "$APPDIR/.DirIcon"
+cp "$ROOT_DIR/assets/images/logo-novyse.png" "$APPDIR/${APP_ID}.png"
 
 # Create AppRun
 cat << 'EOF' > "$APPDIR/AppRun"

@@ -21,8 +21,13 @@
 // Adding an icon: drop the glyph PNG + background PNG in the folders above,
 // extend `iconSpecs` and AppIconCatalog.glyphs, add the l10n option label,
 // rebuild. The composed full PNGs land in assets/images/icons/generated/
-// (committed: the settings preview loads them at runtime) and are copied
-// into the native resources by each target below.
+// (NOT committed: the settings preview and the desktop setIcon read them from
+// the Flutter bundle) and are copied into the native resources by each target
+// below. Every build regenerates them before Flutter assembles the bundle:
+// Gradle (Android), CMake (Linux/Windows), an Xcode build phase (iOS/macOS),
+// scripts/build.sh (packaged builds, including web). On a fresh clone run
+// `dart tool/gen_launcher_icons.dart` once if a build reports that
+// assets/images/icons/generated is missing.
 //
 // Targets: Android mipmaps/aliases, desktop ICO (Windows SetIcon), and iOS
 // alternate AppIcon sets. Other OSes reuse the committed composed PNGs.
@@ -126,6 +131,40 @@ String desktopCutoutAsset(IconSpec spec) =>
 String desktopCutoutIcoAsset(IconSpec spec) =>
     'assets/images/icons/generated/icon_${spec.id}_desktop.ico';
 
+/// Base Novyse logo (transparent plate) used by desktop when white/dark is
+/// selected, and for the window/tray icon.
+const baseLogoAsset = 'assets/images/icons/generated/icon_base.png';
+const baseLogoIcoAsset = 'assets/images/icons/generated/icon_base.ico';
+
+/// Sizes written as real per-size PNGs for the Linux hicolor theme: GTK picks
+/// a size by *folder name*, so every folder must hold artwork at that size (the
+/// old code copied one 1024 px master everywhere, which rendered blurry).
+/// Keep in sync with `_hicolorSizes` in lib/core/appicon/app_icon_desktop_io.dart.
+const linuxHicolorSizes = [16, 24, 32, 48, 64, 128, 256, 512];
+
+/// `icon_base.png` → `icon_base_64.png` (looked up by the runtime next to the
+/// master PNG when filling the hicolor tree).
+String sizedAsset(String masterAsset, int size) =>
+    masterAsset.replaceFirst(RegExp(r'\.png$'), '_$size.png');
+
+/// Writes [master] once per [linuxHicolorSizes] entry.
+void writeHicolorVariants(img.Image master, String masterAsset) {
+  for (final size in linuxHicolorSizes) {
+    File(sizedAsset(masterAsset, size))
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(
+        img.encodePng(
+          img.copyResize(
+            master,
+            width: size,
+            height: size,
+            interpolation: img.Interpolation.cubic,
+          ),
+        ),
+      );
+  }
+}
+
 /// A native target: canvas size, glyph scale and resource emitter.
 /// Android shrinks the (large) glyphs to 50% and centers them.
 abstract class LauncherIconTarget {
@@ -146,9 +185,8 @@ img.Image loadGlyph(IconSpec spec) {
   final raw = File(spec.glyph).readAsBytesSync();
   if (spec.glyph.endsWith('.svg')) {
     final svg = utf8.decode(raw);
-    final raster = RegExp(
-      r'data:[^;]+;base64,([A-Za-z0-9+/=]+)',
-    ).firstMatch(svg);
+    final raster = RegExp(r'data:[^;]+;base64,([A-Za-z0-9+/=]+)')
+        .firstMatch(svg);
     if (raster == null) {
       throw StateError('No embedded bitmap in ${spec.glyph}');
     }
@@ -209,8 +247,9 @@ img.Image composeIcon({
 }) {
   // Cutouts trim empty padding first so scale 1.0 actually fills the canvas
   // (the source logo is padded). Overlay/mask keep the legacy fit behavior.
-  final sourceGlyph =
-      mode == ComposeMode.maskCutout ? trimGlyphToMask(glyph) : glyph;
+  final sourceGlyph = mode == ComposeMode.maskCutout
+      ? trimGlyphToMask(glyph)
+      : glyph;
   final box = canvasSize * glyphScale;
   final scale = math.min(
     box / sourceGlyph.width.toDouble(),
@@ -406,9 +445,10 @@ void main() {
     canvasSize: desktopCanvasSize,
     glyphScale: desktopGlyphScale,
   );
-  File('assets/images/icons/generated/icon_base.png')
+  File(baseLogoAsset)
     ..createSync(recursive: true)
     ..writeAsBytesSync(img.encodePng(baseLogo));
+  writeHicolorVariants(baseLogo, baseLogoAsset);
   final baseIco = img.IcoEncoder().encodeImages([
     for (final size in DesktopIcoSizes.values)
       img.copyResize(
@@ -418,7 +458,7 @@ void main() {
         interpolation: img.Interpolation.cubic,
       ),
   ]);
-  File('assets/images/icons/generated/icon_base.ico')
+  File(baseLogoIcoAsset)
     ..createSync(recursive: true)
     ..writeAsBytesSync(baseIco);
   stdout.writeln(
@@ -443,6 +483,7 @@ void main() {
     File(desktopCutoutAsset(spec))
       ..createSync(recursive: true)
       ..writeAsBytesSync(img.encodePng(cutout));
+    writeHicolorVariants(cutout, desktopCutoutAsset(spec));
     final ico = img.IcoEncoder().encodeImages([
       for (final size in DesktopIcoSizes.values)
         img.copyResize(
