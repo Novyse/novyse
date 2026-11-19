@@ -116,13 +116,20 @@ void main() {
         );
         addTearDown(container.dispose);
 
+        final focusNode = FocusNode();
+        addTearDown(focusNode.dispose);
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: container,
-            child: const MaterialApp(
+            child: MaterialApp(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
-              home: Scaffold(body: DefaultBottomBar(chatUUID: 'group-1')),
+              home: Scaffold(
+                body: DefaultBottomBar(
+                  chatUUID: 'group-1',
+                  focusNode: focusNode,
+                ),
+              ),
             ),
           ),
         );
@@ -206,13 +213,17 @@ void main() {
       );
       addTearDown(container.dispose);
 
+      final focusNode = FocusNode();
+      addTearDown(focusNode.dispose);
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: const MaterialApp(
+          child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: DefaultBottomBar(chatUUID: 'dm-1')),
+            home: Scaffold(
+              body: DefaultBottomBar(chatUUID: 'dm-1', focusNode: focusNode),
+            ),
           ),
         ),
       );

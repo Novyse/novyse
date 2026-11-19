@@ -509,23 +509,23 @@ class _CategoryToolbarState extends State<_CategoryToolbar> {
                     Padding(
                       padding: const EdgeInsets.only(right: 4),
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(16),
+                        customBorder: const CircleBorder(),
                         onTap: () => widget.onTap(category),
                         child: Container(
-                          width: 36,
+                          width: 32,
                           height: 32,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: category == active
-                                ? colorScheme.primaryContainer
+                                ? colorScheme.primary
                                 : Colors.transparent,
-                            borderRadius: BorderRadius.circular(16),
+                            shape: BoxShape.circle,
                           ),
                           child: AppHugeIcon(
                             icon: category.icon,
                             size: 18,
                             color: category == active
-                                ? colorScheme.onPrimaryContainer
+                                ? colorScheme.onPrimary
                                 : colorScheme.onSurfaceVariant,
                           ),
                         ),

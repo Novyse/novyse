@@ -333,11 +333,11 @@ class _ProviderChip extends StatelessWidget {
         label: Text(label, style: const TextStyle(fontSize: 12)),
         selected: selected,
         onSelected: (_) => onTap(),
-        selectedColor: colorScheme.primaryContainer,
+        selectedColor: colorScheme.primary,
         backgroundColor: colorScheme.surfaceContainerHighest,
         labelStyle: TextStyle(
           color: selected
-              ? colorScheme.onPrimaryContainer
+              ? colorScheme.onPrimary
               : colorScheme.onSurfaceVariant,
         ),
         side: BorderSide.none,

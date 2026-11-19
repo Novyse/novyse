@@ -56,7 +56,9 @@ class LeftButtonBottomBar extends StatelessWidget {
               height: FloatingConsts.iconButtonSize,
               child: Center(
                 child: AppHugeIcon(
-                  icon: HugeIcons.strokeRoundedPlus,
+                  icon: isRecording
+                      ? HugeIcons.strokeRoundedCancel01
+                      : HugeIcons.strokeRoundedPlus,
                   color: colorScheme.onSurface,
                 ),
               ),

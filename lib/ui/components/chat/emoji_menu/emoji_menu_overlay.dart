@@ -7,12 +7,11 @@ import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_models.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_picker.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/sticker/sticker_content.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/ui/components/switch/segmented_switch.dart';
 
-/// Content panel of the emoji menu (tab bar + body).
-///
-/// Used inline on mobile and inside [EmojiMenuOverlay] on desktop.
-/// Stays dumb: emoji insertion happens via [textController] binding,
-/// GIF delivery via [onSelectGif] (parent sends + closes).
+enum EmojiMenuPanelStyle { floating, sheet }
+
+/// Emoji/GIF/sticker panel body (mobile sheet or desktop overlay).
 class EmojiMenuPanel extends ConsumerStatefulWidget {
   const EmojiMenuPanel({
     super.key,
@@ -20,12 +19,14 @@ class EmojiMenuPanel extends ConsumerStatefulWidget {
     required this.onSelectGif,
     this.initialTab = EmojiMenuTab.emoji,
     this.height = 380,
+    this.style = EmojiMenuPanelStyle.floating,
   });
 
   final TextEditingController? textController;
   final ValueChanged<GifItem> onSelectGif;
   final EmojiMenuTab initialTab;
   final double height;
+  final EmojiMenuPanelStyle style;
 
   @override
   ConsumerState<EmojiMenuPanel> createState() => _EmojiMenuPanelState();
@@ -40,10 +41,54 @@ class _EmojiMenuPanelState extends ConsumerState<EmojiMenuPanel> {
     _tab = widget.initialTab;
   }
 
+  List<SegmentedOption<EmojiMenuTab>> _options(
+    AppLocalizations l10n,
+    ColorScheme scheme,
+  ) => [
+    for (final t in EmojiMenuTab.values)
+      SegmentedOption(
+        value: t,
+        label: t.label(l10n),
+        icon: AppHugeIcon(
+          icon: t.icon,
+          size: 16,
+          color: t == _tab ? scheme.onPrimary : scheme.onSurfaceVariant,
+        ),
+      ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
+    final isSheet = widget.style == EmojiMenuPanelStyle.sheet;
+    final tabChrome = isSheet ? 56.0 : 74.0;
+
+    final body = Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(12, isSheet ? 4 : 10, 12, 8),
+          child: SegmentedSwitch<EmojiMenuTab>(
+            options: _options(l10n, colorScheme),
+            value: _tab,
+            onChanged: (t) => setState(() => _tab = t),
+          ),
+        ),
+        Expanded(
+          child: switch (_tab) {
+            EmojiMenuTab.emoji => EmojiContent(
+              textEditingController: widget.textController,
+              onEmojiSelected: (_) {},
+              height: widget.height - tabChrome,
+            ),
+            EmojiMenuTab.sticker => const StickerContent(),
+            EmojiMenuTab.gif => GifPicker(onSelectGif: widget.onSelectGif),
+          },
+        ),
+      ],
+    );
+
+    if (isSheet) return body;
 
     return Container(
       height: widget.height,
@@ -61,42 +106,7 @@ class _EmojiMenuPanelState extends ConsumerState<EmojiMenuPanel> {
           ),
         ],
       ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
-            child: SegmentedButton<EmojiMenuTab>(
-              segments: [
-                for (final t in EmojiMenuTab.values)
-                  ButtonSegment(
-                    value: t,
-                    label: Text(t.label(l10n)),
-                    icon: AppHugeIcon(icon: t.icon, size: 16),
-                  ),
-              ],
-              selected: {_tab},
-              onSelectionChanged: (s) => setState(() => _tab = s.first),
-              showSelectedIcon: false,
-              style: SegmentedButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-              ),
-            ),
-          ),
-          Expanded(
-            // Lazy body (like legacy renderContent): only the active tab is
-            // mounted, avoiding eager EmojiPicker init + GIF fetch costs.
-            child: switch (_tab) {
-              EmojiMenuTab.emoji => EmojiContent(
-                textEditingController: widget.textController,
-                onEmojiSelected: (_) {},
-                height: widget.height - 70,
-              ),
-              EmojiMenuTab.sticker => const StickerContent(),
-              EmojiMenuTab.gif => GifPicker(onSelectGif: widget.onSelectGif),
-            },
-          ),
-        ],
-      ),
+      child: body,
     );
   }
 }

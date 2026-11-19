@@ -100,6 +100,7 @@ dependencies:
   flutter_svg: ^2.3.0
   material_ui: any
   cupertino_ui: any
+  keyboard_controller: ^0.1.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

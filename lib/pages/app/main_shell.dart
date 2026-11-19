@@ -304,7 +304,10 @@ class _HomeShellState extends ConsumerState<HomeShell>
 
     return HomeTabControllerScope(
       controller: _tabController,
-      child: Scaffold(body: body),
+      // Keyboard inset is owned by chat (keyboard_controller + reserved slot).
+      // If this Scaffold also resizes, the composer is lifted twice and the
+      // IME loses focus as soon as it opens.
+      child: Scaffold(resizeToAvoidBottomInset: false, body: body),
     );
   }
 }

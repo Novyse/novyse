@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +21,7 @@ import 'package:novyse/core/stores/status_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/pages/app/adaptive.dart';
 import 'package:novyse/pages/app/chat_call_page.dart';
+import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/chat_bottom_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_detail_app_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/chat_detail_search_app_bar.dart';
@@ -55,6 +58,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   int _searchIndex = 0;
   double _subListWidth = kSubListDefaultWidth;
   final _bottomBarKey = GlobalKey();
+  final _composerKey = GlobalKey<ChatBottomBarState>();
   final _headerBarKey = GlobalKey();
   // Stima iniziale bottombar a una riga (48 pill + 24 padding + safe + fade).
   // Aggiornata alla misura reale via SizeChangedLayoutNotifier (altezza variabile).
@@ -107,6 +111,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.chatUUID != widget.chatUUID) {
       _isEmojiMenuOpen = false;
+      _composerKey.currentState?.hideAccessoryPanel();
       _closeSearch(resetText: true);
     }
     if (oldWidget.chatUUID != widget.chatUUID ||
@@ -198,27 +203,17 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     _jumpToSearchMatch();
   }
 
-  void _closeEmojiMenu() {
-    if (!_isEmojiMenuOpen) return;
-    setState(() => _isEmojiMenuOpen = false);
-  }
-
-  void _toggleEmojiMenu() {
-    final opening = !_isEmojiMenuOpen;
-    if (opening) {
-      // Mirror legacy: hide keyboard on mobile so the inline panel is visible.
-      FocusManager.instance.primaryFocus?.unfocus();
+  Future<void> _closeEmojiMenu({bool animated = true}) async {
+    await _composerKey.currentState?.hideAccessoryPanel(animated: animated);
+    if (_isEmojiMenuOpen && mounted) {
+      setState(() => _isEmojiMenuOpen = false);
     }
-    setState(() {
-      _isEmojiMenuOpen = opening;
-    });
   }
 
   void _handleBack() {
-    if (_isEmojiMenuOpen) {
-      _closeEmojiMenu();
-      return;
-    }
+    // Toolbar back always leaves the chat. Intercepting only to dismiss the
+    // emoji sheet felt broken (button presses, nothing navigates). System
+    // back still closes the panel first via PopScope.
     final hasSelection = ref
         .read(chatDraftProvider(widget.chatUUID))
         .selectedMessages
@@ -458,9 +453,12 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
     // Lista full-bleed + bottombar flottante in overlay: i messaggi
     // scorrono sotto la bottombar (ProgressiveOpacityBackground bottomToTop).
     // bottomInset dinamico = altezza reale bottombar (testo fino a 4 righe,
-    // reply/edit/files/mention) + 12 di respiro, così l'ultimo messaggio
-    // risale sopra la pill ma resta lo scroll-under.
-    final bottomPadding = MediaQuery.paddingOf(context).bottom;
+    // reply/edit/files/mention + keyboard/emoji panel) + 12 di respiro.
+    //
+    // Mobile: Scaffold does not resize for the IME. keyboard_controller
+    // reports native keyboard height; the emoji sheet uses that exact value.
+    final isMobile = currentPlatform == AppPlatform.mobile;
+    final bottomPadding = MediaQuery.viewPaddingOf(context).bottom;
     final effectiveBottomInset = showComposer
         ? _bottomInset
         : bottomPadding + 12;
@@ -502,12 +500,14 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
                 child: Container(
                   key: _bottomBarKey,
                   child: ChatBottomBar(
+                    key: _composerKey,
                     chatUUID: chatUUID,
                     subID: selectedSub,
                     readOnly: !canSendMessage,
-                    isEmojiMenuOpen: _isEmojiMenuOpen,
-                    onToggleEmojiMenu: _toggleEmojiMenu,
-                    onCloseEmojiMenu: _closeEmojiMenu,
+                    onEmojiOpenChanged: (open) {
+                      if (_isEmojiMenuOpen == open) return;
+                      setState(() => _isEmojiMenuOpen = open);
+                    },
                   ),
                 ),
               ),
@@ -573,7 +573,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (_isEmojiMenuOpen) {
-          _closeEmojiMenu();
+          unawaited(_closeEmojiMenu());
           return;
         }
         if (hasSelection) {
@@ -613,6 +613,8 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
           );
         },
         child: Scaffold(
+          // Mobile: keyboard_controller + reserved slot own the IME inset.
+          resizeToAvoidBottomInset: !isMobile,
           body: Stack(
             children: [
               chatBody,

@@ -135,7 +135,7 @@ class _ProfileCardState extends ConsumerState<ProfileCard> {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: cardColor == null || cardColor.stops.isEmpty
-                    ? scheme.surface
+                    ? scheme.surfaceContainer
                     : null,
                 gradient: cardColor != null && cardColor.stops.isNotEmpty
                     ? linearGradientFromProfileGradient(cardColor)

@@ -166,8 +166,6 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
         padding: FloatingConsts.iconPillPadding,
         child: ConstrainedBox(
           constraints: const BoxConstraints(
-            // 44 content + 4 glass = 48, exactly like every other pill.
-            // (Full 48 here would stack on the padding and make 52.)
             minHeight: FloatingConsts.barContentSize,
           ),
           child: Actions(
@@ -179,71 +177,66 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
               ),
             },
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: widget.textController,
-                    focusNode: _effectiveFocusNode,
-                    textCapitalization: TextCapitalization.sentences,
-                    maxLines: 4,
-                    minLines: 1,
-                    textAlignVertical: TextAlignVertical.center,
-                    style: TextStyle(
-                      color: colorScheme.onSurface,
-                      fontSize: 15,
-                    ),
-                    contentInsertionConfiguration:
-                        ContentInsertionConfiguration(
-                          allowedMimeTypes: const <String>[
-                            'image/png',
-                            'image/jpeg',
-                            'image/gif',
-                            'image/webp',
-                            'image/heic',
-                            'image/svg+xml',
-                          ],
-                          onContentInserted:
-                              (KeyboardInsertedContent data) async {
-                                await ChatPasteHelper.handleKeyboardInserted(
-                                  ref,
-                                  widget.chatUUID,
-                                  data,
-                                  subID: widget.subID,
-                                );
-                              },
-                        ),
-                    contextMenuBuilder: (context, editableTextState) {
-                      return ChatContextMenu(
-                        editableTextState: editableTextState,
-                        controller: widget.textController,
-                        onPaste: () async {
-                          await _handlePaste();
-                        },
-                      );
-                    },
-                    decoration: InputDecoration(
-                      filled: false,
-                      hintText: l10n.typeMessageHint,
-                      hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.fromLTRB(16, 10, 0, 10),
-                      // Keeps one line 44 tall, with the hint centered,
-                      // without taking a column the emoji button would
-                      // follow as the field grows.
-                      suffixIconConstraints: const BoxConstraints.tightFor(
-                        width: 0,
-                        height: FloatingConsts.barContentSize,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 16),
+                    // collapsed = no Material decorator padding. The normal
+                    // InputDecoration keeps a tall box on Windows and parks
+                    // the hint at the bottom; Android looked fine by chance.
+                    child: TextField(
+                      controller: widget.textController,
+                      focusNode: _effectiveFocusNode,
+                      textCapitalization: TextCapitalization.sentences,
+                      maxLines: 4,
+                      minLines: 1,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
+                        fontSize: 15,
                       ),
-                      suffixIcon: const SizedBox.shrink(),
+                      contentInsertionConfiguration:
+                          ContentInsertionConfiguration(
+                            allowedMimeTypes: const <String>[
+                              'image/png',
+                              'image/jpeg',
+                              'image/gif',
+                              'image/webp',
+                              'image/heic',
+                              'image/svg+xml',
+                            ],
+                            onContentInserted:
+                                (KeyboardInsertedContent data) async {
+                                  await ChatPasteHelper.handleKeyboardInserted(
+                                    ref,
+                                    widget.chatUUID,
+                                    data,
+                                    subID: widget.subID,
+                                  );
+                                },
+                          ),
+                      contextMenuBuilder: (context, editableTextState) {
+                        return ChatContextMenu(
+                          editableTextState: editableTextState,
+                          controller: widget.textController,
+                          onPaste: () async {
+                            await _handlePaste();
+                          },
+                        );
+                      },
+                      decoration: InputDecoration.collapsed(
+                        hintText: l10n.typeMessageHint,
+                        hintStyle: TextStyle(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      onChanged: (text) {
+                        ref
+                            .read(chatDraftProvider(widget.chatUUID).notifier)
+                            .setText(text);
+                      },
+                      onSubmitted: (_) => widget.onSendMessage(),
                     ),
-                    onChanged: (text) {
-                      ref
-                          .read(chatDraftProvider(widget.chatUUID).notifier)
-                          .setText(text);
-                    },
-                    onSubmitted: (_) => widget.onSendMessage(),
                   ),
                 ),
                 FloatingIconButton(
@@ -252,6 +245,7 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
                         ? HugeIcons.strokeRoundedKeyboard
                         : HugeIcons.strokeRoundedSmile,
                     color: colorScheme.onSurfaceVariant,
+                    size: FloatingConsts.barIconSize,
                   ),
                   onPressed: widget.onToggleEmoji,
                   tooltip: l10n.emojiTooltip,
@@ -263,10 +257,14 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
       );
     }
 
-    // Recording Mode
     return FloatingPill(
       radius: FloatingConsts.centralRadius,
-      padding: FloatingConsts.centralTitlePadding,
+      padding: const EdgeInsets.fromLTRB(
+        16,
+        FloatingConsts.barInset,
+        FloatingConsts.barInset,
+        FloatingConsts.barInset,
+      ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final compactTimer = constraints.maxWidth < _compactTimerBreakpoint;
@@ -277,10 +275,8 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
           final waveform = _buildRecordingWaveform();
           final actions = _buildRecordingActions(l10n, colorScheme);
 
-          return ConstrainedBox(
-            constraints: const BoxConstraints(
-              minHeight: FloatingConsts.centralMinHeight,
-            ),
+          return SizedBox(
+            height: FloatingConsts.barContentSize,
             child: Row(
               children: [
                 duration,
@@ -305,16 +301,19 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
   }) {
     return SizedBox(
       width: compact ? 44 : 72,
-      child: Text(
-        compact
-            ? _formatShortDuration(widget.recorderState.duration)
-            : _formatDuration(widget.recorderState.duration),
-        style: TextStyle(
-          fontFamily: 'monospace',
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: colorScheme.onSurface,
-          fontFeatures: const [FontFeature.tabularFigures()],
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          compact
+              ? _formatShortDuration(widget.recorderState.duration)
+              : _formatDuration(widget.recorderState.duration),
+          style: TextStyle(
+            fontFamily: 'monospace',
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
         ),
       ),
     );
@@ -337,7 +336,7 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
+        FloatingIconButton(
           icon: AppHugeIcon(
             icon: HugeIcons.strokeRoundedPlus,
             size: 20,
@@ -345,9 +344,8 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
           ),
           onPressed: widget.onStopAndDraft,
           tooltip: l10n.addToDraftTooltip,
-          splashRadius: 20,
         ),
-        IconButton(
+        FloatingIconButton(
           icon: AppHugeIcon(
             icon: widget.recorderState.isPaused
                 ? HugeIcons.strokeRoundedPlay
@@ -359,7 +357,6 @@ class _MiddleBarBottomBarState extends ConsumerState<MiddleBarBottomBar> {
           tooltip: widget.recorderState.isPaused
               ? l10n.resumeTooltip
               : l10n.pauseTooltip,
-          splashRadius: 20,
         ),
       ],
     );

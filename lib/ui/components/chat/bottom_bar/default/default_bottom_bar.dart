@@ -1,5 +1,5 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/chat/bottom_bar/actions/edit_bar.dart';
@@ -20,6 +20,7 @@ class DefaultBottomBar extends ConsumerStatefulWidget {
   const DefaultBottomBar({
     super.key,
     required this.chatUUID,
+    required this.focusNode,
     this.subID = 0,
     this.onToggleEmojiMenu,
     this.isEmojiMenuOpen = false,
@@ -28,6 +29,7 @@ class DefaultBottomBar extends ConsumerStatefulWidget {
 
   final String chatUUID;
   final int subID;
+  final FocusNode focusNode;
   final VoidCallback? onToggleEmojiMenu;
   final bool isEmojiMenuOpen;
   final VoidCallback? onCloseEmojiMenu;
@@ -37,16 +39,16 @@ class DefaultBottomBar extends ConsumerStatefulWidget {
 }
 
 class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
-  final FocusNode _focusNode = FocusNode();
   final LayerLink _emojiMenuLink = LayerLink();
   OverlayEntry? _emojiMenuEntry;
   bool _isSending = false;
   TextEditingController? _textController;
 
+  FocusNode get _focusNode => widget.focusNode;
+
   @override
   void initState() {
     super.initState();
-    // Initialize the shared controller with draft text if needed
     final draftText = ref
         .read(chatDraftProvider(widget.chatUUID))
         .newMessageText;
@@ -55,20 +57,10 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
       _textController!.text = draftText;
     }
     _textController!.addListener(_onControllerChanged);
-    _focusNode.addListener(_onFocusChanged);
   }
 
   void _onControllerChanged() {
     if (mounted) setState(() {});
-  }
-
-  /// Closes the emoji menu when the text input gains focus.
-  /// The attach menu is a modal [ResponsiveOverlay] now, so it needs
-  /// no focus handling here.
-  void _onFocusChanged() {
-    if (_focusNode.hasFocus && widget.isEmojiMenuOpen) {
-      widget.onCloseEmojiMenu?.call();
-    }
   }
 
   @override
@@ -94,8 +86,6 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
       );
     }
     if (oldWidget.chatUUID != widget.chatUUID && widget.isEmojiMenuOpen) {
-      // Chat switched while menu open: parent closes it via state reset,
-      // but ensure a stale overlay never lingers.
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => _syncEmojiMenuOverlay(),
       );
@@ -104,7 +94,7 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
 
   void _syncEmojiMenuOverlay() {
     if (!mounted) return;
-    // Mobile uses the inline panel in build(); only desktop/web use Overlay.
+    // Mobile uses ChatBottomPanelContainer; only desktop/web use Overlay.
     if (currentPlatform == AppPlatform.mobile) {
       _hideEmojiMenuOverlay();
       return;
@@ -148,8 +138,6 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
         gif: gif,
       );
     } catch (_) {
-      // Queue errors are already logged; keep the menu open on failure
-      // so the user can retry.
       return;
     }
     widget.onCloseEmojiMenu?.call();
@@ -159,9 +147,7 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
   void dispose() {
     _hideEmojiMenuOverlay();
     _textController?.removeListener(_onControllerChanged);
-    _focusNode.removeListener(_onFocusChanged);
     _textController = null;
-    _focusNode.dispose();
     super.dispose();
   }
 
@@ -190,7 +176,6 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
     final hasText = textController.text.trim().isNotEmpty;
     final hasFiles = draftState.files.isNotEmpty;
 
-    // Automatically focus the input field when entering edit or reply mode
     ref.listen<ChatDraftState>(chatDraftProvider(chatUUID), (previous, next) {
       if ((previous?.editingMessage?.id != next.editingMessage?.id &&
               next.editingMessage != null) ||
@@ -206,19 +191,10 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Mention Bar
         MentionBar(chatUUID: chatUUID, focusNode: _focusNode),
-
-        // Edit Bar (Priority over Reply)
         EditBar(chatUUID: chatUUID),
-
-        // Reply Bar
         ReplyBar(chatUUID: chatUUID),
-
-        // Files Bar (Draft attachments & edit files)
         FilesBar(chatUUID: chatUUID),
-
-        // Input Row
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
@@ -259,17 +235,6 @@ class _DefaultBottomBarState extends ConsumerState<DefaultBottomBar> {
             ),
           ],
         ),
-
-        // Mobile: inline emoji menu panel above the keyboard area.
-        // Desktop/web use the floating overlay instead (see _syncEmojiMenuOverlay).
-        if (widget.isEmojiMenuOpen &&
-            currentPlatform == AppPlatform.mobile) ...[
-          const SizedBox(height: FloatingConsts.bottomGap),
-          EmojiMenuPanel(
-            textController: textController,
-            onSelectGif: _handleSelectGif,
-          ),
-        ],
       ],
     );
   }

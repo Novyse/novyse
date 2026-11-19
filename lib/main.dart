@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:keyboard_controller/keyboard_controller.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/appicon/app_icon_binder.dart';
 import 'package:novyse/core/config/global.dart';
@@ -118,13 +119,15 @@ class MyApp extends ConsumerWidget {
       ),
       themeMode: themeModeFromSetting(settings['appearance.themeMode']),
       routerConfig: ref.watch(routerProvider),
-      builder: (context, child) => GlobalEventReceiver(
-        child: NotificationBinder(
-          child: ShareIntentBinder(
-            child: AppIconBinder(
-              child: DesktopWindowFrame(
-                child: AppShortcutsWrapper(
-                  child: child ?? const SizedBox.shrink(),
+      builder: (context, child) => KeyboardScope(
+        child: GlobalEventReceiver(
+          child: NotificationBinder(
+            child: ShareIntentBinder(
+              child: AppIconBinder(
+                child: DesktopWindowFrame(
+                  child: AppShortcutsWrapper(
+                    child: child ?? const SizedBox.shrink(),
+                  ),
                 ),
               ),
             ),
