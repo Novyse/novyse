@@ -9,6 +9,15 @@ enum AppSound {
   commsScreenShareStop(
     'assets/audio/comms/screen_share/stop.wav',
     'comms.screen_share.stop',
+  ),
+  // Temporarily reusing the screen-share clips for activities.
+  commsActivityStart(
+    'assets/audio/comms/screen_share/start.wav',
+    'comms.activity.start',
+  ),
+  commsActivityStop(
+    'assets/audio/comms/screen_share/stop.wav',
+    'comms.activity.stop',
   );
 
   final String assetPath;
@@ -30,6 +39,10 @@ const Map<String, dynamic> soundsMap = {
     'join': 'assets/audio/comms/join.wav',
     'leave': 'assets/audio/comms/leave.wav',
     'screen_share': {
+      'start': 'assets/audio/comms/screen_share/start.wav',
+      'stop': 'assets/audio/comms/screen_share/stop.wav',
+    },
+    'activity': {
       'start': 'assets/audio/comms/screen_share/start.wav',
       'stop': 'assets/audio/comms/screen_share/stop.wav',
     },

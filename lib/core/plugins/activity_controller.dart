@@ -18,6 +18,8 @@ import 'package:novyse/core/plugins/plugin_exception.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/services/realtime_service.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
+import 'package:novyse/core/sounds/sound_player.dart';
+import 'package:novyse/core/sounds/sounds.dart';
 import 'package:novyse/core/storage/database/database.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
@@ -642,15 +644,31 @@ class ActivityController extends Notifier<ActivitiesState> {
           final name = request.string('name');
           final mimeType = request.string('mimeType');
           final size = request.value('size');
-          if (name == null || name.isEmpty || mimeType == null || mimeType.isEmpty || size is! num) {
-            return BridgeReply.failure(request.id, 'E_INTERNAL', 'No file metadata');
+          if (name == null ||
+              name.isEmpty ||
+              mimeType == null ||
+              mimeType.isEmpty ||
+              size is! num) {
+            return BridgeReply.failure(
+              request.id,
+              'E_INTERNAL',
+              'No file metadata',
+            );
           }
           if (size.toInt() <= 0 || size.toInt() > BridgeProtocol.maxFileBytes) {
-            return BridgeReply.failure(request.id, 'E_TOO_LARGE', 'File too big');
+            return BridgeReply.failure(
+              request.id,
+              'E_TOO_LARGE',
+              'File too big',
+            );
           }
           final chatUUID = state.chatUUID;
           if (chatUUID == null) {
-            return BridgeReply.failure(request.id, 'E_NOT_IN_ROOM', 'The room is gone');
+            return BridgeReply.failure(
+              request.id,
+              'E_NOT_IN_ROOM',
+              'The room is gone',
+            );
           }
           final prepared = await apiGateway.plugins.files.prepare(
             chatUUID,
@@ -677,9 +695,18 @@ class ActivityController extends Notifier<ActivitiesState> {
           }
           final cUUID = state.chatUUID;
           if (cUUID == null) {
-            return BridgeReply.failure(request.id, 'E_NOT_IN_ROOM', 'The room is gone');
+            return BridgeReply.failure(
+              request.id,
+              'E_NOT_IN_ROOM',
+              'The room is gone',
+            );
           }
-          await apiGateway.plugins.files.confirm(cUUID, state.subID, instanceId, confirmUUID);
+          await apiGateway.plugins.files.confirm(
+            cUUID,
+            state.subID,
+            instanceId,
+            confirmUUID,
+          );
           return BridgeReply.success(request.id, null);
 
         case 'file.download':
@@ -693,9 +720,18 @@ class ActivityController extends Notifier<ActivitiesState> {
           }
           final dUUID = state.chatUUID;
           if (dUUID == null) {
-            return BridgeReply.failure(request.id, 'E_NOT_IN_ROOM', 'The room is gone');
+            return BridgeReply.failure(
+              request.id,
+              'E_NOT_IN_ROOM',
+              'The room is gone',
+            );
           }
-          final got = await apiGateway.plugins.files.download(dUUID, state.subID, instanceId, downloadUUID);
+          final got = await apiGateway.plugins.files.download(
+            dUUID,
+            state.subID,
+            instanceId,
+            downloadUUID,
+          );
           if (got.downloadURL == null) {
             return BridgeReply.failure(request.id, 'E_NOT_FOUND', 'Gone');
           }
@@ -720,9 +756,18 @@ class ActivityController extends Notifier<ActivitiesState> {
           }
           final rUUID = state.chatUUID;
           if (rUUID == null) {
-            return BridgeReply.failure(request.id, 'E_NOT_IN_ROOM', 'The room is gone');
+            return BridgeReply.failure(
+              request.id,
+              'E_NOT_IN_ROOM',
+              'The room is gone',
+            );
           }
-          await apiGateway.plugins.files.remove(rUUID, state.subID, instanceId, removeUUID);
+          await apiGateway.plugins.files.remove(
+            rUUID,
+            state.subID,
+            instanceId,
+            removeUUID,
+          );
           return BridgeReply.success(request.id, null);
 
         case 'ui.fullscreen':
@@ -984,9 +1029,15 @@ class ActivityController extends Notifier<ActivitiesState> {
 
     _bindStream(instance);
     state = state.copyWith(instances: [...state.instances, instance]);
+
+    unawaited(SoundPlayer.instance.playSound(AppSound.commsActivityStart));
   }
 
   void _removeInstance(String instanceId) {
+    final existed = state.instances.any(
+      (instance) => instance.instanceId == instanceId,
+    );
+
     _streams.remove(instanceId)?.dispose();
     _storage.remove(instanceId);
 
@@ -999,6 +1050,10 @@ class ActivityController extends Notifier<ActivitiesState> {
           if (entry.key != instanceId) entry.key: entry.value,
       },
     );
+
+    if (existed) {
+      unawaited(SoundPlayer.instance.playSound(AppSound.commsActivityStop));
+    }
   }
 
   void _replaceInstance(
