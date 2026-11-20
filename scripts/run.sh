@@ -12,6 +12,7 @@ show_usage() {
   echo ""
   echo "Supported platforms:"
   echo "  - web      : flutter run -d chrome --web-port 8081"
+  echo "               add --wasm for a WebAssembly dev build (hot restart only, no hot reload)"
   echo "  - linux    : flutter run -d linux --no-enable-impeller"
   echo "  - windows  : flutter run -d windows"
   echo "  - macos    : flutter run -d macos"
@@ -55,6 +56,11 @@ bash "$SCRIPT_DIR/sync-icons.sh"
 
 case "$OS_TARGET" in
   web)
+    for arg in "$@"; do
+      if [ "$arg" = "--wasm" ]; then
+        echo "🧪 Wasm dev build: hot reload is not supported, use hot restart (R)."
+      fi
+    done
     echo "🚀 Launching on Web (Chrome, port 8081)..."
     exec flutter run -d chrome --web-port 8081 "$@"
     ;;
