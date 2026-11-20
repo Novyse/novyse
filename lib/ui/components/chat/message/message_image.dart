@@ -131,14 +131,42 @@ class _MessageImageState extends State<MessageImage> {
         uri.startsWith('https://');
   }
 
-  ImageProvider _providerFor(String uri) {
-    if (_isRemote(uri)) return NetworkImage(uri);
-    return FileImage(fileFromUri(uri));
+  ImageProvider _providerFor(
+    String uri, {
+    required int cacheWidth,
+    required int cacheHeight,
+  }) {
+    final ImageProvider<Object> base = _isRemote(uri)
+        ? NetworkImage(uri)
+        : FileImage(fileFromUri(uri));
+    // Decode at display size instead of the full resolution original: a phone
+    // photo is otherwise decoded in full into a box capped at 240x320 and
+    // fills the image cache after a handful of messages.
+    return ResizeImage(
+      base,
+      width: cacheWidth,
+      height: cacheHeight,
+      policy: ResizeImagePolicy.fit,
+    );
+  }
+
+  /// Physical (device) pixels for [logical] size, clamped to a sane decode
+  /// ceiling.
+  int _decodePixels(double logical, double devicePixelRatio) =>
+      (logical * devicePixelRatio).round().clamp(1, 4096);
+
+  Widget _buildImage(ThemeData theme, ImageProvider provider) {
+    return Image(
+      image: provider,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => _buildError(theme, context),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
 
     return UriResolver(
       ref: widget.fileRef,
@@ -153,30 +181,47 @@ class _MessageImageState extends State<MessageImage> {
           return _buildPlaceholder(theme, context);
         }
 
-        final provider = _providerFor(displayUri);
-        _ensureResolved(displayUri, provider);
-
-        final imageWidget = Image(
-          image: provider,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) =>
-              _buildError(theme, context),
-        );
+        final content = widget.isSingle
+            ? Builder(
+                builder: (context) {
+                  final (width, height) = _boxSize(context);
+                  final provider = _providerFor(
+                    displayUri,
+                    cacheWidth: _decodePixels(width, devicePixelRatio),
+                    cacheHeight: _decodePixels(height, devicePixelRatio),
+                  );
+                  _ensureResolved(displayUri, provider);
+                  return SizedBox(
+                    width: width,
+                    height: height,
+                    child: _buildImage(theme, provider),
+                  );
+                },
+              )
+            : LayoutBuilder(
+                builder: (context, constraints) {
+                  final width = constraints.hasBoundedWidth
+                      ? constraints.maxWidth
+                      : _capWidth(context);
+                  final provider = _providerFor(
+                    displayUri,
+                    cacheWidth: _decodePixels(width, devicePixelRatio),
+                    cacheHeight: _decodePixels(
+                      width / _gridAspect(),
+                      devicePixelRatio,
+                    ),
+                  );
+                  _ensureResolved(displayUri, provider);
+                  return AspectRatio(
+                    aspectRatio: _gridAspect(),
+                    child: _buildImage(theme, provider),
+                  );
+                },
+              );
 
         final container = ClipRRect(
           borderRadius: BorderRadius.circular(widget.isSingle ? 12 : 4),
-          child: widget.isSingle
-              ? Builder(
-                  builder: (context) {
-                    final (width, height) = _boxSize(context);
-                    return SizedBox(
-                      width: width,
-                      height: height,
-                      child: imageWidget,
-                    );
-                  },
-                )
-              : AspectRatio(aspectRatio: _gridAspect(), child: imageWidget),
+          child: content,
         );
 
         return GestureDetector(

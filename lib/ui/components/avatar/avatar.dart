@@ -204,6 +204,11 @@ class _AvatarState extends ConsumerState<Avatar> {
 
   /// Builds the image widget handling memory, file, network, and web paths with error fallback.
   Widget _buildImage(String uri) {
+    // Decode at the avatar's display size
+    final cacheSize = (widget.size * MediaQuery.devicePixelRatioOf(context))
+        .round()
+        .clamp(1, 1024);
+
     if (kIsWeb) {
       final bytes = FileStorage.instance.getBytesSync(uri);
       if (bytes != null && bytes.isNotEmpty) {
@@ -212,6 +217,8 @@ class _AvatarState extends ConsumerState<Avatar> {
           fit: BoxFit.cover,
           width: widget.size,
           height: widget.size,
+          cacheWidth: cacheSize,
+          cacheHeight: cacheSize,
           errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
         );
       }
@@ -225,6 +232,8 @@ class _AvatarState extends ConsumerState<Avatar> {
         fit: BoxFit.cover,
         width: widget.size,
         height: widget.size,
+        cacheWidth: cacheSize,
+        cacheHeight: cacheSize,
         errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
       );
     }
@@ -236,6 +245,8 @@ class _AvatarState extends ConsumerState<Avatar> {
         fit: BoxFit.cover,
         width: widget.size,
         height: widget.size,
+        cacheWidth: cacheSize,
+        cacheHeight: cacheSize,
         errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
       );
     }
@@ -246,6 +257,8 @@ class _AvatarState extends ConsumerState<Avatar> {
       fit: BoxFit.cover,
       width: widget.size,
       height: widget.size,
+      cacheWidth: cacheSize,
+      cacheHeight: cacheSize,
       errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
     );
   }
