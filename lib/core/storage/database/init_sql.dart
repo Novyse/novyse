@@ -300,6 +300,8 @@ CREATE TABLE IF NOT EXISTS queue_job (
 );
 
 CREATE INDEX IF NOT EXISTS idx_message_chatUUID ON message(chatUUID);
+CREATE INDEX IF NOT EXISTS idx_message_chat_created ON message(chatUUID, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_message_chat_sub_created ON message(chatUUID, subID, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_message_senderUUID ON message(senderUUID);
 CREATE INDEX IF NOT EXISTS idx_member_chatUUID ON member(chatUUID);
 CREATE INDEX IF NOT EXISTS idx_queue_job_chat_status ON queue_job (chat_uuid, status, priority DESC, created_at ASC);
