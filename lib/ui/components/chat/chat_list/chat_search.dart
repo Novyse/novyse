@@ -42,6 +42,34 @@ List<ChatModel> filterChatsByQuery({
   }).toList();
 }
 
+/// Returns the uuid of the local chat matching a search result, if any.
+String? resolveLocalChatUUID({
+  required List<ChatModel> localChats,
+  required ChatModel candidate,
+}) {
+  if (candidate.uuid.isNotEmpty) {
+    for (final chat in localChats) {
+      if (chat.uuid == candidate.uuid) return chat.uuid;
+    }
+  }
+  if (candidate.type == 'DM' && candidate.uuid.isNotEmpty) {
+    for (final chat in localChats) {
+      if (chat.type != 'DM') continue;
+      final isPeer = chat.members.any(
+        (m) => m['uuid']?.toString() == candidate.uuid,
+      );
+      if (isPeer) return chat.uuid;
+    }
+  }
+  final handle = candidate.handle?.toLowerCase();
+  if (handle != null && handle.isNotEmpty) {
+    for (final chat in localChats) {
+      if (chat.handle?.toLowerCase() == handle) return chat.uuid;
+    }
+  }
+  return null;
+}
+
 /// Filters out remote chats that are already present locally by uuid or handle.
 List<ChatModel> filterRemoteChats({
   required List<ChatModel> local,

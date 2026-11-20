@@ -210,19 +210,45 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
   }
 
   void _onChatSelected(ChatModel chat) {
-    final isLocal = ref
-        .read(chatListProvider)
-        .chats
-        .any((c) => c.uuid == chat.uuid);
-    if (isLocal) {
-      _openChat(chat.uuid);
-    } else {
-      showJoinOrCreateChatModal(
-        context: context,
-        chat: chat,
-        onJoined: (chatUUID) => _openChat(chatUUID),
-      );
+    final localUUID = resolveLocalChatUUID(
+      localChats: ref.read(chatListProvider).chats,
+      candidate: chat,
+    );
+    if (localUUID != null) {
+      _openChat(localUUID);
+      return;
     }
+
+    showJoinOrCreateChatModal(
+      context: context,
+      chat: chat,
+      onJoined: (chatUUID) {
+        // Move the chat from the global section to the local one
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _refreshSearch();
+        });
+        _openChat(chatUUID);
+      },
+    );
+  }
+
+  /// Recomputes the search sections from the local chat list
+  void _refreshSearch() {
+    final l10n = AppLocalizations.of(context);
+    final query = _query.trim();
+    if (l10n == null || query.isEmpty) return;
+    final userState = ref.read(userStoreProvider);
+    final chats = ref.read(chatListProvider).chats;
+    setState(() {
+      _localChats = filterChatsByQuery(
+        chats: chats,
+        query: query,
+        localUserUUID: userState.localUserUUID,
+        users: userState.users,
+        l10n: l10n,
+      );
+      _remoteChats = filterRemoteChats(local: chats, remote: _remoteChats);
+    });
   }
 
   void _openMessageResult(Map<String, dynamic> result) {

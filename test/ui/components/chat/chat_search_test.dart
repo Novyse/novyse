@@ -85,6 +85,80 @@ void main() {
     );
   });
 
+  group('resolveLocalChatUUID', () {
+    test('matches a DM search result by the peer member uuid', () {
+      const localChat = ChatModel(
+        uuid: 'chat-1',
+        name: 'Bob',
+        type: 'DM',
+        members: [
+          {'uuid': 'user-bob'},
+          {'uuid': 'user-me'},
+        ],
+      );
+      // DM search results use the peer user uuid, not the chat uuid.
+      const result = ChatModel(uuid: 'user-bob', name: 'Bob', type: 'DM');
+
+      expect(
+        resolveLocalChatUUID(localChats: const [localChat], candidate: result),
+        'chat-1',
+      );
+    });
+
+    test('falls back to handle and chat uuid', () {
+      const byHandle = ChatModel(uuid: 'chat-2', name: 'Team', handle: 'team');
+      const byUUID = ChatModel(uuid: 'chat-3', name: 'Ops');
+
+      expect(
+        resolveLocalChatUUID(
+          localChats: const [byHandle, byUUID],
+          candidate: const ChatModel(
+            uuid: 'someone-else',
+            name: 'Team',
+            handle: 'TEAM',
+          ),
+        ),
+        'chat-2',
+      );
+      expect(
+        resolveLocalChatUUID(
+          localChats: const [byHandle, byUUID],
+          candidate: const ChatModel(uuid: 'chat-3', name: 'Ops'),
+        ),
+        'chat-3',
+      );
+    });
+
+    test('returns null when no local chat matches', () {
+      expect(
+        resolveLocalChatUUID(
+          localChats: const [ChatModel(uuid: 'chat-1', name: 'Team')],
+          candidate: const ChatModel(uuid: 'user-bob', name: 'Bob', type: 'DM'),
+        ),
+        isNull,
+      );
+    });
+
+    test('does not match a group that contains the peer uuid', () {
+      const group = ChatModel(
+        uuid: 'group-1',
+        name: 'Team',
+        type: 'GROUP',
+        members: [
+          {'uuid': 'user-bob'},
+        ],
+      );
+
+      expect(
+        resolveLocalChatUUID(
+          localChats: const [group],
+          candidate: const ChatModel(uuid: 'user-bob', name: 'Bob', type: 'DM'),
+        ),
+        isNull,
+      );
+    });
+  });
+
   group('ChatSearchResults Widget Tests', () {
     testWidgets(
       'renders ChatSearchResults with local and global chat sections',
