@@ -283,6 +283,100 @@ void main() {
       );
       expect((updatedChat['subs'] as List).any((s) => s['id'] == 10), isFalse);
     });
+
+    test('chat.get.all groups previews and members per chat', () async {
+      await db.user.add({'uuid': 'u1', 'name': 'User 1', 'handle': 'u1'});
+      await db.user.add({'uuid': 'u2', 'name': 'User 2', 'handle': 'u2'});
+
+      await db.chat.add({
+        'uuid': 'chat-a',
+        'type': 'FORUM',
+        'name': 'Alpha',
+        'handle': 'alpha',
+        'members': [
+          {'uuid': 'u1', 'joinedAt': '2026-01-01T00:00:00.000Z'},
+        ],
+        'subs': [
+          {'id': 0, 'name': 'General', 'type': 'MIXED'},
+          {'id': 1, 'name': 'Dev', 'type': 'MIXED'},
+        ],
+      });
+      await db.chat.add({
+        'uuid': 'chat-b',
+        'type': 'DM',
+        'members': [
+          {'uuid': 'u1', 'joinedAt': '2026-01-01T00:00:00.000Z'},
+          {'uuid': 'u2', 'joinedAt': '2026-01-01T00:00:00.000Z'},
+        ],
+      });
+
+      await db.message.add({
+        'id': 1,
+        'chatUUID': 'chat-a',
+        'subID': 0,
+        'senderUUID': 'u2',
+        'content': 'a-general-1',
+        'created_at': '2026-02-01T10:00:00.000Z',
+        'files': [
+          {
+            'uuid': 'file-a1',
+            'name': 'pic.png',
+            'mimeType': 'image/png',
+            'size': 10,
+          },
+        ],
+      });
+      await db.message.add({
+        'id': 2,
+        'chatUUID': 'chat-a',
+        'subID': 1,
+        'senderUUID': 'u2',
+        'content': 'a-dev-2',
+        'created_at': '2026-02-01T11:00:00.000Z',
+      });
+      await db.message.add({
+        'id': 1,
+        'chatUUID': 'chat-b',
+        'subID': 0,
+        'senderUUID': 'u2',
+        'content': 'b-1',
+        'created_at': '2026-02-01T12:00:00.000Z',
+      });
+
+      final chats = await db.chat.get.all('u1');
+      final alpha = chats.firstWhere((c) => c['uuid'] == 'chat-a');
+      final beta = chats.firstWhere((c) => c['uuid'] == 'chat-b');
+
+      // The chat preview is the latest message across its subs.
+      expect((alpha['lastMessage'] as Map)['content'], 'a-dev-2');
+      expect((beta['lastMessage'] as Map)['content'], 'b-1');
+      expect((beta['lastMessage'] as Map)['sender_name'], 'User 2');
+
+      // Every sub keeps its own preview.
+      final subs = (alpha['subs'] as List).cast<Map>();
+      final generalLast =
+          subs.firstWhere((s) => s['id'] == 0)['lastMessage'] as Map;
+      expect(generalLast['content'], 'a-general-1');
+      expect(
+        (subs.firstWhere((s) => s['id'] == 1)['lastMessage'] as Map)['content'],
+        'a-dev-2',
+      );
+
+      // Files belong to the message that owns them, not to every preview.
+      expect(((generalLast['files'] as List).single as Map)['uuid'], 'file-a1');
+      expect((alpha['lastMessage'] as Map)['files'], isEmpty);
+
+      // Per-chat collections are grouped, never mixed between chats.
+      expect((alpha['members'] as List).single['uuid'], 'u1');
+      expect((beta['members'] as List).length, 2);
+      expect(alpha['handle'], 'alpha');
+      expect(beta['handle'], isNull);
+      expect(beta['subs'] as List, isEmpty);
+
+      // Both chats are counted in the single batched unread query.
+      expect(alpha['unreadCount'], 2);
+      expect(beta['unreadCount'], 1);
+    });
   });
 
   group('MessageRepository Tests', () {
