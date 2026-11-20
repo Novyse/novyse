@@ -16,6 +16,7 @@ class NotificationBridge {
   static void registerReceiver(
     Future<void> Function(Map<String, dynamic> message) onMessage,
   ) {
+    if (kIsWeb) return;
     try {
       if (_subscription != null) return;
       _port ??= ReceivePort();
@@ -36,6 +37,7 @@ class NotificationBridge {
   }
 
   static void unregister() {
+    if (kIsWeb) return;
     try {
       _subscription?.cancel();
     } catch (e) {

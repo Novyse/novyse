@@ -14,12 +14,12 @@ import 'package:novyse/core/appicon/app_icon_binder.dart';
 import 'package:novyse/core/config/global.dart';
 import 'package:novyse/core/events/global_event_receiver.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/notifications/fcm_service.dart';
 import 'package:novyse/core/notifications/notification_binder.dart';
 import 'package:novyse/core/notifications/notification_manager.dart';
 import 'package:novyse/core/share/share_intent_binder.dart';
 import 'package:novyse/core/shortcuts/app_shortcuts_wrapper.dart';
 import 'package:novyse/core/updater/app_updater.dart';
-import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_recents_store.dart';
 import 'package:novyse/ui/components/window/desktop_tray_controller.dart';
 import 'package:novyse/ui/components/window/desktop_window_controller.dart';
@@ -42,9 +42,7 @@ Future<void> _initDesktopWindow({bool startHidden = false}) async {
 }
 
 Future<void> _initFirebase() async {
-  final mobileOrWeb =
-      kIsWeb || currentOS == AppOS.android || currentOS == AppOS.ios;
-  if (!mobileOrWeb) return;
+  if (!FcmService.instance.isSupported) return;
   try {
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp();

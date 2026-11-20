@@ -15,8 +15,9 @@ class FcmService {
   bool _initialized = false;
   void Function(RemoteMessage message)? onForegroundMessage;
 
+  /// Push is mobile-only until a web Firebase app exists.
   bool get isSupported {
-    if (kIsWeb) return true;
+    if (kIsWeb) return false;
     return currentOS == AppOS.android || currentOS == AppOS.ios;
   }
 
