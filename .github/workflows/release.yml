@@ -300,13 +300,13 @@ jobs:
           name: build-android
           path: dist-android
 
-      - name: Publish AAB to Play Store (closed testing)
+      - name: Publish AAB to Play Store (production)
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT }}
           packageName: com.novyse
           releaseFiles: dist-android/*.aab
-          track: alpha
+          tracks: production
           status: completed
 
   publish-snap:
