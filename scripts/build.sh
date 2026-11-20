@@ -518,7 +518,8 @@ build_ios() {
 
 build_web() {
   echo "🌐 Building Web for $APP_NAME..."
-  flutter build web --release
+  # Wasm build with a JavaScript fallback for browsers without WasmGC support.
+  flutter build web --release --wasm
 
   # Copy public static assets (e.g., .well-known/assetlinks.json) if present.
   # The trailing `/.` also copies hidden entries such as `.well-known`.
