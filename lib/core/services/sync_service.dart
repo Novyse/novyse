@@ -278,6 +278,10 @@ class SyncService {
     _cancelRetry();
 
     try {
+      // Paint the cached chat list from the previous run before waiting on the network
+      await _ref.read(userStoreProvider.notifier).init(fetchPresence: false);
+      await _ref.read(chatListProvider.notifier).init();
+
       final userEventId =
           int.tryParse(
             await _storage.read(key: 'localUserEventID_$_uuid') ?? '0',
@@ -312,11 +316,16 @@ class SyncService {
       final messages = (res['messages'] as List<dynamic>?) ?? [];
       final local = res['local'] as List<dynamic>? ?? [];
 
+      // Bulk inserts below do not emit bus events, so they are tracked to know
+      // whether the stores loaded at the start of this sync need a re-read.
+      var wroteRows = false;
+
       // 1. New chats
       if (chats is Map &&
           chats['new'] is List &&
           (chats['new'] as List).isNotEmpty) {
         await _db.chat.addMultiple(chats['new'] as List);
+        wroteRows = true;
       }
 
       // 2. New users
@@ -324,11 +333,13 @@ class SyncService {
           users['new'] is List &&
           (users['new'] as List).isNotEmpty) {
         await _db.user.addMultiple(users['new'] as List);
+        wroteRows = true;
       }
 
       // 3. New messages
       if (messages.isNotEmpty) {
         await _db.message.addMultiple(messages);
+        wroteRows = true;
       }
 
       // 4. Chat events
@@ -554,9 +565,12 @@ class SyncService {
       // 7. Mark synced before loading in-memory stores
       _network.setSynced(true);
 
-      // 8. Refresh in-memory stores to ensure latest data is loaded.
-      await _ref.read(userStoreProvider.notifier).init();
-      await _ref.read(chatListProvider.notifier).init();
+      // 8. Re-read the in-memory stores only when this sync inserted rows;
+      // everything else was already applied to them by the event handlers.
+      if (wroteRows) {
+        await _ref.read(userStoreProvider.notifier).init();
+        await _ref.read(chatListProvider.notifier).init();
+      }
 
       _status.dismissStatus('sync_status');
       unawaited(_socket.open());
