@@ -59,36 +59,40 @@ class TurnstileWidget extends StatefulWidget {
 }
 
 class _TurnstileWidgetState extends State<TurnstileWidget> {
-  late final WebViewController _controller;
+  WebViewController? _controller;
   HttpServer? _server;
+  bool _initScheduled = false;
   bool _isInitialized = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initController();
-  }
+  bool _isDisposed = false;
 
   @override
   void dispose() {
+    _isDisposed = true;
     _server?.close(force: true);
     super.dispose();
   }
 
+  /// Creates the platform view only after the container has been laid out with
+  /// a real size. Rendering the challenge before that leaves Turnstile in its
+  /// own error/retry state, which is what showed up as a pre-filled error on
+  /// Android.
+  void _scheduleInitialization() {
+    if (_initScheduled || _isInitialized) return;
+    _initScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isDisposed || _isInitialized) return;
+      _initController();
+    });
+  }
+
   Future<void> _initController() async {
-    _controller = WebViewController();
-    await _controller.setJavaScriptMode(JavaScriptMode.unrestricted);
-    await _controller.setBackgroundColor(Colors.transparent);
-    await _controller.addJavaScriptChannel(
+    final controller = WebViewController();
+    _controller = controller;
+    await controller.setJavaScriptMode(JavaScriptMode.unrestricted);
+    await controller.setBackgroundColor(Colors.transparent);
+    await controller.addJavaScriptChannel(
       'TurnstileBridge',
       onMessageReceived: _handleJavaScriptMessage,
-    );
-    await _controller.setNavigationDelegate(
-      NavigationDelegate(
-        onWebResourceError: (error) {
-          widget.onError?.call(error.description);
-        },
-      ),
     );
 
     final html = _generateHtml();
@@ -97,6 +101,10 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
     if (isWindows) {
       try {
         final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+        if (_isDisposed) {
+          await server.close(force: true);
+          return;
+        }
         _server = server;
         server.listen((HttpRequest request) {
           request.response
@@ -105,20 +113,19 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
             ..write(html)
             ..close();
         });
-        await _controller.loadRequest(
+        await controller.loadRequest(
           Uri.parse('http://localhost:${server.port}'),
         );
       } catch (e) {
         debugPrint('[Turnstile] Loopback server failed: $e');
-        await _controller.loadHtmlString(html, baseUrl: widget.baseUrl);
+        await controller.loadHtmlString(html, baseUrl: widget.baseUrl);
       }
     } else {
-      await _controller.loadHtmlString(html, baseUrl: widget.baseUrl);
+      await controller.loadHtmlString(html, baseUrl: widget.baseUrl);
     }
 
-    if (mounted) {
-      setState(() => _isInitialized = true);
-    }
+    if (_isDisposed || !mounted) return;
+    setState(() => _isInitialized = true);
   }
 
   void _handleJavaScriptMessage(JavaScriptMessage message) {
@@ -181,6 +188,8 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
       display: flex;
       justify-content: center;
       align-items: center;
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
@@ -188,35 +197,79 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
   <div id="cf-turnstile-container"></div>
   <script>
     var rendered = false;
+    var widgetId = null;
+    var errorCount = 0;
+    var loadDeadline = Date.now() + 20000;
+
+    function postToApp(type, value) {
+      if (!window.TurnstileBridge) return;
+      var payload = { type: type };
+      if (value !== undefined && value !== null) {
+        payload.value = String(value);
+      }
+      TurnstileBridge.postMessage(JSON.stringify(payload));
+    }
+
     function renderTurnstile() {
       if (rendered) return;
-      if (window.turnstile && typeof window.turnstile.render === 'function') {
-        rendered = true;
-        window.turnstile.render('#cf-turnstile-container', {
+
+      // The challenge is only rendered by the page itself once the script is
+      // available and the container is measurable. Reporting is left to this
+      // page (error-callback or this timeout), never to WebView resource
+      // errors.
+      if (Date.now() > loadDeadline) {
+        postToApp('error', 'turnstile-load-timeout');
+        return;
+      }
+
+      var container = document.getElementById('cf-turnstile-container');
+      if (!container || container.offsetWidth === 0 || container.offsetHeight === 0) {
+        setTimeout(renderTurnstile, 50);
+        return;
+      }
+
+      if (!window.turnstile || typeof window.turnstile.render !== 'function') {
+        setTimeout(renderTurnstile, 50);
+        return;
+      }
+
+      rendered = true;
+      try {
+        widgetId = window.turnstile.render('#cf-turnstile-container', {
           sitekey: $siteKey,
           theme: $theme,
           $actionParam
           $langParam
           callback: function(token) {
-            if (window.TurnstileBridge) {
-              TurnstileBridge.postMessage(JSON.stringify({ type: 'token', value: token }));
-            }
+            postToApp('token', token);
           },
           'expired-callback': function() {
-            if (window.TurnstileBridge) {
-              TurnstileBridge.postMessage(JSON.stringify({ type: 'expired' }));
-            }
+            postToApp('expired');
           },
           'error-callback': function(error) {
-            if (window.TurnstileBridge) {
-              TurnstileBridge.postMessage(JSON.stringify({ type: 'error', value: String(error) }));
+            // The first error is usually transient on Android (cold WebView or
+            // a subresource that failed once). Reset the challenge once and
+            // only bubble the error if it fails again.
+            if (errorCount === 0 && widgetId !== null) {
+              errorCount++;
+              setTimeout(function() {
+                try {
+                  window.turnstile.reset(widgetId);
+                } catch (e) {
+                  postToApp('error', String(e));
+                }
+              }, 0);
+              return;
             }
+            errorCount++;
+            postToApp('error', String(error));
           }
         });
-      } else {
-        setTimeout(renderTurnstile, 50);
+      } catch (e) {
+        postToApp('error', String(e));
       }
     }
+
     window.addEventListener('load', renderTurnstile);
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
       renderTurnstile();
@@ -226,26 +279,38 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
 </html>''';
   }
 
+  Widget _buildLoading() {
+    return const Center(
+      child: SizedBox(
+        width: 24,
+        height: 24,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (!_isInitialized) {
-      return SizedBox(
-        width: widget.width,
-        height: widget.height,
-        child: const Center(
-          child: SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      );
-    }
-
     return SizedBox(
       width: widget.width,
       height: widget.height,
-      child: WebViewWidget(controller: _controller),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final hasSize =
+              constraints.maxWidth.isFinite &&
+              constraints.maxHeight.isFinite &&
+              constraints.maxWidth > 0 &&
+              constraints.maxHeight > 0;
+          if (hasSize) _scheduleInitialization();
+
+          final controller = _controller;
+          if (!_isInitialized || controller == null) {
+            return _buildLoading();
+          }
+
+          return WebViewWidget(controller: controller);
+        },
+      ),
     );
   }
 }
