@@ -172,74 +172,97 @@ class _MentionBarState extends ConsumerState<MentionBar> {
 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final listHeight = math.min(220.0, displayMembers.length * 52.0 + 8.0);
+    const avatarSize = 32.0;
+    // Match the 48px bar rhythm used by every other floating row.
+    const rowExtent = FloatingConsts.barOuterSize;
+    const rowVerticalPadding = (rowExtent - avatarSize) / 2;
+    final listHeight = math.min(
+      220.0,
+      displayMembers.length * rowExtent +
+          (displayMembers.length - 1) * FloatingConsts.barInset,
+    );
+    final rowRadius = BorderRadius.circular(FloatingConsts.centralRadius);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: FloatingConsts.bottomGap),
       child: FloatingPill(
-        radius: FloatingConsts.centralRadius,
+        radius: FloatingConsts.subHeaderRadius,
+        padding: FloatingConsts.subHeaderOuterPadding,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 220),
           child: SizedBox(
             height: listHeight,
             child: ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: 4),
+              padding: EdgeInsets.zero,
               itemCount: displayMembers.length,
-              separatorBuilder: (context, index) => Divider(
-                height: 1,
-                thickness: 1,
-                indent: 12,
-                endIndent: 12,
-                color: colorScheme.outlineVariant.withValues(alpha: 0.15),
-              ),
+              separatorBuilder: (context, index) =>
+                  const SizedBox(height: FloatingConsts.barInset),
               itemBuilder: (context, index) {
-              final member = displayMembers[index];
-              return InkWell(
-                onTap: () {
-                  if (widget.onSelectMember != null) {
-                    widget.onSelectMember!(member);
-                  } else if (activeController != null) {
-                    _handleSelectMember(member, activeController);
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    children: [
-                      Avatar(
-                        uuid: member.profilePictureUUID,
-                        name: member.displayName,
-                        size: 32,
+                final member = displayMembers[index];
+                return Material(
+                  type: MaterialType.transparency,
+                  borderRadius: rowRadius,
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    borderRadius: rowRadius,
+                    hoverColor:
+                        colorScheme.onSurface.withValues(alpha: 0.08),
+                    splashColor:
+                        colorScheme.onSurface.withValues(alpha: 0.12),
+                    highlightColor:
+                        colorScheme.onSurface.withValues(alpha: 0.08),
+                    focusColor:
+                        colorScheme.onSurface.withValues(alpha: 0.08),
+                    onTap: () {
+                      if (widget.onSelectMember != null) {
+                        widget.onSelectMember!(member);
+                      } else if (activeController != null) {
+                        _handleSelectMember(member, activeController);
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: FloatingConsts.leadingGap,
+                        vertical: rowVerticalPadding,
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          member.displayName,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
+                      child: Row(
+                        children: [
+                          Avatar(
+                            uuid: member.profilePictureUUID,
+                            name: member.displayName,
+                            size: avatarSize,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          const SizedBox(
+                            width: FloatingConsts.subHeaderActionsGap,
+                          ),
+                          Expanded(
+                            child: Text(
+                              member.displayName,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(
+                            width: FloatingConsts.subHeaderActionsGap,
+                          ),
+                          Text(
+                            '@${member.handle}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '@${member.handle}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
             ),
           ),
         ),
