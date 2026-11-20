@@ -632,6 +632,11 @@ class ChatListNotifier extends Notifier<ChatListState> {
   }
 
   void _sortChats(List<ChatModel> list) {
+    final sortKeys = <ChatModel, int>{
+      for (final chat in list)
+        chat: _getMessageTime(chat.lastMessage).millisecondsSinceEpoch,
+    };
+
     list.sort((a, b) {
       // Pinned chats first, sorted by pinPosition ascending
       if (a.isPinned && b.isPinned) {
@@ -641,9 +646,7 @@ class ChatListNotifier extends Notifier<ChatListState> {
       if (b.isPinned) return 1;
 
       // Otherwise sort by last message timestamp descending
-      final aTime = _getMessageTime(a.lastMessage);
-      final bTime = _getMessageTime(b.lastMessage);
-      return bTime.compareTo(aTime);
+      return sortKeys[b]!.compareTo(sortKeys[a]!);
     });
   }
 
