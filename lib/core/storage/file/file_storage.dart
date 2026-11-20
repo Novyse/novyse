@@ -31,20 +31,46 @@ class FileStorage {
   String? _customStoragePath;
   String? _currentUserUUID;
 
+  /// Memoised result of [_resolveStorageDirectoryPath]. The path only changes
+  /// on user switch or [setCustomStoragePath], so the directory lookup and its
+  /// `exists()`/`create()` round trips do not have to run for every file read.
+  String? _cachedDirectoryPath;
+  String? _cachedDirectoryKey;
+
   String? get currentUserUUID => _currentUserUUID;
 
   void setCustomStoragePath(String? path) {
     _customStoragePath = path;
+    _invalidateDirectoryCache();
   }
 
   /// Sets the active user for file isolation. Null while logged out.
   void setCurrentUser(String? userUUID) {
+    if (_currentUserUUID == userUUID) return;
     _currentUserUUID = userUUID;
+    _invalidateDirectoryCache();
+  }
+
+  void _invalidateDirectoryCache() {
+    _cachedDirectoryPath = null;
+    _cachedDirectoryKey = null;
   }
 
   late final FileSaveService save = FileSaveService(this);
 
   Future<String> _getStorageDirectoryPath() async {
+    final cacheKey =
+        '${_customStoragePath ?? ''}\u0000${_currentUserUUID ?? ''}\u0000$kIsWeb';
+    final cached = _cachedDirectoryPath;
+    if (cached != null && _cachedDirectoryKey == cacheKey) return cached;
+
+    final path = await _resolveStorageDirectoryPath();
+    _cachedDirectoryKey = cacheKey;
+    _cachedDirectoryPath = path;
+    return path;
+  }
+
+  Future<String> _resolveStorageDirectoryPath() async {
     if (_customStoragePath != null && _customStoragePath!.isNotEmpty) {
       final base = io.Directory(_customStoragePath!);
       final target = _currentUserUUID != null
@@ -258,6 +284,7 @@ class FileStorage {
       await clearCurrentUser();
     } finally {
       _currentUserUUID = previous;
+      _invalidateDirectoryCache();
     }
   }
 
