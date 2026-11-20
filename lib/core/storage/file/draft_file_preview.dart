@@ -10,7 +10,7 @@ import 'package:novyse/core/storage/file/file_type.dart';
 import 'package:novyse/core/storage/file/file_uri.dart';
 import 'package:novyse/core/storage/file/playable_uri.dart';
 import 'package:novyse/core/storage/file/web_blob_url_stub.dart'
-    if (dart.library.html) 'package:novyse/core/storage/file/web_blob_url_web.dart'
+    if (dart.library.js_interop) 'package:novyse/core/storage/file/web_blob_url_web.dart'
     as web_blob;
 import 'package:novyse/ui/components/chat/media/chat_media_viewer.dart';
 import 'package:open_file/open_file.dart';

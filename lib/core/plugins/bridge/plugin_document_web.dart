@@ -1,7 +1,5 @@
-// ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
-import 'dart:html' as html;
-
 import 'package:novyse/core/plugins/plugin_build.dart';
+import 'package:web/web.dart' as web;
 
 /// Hands the sandbox its document in a browser.
 ///
@@ -12,7 +10,7 @@ class PluginDocumentHost {
   final String instanceId;
 
   /// The origin of the app: what the document and its embeds inherit.
-  String? get origin => html.window.location.origin;
+  String? get origin => web.window.location.origin;
 
   /// Loads nothing here: with no url the bridge mounts [build] with `srcdoc`.
   Future<Uri?> open(PluginBuild build) async => null;
