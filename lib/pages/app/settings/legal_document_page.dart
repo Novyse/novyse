@@ -1,23 +1,12 @@
-import 'package:flutter/services.dart';
-import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'package:novyse/ui/components/markdown/markdown_style.dart';
+import 'package:novyse/ui/components/legal/legal_document.dart';
 import 'package:novyse/ui/components/settings/settings_page_template.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
 
-/// A legal document bundled with the application.
-enum LegalDocument {
-  privacy('legal/privacy-policy.md'),
-  terms('legal/terms-of-service.md');
+export 'package:novyse/ui/components/legal/legal_document.dart';
 
-  const LegalDocument(this.asset);
-
-  final String asset;
-
-  Future<String> load() => rootBundle.loadString(asset);
-}
-
+/// The document as a settings page: the entry point of the legal section.
 class LegalDocumentPage extends StatelessWidget {
   const LegalDocumentPage({
     super.key,
@@ -30,42 +19,14 @@ class LegalDocumentPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
     return SettingsPageTemplate(
       title: title,
       children: [
         SettingsSection(
           children: [
-            FutureBuilder<String>(
-              future: document.load(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      snapshot.error.toString(),
-                      style: TextStyle(color: scheme.error),
-                    ),
-                  );
-                }
-
-                if (!snapshot.hasData) {
-                  return const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-
-                return Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: MarkdownBody(
-                    data: snapshot.data!,
-                    selectable: true,
-                    styleSheet: appMarkdownStyleSheet(context),
-                  ),
-                );
-              },
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: LegalDocumentBody(document: document),
             ),
           ],
         ),

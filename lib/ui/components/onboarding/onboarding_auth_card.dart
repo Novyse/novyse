@@ -6,7 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/chat/chat_service.dart';
 import 'package:novyse/core/stores/status_message_type.dart';
-import 'package:novyse/pages/app/settings/legal_document_page.dart';
+import 'package:novyse/ui/components/legal/legal_document_overlay.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/auth/validator.dart';
@@ -333,11 +333,7 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
     final title = document == LegalDocument.privacy
         ? l10n.settingsItemPrivacyPolicyTitle
         : l10n.settingsItemTermsTitle;
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => LegalDocumentPage(document: document, title: title),
-      ),
-    );
+    await showLegalDocument(context, document: document, title: title);
   }
 
   Widget _buildSecuredByOpaque(BuildContext context) {
