@@ -2,13 +2,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'package:novyse/ui/components/markdown/markdown_style.dart';
 import 'package:novyse/ui/components/settings/settings_page_template.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
 
 /// A legal document bundled with the application.
-///
-/// The documents are shipped as assets: the text shown to the user is exactly
-/// the one that was accepted at signup, and it is readable without network.
 enum LegalDocument {
   privacy('legal/privacy-policy.md'),
   terms('legal/terms-of-service.md');
@@ -32,6 +30,8 @@ class LegalDocumentPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return SettingsPageTemplate(
       title: title,
       children: [
@@ -45,21 +45,25 @@ class LegalDocumentPage extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                     child: Text(
                       snapshot.error.toString(),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
+                      style: TextStyle(color: scheme.error),
                     ),
                   );
                 }
+
                 if (!snapshot.hasData) {
                   return const Padding(
                     padding: EdgeInsets.all(24),
                     child: Center(child: CircularProgressIndicator()),
                   );
                 }
+
                 return Padding(
                   padding: const EdgeInsets.all(16),
-                  child: MarkdownBody(data: snapshot.data!, selectable: true),
+                  child: MarkdownBody(
+                    data: snapshot.data!,
+                    selectable: true,
+                    styleSheet: appMarkdownStyleSheet(context),
+                  ),
                 );
               },
             ),

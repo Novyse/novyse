@@ -1,7 +1,9 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../markdown/markdown_style.dart';
 
 class MessageText extends StatelessWidget {
   const MessageText({
@@ -142,35 +144,12 @@ class MessageText extends StatelessWidget {
         (match) => '${match[1]}[@${match[2]}](novyse://user/${match[2]})',
       );
 
-      final defaultStyle = TextStyle(
-        fontSize: 15,
-        height: 1.35,
-        color: textColor,
-      );
-
-      final styleSheet = MarkdownStyleSheet(
-        p: defaultStyle,
-        pPadding: EdgeInsets.zero,
-        code: TextStyle(
-          fontSize: 13,
-          fontFamily: 'monospace',
-          color: textColor,
-          backgroundColor: codeBgColor,
-        ),
-        codeblockDecoration: BoxDecoration(
-          color: codeBgColor,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        blockquoteDecoration: BoxDecoration(
-          color: codeBgColor,
-          borderRadius: BorderRadius.circular(4),
-          border: Border(left: BorderSide(color: linkColor, width: 3)),
-        ),
-        a: TextStyle(
-          color: linkColor,
-          decoration: TextDecoration.underline,
-          decorationColor: linkColor.withValues(alpha: 0.5),
-        ),
+      final styleSheet = appMarkdownStyleSheet(
+        context,
+        textColor: textColor,
+        background: codeBgColor,
+        linkColor: linkColor,
+        paragraphPadding: EdgeInsets.zero,
       );
 
       bodyWidget = MarkdownBody(

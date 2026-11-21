@@ -1,9 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/plugins/models/plugin_entry.dart';
+import 'package:novyse/ui/components/markdown/markdown_style.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -495,48 +496,11 @@ class _ReadmePanelState extends State<_ReadmePanel> {
     return MarkdownBody(
       data: markdown,
       selectable: true,
-      styleSheet: MarkdownStyleSheet(
-        p: TextStyle(fontSize: 13, height: 1.45, color: scheme.onSurface),
-        h1: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-          color: scheme.onSurface,
-        ),
-        h2: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-          color: scheme.onSurface,
-        ),
-        h3: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: scheme.onSurface,
-        ),
-        code: TextStyle(
-          fontSize: 12,
-          fontFamily: 'monospace',
-          color: scheme.onSurface,
-          backgroundColor: scheme.surfaceContainerHighest,
-        ),
-        codeblockDecoration: BoxDecoration(
-          color: scheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        blockquoteDecoration: BoxDecoration(
-          color: scheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(4),
-          border: Border(left: BorderSide(color: scheme.primary, width: 3)),
-        ),
-        a: TextStyle(
-          color: scheme.primary,
-          decoration: TextDecoration.underline,
-          decorationColor: scheme.primary.withValues(alpha: 0.5),
-        ),
-        tableBorder: TableBorder.all(color: scheme.outlineVariant),
-        tableCellsPadding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 4,
-        ),
+      styleSheet: appMarkdownStyleSheet(
+        context,
+        fontSize: 13,
+        height: 1.45,
+        background: scheme.surfaceContainerHighest,
       ),
       onTapLink: (text, href, title) async {
         final uri = href == null ? null : Uri.tryParse(href);
