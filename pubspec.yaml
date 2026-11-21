@@ -125,6 +125,7 @@ flutter:
 
   assets:
     - LICENSE
+    - legal/
     - assets/audio/comms/
     - assets/audio/comms/screen_share/
     - assets/images/

@@ -1,11 +1,12 @@
 import 'dart:async';
 
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/chat/chat_service.dart';
 import 'package:novyse/core/stores/status_message_type.dart';
+import 'package:novyse/pages/app/settings/legal_document_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/auth/validator.dart';
@@ -322,8 +323,21 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
     }
   }
 
-  Future<void> _openLink(String url) async {
+  Future<void> _openExternal(String url) async {
     await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+  }
+
+  Future<void> _openLink(LegalDocument document) async {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    final title = document == LegalDocument.privacy
+        ? l10n.settingsItemPrivacyPolicyTitle
+        : l10n.settingsItemTermsTitle;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LegalDocumentPage(document: document, title: title),
+      ),
+    );
   }
 
   Widget _buildSecuredByOpaque(BuildContext context) {
@@ -343,7 +357,7 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
             ),
           ),
           InkWell(
-            onTap: () => _openLink('https://opaque-auth.com/'),
+            onTap: () => _openExternal('https://opaque-auth.com/'),
             child: Text(
               'OPAQUE',
               style: TextStyle(
@@ -511,8 +525,14 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
               },
               text: l10n.acceptLegal,
               links: [
-                _LegalLink(label: l10n.privacyPolicy, url: privacyPolicyUrl),
-                _LegalLink(label: l10n.termsOfService, url: tosUrl),
+                _LegalLink(
+                  label: l10n.privacyPolicy,
+                  document: LegalDocument.privacy,
+                ),
+                _LegalLink(
+                  label: l10n.termsOfService,
+                  document: LegalDocument.terms,
+                ),
               ],
               onLinkTap: _openLink,
             ),
@@ -592,10 +612,10 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
 }
 
 class _LegalLink {
-  const _LegalLink({required this.label, required this.url});
+  const _LegalLink({required this.label, required this.document});
 
   final String label;
-  final String url;
+  final LegalDocument document;
 }
 
 class _LegalCheckbox extends StatelessWidget {
@@ -611,7 +631,7 @@ class _LegalCheckbox extends StatelessWidget {
   final ValueChanged<bool?> onChanged;
   final String text;
   final List<_LegalLink> links;
-  final ValueChanged<String>? onLinkTap;
+  final ValueChanged<LegalDocument>? onLinkTap;
 
   @override
   Widget build(BuildContext context) {
@@ -646,7 +666,7 @@ class _LegalCheckbox extends StatelessWidget {
                       ),
                       const Text(' '),
                       InkWell(
-                        onTap: () => onLinkTap?.call(links[0].url),
+                        onTap: () => onLinkTap?.call(links[0].document),
                         child: Text(
                           links[0].label,
                           style: theme.textTheme.bodySmall?.copyWith(
@@ -657,7 +677,7 @@ class _LegalCheckbox extends StatelessWidget {
                       ),
                       const Text(' e '),
                       InkWell(
-                        onTap: () => onLinkTap?.call(links[1].url),
+                        onTap: () => onLinkTap?.call(links[1].document),
                         child: Text(
                           links[1].label,
                           style: theme.textTheme.bodySmall?.copyWith(

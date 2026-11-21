@@ -83,7 +83,8 @@ String getDomain(String subdomain) {
 
 final String apiBaseUrl = 'https://${getDomain('api')}';
 final String authBaseUrl = 'https://${getDomain('auth')}';
-final String realtimeBaseUrl = 'wss://${getDomain('realtime')}/connection/websocket';
+final String realtimeBaseUrl =
+    'wss://${getDomain('realtime')}/connection/websocket';
 
 // Web URLs
 
@@ -96,8 +97,6 @@ const String tinyAppUrl = 'https://vyse.me';
 const String landingPageUrl = 'https://www.novyse.com';
 const String downloadPageUrl = 'https://www.novyse.com#download';
 const String statusPageUrl = 'https://status.novyse.com';
-const String privacyPolicyUrl = '$landingPageUrl/legal/privacy-policy';
-const String tosUrl = '$landingPageUrl/legal/terms-of-service';
 
 // Third-party keys
 

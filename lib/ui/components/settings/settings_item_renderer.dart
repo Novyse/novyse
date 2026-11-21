@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:novyse/core/comms/devices/comms_bitrate_options.dart';
 import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
@@ -129,12 +129,12 @@ class SettingsItemRenderer extends ConsumerWidget {
         );
 
       case SettingComponent.dateTime:
-        final dateMode =
-            switch (item.dateTimeMode ?? SettingDateTimeMode.dateTime) {
-              SettingDateTimeMode.date => DatetimePickerMode.date,
-              SettingDateTimeMode.time => DatetimePickerMode.time,
-              SettingDateTimeMode.dateTime => DatetimePickerMode.dateTime,
-            };
+        final dateMode = switch (item.dateTimeMode ??
+            SettingDateTimeMode.dateTime) {
+          SettingDateTimeMode.date => DatetimePickerMode.date,
+          SettingDateTimeMode.time => DatetimePickerMode.time,
+          SettingDateTimeMode.dateTime => DatetimePickerMode.dateTime,
+        };
         return wrapDisabled(
           SettingsDatetimeRow(
             icon: item.icon,
@@ -406,6 +406,8 @@ class SettingsItemRenderer extends ConsumerWidget {
         const directActions = {
           'openLicenses',
           'openAppLicense',
+          'openPrivacyPolicy',
+          'openTermsOfService',
           'checkUpdates',
         };
         if (directActions.contains(item.actionId)) {
