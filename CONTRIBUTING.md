@@ -112,6 +112,8 @@ flutter analyze
 
 For complete release build and packaging instructions across all platforms (Linux, Windows, macOS, Android, iOS, and Web), please refer to the dedicated **[Build Documentation](BUILD.md)**.
 
+For the standardized format of release patch notes, see **[Patch Notes Generation Guide](docs/patch-notes.md)**.
+
 ---
 
 ## Security & Legal
