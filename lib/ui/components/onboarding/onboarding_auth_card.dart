@@ -86,6 +86,9 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
   @override
   void initState() {
     super.initState();
+
+    unawaited(LegalService.instance.prefetch());
+
     _usernameController = TextEditingController(
       text: widget.initialUsername ?? '',
     );
@@ -652,7 +655,8 @@ class _LegalCheckbox extends StatelessWidget {
                       color: theme.colorScheme.onSurface,
                     ),
                   )
-                : Wrap(
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         text,
@@ -660,27 +664,23 @@ class _LegalCheckbox extends StatelessWidget {
                           color: theme.colorScheme.onSurface,
                         ),
                       ),
-                      const Text(' '),
-                      InkWell(
-                        onTap: () => onLinkTap?.call(links[0].document),
-                        child: Text(
-                          links[0].label,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                      const Text(' e '),
-                      InkWell(
-                        onTap: () => onLinkTap?.call(links[1].document),
-                        child: Text(
-                          links[1].label,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 4,
+                        children: [
+                          for (final link in links)
+                            InkWell(
+                              onTap: () => onLinkTap?.call(link.document),
+                              child: Text(
+                                link.label,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ],
                   ),

@@ -66,7 +66,7 @@
   "passwordTooShort": "La password deve contenere almeno 8 caratteri",
   "handleAlreadyInUse": "Username già in uso",
   "availabilityError": "Impossibile verificare la disponibilità dello username",
-  "acceptLegal": "Accetto l'informativa sulla privacy e i termini di servizio",
+  "acceptLegal": "Accetto i Termini di Servizio e dichiaro di aver letto l'Informativa sulla Privacy",
   "privacyPolicy": "informativa sulla privacy",
   "termsOfService": "termini di servizio",
   "atLeastSixteen": "Ho almeno 16 anni",

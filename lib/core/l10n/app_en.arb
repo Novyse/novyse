@@ -66,7 +66,7 @@
   "passwordTooShort": "Password must be at least 8 characters",
   "handleAlreadyInUse": "Username is already in use",
   "availabilityError": "Unable to verify username availability",
-  "acceptLegal": "I accept the privacy policy and terms of service",
+  "acceptLegal": "I accept the Terms of Service and acknowledge that I have read the Privacy Policy",
   "privacyPolicy": "privacy policy",
   "termsOfService": "terms of service",
   "atLeastSixteen": "I am at least 16 years old",
