@@ -62,7 +62,7 @@ class LoginPage extends ConsumerWidget {
                           confirmPassword,
                           captchaToken,
                           acceptLegal,
-                          isOldEnough,
+                          isOver16,
                         }) async {
                           if (captchaToken != null) {
                             final res = await onboardingManager.login(

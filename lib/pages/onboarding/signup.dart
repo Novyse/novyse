@@ -63,7 +63,7 @@ class SignupPage extends ConsumerWidget {
                         confirmPassword,
                         captchaToken,
                         acceptLegal,
-                        isOldEnough,
+                        isOver16,
                       }) async {
                         if (captchaToken != null) {
                           final res = await onboardingManager.signup(
@@ -72,7 +72,7 @@ class SignupPage extends ConsumerWidget {
                             name: name ?? '',
                             captchaToken: captchaToken,
                             acceptLegal: acceptLegal ?? false,
-                            isOldEnough: isOldEnough ?? false,
+                            isOver16: isOver16 ?? false,
                           );
                           if (!res.success) {
                             throw Exception(res.error ?? l10n.signupFailed);

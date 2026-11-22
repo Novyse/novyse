@@ -28,7 +28,7 @@ typedef OnboardingSubmitCallback = FutureOr<void> Function({
   String? confirmPassword,
   String? captchaToken,
   bool? acceptLegal,
-  bool? isOldEnough,
+  bool? isOver16,
 });
 
 class OnboardingAuthCard extends ConsumerStatefulWidget {
@@ -66,7 +66,7 @@ class OnboardingAuthCard extends ConsumerStatefulWidget {
 class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
   late OnboardingAuthMode _mode = widget.initialMode;
   bool _acceptLegal = false;
-  bool _isOldEnough = false;
+  bool _isOver16 = false;
   bool _isLoading = false;
   String? _statusError;
   String? _statusSuccess;
@@ -254,7 +254,7 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
         _confirmPasswordController.text == _passwordController.text;
 
     final legalValid =
-        !widget.showLegalCheckboxes || (_acceptLegal && _isOldEnough);
+        !widget.showLegalCheckboxes || (_acceptLegal && _isOver16);
 
     return nameValid &&
         handleValid &&
@@ -306,7 +306,7 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
               : _confirmPasswordController.text,
           captchaToken: captchaToken,
           acceptLegal: _acceptLegal,
-          isOldEnough: _isOldEnough,
+          isOver16: _isOver16,
         );
       } else {
         widget.onSubmit?.call();
@@ -519,7 +519,7 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
               onChanged: (bool? value) {
                 setState(() {
                   _acceptLegal = value == true;
-                  if (_acceptLegal && _isOldEnough) _statusError = null;
+                  if (_acceptLegal && _isOver16) _statusError = null;
                 });
               },
               text: l10n.acceptLegal,
@@ -536,11 +536,11 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
               onLinkTap: _openLink,
             ),
             _LegalCheckbox(
-              value: _isOldEnough,
+              value: _isOver16,
               onChanged: (bool? value) {
                 setState(() {
-                  _isOldEnough = value == true;
-                  if (_acceptLegal && _isOldEnough) _statusError = null;
+                  _isOver16 = value == true;
+                  if (_acceptLegal && _isOver16) _statusError = null;
                 });
               },
               text: l10n.atLeastSixteen,

@@ -170,7 +170,7 @@ class OnboardingManager extends StateNotifier<bool> {
     required String name,
     required String captchaToken,
     required bool acceptLegal,
-    required bool isOldEnough,
+    required bool isOver16,
   }) async {
     try {
       final res = await _auth.signup.signUp(
@@ -180,7 +180,7 @@ class OnboardingManager extends StateNotifier<bool> {
         <String, dynamic>{
           'privacy': acceptLegal,
           'tos': acceptLegal,
-          'isOver16': isOldEnough,
+          'isOver16': isOver16,
         },
         captchaToken,
       );
