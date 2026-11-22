@@ -17,6 +17,10 @@ class ChatListAppBar extends StatelessWidget {
     required this.onCloseSearch,
     required this.onNewChat,
     this.footer,
+    this.selecting = false,
+    this.selectedCount = 0,
+    this.onCloseSelection,
+    this.onPinSelected,
   });
 
   final bool searching;
@@ -27,11 +31,64 @@ class ChatListAppBar extends StatelessWidget {
   final VoidCallback onCloseSearch;
   final VoidCallback onNewChat;
   final Widget? footer;
+  final bool selecting;
+  final int selectedCount;
+  final VoidCallback? onCloseSelection;
+  final VoidCallback? onPinSelected;
 
   @override
   Widget build(BuildContext context) {
     final Widget content;
-    if (searching) {
+    if (selecting) {
+      final l10n = AppLocalizations.of(context)!;
+
+      content = Row(
+        children: [
+          FloatingPill(
+            padding: FloatingConsts.iconPillPadding,
+            child: FloatingIconButton(
+              icon: const AppHugeIcon(icon: HugeIcons.strokeRoundedCancel01),
+              tooltip: l10n.cancel,
+              onPressed: onCloseSelection,
+            ),
+          ),
+          const SizedBox(width: FloatingConsts.pillSpacing),
+          Expanded(
+            child: FloatingPill(
+              radius: FloatingConsts.centralRadius,
+              padding: const EdgeInsets.fromLTRB(
+                16,
+                FloatingConsts.barInset,
+                FloatingConsts.barInset,
+                FloatingConsts.barInset,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.selectedCount(selectedCount),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  FloatingIconButton(
+                    icon: const AppHugeIcon(
+                      icon: HugeIcons.strokeRoundedPin02,
+                    ),
+                    tooltip: l10n.pin,
+                    onPressed: onPinSelected,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    } else if (searching) {
       final l10n = AppLocalizations.of(context)!;
       final hasQuery = searchController.text.isNotEmpty;
 

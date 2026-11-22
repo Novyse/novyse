@@ -100,6 +100,9 @@ class ChatListItem extends ConsumerWidget {
   final bool isSelected;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
+  final bool selectionMode;
+  final bool selectionSelected;
+  final ValueChanged<TapUpDetails>? onSecondaryTapUp;
 
   const ChatListItem({
     super.key,
@@ -107,6 +110,9 @@ class ChatListItem extends ConsumerWidget {
     this.isSelected = false,
     this.onTap,
     this.onLongPress,
+    this.selectionMode = false,
+    this.selectionSelected = false,
+    this.onSecondaryTapUp,
   });
 
   List<List<dynamic>>? get _chatTypeIcon {
@@ -181,15 +187,19 @@ class ChatListItem extends ConsumerWidget {
 
     final timeStr = _formatChatTime(chat, l10n);
 
+    final effectiveSelected =
+        selectionMode ? selectionSelected : isSelected;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,
+        onSecondaryTapUp: onSecondaryTapUp,
         borderRadius: BorderRadius.circular(24),
         child: Container(
           decoration: BoxDecoration(
-            color: isSelected
+            color: effectiveSelected
                 ? Theme.of(context).colorScheme.primaryContainer
                       .withValues(alpha: 0.28)
                 : Colors.transparent,
@@ -198,15 +208,41 @@ class ChatListItem extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
             children: [
-              // Avatar
-              Avatar(
-                uuid: metadata.profilePictureUUID,
-                name: metadata.name,
-                seedKey: chat.uuid.isNotEmpty ? chat.uuid : metadata.name,
-                size: 48,
-                isOnline: metadata.isOnline,
-                isSavedMessages: metadata.isSavedMessages,
-                type: chat.type,
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Avatar(
+                    uuid: metadata.profilePictureUUID,
+                    name: metadata.name,
+                    seedKey: chat.uuid.isNotEmpty ? chat.uuid : metadata.name,
+                    size: 48,
+                    isOnline: metadata.isOnline,
+                    isSavedMessages: metadata.isSavedMessages,
+                    type: chat.type,
+                  ),
+                  if (selectionMode && selectionSelected)
+                    Positioned(
+                      left: -4,
+                      bottom: -4,
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.surface,
+                            width: 2,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.check,
+                          size: 14,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(width: 12),
 

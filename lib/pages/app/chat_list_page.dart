@@ -13,6 +13,7 @@ import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_list_app_bar.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_list_aux_bars.dart';
+import 'package:novyse/ui/components/chat/chat_list/chat_list_context_menu.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_list_empty_view.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_list_view.dart';
 import 'package:novyse/ui/components/chat/chat_list/chat_search.dart';
@@ -39,6 +40,10 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
   Timer? _debounce;
   int _searchToken = 0;
 
+  final Set<String> _selectedChatUUIDs = {};
+
+  bool get _selecting => _selectedChatUUIDs.isNotEmpty;
+
   List<ChatModel> _localChats = [];
   List<ChatModel> _remoteChats = [];
   List<Map<String, dynamic>> _matchedMessages = [];
@@ -57,6 +62,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
   }
 
   void _openSearch() {
+    _selectedChatUUIDs.clear();
     setState(() => _searching = true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _searchFocusNode.requestFocus();
@@ -76,6 +82,45 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
       _messagesLoading = false;
       _remoteLoading = false;
     });
+  }
+
+
+  void _enterSelection(String chatUUID) {
+    if (_searching) return;
+    if (chatUUID.isEmpty) return;
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _selectedChatUUIDs.add(chatUUID);
+    });
+  }
+
+
+  void _toggleSelection(String chatUUID) {
+    if (chatUUID.isEmpty) return;
+    setState(() {
+      if (_selectedChatUUIDs.contains(chatUUID)) {
+        _selectedChatUUIDs.remove(chatUUID);
+      } else {
+        _selectedChatUUIDs.add(chatUUID);
+      }
+    });
+  }
+
+  void _exitSelection() {
+    if (_selectedChatUUIDs.isEmpty) return;
+    setState(() {
+      _selectedChatUUIDs.clear();
+    });
+  }
+
+
+  Future<void> _showChatContextMenu(Offset globalPosition) async {
+    if (_selecting) return;
+    await showChatListContextMenu(
+      context: context,
+      anchor: globalPosition,
+      onPin: () {},
+    );
   }
 
   void _onQueryChanged(String value) {
@@ -280,10 +325,14 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     final isFiltering = _searching && _query.trim().isNotEmpty;
 
     return PopScope(
-      canPop: !_searching,
+      canPop: !_searching && !_selecting,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        if (_searching) _closeSearch();
+        if (_selecting) {
+          _exitSelection();
+        } else if (_searching) {
+          _closeSearch();
+        }
       },
       child: Scaffold(
         body: CustomScrollView(
@@ -301,6 +350,10 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
                   onOpenSearch: _openSearch,
                   onCloseSearch: _closeSearch,
                   onNewChat: () => showCreateChatModal(context),
+                  selecting: _selecting,
+                  selectedCount: _selectedChatUUIDs.length,
+                  onCloseSelection: _exitSelection,
+                  onPinSelected: () {},
                   footer: const Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -339,6 +392,12 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
                   chats: chats,
                   selectedChatUUID: selectedChatUUID,
                   onOpenChat: _openChat,
+                  selectionMode: _selecting,
+                  selectedUUIDs: _selectedChatUUIDs,
+                  onToggleSelection: _toggleSelection,
+                  onEnterSelection: _enterSelection,
+                  onSecondaryTapItem: (_, position) =>
+                      _showChatContextMenu(position),
                 ),
             ],
           ],

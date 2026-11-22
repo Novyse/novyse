@@ -8,11 +8,27 @@ class ChatListView extends StatelessWidget {
     required this.chats,
     required this.selectedChatUUID,
     required this.onOpenChat,
+    this.selectionMode = false,
+    this.selectedUUIDs = const {},
+    this.onToggleSelection,
+    this.onEnterSelection,
+    this.onSecondaryTapItem,
   });
 
   final List<ChatModel> chats;
   final String? selectedChatUUID;
   final ValueChanged<String> onOpenChat;
+
+  final bool selectionMode;
+
+  final Set<String> selectedUUIDs;
+
+  final ValueChanged<String>? onToggleSelection;
+
+  final ValueChanged<String>? onEnterSelection;
+
+  final void Function(String chatUUID, Offset globalPosition)?
+  onSecondaryTapItem;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +42,24 @@ class ChatListView extends StatelessWidget {
           return ChatListItem(
             chat: chat,
             isSelected: selectedChatUUID == chat.uuid,
-            onTap: () => onOpenChat(chat.uuid),
+            selectionMode: selectionMode,
+            selectionSelected: selectedUUIDs.contains(chat.uuid),
+            onTap: () {
+              if (selectionMode) {
+                onToggleSelection?.call(chat.uuid);
+              } else {
+                onOpenChat(chat.uuid);
+              }
+            },
+            onLongPress: () {
+              if (selectionMode) {
+                onToggleSelection?.call(chat.uuid);
+              } else {
+                onEnterSelection?.call(chat.uuid);
+              }
+            },
+            onSecondaryTapUp: (details) =>
+                onSecondaryTapItem?.call(chat.uuid, details.globalPosition),
           );
         },
       ),
