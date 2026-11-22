@@ -62,7 +62,7 @@ class MessageReply extends StatelessWidget {
                       horizontal: 8,
                       vertical: 5,
                     ),
-                    color: colorScheme.secondary.withValues(alpha: 0.12),
+                    color: colorScheme.primary.withAlpha(50),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,

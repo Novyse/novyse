@@ -564,7 +564,7 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
                             child: Container(
                               decoration: BoxDecoration(
                                 color: isSender
-                                    ? colorScheme.primary
+                                    ? colorScheme.primary.withAlpha(75)
                                     : colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.only(
                                   topLeft: const Radius.circular(18),
