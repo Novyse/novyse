@@ -1,0 +1,128 @@
+name: Sync legal documents
+
+# Publishes the legal documents to the authentication API whenever they change on
+# production. The API updates its cache and, unless the commit carries
+# [skip-notify], notifies the existing users through the official system account.
+on:
+  push:
+    branches:
+      - production
+    paths:
+      - legal/terms-of-service.md
+      - legal/privacy-policy.md
+      - LICENSE
+  workflow_dispatch:
+
+concurrency:
+  group: sync-legal-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Publish legal documents
+    runs-on: ubuntu-latest
+    env:
+      LEGAL_ENDPOINT: https://auth.novyse.com/legal
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build the payload and publish
+        env:
+          LEGAL_SYNC_SECRET: ${{ secrets.LEGAL_SYNC_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${LEGAL_SYNC_SECRET:-}" ]; then
+            echo "::error::LEGAL_SYNC_SECRET is not configured in the repository secrets."
+            exit 1
+          fi
+
+          changed=""
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # A manual run is the emergency path: send all three documents.
+            changed=$'legal/terms-of-service.md\nlegal/privacy-policy.md\nLICENSE'
+          else
+            before="${{ github.event.before }}"
+            after="${{ github.event.after }}"
+
+            if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
+              # A new branch has no previous head: treat every document as changed.
+              changed=$'legal/terms-of-service.md\nlegal/privacy-policy.md\nLICENSE'
+            else
+              changed="$(git diff --name-only "$before" "$after" || true)"
+            fi
+          fi
+
+          tos_changed=false
+          privacy_changed=false
+          license_changed=false
+
+          while IFS= read -r file; do
+            case "$file" in
+              legal/terms-of-service.md) tos_changed=true ;;
+              legal/privacy-policy.md) privacy_changed=true ;;
+              LICENSE) license_changed=true ;;
+            esac
+          done <<< "$changed"
+
+          if [ "$tos_changed" = false ] && [ "$privacy_changed" = false ] && [ "$license_changed" = false ]; then
+            echo "No managed legal document changed; nothing to publish."
+            exit 0
+          fi
+
+          # The body of the head commit, from the third line onward, is the
+          # user-facing summary. The first line is the internal Git title.
+          commit_message="$(git log -1 --pretty=%B)"
+          summary="$(printf '%s\n' "$commit_message" | tail -n +3)"
+
+          skip_notify=false
+          if printf '%s\n' "$commit_message" | grep -q '\[skip-notify\]'; then
+            skip_notify=true
+          fi
+
+          payload_file="$(mktemp)"
+          jq -n \
+            --arg tos "$( [ "$tos_changed" = true ] && cat legal/terms-of-service.md || printf '' )" \
+            --arg privacy "$( [ "$privacy_changed" = true ] && cat legal/privacy-policy.md || printf '' )" \
+            --arg license "$( [ "$license_changed" = true ] && cat LICENSE || printf '' )" \
+            --arg summary "$summary" \
+            --argjson skipNotify "$skip_notify" \
+            --argjson tosChanged "$tos_changed" \
+            --argjson privacyChanged "$privacy_changed" \
+            --argjson licenseChanged "$license_changed" \
+            '{} +
+             (if $tosChanged then . + {tos: $tos} else . end) +
+             (if $privacyChanged then . + {privacy: $privacy} else . end) +
+             (if $licenseChanged then . + {license: $license} else . end) +
+             {summary: $summary, skipNotify: $skipNotify}' > "$payload_file"
+
+          echo "Publishing: tos=$tos_changed privacy=$privacy_changed license=$license_changed skipNotify=$skip_notify"
+
+          status="$(curl -sS \
+            --output /tmp/legal-response.txt \
+            --write-out '%{http_code}' \
+            --max-time 60 \
+            -X POST "$LEGAL_ENDPOINT" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $LEGAL_SYNC_SECRET" \
+            --data-binary "@$payload_file")"
+
+          echo "HTTP $status"
+          cat /tmp/legal-response.txt || true
+
+          rm -f "$payload_file"
+
+          case "$status" in
+            2[0-9][0-9]) echo "Legal documents published successfully." ;;
+            *)
+              echo "::error::The legal sync failed with HTTP $status."
+              exit 1
+              ;;
+          esac
