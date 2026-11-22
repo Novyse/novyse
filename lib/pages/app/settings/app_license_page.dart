@@ -1,14 +1,14 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter/services.dart';
 
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/legal/legal_service.dart';
 import 'package:novyse/ui/components/settings/settings_page_template.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
 
 class AppLicensePage extends StatelessWidget {
   const AppLicensePage({super.key});
 
-  static Future<String> loadText() => rootBundle.loadString('LICENSE');
+  static Future<String> loadText() => LegalDocument.license.load();
 
   @override
   Widget build(BuildContext context) {
