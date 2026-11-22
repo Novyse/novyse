@@ -1,6 +1,7 @@
 # Novyse Terms of Service
 
-**Version 2026.11 — effective 21 November 2026**
+**Published:** 21 November 2026
+**Effective:** 21 December 2026 *(Effective immediately for new accounts created on or after the latest update; effective 30 days after publication for existing accounts)*
 
 These terms govern your use of the hosted Novyse service and of the Novyse applications. By
 creating an account, or by using the service, you accept them. If you do not accept them, do not
@@ -35,6 +36,16 @@ modified version of the software as if it were ours.
 
 **The server code** is not published as open source. Nothing in these terms or in the GPL of the
 client grants you a licence on the server code.
+
+**Self-hosted and external infrastructure (BYOS).** You may run the client against infrastructure
+that you control or that a third party provides to you, including your own S3-compatible object
+storage and your own LiveKit server (BYOS — Bring Your Own Storage). Those components are
+operated by you or by the provider you chose, not by us. We do not administer them, we have no
+access to the data stored in them, and we are not responsible for their availability, security,
+configuration, retention, backup or compliance with the law. If you configure an external storage
+or media server, its operator may process your content and the content of the chats that use it;
+those terms and that operator's privacy policy apply to that processing, and the guarantees in our
+Privacy Policy about where the data is stored no longer describe your deployment.
 
 ## 3. Eligibility
 
@@ -214,15 +225,34 @@ will be announced at least 30 days in advance and will apply from the next renew
 
 ## 15. Changes to these terms
 
-We may update these terms when the service changes. The version and the effective date are at the
-top of the document.
+We may unilaterally modify these terms when there is a justified reason, in particular: the
+introduction of new features or of paid plans; a change in the technical or organisational
+operation of the service; a security requirement; the need to comply with a law, a regulation or a
+decision of a competent authority; or infrastructure maintenance. The version, the publication
+date and the effective date are at the top of the document.
 
-Material changes are notified in the application and, where we have a contact address, by email,
-at least **30 days** before they take effect. During that period you can keep using the service
-under the previous version; after the effective date, continuing to use the service means that you
-accept the new version. If you do not accept it, you can delete your account before the effective
-date, without any penalty. Changes that are required by law or that concern security can take
-effect immediately; we will tell you why.
+We communicate material changes through the **official Novyse system account inside the
+application**, at least **30 days** before the effective date. The notice states which documents
+changed, summarises the changes and indicates the effective date. We do not use email for this
+notice because an email address is not required to create an account.
+
+During the 30-day notice period you may keep using the service under the version in force. From
+the effective date, **continuing to use the service means that you accept the modified terms**
+(tacit acceptance). If you do not accept the changes, you have the right to withdraw from these
+terms and to delete your account at any time before the effective date, from the settings of the
+application, **without any penalty and without losing the rights accrued until that moment**. The
+deletion is immediate and irreversible; section 11 describes its effects.
+
+**New accounts** created on or after the date of the update accept the updated documents at
+signup, and the new version applies to them immediately. **Existing accounts** are bound by the
+previous version until the effective date, which is 30 days after publication.
+
+Changes required by law, by a binding order of an authority, or by an urgent security need may
+take effect earlier than 30 days. In that case the notice explains the reason and the shorter
+date, and the right to withdraw and delete the account remains available.
+
+Non-material changes (typos, formatting, clarifications that do not alter your rights or our
+obligations) are published immediately and do not trigger the 30-day notice.
 
 ## 16. Governing law and jurisdiction
 

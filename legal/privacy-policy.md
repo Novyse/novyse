@@ -1,6 +1,7 @@
 # Novyse Privacy Policy
 
-**Version 2026.11 — effective 21 November 2026**
+**Published:** 21 November 2026
+**Effective:** 21 December 2026 *(Effective immediately for new accounts created on or after the latest update; effective 30 days after publication for existing accounts)*
 
 This policy explains what personal data Novyse processes, why, where it is stored and for how
 long. It applies to the hosted service at `www.novyse.com`, `api.novyse.com`, `comms.novyse.com`
@@ -265,10 +266,21 @@ privacy@novyse.com.
 
 ## 13. Changes to this policy
 
-We may update this policy when the service changes. The version and the effective date are at the
-top of the document. For material changes we notify you in the application at least 30 days
-before they take effect, and the application asks you to accept the new version. You can always
-delete your account if you do not agree. The previous versions remain available on request.
+We may update this policy when the processing changes, when a new feature or a new provider is
+introduced, when a legal or regulatory obligation requires it, or when the security of the service
+requires it. The version, the publication date and the effective date are at the top of the
+document.
+
+For material changes we notify you through the **official Novyse system account inside the
+application** at least **30 days** before the effective date. The notice summarises the changes and
+indicates the effective date; the updated text is published in the application and on the website.
+Continuing to use the service after the effective date means that you accept the updated policy.
+If you do not agree, you can delete your account before the effective date without any penalty.
+
+New accounts created on or after the date of the update are subject to the updated policy
+immediately; existing accounts are subject to it from the effective date. Changes required by law
+or by an urgent security need may take effect earlier, and the notice explains why. The previous
+versions remain available on request at privacy@novyse.com.
 
 ## 14. Self-hosted instances
 
