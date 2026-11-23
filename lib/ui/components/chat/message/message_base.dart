@@ -6,6 +6,7 @@ import 'package:novyse/core/chat/message_format.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/chat/message/message_audio.dart';
 import 'package:novyse/ui/components/chat/message/message_file.dart';
@@ -560,7 +561,7 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
                             ),
                             onLongPress: gestures.handleLongPress,
                             onDoubleTap: widget.onDoubleTap,
-                            borderRadius: BorderRadius.circular(18),
+                            borderRadius: BorderRadius.circular(AppRadius.bg),
                             child: Container(
                               decoration: BoxDecoration(
                                 color: isSender
