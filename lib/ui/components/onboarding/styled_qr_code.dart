@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:material_ui/material_ui.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:qr/qr.dart';
 
 class StyledQrCode extends StatelessWidget {
@@ -155,7 +156,7 @@ class _StyledQrPainter extends CustomPainter {
           canvas.drawRRect(
             RRect.fromRectAndRadius(
               dotRect,
-              Radius.circular(moduleSize * 0.38),
+              const Radius.circular(AppRadius.md),
             ),
             paint,
           );
@@ -186,7 +187,7 @@ class _StyledQrPainter extends CustomPainter {
       ..isAntiAlias = true;
 
     canvas.drawRRect(
-      RRect.fromRectAndRadius(outerRect, Radius.circular(moduleSize * 1.8)),
+      RRect.fromRectAndRadius(outerRect, const Radius.circular(AppRadius.bg)),
       strokePaint,
     );
 
@@ -199,7 +200,7 @@ class _StyledQrPainter extends CustomPainter {
     );
 
     canvas.drawRRect(
-      RRect.fromRectAndRadius(innerRect, Radius.circular(moduleSize * 0.9)),
+      RRect.fromRectAndRadius(innerRect, const Radius.circular(AppRadius.bg)),
       paint,
     );
   }

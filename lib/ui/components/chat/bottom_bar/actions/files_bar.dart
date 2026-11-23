@@ -247,7 +247,7 @@ class _FilesBarState extends ConsumerState<FilesBar> {
                         thumbVisibility: showScrollbar,
                         trackVisibility: false,
                         thickness: 4,
-                        radius: const Radius.circular(2),
+                        radius: const Radius.circular(AppRadius.xsm),
                         crossAxisMargin: 2,
                         minThumbLength: 24,
                         child: ListView.separated(

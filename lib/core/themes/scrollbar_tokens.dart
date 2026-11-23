@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 /// Shared scrollbar tokens (single source of truth for every overlay
 /// scrollbar in the app).
@@ -15,7 +16,7 @@ abstract final class AppScrollbarTokens {
   /// Resting thumb thickness (visually unchanged vs stock).
   static const double thickness = 4;
 
-  static const Radius radius = Radius.circular(8);
+  static const Radius radius = Radius.circular(AppRadius.sm);
 
   static const double minThumbLength = 24;
 }

@@ -524,14 +524,14 @@ class _ScannerOverlayPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final background = Path()..addRect(Offset.zero & size);
     final cutout = Path()
-      ..addRRect(RRect.fromRectAndRadius(window, const Radius.circular(24)));
+      ..addRRect(RRect.fromRectAndRadius(window, const Radius.circular(AppRadius.lg)));
     canvas.drawPath(
       Path.combine(PathOperation.difference, background, cutout),
       Paint()..color = Colors.black.withValues(alpha: 0.58),
     );
 
     canvas.drawRRect(
-      RRect.fromRectAndRadius(window, const Radius.circular(24)),
+      RRect.fromRectAndRadius(window, const Radius.circular(AppRadius.lg)),
       Paint()
         ..color = Colors.white.withValues(alpha: 0.35)
         ..style = PaintingStyle.stroke

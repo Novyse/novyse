@@ -848,7 +848,7 @@ class _WheelPainter extends CustomPainter {
     );
 
     final rect = g.square;
-    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(6));
+    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(AppRadius.xsm));
     canvas.drawRRect(
       rrect,
       Paint()

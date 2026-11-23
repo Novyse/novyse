@@ -86,7 +86,7 @@ class _EmojiPanelSheetState extends State<EmojiPanelSheet> {
       color: colorScheme.surfaceContainerHighest,
       elevation: 0,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.bg)),
       ),
       clipBehavior: Clip.antiAlias,
       child: widget.height <= 28

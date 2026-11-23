@@ -568,13 +568,13 @@ class _MessageBaseState extends ConsumerState<MessageBase> {
                                     ? colorScheme.primary
                                     : colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.only(
-                                  topLeft: const Radius.circular(18),
-                                  topRight: const Radius.circular(18),
+                                  topLeft: const Radius.circular(AppRadius.bg),
+                                  topRight: const Radius.circular(AppRadius.bg),
                                   bottomLeft: Radius.circular(
-                                    isSender ? 18 : 4,
+                                    isSender ? AppRadius.bg : AppRadius.xsm,
                                   ),
                                   bottomRight: Radius.circular(
-                                    isSender ? 4 : 18,
+                                    isSender ? AppRadius.xsm : AppRadius.bg,
                                   ),
                                 ),
                               ),
