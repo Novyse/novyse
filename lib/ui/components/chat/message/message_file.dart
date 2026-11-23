@@ -11,6 +11,7 @@ import 'package:novyse/core/storage/file/web_blob_url.dart' as web_file;
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:open_file/open_file.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 /// Displays a generic file attachment (documents, archives, code, etc.)
 /// with an icon, name, size info, downloading progress, and open/download action.
@@ -150,7 +151,7 @@ class _MessageFileAttachmentState extends State<MessageFileAttachment> {
           onTap: !widget.isPending
               ? () => _handleTap(context, resolvedUri)
               : null,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: Row(

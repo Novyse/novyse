@@ -229,7 +229,9 @@ class _StatusMessageState extends State<StatusMessage>
                                 padding: const EdgeInsets.only(top: 6),
                                 child: InkWell(
                                   onTap: widget.onAction,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.sm,
+                                  ),
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 10,

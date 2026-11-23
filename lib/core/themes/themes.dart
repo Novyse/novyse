@@ -13,13 +13,9 @@ class AppColors {
 }
 
 class AppRadius {
-  /// Controls, chips, small inputs.
   static const double sm = 8;
-
-  /// Cards, fields, buttons.
-  static const double md = 16;
-
-  /// Dialogs, sheets, large containers.
+  static const double md = 12;
+  static const double bg = 16;
   static const double lg = 24;
 }
 
@@ -202,7 +198,7 @@ class AppTheme {
         filled: true,
         fillColor: scheme.surfaceContainerHighest,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderRadius: BorderRadius.circular(AppRadius.bg),
           borderSide: BorderSide.none,
         ),
       ),
@@ -218,7 +214,7 @@ class AppTheme {
           foregroundColor: scheme.onPrimary,
           backgroundColor: scheme.primary,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderRadius: BorderRadius.circular(AppRadius.bg),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         ),

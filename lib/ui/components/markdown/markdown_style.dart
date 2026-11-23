@@ -1,5 +1,6 @@
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 /// The Markdown sheet of the application.
 ///
@@ -57,7 +58,7 @@ MarkdownStyleSheet appMarkdownStyleSheet(
     codeblockPadding: const EdgeInsets.all(12),
     codeblockDecoration: BoxDecoration(
       color: surface,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
     ),
     horizontalRuleDecoration: BoxDecoration(
       border: Border(top: BorderSide(color: scheme.outlineVariant)),

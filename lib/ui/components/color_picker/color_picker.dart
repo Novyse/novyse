@@ -9,6 +9,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/onboarding/onboarding_text_field.dart';
 import 'package:novyse/ui/components/switch/segmented_switch.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 String _toHex(Color c) =>
     (c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase();
@@ -29,8 +30,9 @@ String _fmtPct(double pos) {
 class _UpperCaseFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-          TextEditingValue oldValue, TextEditingValue newValue) =>
-      newValue.copyWith(text: newValue.text.toUpperCase());
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) => newValue.copyWith(text: newValue.text.toUpperCase());
 }
 
 class _GradientStop {
@@ -39,10 +41,7 @@ class _GradientStop {
   HSVColor color;
 }
 
-enum ColorPickerMode {
-  color,
-  gradient,
-}
+enum ColorPickerMode { color, gradient }
 
 class ColorPicker extends StatefulWidget {
   const ColorPicker({
@@ -180,10 +179,7 @@ class _ColorPickerState extends State<ColorPicker> {
         if (_stops.length < 2) {
           _stops = [
             _GradientStop(0.0, _solid),
-            _GradientStop(
-              1.0,
-              _solid.withHue((_solid.hue + 40) % 360),
-            ),
+            _GradientStop(1.0, _solid.withHue((_solid.hue + 40) % 360)),
           ];
         } else {
           _stops.first.color = _solid;
@@ -279,7 +275,8 @@ class _ColorPickerState extends State<ColorPicker> {
         final span = b.position - a.position;
         final f = span == 0 ? 0.0 : (t - a.position) / span;
         return HSVColor.fromColor(
-            Color.lerp(a.color.toColor(), b.color.toColor(), f)!);
+          Color.lerp(a.color.toColor(), b.color.toColor(), f)!,
+        );
       }
     }
     return s.last.color;
@@ -678,14 +675,8 @@ class _AngleDialPainter extends CustomPainter {
     final headBase = tip - dir * 10;
     final head = Path()
       ..moveTo(tip.dx, tip.dy)
-      ..lineTo(
-        headBase.dx + ortho.dx * 6,
-        headBase.dy + ortho.dy * 6,
-      )
-      ..lineTo(
-        headBase.dx - ortho.dx * 6,
-        headBase.dy - ortho.dy * 6,
-      )
+      ..lineTo(headBase.dx + ortho.dx * 6, headBase.dy + ortho.dy * 6)
+      ..lineTo(headBase.dx - ortho.dx * 6, headBase.dy - ortho.dy * 6)
       ..close();
     canvas.drawPath(head, Paint()..color = arrow);
 
@@ -712,8 +703,8 @@ enum _Zone { ring, square }
 
 class _WheelGeometry {
   _WheelGeometry(Size size)
-      : center = size.center(Offset.zero),
-        outerR = size.shortestSide / 2;
+    : center = size.center(Offset.zero),
+      outerR = size.shortestSide / 2;
 
   final Offset center;
   final double outerR;
@@ -721,7 +712,10 @@ class _WheelGeometry {
   double get ringW => outerR * 0.17;
   double get innerR => outerR - ringW;
   Rect get square => Rect.fromCenter(
-      center: center, width: innerR * 1.28, height: innerR * 1.28);
+    center: center,
+    width: innerR * 1.28,
+    height: innerR * 1.28,
+  );
 }
 
 class ColorWheel extends StatefulWidget {
@@ -781,26 +775,28 @@ class _ColorWheelState extends State<ColorWheel> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, c) {
-      final size = Size.square(c.biggest.shortestSide);
-      // DragStartBehavior.down wins the gesture arena on touch so the
-      // sheet does not scroll while dragging. Both axes do the same work.
-      return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        dragStartBehavior: DragStartBehavior.down,
-        onHorizontalDragStart: (d) =>
-            _handle(d.localPosition, size, start: true),
-        onHorizontalDragUpdate: (d) => _handle(d.localPosition, size),
-        onHorizontalDragEnd: (_) => _end(),
-        onHorizontalDragCancel: _end,
-        onVerticalDragStart: (d) =>
-            _handle(d.localPosition, size, start: true),
-        onVerticalDragUpdate: (d) => _handle(d.localPosition, size),
-        onVerticalDragEnd: (_) => _end(),
-        onVerticalDragCancel: _end,
-        child: CustomPaint(size: size, painter: _WheelPainter(widget.color)),
-      );
-    });
+    return LayoutBuilder(
+      builder: (context, c) {
+        final size = Size.square(c.biggest.shortestSide);
+        // DragStartBehavior.down wins the gesture arena on touch so the
+        // sheet does not scroll while dragging. Both axes do the same work.
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          dragStartBehavior: DragStartBehavior.down,
+          onHorizontalDragStart: (d) =>
+              _handle(d.localPosition, size, start: true),
+          onHorizontalDragUpdate: (d) => _handle(d.localPosition, size),
+          onHorizontalDragEnd: (_) => _end(),
+          onHorizontalDragCancel: _end,
+          onVerticalDragStart: (d) =>
+              _handle(d.localPosition, size, start: true),
+          onVerticalDragUpdate: (d) => _handle(d.localPosition, size),
+          onVerticalDragEnd: (_) => _end(),
+          onVerticalDragCancel: _end,
+          child: CustomPaint(size: size, painter: _WheelPainter(widget.color)),
+        );
+      },
+    );
   }
 }
 
@@ -821,12 +817,13 @@ class _WheelPainter extends CustomPainter {
   void _thumb(Canvas canvas, Offset o, double r, Color fill) {
     canvas.drawCircle(o, r, Paint()..color = fill);
     canvas.drawCircle(
-        o,
-        r,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 3
-          ..color = Colors.white);
+      o,
+      r,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..color = Colors.white,
+    );
     final outline = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1
@@ -872,16 +869,20 @@ class _WheelPainter extends CustomPainter {
     final ringR = g.outerR - g.ringW / 2;
     _thumb(
       canvas,
-      Offset(g.center.dx + ringR * math.cos(ang),
-          g.center.dy + ringR * math.sin(ang)),
+      Offset(
+        g.center.dx + ringR * math.cos(ang),
+        g.center.dy + ringR * math.sin(ang),
+      ),
       g.ringW / 2 - 2,
       pureHue,
     );
 
     _thumb(
       canvas,
-      Offset(rect.left + color.saturation * rect.width,
-          rect.top + (1 - color.value) * rect.height),
+      Offset(
+        rect.left + color.saturation * rect.width,
+        rect.top + (1 - color.value) * rect.height,
+      ),
       10,
       color.toColor(),
     );
@@ -929,111 +930,114 @@ class _GradientEditorState extends State<_GradientEditor> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    return LayoutBuilder(builder: (context, c) {
-      const pad = _grabRadius;
-      final barW = c.maxWidth - pad * 2;
+    return LayoutBuilder(
+      builder: (context, c) {
+        const pad = _grabRadius;
+        final barW = c.maxWidth - pad * 2;
 
-      final sorted = [...widget.stops]
-        ..sort((a, b) => a.position.compareTo(b.position));
-      final gradient = LinearGradient(
-        colors: sorted.map((s) => s.color.toColor()).toList(),
-        stops: sorted.map((s) => s.position).toList(),
-      );
+        final sorted = [...widget.stops]
+          ..sort((a, b) => a.position.compareTo(b.position));
+        final gradient = LinearGradient(
+          colors: sorted.map((s) => s.color.toColor()).toList(),
+          stops: sorted.map((s) => s.position).toList(),
+        );
 
-      final ordered = [
-        ...widget.stops.where((s) => s != widget.selected),
-        widget.selected,
-      ];
+        final ordered = [
+          ...widget.stops.where((s) => s != widget.selected),
+          widget.selected,
+        ];
 
-      _GradientStop? nearestStop(double dx) {
-        _GradientStop? best;
-        var bestDist = _grabRadius;
-        for (final s in widget.stops) {
-          final dist = (s.position * barW - dx).abs();
-          if (dist <= bestDist) {
-            bestDist = dist;
-            best = s;
+        _GradientStop? nearestStop(double dx) {
+          _GradientStop? best;
+          var bestDist = _grabRadius;
+          for (final s in widget.stops) {
+            final dist = (s.position * barW - dx).abs();
+            if (dist <= bestDist) {
+              bestDist = dist;
+              best = s;
+            }
           }
+          return best;
         }
-        return best;
-      }
 
-      return SizedBox(
-        height: _barH + _markerH + 4,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned(
-              left: pad,
-              right: pad,
-              top: 0,
-              height: _barH,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTapUp: (d) =>
-                    widget.onAdd((d.localPosition.dx / barW).clamp(0.0, 1.0)),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: gradient,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: scheme.outlineVariant),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              top: _barH + 2,
-              height: _markerH + 2,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTapUp: (d) {
-                  final s = nearestStop(d.localPosition.dx - pad);
-                  if (s != null) widget.onSelect(s);
-                },
-                onHorizontalDragStart: (d) {
-                  final s = nearestStop(d.localPosition.dx - pad);
-                  if (s == null) {
-                    _dragging = null;
-                    return;
-                  }
-                  _dragging = s;
-                  widget.onSelect(s);
-                  _dragStartX = d.localPosition.dx;
-                  _dragStartPos = s.position;
-                },
-                onHorizontalDragUpdate: (d) {
-                  final target = _dragging;
-                  if (target == null) return;
-                  final p = _dragStartPos +
-                      (d.localPosition.dx - _dragStartX) / barW;
-                  widget.onMove(target, p.clamp(0.0, 1.0));
-                },
-                onHorizontalDragEnd: (_) => _dragging = null,
-                onHorizontalDragCancel: () => _dragging = null,
-              ),
-            ),
-            for (final s in ordered)
+        return SizedBox(
+          height: _barH + _markerH + 4,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
               Positioned(
-                left: pad + s.position * barW - _markerW / 2,
-                top: _barH + 2,
-                width: _markerW,
-                height: _markerH,
-                child: IgnorePointer(
-                  child: CustomPaint(
-                    painter: _MarkerPainter(
-                      color: s.color.toColor(),
-                      selected: s == widget.selected,
-                      scheme: scheme,
+                left: pad,
+                right: pad,
+                top: 0,
+                height: _barH,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapUp: (d) =>
+                      widget.onAdd((d.localPosition.dx / barW).clamp(0.0, 1.0)),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: gradient,
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                      border: Border.all(color: scheme.outlineVariant),
                     ),
                   ),
                 ),
               ),
-          ],
-        ),
-      );
-    });
+              Positioned(
+                left: 0,
+                right: 0,
+                top: _barH + 2,
+                height: _markerH + 2,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapUp: (d) {
+                    final s = nearestStop(d.localPosition.dx - pad);
+                    if (s != null) widget.onSelect(s);
+                  },
+                  onHorizontalDragStart: (d) {
+                    final s = nearestStop(d.localPosition.dx - pad);
+                    if (s == null) {
+                      _dragging = null;
+                      return;
+                    }
+                    _dragging = s;
+                    widget.onSelect(s);
+                    _dragStartX = d.localPosition.dx;
+                    _dragStartPos = s.position;
+                  },
+                  onHorizontalDragUpdate: (d) {
+                    final target = _dragging;
+                    if (target == null) return;
+                    final p =
+                        _dragStartPos +
+                        (d.localPosition.dx - _dragStartX) / barW;
+                    widget.onMove(target, p.clamp(0.0, 1.0));
+                  },
+                  onHorizontalDragEnd: (_) => _dragging = null,
+                  onHorizontalDragCancel: () => _dragging = null,
+                ),
+              ),
+              for (final s in ordered)
+                Positioned(
+                  left: pad + s.position * barW - _markerW / 2,
+                  top: _barH + 2,
+                  width: _markerW,
+                  height: _markerH,
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      painter: _MarkerPainter(
+                        color: s.color.toColor(),
+                        selected: s == widget.selected,
+                        scheme: scheme,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -1091,7 +1095,5 @@ class _MarkerPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_MarkerPainter old) =>
-      old.color != color ||
-      old.selected != selected ||
-      old.scheme != scheme;
+      old.color != color || old.selected != selected || old.scheme != scheme;
 }
