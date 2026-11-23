@@ -7,6 +7,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/plugins/activity_controller.dart';
 import 'package:novyse/core/plugins/bridge/bridge_factory.dart';
+import 'package:novyse/core/plugins/bridge/bridge_protocol.dart';
 import 'package:novyse/core/plugins/bridge/plugin_bridge.dart';
 import 'package:novyse/core/plugins/models/activity_event.dart';
 import 'package:novyse/core/plugins/models/activity_instance.dart';
@@ -312,20 +313,24 @@ class _ActivityTileState extends ConsumerState<ActivityTile>
     final bridge = _bridge;
     if (bridge == null) return;
 
-    final readOnly = ref.read(activityControllerProvider).readOnly;
-    final key = '${widget.isPinned}|${widget.isFullScreen}|$readOnly';
+    final payload = _controlsPayload();
+    final key = payload.values.join('|');
 
     if (key == _controlsKey) return;
 
     _controlsKey = key;
+    unawaited(bridge.emit('activity:controls', payload));
+  }
 
-    unawaited(
-      bridge.emit('activity:controls', {
-        'pinned': widget.isPinned,
-        'fullscreen': widget.isFullScreen,
-        'closable': !readOnly,
-      }),
-    );
+  /// The chrome of this tile: pin, fullscreen and whether it can be closed.
+  Map<String, Object> _controlsPayload() {
+    final readOnly = ref.read(activityControllerProvider).readOnly;
+
+    return {
+      'pinned': widget.isPinned,
+      'fullscreen': widget.isFullScreen,
+      'closable': !readOnly,
+    };
   }
 
   /// The room asked the native player of this activity to follow it.
@@ -433,9 +438,24 @@ class _ActivityTileState extends ConsumerState<ActivityTile>
 
       bridge = createPluginBridge(
         instanceId: instance.instanceId,
-        onRequest: (request) => ref
-            .read(activityControllerProvider.notifier)
-            .handleRequest(instance.instanceId, request),
+        onRequest: (request) async {
+          final reply = await ref
+              .read(activityControllerProvider.notifier)
+              .handleRequest(instance.instanceId, request);
+
+          if (request.method != 'init' || !reply.ok) return reply;
+
+          final result = reply.result;
+          if (result is! Map) return reply;
+
+          // The controller answers the snapshot, this card knows the chrome:
+          // a plugin that remounts (pin, fullscreen) has to draw the right
+          // buttons on its first frame, not one event later.
+          return BridgeReply.success(request.id, {
+            ...Map<String, Object?>.from(result),
+            'controls': _controlsPayload(),
+          });
+        },
       );
 
       debugPrint(
