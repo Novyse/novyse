@@ -7,6 +7,7 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/settings/settings_select_row.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 /// Glyph picker: persists the choice and applies the native alias / desktop icon.
 class AppIconGlyphList extends ConsumerWidget {
@@ -120,7 +121,7 @@ class _GlyphOptionRow extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return SettingsSelectRow(
       leading: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         clipBehavior: Clip.antiAlias,
         child: ColoredBox(
           // Desktop cutouts are transparent — give them a plate so the "N"

@@ -4,6 +4,7 @@ import 'package:novyse/core/services/auth.dart' as auth_service;
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/settings/settings_page_template.dart';
 import 'package:novyse/ui/components/settings/settings_section.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 /// Password settings page with only the new-password form.
 class PasswordPage extends StatefulWidget {
@@ -93,7 +94,7 @@ class _PasswordPageState extends State<PasswordPage> {
                         color: _error == null
                             ? colors.primaryContainer
                             : colors.errorContainer,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                       child: Text(_error ?? _success!),
                     ),

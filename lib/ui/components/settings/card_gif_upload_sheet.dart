@@ -12,6 +12,7 @@ import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 typedef CardGifPicker = Future<PickedFileAsset?> Function();
 
@@ -64,10 +65,7 @@ class _CardGifUploadSheetState extends ConsumerState<CardGifUploadSheet> {
 
   bool get _canUpload {
     final file = _file;
-    if (file == null ||
-        _uploading ||
-        _removing ||
-        _validationError != null) {
+    if (file == null || _uploading || _removing || _validationError != null) {
       return false;
     }
     final bytes = file.bytes;
@@ -110,7 +108,8 @@ class _CardGifUploadSheetState extends ConsumerState<CardGifUploadSheet> {
 
     String? error;
     if (validation.hasErrors) {
-      error = validation.globalError ??
+      error =
+          validation.globalError ??
           validation.invalidFilesData.first.errors.first;
     } else if (!_isGif(name: picked.name, mime: mime, bytes: bytes)) {
       error = context.l10n.settingsCardGifNotGifError;
@@ -175,9 +174,7 @@ class _CardGifUploadSheetState extends ConsumerState<CardGifUploadSheet> {
 
   Future<bool> _removeWithService() {
     final userUUID = ref.read(userStoreProvider).localUserUUID;
-    return ProfilePictureService.instance.removeCardPicture(
-      userUUID: userUUID,
-    );
+    return ProfilePictureService.instance.removeCardPicture(userUUID: userUUID);
   }
 
   @override
@@ -276,7 +273,7 @@ class _GifPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       child: AspectRatio(
         aspectRatio: 17 / 10,
         child: ColoredBox(
@@ -313,7 +310,7 @@ class _CurrentCardGif extends StatelessWidget {
     }
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       child: AspectRatio(
         aspectRatio: 17 / 10,
         child: ColoredBox(

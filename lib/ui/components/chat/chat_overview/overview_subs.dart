@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 class OverviewSubSection extends StatelessWidget {
   const OverviewSubSection({
@@ -80,7 +81,7 @@ class OverviewSubRow extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(

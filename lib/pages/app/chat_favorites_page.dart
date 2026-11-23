@@ -12,6 +12,7 @@ import 'package:novyse/core/stores/favorite_messages_store.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/ui/components/chat/chat_favorites/chat_favorites_app_bar.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 /// Favorites (Preferiti / Favorite messages) for a single chat.
 ///
@@ -117,7 +118,12 @@ class _ChatFavoritesPageState extends ConsumerState<ChatFavoritesPage> {
                     .read(favoriteMessagesProvider(widget.chatUUID).notifier)
                     .reload(),
                 child: ListView.separated(
-                  padding: EdgeInsets.fromLTRB(12, topInset + 74 + 12, 12, bottomInset),
+                  padding: EdgeInsets.fromLTRB(
+                    12,
+                    topInset + 74 + 12,
+                    12,
+                    bottomInset,
+                  ),
                   itemCount: state.favorites.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
@@ -177,7 +183,7 @@ class _FavoriteRow extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(color: colorScheme.outline.withValues(alpha: 0.15)),
       ),
       child: ListTile(

@@ -7,6 +7,7 @@ import 'package:novyse/core/storage/file/uri_resolver.dart';
 import 'package:novyse/core/utils/media_kit_initializer.dart';
 import 'package:novyse/ui/components/chat/media/chat_media_viewer.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 class MessageVideo extends StatefulWidget {
   const MessageVideo({
@@ -287,7 +288,7 @@ class _MessageVideoState extends State<MessageVideo> {
       width: _boxWidth(context),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: AspectRatio(aspectRatio: _effectiveAspect, child: content),
     );
@@ -315,7 +316,7 @@ class _MessageVideoState extends State<MessageVideo> {
       width: _boxWidth(context),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: AspectRatio(aspectRatio: _effectiveAspect, child: indicator),
     );
@@ -342,7 +343,7 @@ class _MessageVideoState extends State<MessageVideo> {
       width: _boxWidth(context),
       decoration: BoxDecoration(
         color: theme.colorScheme.errorContainer,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: AspectRatio(
         aspectRatio: _effectiveAspect,

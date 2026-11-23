@@ -6,6 +6,7 @@ import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 import 'overview_rows.dart';
 
@@ -89,7 +90,7 @@ class OverviewMemberRow extends StatelessWidget {
 
     return InkWell(
       onTap: () => _showMemberDialog(context, user, member),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(

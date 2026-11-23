@@ -62,7 +62,7 @@ class SecurityListCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: (active ? colors.primary : colors.onSurfaceVariant)
                         .withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   alignment: Alignment.center,
                   child: AppHugeIcon(

@@ -5,6 +5,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:novyse/core/comms/comms_share_config.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 /// Lightweight capture config used only for the preview (not the real share).
 const _previewConfig = ScreenShareConfig(
@@ -234,7 +235,7 @@ class _ScreenShareSourcePreviewState extends State<ScreenShareSourcePreview> {
         Container(
           height: widget.height,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             border: Border.all(
               color: colorScheme.outline.withValues(alpha: 0.12),
             ),

@@ -11,6 +11,7 @@ import 'package:novyse/core/plugins/models/plugin_entry.dart';
 import 'package:novyse/core/plugins/plugin_exception.dart';
 import 'package:novyse/core/plugins/ui/plugin_detail_sheet.dart';
 import 'package:novyse/core/services/api_gateway.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 
@@ -157,15 +158,14 @@ class _PluginStoreSheetState extends ConsumerState<PluginStoreSheet> {
               : GridView.builder(
                   shrinkWrap: true,
                   padding: EdgeInsets.zero,
-                  gridDelegate:
-                      const SliverGridDelegateWithMaxCrossAxisExtent(
-                        // On a full HD display the sheet is 1040 wide, which
-                        // is four of these; anything narrower drops a column.
-                        maxCrossAxisExtent: 260,
-                        mainAxisExtent: 206,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                      ),
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    // On a full HD display the sheet is 1040 wide, which
+                    // is four of these; anything narrower drops a column.
+                    maxCrossAxisExtent: 260,
+                    mainAxisExtent: 206,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
                   itemCount: visible.length,
                   itemBuilder: (context, index) {
                     final entry = visible[index];
@@ -174,10 +174,13 @@ class _PluginStoreSheetState extends ConsumerState<PluginStoreSheet> {
                       entry: entry,
                       isStarting: _startingSlug == entry.slug,
                       isBlocked: readOnly || isFull || _startingSlug != null,
-                      isIncompatible: !entry.isCompatibleWith(config.appVersion),
+                      isIncompatible: !entry.isCompatibleWith(
+                        config.appVersion,
+                      ),
                       onStart: () => unawaited(_start(entry)),
-                      onInfo: () =>
-                          unawaited(PluginDetailSheet.show(context, entry: entry)),
+                      onInfo: () => unawaited(
+                        PluginDetailSheet.show(context, entry: entry),
+                      ),
                     );
                   },
                 ),
@@ -189,8 +192,10 @@ class _PluginStoreSheetState extends ConsumerState<PluginStoreSheet> {
   Widget _searchField(BuildContext context, AppLocalizations l10n) {
     final scheme = Theme.of(context).colorScheme;
     final idle = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      borderSide: BorderSide(
+        color: scheme.outlineVariant.withValues(alpha: 0.5),
+      ),
     );
 
     return Padding(
@@ -232,8 +237,10 @@ class _PluginStoreSheetState extends ConsumerState<PluginStoreSheet> {
           border: idle,
           enabledBorder: idle,
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: scheme.primary.withValues(alpha: 0.6)),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderSide: BorderSide(
+              color: scheme.primary.withValues(alpha: 0.6),
+            ),
           ),
         ),
       ),
@@ -453,11 +460,7 @@ class _PluginCard extends StatelessWidget {
           Positioned(
             top: _bannerHeight - _logoSize / 2,
             left: 12,
-            child: PluginLogo(
-              entry: entry,
-              size: _logoSize,
-              bordered: true,
-            ),
+            child: PluginLogo(entry: entry, size: _logoSize, bordered: true),
           ),
         ],
       ),

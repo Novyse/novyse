@@ -16,6 +16,7 @@ import 'package:novyse/ui/components/comms/screen_share_source_thumbnail.dart';
 import 'package:novyse/ui/components/comms/screen_share_thumbnails.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/switch/segmented_switch.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 /// Result of the mandatory screen-share setup menu.
 class ScreenShareSetupResult {
@@ -563,7 +564,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
         Container(
           height: 260,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             border: Border.all(
               color: colorScheme.outline.withValues(alpha: 0.12),
             ),

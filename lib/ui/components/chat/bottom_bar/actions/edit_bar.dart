@@ -7,6 +7,7 @@ import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
 import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 class EditBar extends ConsumerWidget {
   const EditBar({super.key, required this.chatUUID});
@@ -100,7 +101,7 @@ class EditBar extends ConsumerWidget {
               ),
               InkWell(
                 onTap: handleCancelEdit,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 child: Padding(
                   padding: const EdgeInsets.all(4),
                   child: AppHugeIcon(

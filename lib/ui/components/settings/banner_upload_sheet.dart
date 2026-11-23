@@ -16,6 +16,7 @@ import 'package:novyse/ui/components/profile/profile_card.dart';
 import 'package:novyse/core/utils/profile_gradient_ui.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:novyse/ui/components/status/status_message.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 typedef BannerImagePicker = Future<PickedFileAsset?> Function();
 
@@ -332,7 +333,7 @@ class _CurrentBanner extends StatelessWidget {
       aspectRatio: kProfileBannerAspectRatio,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           gradient: color != null && color.stops.isNotEmpty
               ? linearGradientFromProfileGradient(color)
               : null,
@@ -341,7 +342,7 @@ class _CurrentBanner extends StatelessWidget {
               : Colors.transparent,
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           child: provider == null
               ? const SizedBox.shrink()
               : Image(

@@ -9,6 +9,7 @@ import 'package:novyse/ui/components/chat/emoji_menu/emoji/emoji_repository.dart
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:unicode_emojis/unicode_emojis.dart' as ue;
+import 'package:novyse/core/themes/themes.dart';
 
 /// Single scrollable emoji list: recents + nine categories, with search.
 ///
@@ -213,7 +214,7 @@ class _EmojiSectionListState extends ConsumerState<EmojiSectionList> {
         children: [
           for (final v in variants)
             InkWell(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               onTap: () =>
                   Navigator.of(context, rootNavigator: true).pop(v.emoji),
               child: Padding(

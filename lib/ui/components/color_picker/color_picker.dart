@@ -385,7 +385,7 @@ class _ColorPickerState extends State<ColorPicker> {
                   height: 72,
                   decoration: BoxDecoration(
                     color: active.toColor(),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                     border: Border.all(color: scheme.outlineVariant),
                   ),
                 )

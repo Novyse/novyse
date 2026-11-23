@@ -255,7 +255,7 @@ class _StatusMessageState extends State<StatusMessage>
                       if (widget.closable)
                         InkWell(
                           onTap: _handleClose,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                           child: Padding(
                             padding: const EdgeInsets.all(4),
                             child: AppHugeIcon(

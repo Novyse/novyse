@@ -6,6 +6,7 @@ import 'package:novyse/core/storage/file/file_type.dart';
 import 'package:novyse/core/stores/message_store.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 import 'overview_collectors.dart';
 
@@ -33,12 +34,12 @@ class OverviewFileRow extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(color: colorScheme.outline.withValues(alpha: 0.15)),
       ),
       child: Material(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         clipBehavior: Clip.antiAlias,
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(
@@ -94,12 +95,12 @@ class OverviewLinkRow extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(color: colorScheme.outline.withValues(alpha: 0.15)),
       ),
       child: Material(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         clipBehavior: Clip.antiAlias,
         child: ListTile(
           leading: Container(

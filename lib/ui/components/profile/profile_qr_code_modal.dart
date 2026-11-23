@@ -8,7 +8,7 @@ import 'package:novyse/ui/components/avatar/avatar.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:qr/qr.dart';
-
+import 'package:novyse/core/themes/themes.dart';
 
 Future<void> showProfileQrCodeModal(
   BuildContext context, {
@@ -104,11 +104,11 @@ class _ProfileQrCodeBodyState extends State<_ProfileQrCodeBody> {
         const SizedBox(height: 16),
         InkWell(
           onTap: _copyLink,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               border: Border.all(color: scheme.outlineVariant),
             ),
             child: Row(
@@ -138,7 +138,6 @@ class _ProfileQrCodeBodyState extends State<_ProfileQrCodeBody> {
   }
 }
 
-
 List<List<bool>> _buildMatrix(String data) {
   final code = QrCode(payload: QrPayload.fromString(data));
   final image = QrImage(code);
@@ -148,7 +147,6 @@ List<List<bool>> _buildMatrix(String data) {
     (row) => List.generate(count, (col) => image.isDark(row, col)),
   );
 }
-
 
 class _QrCodePainter extends CustomPainter {
   _QrCodePainter({required this.matrix, required this.gradient});
@@ -161,8 +159,7 @@ class _QrCodePainter extends CustomPainter {
     if (matrix.isEmpty) return;
     final count = matrix.length;
     final cell = size.width / count;
-    final paint = Paint()
-      ..shader = gradient.createShader(Offset.zero & size);
+    final paint = Paint()..shader = gradient.createShader(Offset.zero & size);
     for (var y = 0; y < count; y++) {
       for (var x = 0; x < count; x++) {
         if (matrix[y][x]) {

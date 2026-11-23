@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/chat/message_format.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 /// Displays a GIF message with tap-to-zoom viewer.
 class MessageGif extends StatefulWidget {
@@ -62,7 +63,7 @@ class _MessageGifState extends State<MessageGif> {
     return GestureDetector(
       onTap: () => _openViewer(context, mediaUrl),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: SizedBox(
           width: width,
           height: height,
