@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/emoji/emoji_content.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/emoji_menu_tab.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_models.dart';
@@ -94,7 +95,7 @@ class _EmojiMenuPanelState extends ConsumerState<EmojiMenuPanel> {
       height: widget.height,
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
@@ -110,7 +111,6 @@ class _EmojiMenuPanelState extends ConsumerState<EmojiMenuPanel> {
     );
   }
 }
-
 
 class EmojiMenuOverlay extends StatelessWidget {
   const EmojiMenuOverlay({

@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/avatar/avatar.dart';
 
 /// Interactive reaction pill displayed underneath messages and system messages.
@@ -40,7 +41,7 @@ class ReactionPill extends ConsumerWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
@@ -48,7 +49,7 @@ class ReactionPill extends ConsumerWidget {
             color: hasReacted
                 ? colorScheme.primary.withValues(alpha: 0.18)
                 : colorScheme.surfaceContainerHighest.withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(
               color: hasReacted
                   ? colorScheme.primary.withValues(alpha: 0.6)

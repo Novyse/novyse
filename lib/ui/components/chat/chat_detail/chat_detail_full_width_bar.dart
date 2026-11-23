@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 class ChatDetailFullWidthBar extends StatelessWidget {
   const ChatDetailFullWidthBar({super.key, this.text = 'Testo di prova'});
@@ -11,7 +12,7 @@ class ChatDetailFullWidthBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
+      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
@@ -19,7 +20,7 @@ class ChatDetailFullWidthBar extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: scheme.surface.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(color: scheme.outline.withValues(alpha: 0.25)),
           ),
           child: Text(

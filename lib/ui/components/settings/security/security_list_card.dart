@@ -100,7 +100,7 @@ class SecurityListCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: colors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
                     ),
                     child: Text(
                       currentLabel ?? '',

@@ -115,14 +115,14 @@ class SubList extends ConsumerWidget {
     return Padding(
       padding: EdgeInsets.only(top: effectiveTopPadding, left: 10, bottom: 10),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
           child: Container(
             width: width,
             decoration: BoxDecoration(
               color: colorScheme.surface.withValues(alpha: 0.55),
-              borderRadius: BorderRadius.circular(25),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
               border: Border.all(
                 color: colorScheme.outline.withValues(alpha: 0.2),
               ),
@@ -174,11 +174,11 @@ class SubList extends ConsumerWidget {
                     if (isCollapsed) {
                       return InkWell(
                         onTap: () => _onSubTap(context, ref, sub),
-                        borderRadius: BorderRadius.circular(25),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                         child: Container(
                           decoration: BoxDecoration(
                             color: selectedBackground,
-                            borderRadius: BorderRadius.circular(25),
+                            borderRadius: BorderRadius.circular(AppRadius.lg),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: Center(child: avatar),

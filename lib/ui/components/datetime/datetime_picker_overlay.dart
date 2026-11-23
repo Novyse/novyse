@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart' as intl;
-
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/datetime/datetime_picker.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
@@ -97,10 +97,9 @@ class _DatetimePickerOverlayBodyState
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(
-                alpha: 0.10,
-              ),
-              borderRadius: BorderRadius.circular(20),
+              color: Theme.of(context).colorScheme.primary
+                  .withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
             child: Text(
               preview,
@@ -134,10 +133,8 @@ class _DatetimePickerOverlayBodyState
             Expanded(
               child: AppButton(
                 label: widget.confirmLabel,
-                onPressed: () => Navigator.of(
-                  context,
-                  rootNavigator: true,
-                ).pop(_current),
+                onPressed: () =>
+                    Navigator.of(context, rootNavigator: true).pop(_current),
               ),
             ),
           ],

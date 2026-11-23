@@ -273,7 +273,7 @@ class _EmojiSectionListState extends ConsumerState<EmojiSectionList> {
           filled: true,
           fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
             borderSide: BorderSide.none,
           ),
           contentPadding: const EdgeInsets.symmetric(

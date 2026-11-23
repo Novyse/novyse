@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/emoji/emoji_recents_store.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/emoji/emoji_section_list.dart';
 
@@ -98,7 +99,7 @@ class _QuickEmojiRow extends ConsumerWidget {
       children: [
         for (final emoji in displayed)
           InkWell(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
             onTap: () => onSelect(emoji),
             child: Padding(
               padding: const EdgeInsets.all(6),

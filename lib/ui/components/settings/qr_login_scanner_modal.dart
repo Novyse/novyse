@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:novyse/core/auth/qr_login_scanner.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/core/utils/platform.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:novyse/ui/components/floating/floating_style.dart';
@@ -429,7 +430,7 @@ class _ScannerStatusCard extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: Column(

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_grid.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_models.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_provider.dart';
@@ -190,7 +191,7 @@ class _GifPickerState extends ConsumerState<GifPicker> {
                 alpha: 0.6,
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 borderSide: BorderSide.none,
               ),
               contentPadding: const EdgeInsets.symmetric(
