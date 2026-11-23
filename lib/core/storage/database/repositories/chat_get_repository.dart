@@ -53,6 +53,7 @@ class ChatGetRepository {
         'SELECT * FROM edited_message t WHERE t.chatUUID IN (%IN%);',
       );
       final unreadByChat = await _loadUnreadCounts(chatUUIDs, localUserUUID);
+      final pinPositionByChat = await _loadPinPositions();
 
       final lastByChat = <String, Map<String, dynamic>>{};
       final lastBySub = <String, Map<int, Map<String, dynamic>>>{};
@@ -77,6 +78,7 @@ class ChatGetRepository {
         final chatUUID = chat['uuid'] as String;
 
         chat['unreadCount'] = unreadByChat[chatUUID] ?? 0;
+        chat['pinPosition'] = pinPositionByChat[chatUUID];
         chat['lastMessage'] = lastByChat[chatUUID];
         chat['members'] = membersByChat[chatUUID] ?? <Map<String, dynamic>>[];
         if (hasHandles) {
@@ -107,6 +109,16 @@ class ChatGetRepository {
       debugPrint('Error getting chats: $e');
       return <Map<String, dynamic>>[];
     }
+  }
+
+  /// Position of every pinned chat, used to sort the chat list on launch.
+  Future<Map<String, int>> _loadPinPositions() async {
+    final positions = <String, int>{};
+    final rows = await _db.rawQuery('SELECT chatUUID, position FROM chat_pin;');
+    for (final row in rows) {
+      positions[row['chatUUID'] as String] = (row['position'] as num).toInt();
+    }
+    return positions;
   }
 
   /// Members of every chat, in the same shape [MemberGetByRepository] returns.

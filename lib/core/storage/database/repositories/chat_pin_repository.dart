@@ -9,17 +9,15 @@ class ChatPinRepository {
   Future<bool> add(String chatUUID, int position) async {
     try {
       if (chatUUID.isEmpty) return false;
-      await _db().execute('DELETE FROM chat_pin WHERE chatUUID = ?;', [
-        chatUUID,
-      ]);
-      await _db().execute(
-        'UPDATE chat_pin SET position = position + 1 WHERE position >= ?;',
-        [position],
-      );
-      await _db().execute(
-        'INSERT INTO chat_pin (chatUUID, position) VALUES (?, ?);',
-        [chatUUID, position],
-      );
+
+      final order = await _readOrder();
+      order.remove(chatUUID);
+      final index = position < 0
+          ? 0
+          : (position > order.length ? order.length : position);
+      order.insert(index, chatUUID);
+      await _writeOrder(order);
+
       return true;
     } catch (e) {
       debugPrint('Error pinning chat: $e');
@@ -30,20 +28,11 @@ class ChatPinRepository {
   Future<bool> remove(String chatUUID) async {
     try {
       if (chatUUID.isEmpty) return false;
-      final rows = await _db().rawQuery(
-        'SELECT position FROM chat_pin WHERE chatUUID = ? LIMIT 1;',
-        [chatUUID],
-      );
-      if (rows.isNotEmpty) {
-        final pos = (rows.first['position'] as num).toInt();
-        await _db().execute('DELETE FROM chat_pin WHERE chatUUID = ?;', [
-          chatUUID,
-        ]);
-        await _db().execute(
-          'UPDATE chat_pin SET position = position - 1 WHERE position > ?;',
-          [pos],
-        );
-      }
+
+      final order = await _readOrder();
+      if (!order.remove(chatUUID)) return true;
+      await _writeOrder(order);
+
       return true;
     } catch (e) {
       debugPrint('Error unpinning chat: $e');
@@ -61,5 +50,24 @@ class ChatPinRepository {
       debugPrint('Error getting pinned chats: $e');
       return [];
     }
+  }
+
+  /// The pinned chats in display order.
+  Future<List<String>> _readOrder() async {
+    final rows = await _db().rawQuery(
+      'SELECT chatUUID FROM chat_pin ORDER BY position ASC, chatUUID ASC;',
+    );
+    return [for (final row in rows) row['chatUUID'] as String];
+  }
+
+  /// Rewrites the pins so that the positions are contiguous and follow
+  /// [order], exactly like the normalization of the backend.
+  Future<void> _writeOrder(List<String> order) async {
+    final batch = _db().batch();
+    batch.delete('chat_pin');
+    for (var index = 0; index < order.length; index++) {
+      batch.insert('chat_pin', {'chatUUID': order[index], 'position': index});
+    }
+    await batch.commit(noResult: true);
   }
 }

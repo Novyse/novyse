@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/events/event_bus.dart';
 import 'package:novyse/core/events/events.dart';
+import 'package:novyse/core/events/global_event_emitter.dart';
+import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/storage/database/database.dart';
 import 'package:novyse/core/stores/user_store.dart';
 
@@ -120,6 +122,7 @@ class ChatModel {
     Map<String, dynamic>? lastMessage,
     bool clearLastMessage = false,
     int? pinPosition,
+    bool clearPinPosition = false,
     DateTime? createdAt,
   }) {
     return ChatModel(
@@ -134,7 +137,7 @@ class ChatModel {
       roles: roles ?? this.roles,
       pinnedMessages: pinnedMessages ?? this.pinnedMessages,
       lastMessage: clearLastMessage ? null : (lastMessage ?? this.lastMessage),
-      pinPosition: pinPosition ?? this.pinPosition,
+      pinPosition: clearPinPosition ? null : (pinPosition ?? this.pinPosition),
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -478,46 +481,123 @@ class ChatListNotifier extends Notifier<ChatListState> {
     state = state.copyWith(chats: updated);
   }
 
+  /// Applies a pin/unpin update received from the API or the realtime channel.
+  ///
+  /// The positions are rewritten from the resulting order, so moving a chat
+  /// already pinned, or receiving an event twice (optimistic update followed by
+  /// the server confirmation), never shifts the other chats twice.
   void onUserChatSettingUpdate(
     String chatUUID,
     String action,
     Map<String, dynamic> data,
   ) {
-    if (action == 'pin_add') {
-      final position = (data['position'] ?? 0) as int;
-      final updated = state.chats.map((chat) {
-        if (chat.uuid == chatUUID) {
-          return chat.copyWith(pinPosition: position);
-        }
-        return chat;
-      }).toList();
+    if (action != 'pin_add' && action != 'pin_remove') return;
 
-      _sortChats(updated);
-      state = state.copyWith(chats: updated);
-    } else if (action == 'pin_remove') {
-      final updated = state.chats.map((chat) {
-        if (chat.uuid == chatUUID) {
-          return ChatModel(
-            uuid: chat.uuid,
-            name: chat.name,
-            type: chat.type,
-            profilePictureUUID: chat.profilePictureUUID,
-            handle: chat.handle,
-            unreadCount: chat.unreadCount,
-            members: chat.members,
-            subs: chat.subs,
-            roles: chat.roles,
-            pinnedMessages: chat.pinnedMessages,
-            lastMessage: chat.lastMessage,
-            pinPosition: null,
-            createdAt: chat.createdAt,
+    final updated = List<ChatModel>.from(state.chats);
+    final pinned = <({String uuid, int position})>[
+      for (final chat in updated)
+        if (chat.pinPosition != null)
+          (uuid: chat.uuid, position: chat.pinPosition!),
+    ]..sort((a, b) => a.position.compareTo(b.position));
+    final order = [for (final pin in pinned) pin.uuid];
+
+    if (action == 'pin_add') {
+      final position = (data['position'] as num?)?.toInt() ?? 0;
+      final currentPin = pinned
+          .where((pin) => pin.uuid == chatUUID)
+          .firstOrNull;
+      if (currentPin != null && currentPin.position == position) return;
+
+      order.remove(chatUUID);
+      final index = position < 0
+          ? 0
+          : (position > order.length ? order.length : position);
+      order.insert(index, chatUUID);
+    } else if (!order.remove(chatUUID)) {
+      return;
+    }
+
+    final positions = {
+      for (var index = 0; index < order.length; index++) order[index]: index,
+    };
+
+    for (var index = 0; index < updated.length; index++) {
+      final chat = updated[index];
+      final position = positions[chat.uuid];
+      if (position == null) {
+        if (chat.pinPosition != null) {
+          updated[index] = chat.copyWith(clearPinPosition: true);
+        }
+      } else if (chat.pinPosition != position) {
+        updated[index] = chat.copyWith(pinPosition: position);
+      }
+    }
+
+    _sortChats(updated);
+    state = state.copyWith(chats: updated);
+  }
+
+  /// Pins [chatUUIDs] at the top of the pinned list, preserving their order.
+  ///
+  /// The local state is updated before the request, so the list reacts
+  /// immediately; the position confirmed by the server is applied afterwards.
+  Future<void> pinChats(Iterable<String> chatUUIDs) async {
+    final gateway = ref.read(apiGatewayProvider);
+    final emitter = ref.read(globalEventEmitterProvider);
+    var position = 0;
+
+    for (final chatUUID in chatUUIDs) {
+      final chat = state.chats
+          .where((candidate) => candidate.uuid == chatUUID)
+          .firstOrNull;
+      if (chat == null || chat.isPinned) continue;
+
+      await emitter.user.setting.chat.update(chatUUID, 'pin_add', null, {
+        'position': position,
+      });
+
+      try {
+        final response = await gateway.chat.pin.add(chatUUID, position);
+        final confirmed = response.position;
+        if (response.success && confirmed != null && confirmed != position) {
+          await emitter.user.setting.chat.update(
+            chatUUID,
+            'pin_add',
+            response.userEventID,
+            {'position': confirmed},
           );
         }
-        return chat;
-      }).toList();
+      } catch (e) {
+        debugPrint('ChatListStore pin error: $e');
+      }
 
-      _sortChats(updated);
-      state = state.copyWith(chats: updated);
+      position++;
+    }
+  }
+
+  /// Unpins [chatUUIDs], updating the local state before the request.
+  Future<void> unpinChats(Iterable<String> chatUUIDs) async {
+    final gateway = ref.read(apiGatewayProvider);
+    final emitter = ref.read(globalEventEmitterProvider);
+
+    for (final chatUUID in chatUUIDs) {
+      final chat = state.chats
+          .where((candidate) => candidate.uuid == chatUUID)
+          .firstOrNull;
+      if (chat == null || !chat.isPinned) continue;
+
+      await emitter.user.setting.chat.update(
+        chatUUID,
+        'pin_remove',
+        null,
+        <String, dynamic>{},
+      );
+
+      try {
+        await gateway.chat.pin.remove(chatUUID);
+      } catch (e) {
+        debugPrint('ChatListStore unpin error: $e');
+      }
     }
   }
 
@@ -587,7 +667,8 @@ class ChatListNotifier extends Notifier<ChatListState> {
     int messageId,
   ) async {
     final chat = state.chats.where((c) => c.uuid == chatUUID).firstOrNull;
-    if (chat == null || !_isPreviewMessage(chat.lastMessage, subID, messageId)) {
+    if (chat == null ||
+        !_isPreviewMessage(chat.lastMessage, subID, messageId)) {
       return;
     }
 

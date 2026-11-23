@@ -84,7 +84,6 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     });
   }
 
-
   void _enterSelection(String chatUUID) {
     if (_searching) return;
     if (chatUUID.isEmpty) return;
@@ -93,7 +92,6 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
       _selectedChatUUIDs.add(chatUUID);
     });
   }
-
 
   void _toggleSelection(String chatUUID) {
     if (chatUUID.isEmpty) return;
@@ -113,14 +111,105 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     });
   }
 
-
-  Future<void> _showChatContextMenu(Offset globalPosition) async {
+  Future<void> _showChatContextMenu(
+    String chatUUID,
+    Offset globalPosition,
+  ) async {
     if (_selecting) return;
+    final chat = ref
+        .read(chatListProvider)
+        .chats
+        .where((candidate) => candidate.uuid == chatUUID)
+        .firstOrNull;
+    if (chat == null) return;
+
     await showChatListContextMenu(
       context: context,
       anchor: globalPosition,
-      onPin: () {},
+      isPinned: chat.isPinned,
+      onTogglePin: () => _togglePin(chatUUID),
     );
+  }
+
+  Future<void> _togglePin(String chatUUID) async {
+    final notifier = ref.read(chatListProvider.notifier);
+    final chat = ref
+        .read(chatListProvider)
+        .chats
+        .where((candidate) => candidate.uuid == chatUUID)
+        .firstOrNull;
+    if (chat == null) return;
+
+    if (chat.isPinned) {
+      await notifier.unpinChats([chatUUID]);
+    } else {
+      await notifier.pinChats([chatUUID]);
+    }
+  }
+
+  /// Pins the selected chats that are not pinned yet, preserving the selection
+  /// order at the top of the pinned list.
+  Future<void> _pinSelected() async {
+    final selected = List<String>.from(_selectedChatUUIDs);
+    final chats = ref.read(chatListProvider).chats;
+    final toPin = [
+      for (final chatUUID in selected)
+        if (chats
+                .where((candidate) => candidate.uuid == chatUUID)
+                .firstOrNull
+                ?.isPinned ==
+            false)
+          chatUUID,
+    ];
+
+    if (toPin.isNotEmpty) {
+      await ref.read(chatListProvider.notifier).pinChats(toPin);
+    }
+    if (mounted) _exitSelection();
+  }
+
+  /// True when every selected chat is pinned (unknown chats count as not
+  /// pinned), so the selection bar can show a single pin/unpin action.
+  bool _allSelectedPinned(List<ChatModel> chats) {
+    if (_selectedChatUUIDs.isEmpty) return false;
+    return _selectedChatUUIDs.every(
+      (chatUUID) =>
+          chats
+              .where((candidate) => candidate.uuid == chatUUID)
+              .firstOrNull
+              ?.isPinned ==
+          true,
+    );
+  }
+
+  /// Single selection-bar action: unpins when the whole selection is pinned,
+  /// otherwise pins the chats that are not pinned yet.
+  Future<void> _togglePinSelected() async {
+    if (_allSelectedPinned(ref.read(chatListProvider).chats)) {
+      await _unpinSelected();
+    } else {
+      await _pinSelected();
+    }
+  }
+
+  /// Unpins the selected chats that are pinned.
+  Future<void> _unpinSelected() async {
+    final selected = List<String>.from(_selectedChatUUIDs);
+    final chats = ref.read(chatListProvider).chats;
+    final toUnpin = [
+      for (final chatUUID in selected)
+        if (chats
+                .where((candidate) => candidate.uuid == chatUUID)
+                .firstOrNull
+                ?.isPinned ==
+            true)
+          chatUUID,
+    ];
+
+    if (toUnpin.isNotEmpty) {
+      await ref.read(chatListProvider.notifier).unpinChats(toUnpin);
+    }
+    if (mounted) _exitSelection();
   }
 
   void _onQueryChanged(String value) {
@@ -323,6 +412,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     final chats = chatListState.chats;
     final colorScheme = Theme.of(context).colorScheme;
     final isFiltering = _searching && _query.trim().isNotEmpty;
+    final selectedPinned = _allSelectedPinned(chats);
 
     return PopScope(
       canPop: !_searching && !_selecting,
@@ -353,7 +443,8 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
                   selecting: _selecting,
                   selectedCount: _selectedChatUUIDs.length,
                   onCloseSelection: _exitSelection,
-                  onPinSelected: () {},
+                  selectedPinned: selectedPinned,
+                  onTogglePinSelected: _togglePinSelected,
                   footer: const Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -396,8 +487,8 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
                   selectedUUIDs: _selectedChatUUIDs,
                   onToggleSelection: _toggleSelection,
                   onEnterSelection: _enterSelection,
-                  onSecondaryTapItem: (_, position) =>
-                      _showChatContextMenu(position),
+                  onSecondaryTapItem: (chatUUID, position) =>
+                      _showChatContextMenu(chatUUID, position),
                 ),
             ],
           ],

@@ -19,8 +19,9 @@ class ChatListAppBar extends StatelessWidget {
     this.footer,
     this.selecting = false,
     this.selectedCount = 0,
+    this.selectedPinned = false,
     this.onCloseSelection,
-    this.onPinSelected,
+    this.onTogglePinSelected,
   });
 
   final bool searching;
@@ -33,8 +34,9 @@ class ChatListAppBar extends StatelessWidget {
   final Widget? footer;
   final bool selecting;
   final int selectedCount;
+  final bool selectedPinned;
   final VoidCallback? onCloseSelection;
-  final VoidCallback? onPinSelected;
+  final VoidCallback? onTogglePinSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -76,11 +78,13 @@ class ChatListAppBar extends StatelessWidget {
                     ),
                   ),
                   FloatingIconButton(
-                    icon: const AppHugeIcon(
-                      icon: HugeIcons.strokeRoundedPin02,
+                    icon: AppHugeIcon(
+                      icon: selectedPinned
+                          ? HugeIcons.strokeRoundedPinOff
+                          : HugeIcons.strokeRoundedPin02,
                     ),
-                    tooltip: l10n.pin,
-                    onPressed: onPinSelected,
+                    tooltip: selectedPinned ? l10n.unpin : l10n.pin,
+                    onPressed: onTogglePinSelected,
                   ),
                 ],
               ),
