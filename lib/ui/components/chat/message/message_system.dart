@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/core/utils/platform.dart';
 
 /// Displays system messages (date separators, join/leave notifications, etc.)
@@ -51,7 +52,7 @@ class _MessageSystemState extends State<MessageSystem> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           onTapDown: (details) => _lastTapPosition = details.globalPosition,
           onSecondaryTapDown: (details) =>
               _lastTapPosition = details.globalPosition,
@@ -71,7 +72,7 @@ class _MessageSystemState extends State<MessageSystem> {
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
             decoration: BoxDecoration(
               color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
             child: Text(
               widget.data,
@@ -97,7 +98,7 @@ class _MessageSystemState extends State<MessageSystem> {
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.7),
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         child: Text(
           widget.data,
@@ -129,7 +130,7 @@ class _MessageSystemState extends State<MessageSystem> {
                 color: colorScheme.surfaceContainerHighest.withValues(
                   alpha: 0.7,
                 ),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
               ),
               child: Text(
                 widget.data,

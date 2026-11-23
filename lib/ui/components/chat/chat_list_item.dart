@@ -130,10 +130,7 @@ class ChatListItem extends ConsumerWidget {
 
   String _formatChatTime(ChatModel chat, AppLocalizations l10n) {
     final msg = chat.lastMessage;
-    final rawTime =
-        msg?['createdAt'] ??
-        msg?['created_at'] ??
-        chat.createdAt;
+    final rawTime = msg?['createdAt'] ?? msg?['created_at'] ?? chat.createdAt;
     if (rawTime == null) return '';
     final dt = formatDateTime(rawTime);
 
@@ -187,8 +184,7 @@ class ChatListItem extends ConsumerWidget {
 
     final timeStr = _formatChatTime(chat, l10n);
 
-    final effectiveSelected =
-        selectionMode ? selectionSelected : isSelected;
+    final effectiveSelected = selectionMode ? selectionSelected : isSelected;
 
     return Material(
       color: Colors.transparent,
@@ -196,14 +192,14 @@ class ChatListItem extends ConsumerWidget {
         onTap: onTap,
         onLongPress: onLongPress,
         onSecondaryTapUp: onSecondaryTapUp,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Container(
           decoration: BoxDecoration(
             color: effectiveSelected
                 ? Theme.of(context).colorScheme.primaryContainer
                       .withValues(alpha: 0.28)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(

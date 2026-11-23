@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 import '../../core/auth/onboarding_manager.dart';
 import '../../core/auth/use_qr_code.dart';
@@ -44,7 +45,7 @@ class WelcomePage extends ConsumerWidget {
                         color: theme.colorScheme.surface.withValues(
                           alpha: 0.55,
                         ),
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
                       child: isCompact
                           ? const _CompactWelcomeContent()
@@ -253,7 +254,7 @@ class _QrContentState extends ConsumerState<_QrContent> {
                   color: theme.colorScheme.primary,
                   width: 1.5,
                 ),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
               ),
               child: hasToken
                   ? Center(

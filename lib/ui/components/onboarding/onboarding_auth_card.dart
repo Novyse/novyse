@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/chat/chat_service.dart';
 import 'package:novyse/core/stores/status_message_type.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/legal/legal_document_overlay.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -595,7 +596,7 @@ class _OnboardingAuthCardState extends ConsumerState<OnboardingAuthCard> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(

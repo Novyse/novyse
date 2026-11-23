@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/core/utils/platform.dart';
 
 /// Which wheels [DatetimePicker] shows.
@@ -274,7 +275,8 @@ class _DatetimePickerState extends State<DatetimePicker> {
       width: 1,
       height: widget.itemExtent * widget.visibleItems,
       margin: const EdgeInsets.symmetric(horizontal: 8),
-      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.6),
+      color: Theme.of(context).colorScheme.outlineVariant
+          .withValues(alpha: 0.6),
     );
   }
 }
@@ -304,7 +306,7 @@ class _WheelGroup extends StatelessWidget {
   final double spacing;
 
   /// Text drawn centered between wheels (e.g. ':' between hour/minute).
-  /// Takes [separatorWidth] of horizontal space in the wheel row so 
+  /// Takes [separatorWidth] of horizontal space in the wheel row so
   /// columns stay aligned.
   final String? separator;
 
@@ -362,10 +364,14 @@ class _WheelGroup extends StatelessWidget {
                       width: contentWidth,
                       height: itemExtent,
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.10),
-                        borderRadius: BorderRadius.circular(24),
+                        color: theme.colorScheme.primary.withValues(
+                          alpha: 0.10,
+                        ),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                         border: Border.all(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.45),
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.45,
+                          ),
                         ),
                       ),
                     ),
@@ -421,8 +427,7 @@ class _WheelColumnState<T> extends State<_WheelColumn<T>> {
 
   /// Whether this wheel is driven manually (desktop/web) instead of the
   /// native scrollable (mobile).
-  bool get _manual =>
-      currentPlatform != AppPlatform.mobile || kIsWeb;
+  bool get _manual => currentPlatform != AppPlatform.mobile || kIsWeb;
 
   /// Target item for manual stepping (kept in sync with [_selected]).
   late int _pending;
@@ -448,7 +453,9 @@ class _WheelColumnState<T> extends State<_WheelColumn<T>> {
     }
     if (widget.selectedIndex != null &&
         widget.selectedIndex != oldWidget.selectedIndex) {
-      _selected = widget.selectedIndex!.clamp(0, widget.values.length - 1).toInt();
+      _selected = widget.selectedIndex!
+          .clamp(0, widget.values.length - 1)
+          .toInt();
       _pending = _selected;
     }
   }
@@ -499,8 +506,10 @@ class _WheelColumnState<T> extends State<_WheelColumn<T>> {
   void _onDragEnd(DragEndDetails details) {
     // Snap to the nearest item on release — always a selected value.
     if (!widget.controller.hasClients) return;
-    final nearest = (widget.controller.offset / widget.itemExtent).round()
-        .clamp(0, math.max(_maxIndex, 0)).toInt();
+    final nearest = (widget.controller.offset / widget.itemExtent)
+        .round()
+        .clamp(0, math.max(_maxIndex, 0))
+        .toInt();
     _stepTo(nearest);
   }
 
@@ -510,9 +519,8 @@ class _WheelColumnState<T> extends State<_WheelColumn<T>> {
   double _proximity(int index) {
     if (widget.controller.hasClients) {
       final offset = widget.controller.offset;
-      final distance = ((index * widget.itemExtent - offset) /
-              widget.itemExtent)
-          .abs();
+      final distance =
+          ((index * widget.itemExtent - offset) / widget.itemExtent).abs();
       return (1 - distance).clamp(0.0, 1.0);
     }
     return index == _selected ? 1.0 : 0.0;

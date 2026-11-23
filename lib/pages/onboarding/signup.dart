@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 import '../../core/auth/onboarding_manager.dart';
 import '../../core/l10n/l10n.dart';
@@ -42,7 +43,7 @@ class SignupPage extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(28, 34, 28, 20),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surface.withValues(alpha: 0.55),
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
                 child: OnboardingAuthCard(
                   embedded: true,

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:material_ui/material_ui.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/button/app_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -33,8 +34,7 @@ class _UpdateRequiredPageState extends State<UpdateRequiredPage> {
   bool get _isDesktop => currentPlatform == AppPlatform.desktop;
   String? get _managingStore => currentStoreName;
 
-  bool get _canSelfUpdate =>
-      _isDesktop && canSelfUpdateInstallation();
+  bool get _canSelfUpdate => _isDesktop && canSelfUpdateInstallation();
 
   @override
   void dispose() {
@@ -49,8 +49,10 @@ class _UpdateRequiredPageState extends State<UpdateRequiredPage> {
       AppOS.web => l10n.refreshPage,
       AppOS.android => l10n.openPlayStore,
       AppOS.ios => l10n.openAppStore,
-      AppOS.windows || AppOS.linux || AppOS.macos || AppOS.fuchsia =>
-        l10n.updaterOpenWebsite,
+      AppOS.windows ||
+      AppOS.linux ||
+      AppOS.macos ||
+      AppOS.fuchsia => l10n.updaterOpenWebsite,
     };
   }
 
@@ -69,8 +71,10 @@ class _UpdateRequiredPageState extends State<UpdateRequiredPage> {
         config.snapStoreUrl,
       AppOS.linux when currentInstallSource == AppInstallSource.flathub =>
         config.flathubUrl,
-      AppOS.windows || AppOS.linux || AppOS.macos || AppOS.fuchsia =>
-        config.downloadPageUrl,
+      AppOS.windows ||
+      AppOS.linux ||
+      AppOS.macos ||
+      AppOS.fuchsia => config.downloadPageUrl,
       AppOS.web => config.appUrl,
     };
     if (url.isNotEmpty) {
@@ -188,7 +192,7 @@ class _UpdateRequiredPageState extends State<UpdateRequiredPage> {
                   ),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
                     boxShadow: [
                       BoxShadow(
                         color: theme.shadowColor.withValues(alpha: 0.1),
@@ -234,7 +238,7 @@ class _UpdateRequiredPageState extends State<UpdateRequiredPage> {
                         ),
                         decoration: BoxDecoration(
                           color: theme.colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(24),
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
                         ),
                         child: Wrap(
                           spacing: 16,

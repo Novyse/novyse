@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/chat/paste/chat_paste_helper.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 import 'package:super_clipboard/super_clipboard.dart';
@@ -103,7 +104,7 @@ class _ChatDropZoneState extends ConsumerState<ChatDropZone> {
                     ),
                     decoration: BoxDecoration(
                       color: colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
                       border: Border.all(color: colorScheme.primary, width: 2),
                       boxShadow: [
                         BoxShadow(
