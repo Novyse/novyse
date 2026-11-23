@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -9,6 +10,18 @@ import 'package:novyse/core/plugins/bridge/webview_controller_factory.dart';
 import 'package:novyse/core/plugins/models/frame_origins.dart';
 import 'package:novyse/core/plugins/plugin_build.dart';
 import 'package:webview_all/webview_all.dart';
+
+/// What the engine holds while a document is being loaded.
+enum _DocumentState {
+  /// No document, or the engine did not answer: a reload is the only way out.
+  unknown,
+
+  /// The document is loading: leave it alone.
+  loading,
+
+  /// The document is there: reloading it would only flash it black.
+  arrived,
+}
 
 /// The sandbox of every platform
 class WebViewAllPluginBridge extends PluginBridge {
@@ -161,24 +174,27 @@ class WebViewAllPluginBridge extends PluginBridge {
     await _runInPage(emitScript(event, payload));
   }
 
-  /// Asks the document again when the plugin stays silent.
+  /// Asks the document again only when the navigation was really lost.
   ///
-  /// A navigation issued while the native overlay is still settling can be lost
-  /// without an error, and the card stays black with nothing to read anywhere.
-  /// This retries once, then reports what the engine thinks it is showing.
+  /// A navigation issued while the native overlay is still settling can be
+  /// dropped by the engine: the page stays on `about:blank`, nothing errors and
+  /// the card spins forever.
   Future<void> _watchDocument(WebViewController controller, Uri url) async {
     for (var attempt = 0; attempt < 10; attempt++) {
       await Future<void>.delayed(const Duration(seconds: 2));
 
       if (_disposed || _pageReady) return;
 
-      // A navigation issued while the native overlay is still settling is
-      // dropped by the engine: the page stays on `about:blank` and nothing
-      // errors, so the card spins forever. Reloading until the plugin answers
-      // is what fixes it; the loop bounds the retry, not a guess at how slow
-      // the machine is.
+      final state = await _documentState(controller);
+
+      // The page is loading: the engine is working on it, nothing to reload.
+      if (state == _DocumentState.loading) continue;
+
+      // The document is up and painting: a reload would only flash it black.
+      if (state == _DocumentState.arrived) return;
+
       debugPrint(
-        '[PluginBridge] $instanceId: no plugin yet, loading again ($attempt)',
+        '[PluginBridge] $instanceId: no document yet, loading again ($attempt)',
       );
 
       try {
@@ -196,6 +212,31 @@ class WebViewAllPluginBridge extends PluginBridge {
           debugPrint('[PluginBridge] $instanceId: current url failed: $error');
         }
       }
+    }
+  }
+
+  /// What the page holds right now, without touching it.
+  Future<_DocumentState> _documentState(WebViewController controller) async {
+    try {
+      final raw = await controller.runJavaScriptReturningResult(
+        _probeScript,
+      );
+      final text = raw is Map ? jsonEncode(raw) : raw.toString();
+
+      if (!text.contains('"href"')) return _DocumentState.unknown;
+
+      // Still on the blank page the engine starts from: the navigation of our
+      // document never landed.
+      if (text.contains('"href":"about:blank"')) return _DocumentState.unknown;
+
+      final ready = RegExp(r'"ready":"([a-z]+)"').firstMatch(text)?.group(1);
+
+      return ready == 'loading'
+          ? _DocumentState.loading
+          : _DocumentState.arrived;
+    } catch (error) {
+      debugPrint('[PluginBridge] $instanceId: document state failed: $error');
+      return _DocumentState.unknown;
     }
   }
 
