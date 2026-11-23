@@ -511,14 +511,14 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
 
               return Material(
                 type: MaterialType.transparency,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(AppRadius.bg),
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
                   onTap: () => setState(() => _selectedSource = source),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(AppRadius.bg),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(AppRadius.bg),
                       border: Border.all(
                         color: isSelected
                             ? colorScheme.primary

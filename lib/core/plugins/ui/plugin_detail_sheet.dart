@@ -213,7 +213,7 @@ class _MetaPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.bg),
         border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.25),
       ),

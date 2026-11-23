@@ -392,7 +392,7 @@ class _PluginCard extends StatelessWidget {
       opacity: enabled || isStarting ? 1 : 0.55,
       child: Material(
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.bg),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: enabled ? onStart : null,

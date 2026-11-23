@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Generic text value display with a trailing copy button.
@@ -64,7 +65,7 @@ class _CopyTextFieldState extends State<CopyTextField> {
       decoration: BoxDecoration(
         color: colors.surfaceContainerHighest,
         border: Border.all(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.bg),
       ),
       child: Row(
         children: [
