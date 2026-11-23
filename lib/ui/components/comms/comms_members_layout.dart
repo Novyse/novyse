@@ -67,6 +67,25 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
       _syncScheduled = false;
       if (!mounted) return;
       _syncFullscreen(fullscreenTile, fullscreenId);
+      _fullscreenOverlay?.markNeedsBuild();
+    });
+  }
+
+  /// Drops a pin or a fullscreen that points at a tile that no longer exists.
+  void _clearStaleView({String? pinnedId, String? fullscreenId}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      final notifier = ref.read(commsProvider.notifier);
+      final current = ref.read(commsProvider);
+
+      if (pinnedId != null && current.pinnedStreamId == pinnedId) {
+        notifier.unpin();
+      }
+
+      if (fullscreenId != null && current.fullscreenStreamId == fullscreenId) {
+        notifier.exitFullscreen();
+      }
     });
   }
 
@@ -184,7 +203,6 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
     );
     final pinnedId = ref.watch(commsProvider.select((s) => s.pinnedStreamId));
 
-
     final controller = ref.read(commsProvider.notifier);
 
     final fullscreenTile = fullscreenId == null
@@ -194,10 +212,24 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
     // Sync OS fullscreen + overlay outside of build.
     _scheduleSync(fullscreenTile, fullscreenId);
 
+    // A pinned or fullscreen tile can leave the grid: an activity is closed, a
+    // share stops, a participant goes. The id must not outlive the tile, or
+    // the room stays pinned to nothing and looks empty. It is cleared after
+    // the frame, and until then the grid paints every tile it has.
+    final pinnedTile = pinnedId == null
+        ? null
+        : widget.tiles.where((t) => t.id == pinnedId).firstOrNull;
+    final fullscreenGone = fullscreenId != null && fullscreenTile == null;
+
+    if ((pinnedId != null && pinnedTile == null) || fullscreenGone) {
+      _clearStaleView(
+        pinnedId: pinnedTile == null ? pinnedId : null,
+        fullscreenId: fullscreenGone ? fullscreenId : null,
+      );
+    }
+
     // Filter tiles if a specific stream is pinned
-    final activeTiles = (pinnedId != null)
-        ? widget.tiles.where((t) => t.id == pinnedId).toList()
-        : widget.tiles;
+    final activeTiles = pinnedTile != null ? [pinnedTile] : widget.tiles;
 
     if (activeTiles.isEmpty) {
       return _buildEmptyState(context);
@@ -271,9 +303,6 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
                     spacing: margin,
                     runSpacing: margin,
                     children: visibleTiles.map((tile) {
-                      // An activity has no rail of the host: the plugin draws its
-                      // own controls over the 16:9 surface, so the card is the
-                      // whole width the grid gives it.
                       final baseWidth = targetWidth.clamp(
                         math.min(140.0, availableWidth),
                         math.max(1.0, availableWidth),

@@ -26,6 +26,12 @@ mixin CommsViewStateMixin on Notifier<CommsState> {
     state = state.copyWith(pinnedStreamId: () => streamId);
   }
 
+  /// Release the pinned tile, if any.
+  void unpin() {
+    if (state.pinnedStreamId == null) return;
+    state = state.copyWith(pinnedStreamId: () => null);
+  }
+
   /// Fullscreen a specific stream tile.
   void setFullscreen(String streamId) {
     state = state.copyWith(fullscreenStreamId: () => streamId);
