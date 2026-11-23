@@ -21,7 +21,7 @@ const String appSdkSource = r'''
 
   var pending = new Map();
   var nextId = 1;
-  var handlers = { participants: [], ended: [], action: [], stream: [], playerClosed: [], playerIntent: [] };
+  var handlers = { participants: [], ended: [], action: [], stream: [], playerClosed: [], playerIntent: [], theme: [], controls: [] };
   var stateHandlers = new Map();
 
   var statePending = new Map();
@@ -66,23 +66,26 @@ const String appSdkSource = r'''
     entry.reject(sdkError(failure.code || 'E_INTERNAL', failure.message));
   }
 
+  var TRANSPORT_WAIT_MS = 4000;
+  var TRANSPORT_POLL_MS = 50;
+
   function transmit(message) {
     // The channel the host registered, with the same name on every engine, so
     // a plugin never learns which platform it is running on.
     var channel = window.appSdk;
     if (channel && channel.postMessage) {
       channel.postMessage(message);
-      return;
+      return true;
     }
 
     // Windows: WebView2 hands the page one message pipe, read by the host.
     var webview = window.chrome && window.chrome.webview;
     if (webview && webview.postMessage) {
       webview.postMessage(message);
-      return;
+      return true;
     }
 
-    throw sdkError('E_INTERNAL', 'no host transport');
+    return false;
   }
 
   function request(method, params) {
@@ -96,12 +99,23 @@ const String appSdkSource = r'''
         params: params === undefined ? null : params
       });
 
-      try {
-        transmit(message);
-      } catch (error) {
-        pending.delete(id);
-        reject(error);
+      var waited = 0;
+
+      function send() {
+        if (transmit(message)) return;
+
+        waited += TRANSPORT_POLL_MS;
+
+        if (waited >= TRANSPORT_WAIT_MS) {
+          pending.delete(id);
+          reject(sdkError('E_INTERNAL', 'no host transport'));
+          return;
+        }
+
+        setTimeout(send, TRANSPORT_POLL_MS);
       }
+
+      send();
     });
   }
 
@@ -122,6 +136,29 @@ const String appSdkSource = r'''
   }
 
   function emit(event, payload) {
+    if (event === 'activity:theme') {
+      var theme = payload && payload.theme === 'light' ? 'light' : 'dark';
+      var colors = payload && Array.isArray(payload.themeColors) ? payload.themeColors : [];
+      handlers.theme.slice().forEach(function (callback) {
+        dispatch('theme', function () { callback({ theme: theme, themeColors: colors }); });
+      });
+      return;
+    }
+
+    if (event === 'activity:controls') {
+      var controls = payload || {};
+      handlers.controls.slice().forEach(function (callback) {
+        dispatch('controls', function () {
+          callback({
+            pinned: !!controls.pinned,
+            fullscreen: !!controls.fullscreen,
+            closable: !!controls.closable
+          });
+        });
+      });
+      return;
+    }
+
     if (event === 'activity:participants') {
       handlers.participants.slice().forEach(function (callback) {
         dispatch('participants', function () { callback(payload || []); });
@@ -270,6 +307,10 @@ const String appSdkSource = r'''
       return subscribe('ended', callback);
     },
 
+    onTheme: function (callback) {
+      return subscribe('theme', callback);
+    },
+
     state: {
       send: function (type, data) {
         return request('state.send', {
@@ -328,6 +369,20 @@ const String appSdkSource = r'''
       },
       close: function () {
         request('ui.close', null).catch(function () {});
+      },
+      pin: function () {
+        request('ui.pin', null).catch(function () {});
+      },
+      unpin: function () {
+        request('ui.unpin', null).catch(function () {});
+      },
+      openMenu: function (anchor) {
+        request('ui.menu', {
+          anchor: anchor === undefined ? null : anchor
+        }).catch(function () {});
+      },
+      onControls: function (callback) {
+        return subscribe('controls', callback);
       }
     },
 

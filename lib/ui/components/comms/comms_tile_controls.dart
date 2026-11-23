@@ -1,14 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
-
-/// Width of the vertical controls rail of an activity tile.
-///
-/// The rail sits beside the plugin content, so it adds length to the tile and
-/// never height: an activity keeps the height the grid gave it.
-const double kCommsActivityRailWidth = 44.0;
 
 /// Touch box of the small overlay buttons (pin, fullscreen, ...).
 const double kCommsChipButtonSize = 32.0;
@@ -90,89 +83,6 @@ class CommsTileControls extends StatelessWidget {
       direction: vertical ? Axis.vertical : Axis.horizontal,
       mainAxisSize: MainAxisSize.min,
       children: children,
-    );
-  }
-}
-
-/// Vertical controls of an activity tile, attached to the right of the 16:9
-/// plugin surface.
-///
-/// Same actions as the overlay of a participant card, arranged in a column,
-/// plus the close button and the overflow button that opens the complete
-/// context menu. It is always visible, fullscreen included, and the
-/// [FittedBox] keeps it usable when a busy room shrinks the tile.
-class CommsActivityControlRail extends StatelessWidget {
-  const CommsActivityControlRail({
-    super.key,
-    required this.isPinned,
-    required this.isFullScreen,
-    required this.readOnly,
-    required this.onClose,
-    required this.onPin,
-    required this.onFullScreen,
-    required this.onMore,
-  });
-
-  final bool isPinned;
-  final bool isFullScreen;
-  final bool readOnly;
-  final VoidCallback onClose;
-  final VoidCallback onPin;
-  final VoidCallback onFullScreen;
-  final void Function(Offset anchor) onMore;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-    final status = context.statusColors;
-
-    return Container(
-      width: kCommsActivityRailWidth,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.28),
-        border: Border(
-          left: BorderSide(color: colorScheme.outline.withValues(alpha: 0.25)),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Center(
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: CommsTileControls(
-            vertical: true,
-            gap: 2,
-            isPinned: isPinned,
-            isFullScreen: isFullScreen,
-            onPin: onPin,
-            onFullScreen: onFullScreen,
-            leading: [
-              if (!readOnly)
-                CommsChipIconButton(
-                  icon: HugeIcons.strokeRoundedCancel01,
-                  color: status.danger,
-                  tooltip: l10n.activitiesClose,
-                  onPressed: onClose,
-                ),
-            ],
-            trailing: [
-              Builder(
-                builder: (buttonContext) => CommsChipIconButton(
-                  icon: HugeIcons.strokeRoundedMoreVertical,
-                  tooltip: l10n.commsMoreOptions,
-                  onPressed: () {
-                    final box = buttonContext.findRenderObject() as RenderBox?;
-                    final anchor = box == null
-                        ? Offset.zero
-                        : box.localToGlobal(Offset(0, box.size.height + 4));
-                    onMore(anchor);
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

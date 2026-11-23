@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui' show Offset;
 
 import 'package:flutter/foundation.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:novyse/core/chat/chat_permission_helpers.dart';
@@ -15,6 +15,7 @@ import 'package:novyse/core/plugins/bridge/bridge_protocol.dart';
 import 'package:novyse/core/plugins/models/activity_event.dart';
 import 'package:novyse/core/plugins/models/activity_instance.dart';
 import 'package:novyse/core/plugins/plugin_exception.dart';
+import 'package:novyse/core/plugins/plugin_theme.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/services/realtime_service.dart';
 import 'package:novyse/core/settings/settings_controller.dart';
@@ -786,6 +787,24 @@ class ActivityController extends Notifier<ActivitiesState> {
           _commands.add(ActivityCommand(instanceId, ActivityCommandKind.close));
           return BridgeReply.success(request.id, null);
 
+        case 'ui.pin':
+          _commands.add(ActivityCommand(instanceId, ActivityCommandKind.pin));
+          return BridgeReply.success(request.id, null);
+
+        case 'ui.unpin':
+          _commands.add(ActivityCommand(instanceId, ActivityCommandKind.unpin));
+          return BridgeReply.success(request.id, null);
+
+        case 'ui.menu':
+          _commands.add(
+            ActivityCommand(
+              instanceId,
+              ActivityCommandKind.menu,
+              anchor: _controlAnchor(request.value('anchor')),
+            ),
+          );
+          return BridgeReply.success(request.id, null);
+
         case 'log':
           debugPrint('[plugin $instanceId] ${request.value('args')}');
           return BridgeReply.success(request.id, null);
@@ -878,9 +897,17 @@ class ActivityController extends Notifier<ActivitiesState> {
       'participants': state.participants,
       'serverNow': serverNow,
       'readOnly': state.readOnly,
+      // The tile pushes the real chrome as soon as it mounts: `init` answers
+      // before the card knows whether it is pinned, and the plugin hides the
+      // bar until either arrives.
+      'controls': {
+        'pinned': false,
+        'fullscreen': false,
+        'closable': !state.readOnly,
+      },
       'capabilities': instance.bundle.capabilities,
       'locale': _localeTag(),
-      'theme': _themeMode(),
+      ..._pluginTheme(),
       'state': {
         'seq': instance.seq,
         'truncated': instance.truncated,
@@ -904,25 +931,26 @@ class ActivityController extends Notifier<ActivitiesState> {
     return PlatformDispatcher.instance.locale.toLanguageTag();
   }
 
-  /// The theme the app is drawn in, as a plugin receives it in `init()`.
+  /// The theme and the palette the app is drawn in, as a plugin receives them
+  /// in `init()`.
   ///
   /// `system` is resolved here, so a plugin never has to guess.
-  String _themeMode() {
+  Map<String, Object?> _pluginTheme() {
     try {
-      final mode = themeModeFromSetting(
-        ref.read(settingsControllerProvider)['appearance.themeMode'],
+      return pluginThemePayload(
+        ref.read(settingsControllerProvider),
+        PlatformDispatcher.instance.platformBrightness,
       );
-
-      final dark = switch (mode) {
-        ThemeMode.dark => true,
-        ThemeMode.light => false,
-        ThemeMode.system =>
-          PlatformDispatcher.instance.platformBrightness == Brightness.dark,
-      };
-
-      return dark ? 'dark' : 'light';
     } catch (_) {
-      return 'light';
+      return {
+        'theme': 'light',
+        'themeColors': fallbackPluginThemeColors,
+        'themeRadii': {
+          'sm': AppRadius.sm.round(),
+          'md': AppRadius.md.round(),
+          'lg': AppRadius.lg.round(),
+        },
+      };
     }
   }
 
@@ -1276,15 +1304,38 @@ class ActivityController extends Notifier<ActivitiesState> {
 }
 
 /// A command the plugin asked the host to execute.
-enum ActivityCommandKind { fullscreen, restore, close }
+enum ActivityCommandKind { fullscreen, restore, close, pin, unpin, menu }
 
 /// One command, addressed to the activity that requested it.
 @immutable
 class ActivityCommand {
-  const ActivityCommand(this.instanceId, this.kind);
+  const ActivityCommand(this.instanceId, this.kind, {this.anchor});
 
   final String instanceId;
   final ActivityCommandKind kind;
+
+  /// Bottom-left corner of the button that opened the menu, in the
+  /// coordinates of the tile. Only a [ActivityCommandKind.menu] has one.
+  final Offset? anchor;
+
+  /// The same command with the anchor moved to the tile of the host.
+  ActivityCommand withAnchor(Offset anchor) =>
+      ActivityCommand(instanceId, kind, anchor: anchor);
+}
+
+/// The rect a plugin sent with `ui.menu`, as the point below it.
+Offset? _controlAnchor(Object? raw) {
+  if (raw is! Map) return null;
+
+  final x = raw['x'];
+  final y = raw['y'];
+  final height = raw['height'];
+
+  if (x is! num || y is! num) return null;
+
+  final top = y.toDouble() + (height is num ? height.toDouble() : 0);
+
+  return Offset(x.toDouble(), top + 4);
 }
 
 /// The activities of the voice room.

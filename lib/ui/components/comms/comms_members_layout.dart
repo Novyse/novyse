@@ -5,11 +5,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
-import 'package:novyse/core/comms/comms_data_provider.dart';
 import 'package:novyse/core/comms/comms_fullscreen.dart';
 import 'package:novyse/core/comms/comms_models.dart';
 import 'package:novyse/core/l10n/l10n.dart';
-import 'package:novyse/ui/components/comms/comms_tile_controls.dart';
 import 'package:novyse/ui/components/comms/comms_user_card.dart';
 import 'package:novyse/ui/components/comms/screen_share_actions.dart';
 import 'package:novyse/ui/components/comms/screen_share_stream_switcher.dart';
@@ -186,7 +184,6 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
     );
     final pinnedId = ref.watch(commsProvider.select((s) => s.pinnedStreamId));
 
-    final isConnectedToRoom = ref.watch(activeCommsRoomConnectedProvider);
 
     final controller = ref.read(commsProvider.notifier);
 
@@ -274,17 +271,16 @@ class _CommsMembersLayoutState extends ConsumerState<CommsMembersLayout> {
                     spacing: margin,
                     runSpacing: margin,
                     children: visibleTiles.map((tile) {
-                      final rail = tile.isActivity && isConnectedToRoom
-                          ? kCommsActivityRailWidth
-                          : 0.0;
-                      final maxBaseWidth = math.max(1.0, availableWidth - rail);
+                      // An activity has no rail of the host: the plugin draws its
+                      // own controls over the 16:9 surface, so the card is the
+                      // whole width the grid gives it.
                       final baseWidth = targetWidth.clamp(
-                        math.min(140.0, maxBaseWidth),
-                        maxBaseWidth,
+                        math.min(140.0, availableWidth),
+                        math.max(1.0, availableWidth),
                       );
 
                       return SizedBox(
-                        width: baseWidth + rail,
+                        width: baseWidth.toDouble(),
                         height: targetHeight.clamp(100.0, availableHeight),
                         child: CommsUserCard(
                           key: ValueKey(tile.id),

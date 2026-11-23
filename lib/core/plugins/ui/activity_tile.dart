@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/plugins/activity_controller.dart';
 import 'package:novyse/core/plugins/bridge/bridge_factory.dart';
 import 'package:novyse/core/plugins/bridge/plugin_bridge.dart';
@@ -12,8 +12,10 @@ import 'package:novyse/core/plugins/models/activity_event.dart';
 import 'package:novyse/core/plugins/models/activity_instance.dart';
 import 'package:novyse/core/plugins/plugin_cache.dart';
 import 'package:novyse/core/plugins/plugin_exception.dart';
+import 'package:novyse/core/plugins/plugin_theme.dart';
 import 'package:novyse/core/plugins/ui/plugin_native_player.dart';
 import 'package:novyse/core/services/api_gateway.dart';
+import 'package:novyse/core/settings/settings_controller.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// The states of the tile.
@@ -28,18 +30,33 @@ enum ActivityTileStatus { resolving, downloading, loading, running, failed }
 /// bridges the `STREAM` packets and the participants of the room into it. It
 /// never decides what the plugin may do: every request goes to the controller.
 class ActivityTile extends ConsumerStatefulWidget {
-  const ActivityTile({super.key, required this.instance, this.onCommand});
+  const ActivityTile({
+    super.key,
+    required this.instance,
+    this.isPinned = false,
+    this.isFullScreen = false,
+    this.onCommand,
+  });
 
   final ActivityInstance instance;
 
-  /// Commands the plugin asked the host to execute: fullscreen, restore, close.
+  /// The card is pinned over the grid: the plugin draws its own pin button and
+  /// needs the current state to show the right one.
+  final bool isPinned;
+
+  /// The card fills the room, so the plugin offers to restore it.
+  final bool isFullScreen;
+
+  /// Commands the plugin asked the host to execute: fullscreen, restore, close,
+  /// pin, unpin and the context menu.
   final void Function(ActivityCommand)? onCommand;
 
   @override
   ConsumerState<ActivityTile> createState() => _ActivityTileState();
 }
 
-class _ActivityTileState extends ConsumerState<ActivityTile> {
+class _ActivityTileState extends ConsumerState<ActivityTile>
+    with WidgetsBindingObserver {
   /// How long the install of a build may take before the tile gives up.
   static const Duration installTimeout = Duration(minutes: 2);
 
@@ -74,9 +91,21 @@ class _ActivityTileState extends ConsumerState<ActivityTile> {
   /// running, which is what a rebuild of the card must never restart.
   String? _mountKey;
 
+  /// Signature of the last palette pushed into the sandbox, so a rebuild does
+  /// not repeat the same `activity:theme`.
+  String _themeKey = '';
+
+  /// Signature of the last chrome pushed into the sandbox: pin, fullscreen and
+  /// whether the user may stop the activity.
+  String _controlsKey = '';
+
   @override
   void initState() {
     super.initState();
+
+    // The system theme is one of the inputs of the palette: follow it even
+    // when the setting is `system`.
+    WidgetsBinding.instance.addObserver(this);
 
     _start();
   }
@@ -111,6 +140,8 @@ class _ActivityTileState extends ConsumerState<ActivityTile> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+
     unawaited(_packets?.cancel());
     unawaited(_commands?.cancel());
     unawaited(_states?.cancel());
@@ -146,6 +177,18 @@ class _ActivityTileState extends ConsumerState<ActivityTile> {
       if (listEquals(previous?.participants, next.participants)) return;
       unawaited(_emitParticipants());
     });
+
+    // A palette, a theme mode or a surface treatment changed in the settings
+    ref.listen<Map<String, Object?>>(settingsControllerProvider, (
+      previous,
+      next,
+    ) {
+      _emitTheme();
+    });
+
+    // The plugin draws the controls of the tile itself, so it has to know
+    // whether the card is pinned, fullscreen, or closable right now.
+    _emitControls();
 
     // The video the plugin asked the app to play, if any: it covers the
     // sandbox, which stays mounted underneath so the SDK keeps answering.
@@ -240,6 +283,49 @@ class _ActivityTileState extends ConsumerState<ActivityTile> {
           ],
         );
     }
+  }
+
+  /// The system theme changed; the setting may be `system`.
+  @override
+  void didChangePlatformBrightness() {
+    _emitTheme();
+  }
+
+  /// Pushes the current palette into the sandbox, if it changed.
+  void _emitTheme() {
+    final bridge = _bridge;
+    if (bridge == null) return;
+
+    final payload = pluginThemePayload(
+      ref.read(settingsControllerProvider),
+      PlatformDispatcher.instance.platformBrightness,
+    );
+    final key = pluginThemeSignature(payload);
+    if (key == _themeKey) return;
+
+    _themeKey = key;
+    unawaited(bridge.emit('activity:theme', payload));
+  }
+
+  /// Pushes the chrome of the tile into the sandbox, if it changed.
+  void _emitControls() {
+    final bridge = _bridge;
+    if (bridge == null) return;
+
+    final readOnly = ref.read(activityControllerProvider).readOnly;
+    final key = '${widget.isPinned}|${widget.isFullScreen}|$readOnly';
+
+    if (key == _controlsKey) return;
+
+    _controlsKey = key;
+
+    unawaited(
+      bridge.emit('activity:controls', {
+        'pinned': widget.isPinned,
+        'fullscreen': widget.isFullScreen,
+        'closable': !readOnly,
+      }),
+    );
   }
 
   /// The room asked the native player of this activity to follow it.
@@ -402,6 +488,12 @@ class _ActivityTileState extends ConsumerState<ActivityTile> {
       _progress = null;
     });
 
+    _themeKey = '';
+    _emitTheme();
+
+    _controlsKey = '';
+    _emitControls();
+
     unawaited(_emitParticipants());
   }
 
@@ -504,6 +596,16 @@ class _ActivityTileState extends ConsumerState<ActivityTile> {
 
   void _onCommand(ActivityCommand command) {
     if (command.instanceId != widget.instance.instanceId) return;
-    widget.onCommand?.call(command);
+
+    // The anchor of the context menu arrives in the coordinates of the
+    // sandbox; the menu is drawn by the app, so it needs the window ones.
+    final local = command.anchor;
+    final box = context.findRenderObject() as RenderBox?;
+
+    widget.onCommand?.call(
+      local == null || box == null
+          ? command
+          : command.withAnchor(box.localToGlobal(local)),
+    );
   }
 }

@@ -417,10 +417,6 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
   ) {
     final l10n = AppLocalizations.of(context)!;
 
-    final readOnly = ref.watch(
-      activityControllerProvider.select((state) => state.readOnly),
-    );
-
     final entry = ref.watch(pluginEntryProvider(instance.slug)).valueOrNull;
     final pluginName = entry?.name ?? instance.slug;
     final badgeLabel = '$pluginName (${l10n.activitiesBadge})';
@@ -540,9 +536,13 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                           ActivityTile(
                             key: ValueKey(instance.instanceId),
                             instance: instance,
+                            isPinned: widget.isPinned,
+                            isFullScreen: widget.isFullScreen,
                             onCommand: (command) {
                               final comms = ref.read(commsProvider.notifier);
 
+                              // The controls live inside the plugin, which is
+                              // why every one of them is a command here.
                               switch (command.kind) {
                                 case ActivityCommandKind.fullscreen:
                                   comms.setFullscreen(widget.tile.id);
@@ -550,6 +550,21 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                                   comms.exitFullscreen();
                                 case ActivityCommandKind.close:
                                   close();
+                                case ActivityCommandKind.pin:
+                                  if (!widget.isPinned) widget.onPin();
+                                case ActivityCommandKind.unpin:
+                                  if (widget.isPinned) widget.onPin();
+                                case ActivityCommandKind.menu:
+                                  showCommsUserContextMenu(
+                                    context: context,
+                                    tile: widget.tile,
+                                    displayName: badgeLabel,
+                                    isPinned: widget.isPinned,
+                                    isFullScreen: widget.isFullScreen,
+                                    anchor: command.anchor ?? Offset.zero,
+                                    onPin: widget.onPin,
+                                    onFullScreen: widget.onFullScreen,
+                                  );
                               }
                             },
                           ),
@@ -592,25 +607,6 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                     ),
                   ),
                 ),
-                if (isCommsConnected)
-                  CommsActivityControlRail(
-                    isPinned: widget.isPinned,
-                    isFullScreen: widget.isFullScreen,
-                    readOnly: readOnly,
-                    onClose: close,
-                    onPin: widget.onPin,
-                    onFullScreen: widget.onFullScreen,
-                    onMore: (anchor) => showCommsUserContextMenu(
-                      context: context,
-                      tile: widget.tile,
-                      displayName: badgeLabel,
-                      isPinned: widget.isPinned,
-                      isFullScreen: widget.isFullScreen,
-                      anchor: anchor,
-                      onPin: widget.onPin,
-                      onFullScreen: widget.onFullScreen,
-                    ),
-                  ),
               ],
             ),
           ),
