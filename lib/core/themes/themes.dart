@@ -12,6 +12,17 @@ class AppColors {
   static const Color info = Color(0xFF2D9CDB);
 }
 
+class AppRadius {
+  /// Controls, chips, small inputs.
+  static const double sm = 8;
+
+  /// Cards, fields, buttons.
+  static const double md = 16;
+
+  /// Dialogs, sheets, large containers.
+  static const double lg = 24;
+}
+
 /// A named seed. Presets are hardcoded; [AppPalette.custom] is the hook for
 /// a future user-authored theme (same builder, seed chosen at runtime).
 class AppPalette {
@@ -191,21 +202,23 @@ class AppTheme {
         filled: true,
         fillColor: scheme.surfaceContainerHighest,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: BorderSide.none,
         ),
       ),
       cardTheme: CardThemeData(
         elevation: 0,
         color: scheme.surfaceContainerLow,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           foregroundColor: scheme.onPrimary,
           backgroundColor: scheme.primary,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         ),
@@ -219,7 +232,9 @@ class AppTheme {
         dragHandleColor: scheme.outline,
         clipBehavior: Clip.antiAlias,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadius.lg),
+          ),
         ),
       ),
       dialogTheme: DialogThemeData(
@@ -228,7 +243,7 @@ class AppTheme {
         elevation: 0,
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           side: BorderSide(color: scheme.outlineVariant),
         ),
       ),
