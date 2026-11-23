@@ -10,7 +10,6 @@ import 'package:novyse/core/plugins/activity_controller.dart';
 import 'package:novyse/core/plugins/models/activity_instance.dart';
 import 'package:novyse/core/services/api_gateway.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
-import 'package:novyse/core/stores/user_store.dart';
 
 /// Aggregated view data for a specific room (chatUUID, sub).
 @immutable
@@ -128,28 +127,27 @@ class CommsDataNotifier
         rawActivities: result.activities,
       );
 
-      final localUserUUID = ref.read(userStoreProvider).localUserUUID;
-
+      // A room watched from outside is whatever the server says it is: the
+      // account's own session can be a participant (another device), and
+      // hiding it left the room with nothing but its activities.
       final tiles = <CommsTileItem>[
         for (final uuid in remoteData.participantUserUUIDs)
-          if (uuid != localUserUUID)
-            CommsTileItem(
-              id: uuid,
-              userUUID: uuid,
-              isScreenShare: false,
-              isLocal: false,
-              videoTrack: null,
-              isSpeaking: false,
-              isRemoteMuted: false,
-            ),
+          CommsTileItem(
+            id: uuid,
+            userUUID: uuid,
+            isScreenShare: false,
+            isLocal: false,
+            videoTrack: null,
+            isSpeaking: false,
+            isRemoteMuted: false,
+          ),
         for (final share in remoteData.screenShares)
-          if (share.ownerUUID != localUserUUID)
-            CommsTileItem(
-              id: screenShareTileId(share.trackSid),
-              userUUID: share.ownerUUID,
-              isScreenShare: true,
-              trackSid: share.trackSid,
-            ),
+          CommsTileItem(
+            id: screenShareTileId(share.trackSid),
+            userUUID: share.ownerUUID,
+            isScreenShare: true,
+            trackSid: share.trackSid,
+          ),
         for (final activity in remoteData.activities)
           CommsTileItem(
             id: 'activity:${activity.instanceId}',
