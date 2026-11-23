@@ -4,6 +4,7 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/plugins/models/plugin_entry.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/markdown/markdown_style.dart';
 import 'package:novyse/ui/components/responsiveOverlay/responsive_overlay.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -77,7 +78,7 @@ class _Header extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.bg),
           child: AspectRatio(
             aspectRatio: 1600 / 600,
             child: PluginBanner(entry: entry),

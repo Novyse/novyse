@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/emoji/emoji_content.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/emoji/emoji_recents_store.dart';
 import 'package:novyse/ui/components/context_menu/app_context_menu.dart';
@@ -96,7 +97,7 @@ class _ReactionMenuState extends ConsumerState<ReactionMenu> {
                   children: [
                     for (final emoji in displayed)
                       InkWell(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppRadius.bg),
                         onTap: () => widget.onSelectEmoji(emoji),
                         child: Container(
                           width: 36,
@@ -109,7 +110,7 @@ class _ReactionMenuState extends ConsumerState<ReactionMenu> {
                         ),
                       ),
                     InkWell(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppRadius.bg),
                       onTap: _toggleExpand,
                       child: Container(
                         width: 36,

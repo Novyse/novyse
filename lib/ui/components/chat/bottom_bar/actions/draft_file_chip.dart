@@ -133,7 +133,7 @@ class DraftFileChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.bg),
         border: Border.all(
           color: isInvalid
               ? AppColors.danger

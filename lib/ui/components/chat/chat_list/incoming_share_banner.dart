@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/share/incoming_share_store.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Pick-mode banner shown above the chat list while a share from another
@@ -26,10 +27,10 @@ class IncomingShareBanner extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
       child: Material(
         color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.bg),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadius.bg),
             border: Border.all(color: scheme.outlineVariant),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

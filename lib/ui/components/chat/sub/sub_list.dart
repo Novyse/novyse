@@ -13,6 +13,7 @@ import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/chat/sub/create_sub_modal.dart';
 import 'package:novyse/ui/components/chat/sub/vocal_sub_subtitle.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
@@ -189,11 +190,11 @@ class SubList extends ConsumerWidget {
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () => _onSubTap(context, ref, sub),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppRadius.bg),
                         child: Container(
                           decoration: BoxDecoration(
                             color: selectedBackground,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(AppRadius.bg),
                           ),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 4,

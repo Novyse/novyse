@@ -44,7 +44,7 @@ class SecurityListCard extends StatelessWidget {
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.bg),
         side: BorderSide(
           color: isCurrent ? colors.primary : colors.outlineVariant,
         ),

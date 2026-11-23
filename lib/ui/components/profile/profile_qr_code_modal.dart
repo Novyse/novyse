@@ -75,7 +75,7 @@ class _ProfileQrCodeBodyState extends State<_ProfileQrCodeBody> {
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadius.bg),
           ),
           padding: const EdgeInsets.all(16),
           child: SizedBox(
