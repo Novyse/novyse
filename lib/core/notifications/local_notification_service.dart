@@ -12,6 +12,8 @@ import 'package:novyse/core/notifications/notification_actions.dart';
 import 'package:novyse/core/notifications/notification_paths_stub.dart'
     if (dart.library.io) 'package:novyse/core/notifications/notification_paths_io.dart'
     as paths;
+import 'package:novyse/core/notifications/web_notifications_stub.dart'
+    if (dart.library.js_interop) 'package:novyse/core/notifications/web_notifications_web.dart';
 import 'package:novyse/core/router/navigator_keys.dart';
 import 'package:novyse/core/router/router.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
@@ -187,19 +189,33 @@ class LocalNotificationService {
   }
 
   Future<bool> _ensureWebPermission() async {
+    if (!webNotificationsSupported) {
+      debugPrint(
+        '[LocalNotificationService] Web notifications unavailable: '
+        'Notification API not exposed',
+      );
+      return false;
+    }
+
     final web = _plugin
         .resolvePlatformSpecificImplementation<
           WebFlutterLocalNotificationsPlugin
         >();
     if (web == null) return false;
 
-    if (web.permissionStatus == WebNotificationPermission.granted) {
-      return true;
-    }
-    if (web.permissionStatus == WebNotificationPermission.denied) {
+    try {
+      final status = web.permissionStatus;
+      if (status == WebNotificationPermission.granted) {
+        return true;
+      }
+      if (status == WebNotificationPermission.denied) {
+        return false;
+      }
+      return await web.requestNotificationsPermission() ?? false;
+    } catch (e) {
+      debugPrint('[LocalNotificationService] Web permission check failed: $e');
       return false;
     }
-    return await web.requestNotificationsPermission() ?? false;
   }
 
   void _onResponse(NotificationResponse response) {
@@ -354,7 +370,7 @@ class LocalNotificationService {
       if (!allowed) {
         debugPrint(
           '[LocalNotificationService] Skipping web notification '
-          '(permission not granted)',
+          '(permission not granted or notifications unsupported)',
         );
         return;
       }
