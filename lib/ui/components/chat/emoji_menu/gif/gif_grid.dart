@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/chat/emoji_menu/gif/gif_models.dart';
 
 /// Single GIF cell with aspect-ratio aware sizing.
@@ -16,7 +17,7 @@ class GifCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: Container(
           color: colorScheme.surfaceContainerHighest,
           child: AspectRatio(

@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Shared layout for every settings row (adapts the `production`
@@ -46,7 +47,7 @@ class SettingsBaseRow extends StatelessWidget {
                 width: 35,
                 height: 35,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   color: rowColor.withValues(alpha: 0.08),
                 ),
                 alignment: Alignment.center,
@@ -119,11 +120,7 @@ class SettingsBaseRow extends StatelessWidget {
 
 /// Square hit target so the ripple stays circular (compact IconButton was oval).
 class SettingsClearButton extends StatelessWidget {
-  const SettingsClearButton({
-    super.key,
-    required this.onPressed,
-    this.tooltip,
-  });
+  const SettingsClearButton({super.key, required this.onPressed, this.tooltip});
 
   final VoidCallback onPressed;
   final String? tooltip;

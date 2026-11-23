@@ -162,7 +162,7 @@ class _MessageFileAttachmentState extends State<MessageFileAttachment> {
                   height: 42,
                   decoration: BoxDecoration(
                     color: colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: widget.isPending || _isDownloading
                       ? Padding(

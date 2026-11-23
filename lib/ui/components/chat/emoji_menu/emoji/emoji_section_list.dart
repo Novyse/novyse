@@ -326,7 +326,9 @@ class _EmojiSectionListState extends ConsumerState<EmojiSectionList> {
                               final hasTones =
                                   emoji.skinVariations?.isNotEmpty ?? false;
                               return InkWell(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.md,
+                                ),
                                 onTap: () => widget.onSelect(emoji.emoji),
                                 onLongPress: hasTones
                                     ? () => _showSkinTonePicker(emoji)

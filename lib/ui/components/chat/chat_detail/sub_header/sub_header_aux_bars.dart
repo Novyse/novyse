@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:novyse/core/chat/chat_audio_service.dart';
 import 'package:novyse/core/comms/comms_controller.dart';
 import 'package:novyse/core/storage/file/playable_uri.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/chat/chat_detail/sub_header/comms/chat_comms_bar.dart';
 import 'package:novyse/ui/components/chat/chat_detail/sub_header/voice/chat_active_voice_bar.dart';
 
@@ -20,8 +21,7 @@ class SubHeaderAuxBars extends ConsumerWidget {
     final hasVoice =
         audio.activeId != null && isPlayableMediaUri(audio.activeUri);
     final commsState = ref.watch(commsProvider);
-    final hasComms =
-        commsState.connected && commsState.currentChatUUID != null;
+    final hasComms = commsState.connected && commsState.currentChatUUID != null;
 
     if (!hasVoice && !hasComms) return const SizedBox.shrink();
 
@@ -39,14 +39,14 @@ class SubHeaderAuxBars extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
           child: Container(
             width: double.infinity,
             decoration: BoxDecoration(
               color: colorScheme.surface.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               border: Border.all(
                 color: colorScheme.outline.withValues(alpha: 0.25),
               ),

@@ -194,7 +194,7 @@ class _FavoriteRow extends StatelessWidget {
           height: 40,
           decoration: BoxDecoration(
             color: colorScheme.primary.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           child: Icon(Icons.star, color: colorScheme.primary, size: 20),
         ),

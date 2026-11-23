@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/l10n/l10n.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Actions of the message-type (attach) menu.
@@ -103,7 +104,7 @@ class AttachMenuItem extends StatelessWidget {
 
     final button = InkWell(
       onTap: enabled ? onPressed : null,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       child: Padding(
         padding: axis == Axis.horizontal
             ? const EdgeInsets.symmetric(horizontal: 8, vertical: 6)

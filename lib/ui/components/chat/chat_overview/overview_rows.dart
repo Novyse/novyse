@@ -51,7 +51,7 @@ class OverviewFileRow extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: iconColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: AppHugeIcon(icon: icon, color: iconColor, size: 20),
           ),
@@ -108,7 +108,7 @@ class OverviewLinkRow extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: colorScheme.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Icon(Icons.link, color: colorScheme.primary, size: 20),
           ),

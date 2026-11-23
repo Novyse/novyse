@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/stores/chat_draft_store.dart';
 import 'package:novyse/core/stores/user_store.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/floating/floating_style.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
@@ -105,7 +106,7 @@ class ReplyBar extends ConsumerWidget {
                   const SizedBox(width: 4),
                   InkWell(
                     onTap: () => handleCancelReply(item),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                     child: Padding(
                       padding: const EdgeInsets.all(4),
                       child: AppHugeIcon(

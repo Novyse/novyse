@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:novyse/core/stores/message_store.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 /// Displays a reply preview (quoted message) inside a message bubble.
@@ -47,7 +48,9 @@ class MessageReply extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 4),
         child: Container(
           constraints: const BoxConstraints(minWidth: 220),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
           clipBehavior: Clip.hardEdge,
           child: IntrinsicHeight(
             child: Row(

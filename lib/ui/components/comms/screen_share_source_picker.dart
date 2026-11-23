@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/comms/screen_share_source_thumbnail.dart';
 
 /// Single-source selection with preview, used by the edit menu
@@ -24,11 +25,11 @@ class ScreenShareSourcePicker extends StatelessWidget {
         for (final source in sources)
           Material(
             type: MaterialType.transparency,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: () => onChanged(source.id),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 7),
                 child: Row(
@@ -56,7 +57,7 @@ class ScreenShareSourcePicker extends StatelessWidget {
                     const SizedBox(width: 8),
                     InkWell(
                       onTap: () => onChanged(source.id),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                       child: Padding(
                         padding: const EdgeInsets.all(8),
                         child: Icon(

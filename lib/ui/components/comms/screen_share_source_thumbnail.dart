@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/comms/screen_share_thumbnails.dart';
 
 /// Static thumbnail of a single desktop source (screen or window):
@@ -50,7 +51,7 @@ class ScreenShareSourceThumbnail extends StatelessWidget {
     final thumbnailBox = expand
         ? Expanded(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               child: thumbnail,
             ),
           )
@@ -58,7 +59,7 @@ class ScreenShareSourceThumbnail extends StatelessWidget {
             width: size,
             height: size * 9 / 16,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               child: thumbnail,
             ),
           );
