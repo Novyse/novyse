@@ -309,7 +309,7 @@ class _MetaPanel extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(4),
+      borderRadius: BorderRadius.circular(AppRadius.xsm),
       onTap: () async {
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -353,7 +353,7 @@ class _MetaPanel extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(AppRadius.xsm),
               color: scheme.primary.withValues(alpha: 0.12),
             ),
             child: Text(

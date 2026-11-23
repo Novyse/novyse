@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/huge_icon.dart';
 
 class OnboardingTextField extends StatefulWidget {
@@ -38,6 +39,7 @@ class OnboardingTextField extends StatefulWidget {
   final bool obscureText;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
+
   /// Rebuilt without touching the text field, so the keyboard stays open.
   final Listenable? liveSuffix;
   final Widget? Function()? liveSuffixBuilder;
@@ -96,64 +98,58 @@ class _OnboardingTextFieldState extends State<OnboardingTextField> {
 
   Widget _input(ThemeData theme, Widget? suffix) {
     final field = TextFormField(
-          controller: widget.controller,
-          focusNode: widget.focusNode,
-          keyboardType: widget.keyboardType,
-          obscureText: _obscured,
-          validator: widget.validator,
-          onChanged: widget.onChanged,
-          autofillHints: widget.autofillHints,
-          textInputAction: widget.textInputAction,
-          onEditingComplete: widget.onEditingComplete,
-          onFieldSubmitted: widget.onFieldSubmitted,
-          autovalidateMode: widget.autovalidateMode,
-          inputFormatters: widget.inputFormatters,
-          maxLength: widget.maxLength,
-          textCapitalization: widget.textCapitalization,
-          enableSuggestions: widget.obscureText ? false : widget.enableSuggestions,
-          autocorrect: widget.obscureText ? false : widget.autocorrect,
-          style: TextStyle(color: theme.colorScheme.onSurface),
-          decoration: InputDecoration(
-            hintText: widget.hint,
-            hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-            errorStyle: TextStyle(color: theme.colorScheme.error),
-            counterText: '',
-            prefixIcon: widget.prefixIcon,
-            suffixIcon: suffix,
-            filled: true,
-            fillColor: theme.colorScheme.surfaceContainerHighest,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 18,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(100),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(100),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(100),
-              borderSide: BorderSide(
-                color: theme.colorScheme.primary,
-                width: 1.5,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(100),
-              borderSide: BorderSide(color: theme.colorScheme.error, width: 1),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(100),
-              borderSide: BorderSide(
-                color: theme.colorScheme.error,
-                width: 1.5,
-              ),
-            ),
-          ),
-        );
+      controller: widget.controller,
+      focusNode: widget.focusNode,
+      keyboardType: widget.keyboardType,
+      obscureText: _obscured,
+      validator: widget.validator,
+      onChanged: widget.onChanged,
+      autofillHints: widget.autofillHints,
+      textInputAction: widget.textInputAction,
+      onEditingComplete: widget.onEditingComplete,
+      onFieldSubmitted: widget.onFieldSubmitted,
+      autovalidateMode: widget.autovalidateMode,
+      inputFormatters: widget.inputFormatters,
+      maxLength: widget.maxLength,
+      textCapitalization: widget.textCapitalization,
+      enableSuggestions: widget.obscureText ? false : widget.enableSuggestions,
+      autocorrect: widget.obscureText ? false : widget.autocorrect,
+      style: TextStyle(color: theme.colorScheme.onSurface),
+      decoration: InputDecoration(
+        hintText: widget.hint,
+        hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+        errorStyle: TextStyle(color: theme.colorScheme.error),
+        counterText: '',
+        prefixIcon: widget.prefixIcon,
+        suffixIcon: suffix,
+        filled: true,
+        fillColor: theme.colorScheme.surfaceContainerHighest,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 18,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderSide: BorderSide(color: theme.colorScheme.error, width: 1),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderSide: BorderSide(color: theme.colorScheme.error, width: 1.5),
+        ),
+      ),
+    );
 
     final live = widget.liveSuffix;
     if (live == null) return field;

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 /// Emoji/GIF sheet sized to the IME slot; drag-down dismisses and reports
 /// [onDragOffset] so the parent can lower the composer with it.
@@ -61,8 +62,8 @@ class _EmojiPanelSheetState extends State<EmojiPanelSheet> {
       behavior: HitTestBehavior.opaque,
       onVerticalDragUpdate: (d) => _setDragOffset(_dragOffset + d.delta.dy),
       onVerticalDragEnd: (d) => _finishDrag(
-        shouldClose: _dragOffset > _maxDrag * 0.25 ||
-            (d.primaryVelocity ?? 0) > 600,
+        shouldClose:
+            _dragOffset > _maxDrag * 0.25 || (d.primaryVelocity ?? 0) > 600,
       ),
       onVerticalDragCancel: () =>
           _finishDrag(shouldClose: _dragOffset > _maxDrag * 0.25),
@@ -74,7 +75,7 @@ class _EmojiPanelSheetState extends State<EmojiPanelSheet> {
             height: 4,
             decoration: BoxDecoration(
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(AppRadius.xsm),
             ),
           ),
         ),
@@ -92,23 +93,24 @@ class _EmojiPanelSheetState extends State<EmojiPanelSheet> {
           ? handle
           : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [handle, Expanded(child: widget.child)],
+              children: [
+                handle,
+                Expanded(child: widget.child),
+              ],
             ),
     );
 
     final animation = widget.animation;
     if (animation != null) {
       sheet = SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0, 1),
-          end: Offset.zero,
-        ).animate(
-          CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-            reverseCurve: Curves.easeInCubic,
-          ),
-        ),
+        position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+            .animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+                reverseCurve: Curves.easeInCubic,
+              ),
+            ),
         child: sheet,
       );
     }

@@ -142,9 +142,7 @@ class _FilesBarState extends ConsumerState<FilesBar> {
     return Padding(
       padding: const EdgeInsets.only(bottom: FloatingConsts.bottomGap),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(
-          FloatingConsts.centralRadius,
-        ),
+        borderRadius: BorderRadius.circular(FloatingConsts.centralRadius),
         child: BackdropFilter(
           filter: ImageFilter.blur(
             sigmaX: FloatingConsts.blurSigma,
@@ -156,179 +154,178 @@ class _FilesBarState extends ConsumerState<FilesBar> {
               color: colorScheme.surface.withValues(
                 alpha: FloatingConsts.surfaceOpacity,
               ),
-              borderRadius: BorderRadius.circular(
-                FloatingConsts.centralRadius,
-              ),
+              borderRadius: BorderRadius.circular(FloatingConsts.centralRadius),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-          // Header Row
-          Row(
-            children: [
-              AppHugeIcon(
-                icon: HugeIcons.strokeRoundedFileAttachment,
-                size: 18,
-                color: colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              Container(
-                width: 3,
-                height: 14,
-                decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Row(
+                // Header Row
+                Row(
                   children: [
-                    Text(
-                      l10n.filesCount(files.length),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface,
+                    AppHugeIcon(
+                      icon: HugeIcons.strokeRoundedFileAttachment,
+                      size: 18,
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 3,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary,
+                        borderRadius: BorderRadius.circular(AppRadius.xsm),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Text(
+                            l10n.filesCount(files.length),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          if (files.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              '${formatFileSize(totalSize)} / ${formatFileSize(FilesBar.maxTotalSize)}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isNearLimit
+                                    ? AppColors.danger
+                                    : colorScheme.onSurfaceVariant,
+                                fontWeight: isNearLimit
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                     if (files.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Text(
-                        '${formatFileSize(totalSize)} / ${formatFileSize(FilesBar.maxTotalSize)}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isNearLimit
-                              ? AppColors.danger
-                              : colorScheme.onSurfaceVariant,
-                          fontWeight: isNearLimit
-                              ? FontWeight.bold
-                              : FontWeight.normal,
+                      Tooltip(
+                        message: l10n.clearAllFilesTooltip,
+                        child: GestureDetector(
+                          key: const Key('clear_all_files'),
+                          behavior: HitTestBehavior.opaque,
+                          onTap: handleClearAll,
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: AppHugeIcon(
+                              icon: HugeIcons.strokeRoundedCancel01,
+                              size: 16,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ],
                 ),
-              ),
-              if (files.isNotEmpty) ...[
-                Tooltip(
-                  message: l10n.clearAllFilesTooltip,
-                  child: GestureDetector(
-                    key: const Key('clear_all_files'),
-                    behavior: HitTestBehavior.opaque,
-                    onTap: handleClearAll,
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: AppHugeIcon(
-                        icon: HugeIcons.strokeRoundedCancel01,
-                        size: 16,
-                        color: colorScheme.onSurfaceVariant,
+                if (files.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Horizontal Files List. The bottom padding reserves a lane for
+                  // the slim scrollbar so it never overlaps the chips' seek bars.
+                  SizedBox(
+                    height: 62,
+                    child: Listener(
+                      onPointerSignal: _handleWheel,
+                      child: RawScrollbar(
+                        controller: _scrollController,
+                        thumbVisibility: showScrollbar,
+                        trackVisibility: false,
+                        thickness: 4,
+                        radius: const Radius.circular(2),
+                        crossAxisMargin: 2,
+                        minThumbLength: 24,
+                        child: ListView.separated(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.only(bottom: 8),
+                          scrollDirection: Axis.horizontal,
+                          primary: false,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemCount: files.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(width: 8),
+                          itemBuilder: (context, index) {
+                            final file = files[index];
+                            dynamic invalidInfo;
+                            for (final item in invalidFiles) {
+                              if (item is Map && item['index'] == index) {
+                                invalidInfo = item;
+                                break;
+                              }
+                            }
+                            final isInvalid = invalidInfo != null;
+
+                            final messageFile = draftMessageFile(
+                              file,
+                              chatUUID: chatUUID,
+                              index: index,
+                            );
+                            final fileName = messageFile.name.isNotEmpty
+                                ? messageFile.name
+                                : 'File';
+                            final category = getFileType(
+                              messageFile.mimeType,
+                              fileName,
+                            );
+                            final isAudioOrVoice =
+                                messageFile.isAudio || messageFile.isVoice;
+                            final iconColor = isInvalid
+                                ? AppColors.danger
+                                : colorScheme.primary;
+
+                            return DraftFileChip(
+                              key: ValueKey('file_chip_$fileName'),
+                              fileName: fileName,
+                              fileSize: messageFile.size,
+                              category: category,
+                              leadingOverride: isAudioOrVoice
+                                  ? DraftAudioPlayIcon(
+                                      chatUUID: chatUUID,
+                                      index: index,
+                                      color: iconColor,
+                                    )
+                                  : null,
+                              bottomBar: isAudioOrVoice
+                                  ? DraftAudioSeekBar(
+                                      chatUUID: chatUUID,
+                                      index: index,
+                                      file: file,
+                                      durationSeconds: messageFile.duration,
+                                    )
+                                  : null,
+                              isInvalid: isInvalid,
+                              removeTooltip: l10n.removeFileTooltip,
+                              removeKey: Key('remove_file_$index'),
+                              onTap: () =>
+                                  handlePreviewTap(file, index, messageFile),
+                              onRemove: () => handleRemoveFile(index),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
-          if (files.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 8),
-
-            // Horizontal Files List. The bottom padding reserves a lane for
-            // the slim scrollbar so it never overlaps the chips' seek bars.
-            SizedBox(
-              height: 62,
-              child: Listener(
-                onPointerSignal: _handleWheel,
-                child: RawScrollbar(
-                  controller: _scrollController,
-                  thumbVisibility: showScrollbar,
-                  trackVisibility: false,
-                  thickness: 4,
-                  radius: const Radius.circular(2),
-                  crossAxisMargin: 2,
-                  minThumbLength: 24,
-                  child: ListView.separated(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.only(bottom: 8),
-                    scrollDirection: Axis.horizontal,
-                    primary: false,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    itemCount: files.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(width: 8),
-                    itemBuilder: (context, index) {
-                      final file = files[index];
-                      dynamic invalidInfo;
-                      for (final item in invalidFiles) {
-                        if (item is Map && item['index'] == index) {
-                          invalidInfo = item;
-                          break;
-                        }
-                      }
-                      final isInvalid = invalidInfo != null;
-
-                      final messageFile = draftMessageFile(
-                        file,
-                        chatUUID: chatUUID,
-                        index: index,
-                      );
-                      final fileName = messageFile.name.isNotEmpty
-                          ? messageFile.name
-                          : 'File';
-                      final category = getFileType(
-                        messageFile.mimeType,
-                        fileName,
-                      );
-                      final isAudioOrVoice =
-                          messageFile.isAudio || messageFile.isVoice;
-                      final iconColor = isInvalid
-                          ? AppColors.danger
-                          : colorScheme.primary;
-
-                      return DraftFileChip(
-                        key: ValueKey('file_chip_$fileName'),
-                        fileName: fileName,
-                        fileSize: messageFile.size,
-                        category: category,
-                        leadingOverride: isAudioOrVoice
-                            ? DraftAudioPlayIcon(
-                                chatUUID: chatUUID,
-                                index: index,
-                                color: iconColor,
-                              )
-                            : null,
-                        bottomBar: isAudioOrVoice
-                            ? DraftAudioSeekBar(
-                                chatUUID: chatUUID,
-                                index: index,
-                                file: file,
-                                durationSeconds: messageFile.duration,
-                              )
-                            : null,
-                        isInvalid: isInvalid,
-                        removeTooltip: l10n.removeFileTooltip,
-                        removeKey: Key('remove_file_$index'),
-                        onTap: () => handlePreviewTap(file, index, messageFile),
-                        onRemove: () => handleRemoveFile(index),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
+        ),
       ),
-    ),
-  ),
-  ),
-);
+    );
   }
 }

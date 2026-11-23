@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 /// Visual presets for [AppButton].
 ///
@@ -63,7 +64,7 @@ class AppButton extends StatelessWidget {
             elevation: 0,
             shadowColor: Colors.transparent,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(100),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             textStyle: theme.textTheme.labelLarge?.copyWith(

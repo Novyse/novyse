@@ -13,6 +13,7 @@ class AppColors {
 }
 
 class AppRadius {
+  static const double xsm = 4;
   static const double sm = 8;
   static const double md = 12;
   static const double bg = 16;

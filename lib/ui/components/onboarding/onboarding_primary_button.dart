@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 class OnboardingPrimaryButton extends StatelessWidget {
   const OnboardingPrimaryButton({
@@ -33,7 +34,7 @@ class OnboardingPrimaryButton extends StatelessWidget {
           elevation: 0,
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(100),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
           textStyle: theme.textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w700,

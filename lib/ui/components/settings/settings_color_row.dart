@@ -1,12 +1,15 @@
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:novyse/core/themes/themes.dart';
 import 'package:novyse/ui/components/color_picker/color_picker.dart';
 import 'package:novyse/ui/components/color_picker/color_picker_sheet.dart';
 import 'package:novyse/ui/components/settings/settings_base_row.dart';
 
-typedef SettingsColorChanged =
-    void Function(LinearGradient gradient, double angle);
+typedef SettingsColorChanged = void Function(
+  LinearGradient gradient,
+  double angle,
+);
 
 class SettingsColorRow extends StatelessWidget {
   const SettingsColorRow({
@@ -58,10 +61,7 @@ class SettingsColorRow extends StatelessWidget {
           if (gradient == null)
             Text(
               notSetLabel,
-              style: TextStyle(
-                fontSize: 14,
-                color: scheme.onSurfaceVariant,
-              ),
+              style: TextStyle(fontSize: 14, color: scheme.onSurfaceVariant),
               textAlign: TextAlign.end,
             )
           else
@@ -69,17 +69,14 @@ class SettingsColorRow extends StatelessWidget {
               width: 28,
               height: 28,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppRadius.xsm),
                 border: Border.all(color: scheme.outlineVariant),
                 gradient: gradient,
               ),
             ),
           if (gradient != null && onCleared != null) ...[
             const SizedBox(width: 4),
-            SettingsClearButton(
-              tooltip: clearTooltip,
-              onPressed: onCleared!,
-            ),
+            SettingsClearButton(tooltip: clearTooltip, onPressed: onCleared!),
           ],
         ],
       ),
@@ -102,9 +99,7 @@ class SettingsColorRow extends StatelessWidget {
 
     await showColorPickerSheet(
       context: context,
-      mode: isSolid
-          ? ColorPickerMode.color
-          : ColorPickerMode.gradient,
+      mode: isSolid ? ColorPickerMode.color : ColorPickerMode.gradient,
       allowModeSwitch: allowModeSwitch,
       gradientColors: stopCount >= 2 ? stopCount : 2,
       initialColor: initialColor,

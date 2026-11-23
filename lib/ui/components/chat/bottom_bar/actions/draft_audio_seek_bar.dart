@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:novyse/core/chat/chat_audio_service.dart';
 import 'package:novyse/core/storage/file/draft_file_preview.dart';
+import 'package:novyse/core/themes/themes.dart';
 
 /// Thin seekable progress bar pinned to the bottom of audio/voice draft chips.
 ///
@@ -88,7 +89,7 @@ class DraftAudioSeekBar extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 2),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(AppRadius.xsm),
                     child: SizedBox(
                       height: 4,
                       child: Stack(

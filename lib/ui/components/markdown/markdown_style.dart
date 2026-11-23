@@ -51,7 +51,7 @@ MarkdownStyleSheet appMarkdownStyleSheet(
     blockquotePadding: const EdgeInsets.all(12),
     blockquoteDecoration: BoxDecoration(
       color: surface,
-      borderRadius: BorderRadius.circular(4),
+      borderRadius: BorderRadius.circular(AppRadius.xsm),
       border: Border(left: BorderSide(color: accent, width: 3)),
     ),
     code: mono,

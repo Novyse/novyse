@@ -68,7 +68,7 @@ class EditBar extends ConsumerWidget {
                 height: 24,
                 decoration: BoxDecoration(
                   color: colorScheme.primary,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(AppRadius.xsm),
                 ),
               ),
               const SizedBox(width: 8),
