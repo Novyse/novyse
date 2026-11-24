@@ -493,22 +493,14 @@ class ChatListNotifier extends Notifier<ChatListState> {
   ) {
     if (action != 'pin_add' && action != 'pin_remove') return;
 
-    final updated = List<ChatModel>.from(state.chats);
-    final pinned = <({String uuid, int position})>[
-      for (final chat in updated)
-        if (chat.pinPosition != null)
-          (uuid: chat.uuid, position: chat.pinPosition!),
-    ]..sort((a, b) => a.position.compareTo(b.position));
-    final order = [for (final pin in pinned) pin.uuid];
+    final order = _orderedPinUUIDs();
 
     if (action == 'pin_add') {
       final position = (data['position'] as num?)?.toInt() ?? 0;
-      final currentPin = pinned
-          .where((pin) => pin.uuid == chatUUID)
-          .firstOrNull;
-      if (currentPin != null && currentPin.position == position) return;
+      final currentIndex = order.indexOf(chatUUID);
+      if (currentIndex == position) return;
 
-      order.remove(chatUUID);
+      if (currentIndex >= 0) order.removeAt(currentIndex);
       final index = position < 0
           ? 0
           : (position > order.length ? order.length : position);
@@ -517,10 +509,27 @@ class ChatListNotifier extends Notifier<ChatListState> {
       return;
     }
 
+    _setPinOrder(order);
+  }
+
+  /// UUIDs of the pinned chats, in display order.
+  List<String> _orderedPinUUIDs() {
+    final pinned = <({String uuid, int position})>[
+      for (final chat in state.chats)
+        if (chat.pinPosition != null)
+          (uuid: chat.uuid, position: chat.pinPosition!),
+    ]..sort((a, b) => a.position.compareTo(b.position));
+    return [for (final pin in pinned) pin.uuid];
+  }
+
+  /// Rewrites the pin positions from [order], the pinned chats in display
+  /// order, so the list stays consistent after a local or remote change.
+  void _setPinOrder(List<String> order) {
     final positions = {
       for (var index = 0; index < order.length; index++) order[index]: index,
     };
 
+    final updated = List<ChatModel>.from(state.chats);
     for (var index = 0; index < updated.length; index++) {
       final chat = updated[index];
       final position = positions[chat.uuid];
@@ -572,6 +581,53 @@ class ChatListNotifier extends Notifier<ChatListState> {
       }
 
       position++;
+    }
+  }
+
+  /// Moves a pinned chat to [position] in the pinned list.
+  ///
+  /// The new order is applied to the local state before the request, so the
+  /// chat lands where it was dropped; the position confirmed by the server is
+  /// applied afterwards, and the previous order is restored on failure.
+  Future<void> movePinnedChat(String chatUUID, int position) async {
+    final gateway = ref.read(apiGatewayProvider);
+    final emitter = ref.read(globalEventEmitterProvider);
+
+    final order = _orderedPinUUIDs();
+    final oldIndex = order.indexOf(chatUUID);
+    if (oldIndex < 0) return;
+
+    final target = position < 0
+        ? 0
+        : (position > order.length - 1 ? order.length - 1 : position);
+    if (target == oldIndex) return;
+
+    final previous = List<String>.from(order);
+    order.removeAt(oldIndex);
+    order.insert(target, chatUUID);
+    _setPinOrder(order);
+
+    await emitter.user.setting.chat.update(chatUUID, 'pin_add', null, {
+      'position': target,
+    });
+
+    try {
+      final response = await gateway.chat.pin.add(chatUUID, target);
+      final confirmed = response.position;
+      if (response.success && confirmed != null && confirmed != target) {
+        await emitter.user.setting.chat.update(
+          chatUUID,
+          'pin_add',
+          response.userEventID,
+          {'position': confirmed},
+        );
+      }
+    } catch (e) {
+      debugPrint('ChatListStore move pin error: $e');
+      _setPinOrder(previous);
+      await emitter.user.setting.chat.update(chatUUID, 'pin_add', null, {
+        'position': oldIndex,
+      });
     }
   }
 

@@ -103,6 +103,7 @@ class ChatListItem extends ConsumerWidget {
   final bool selectionMode;
   final bool selectionSelected;
   final ValueChanged<TapUpDetails>? onSecondaryTapUp;
+  final Widget? trailing;
 
   const ChatListItem({
     super.key,
@@ -113,6 +114,7 @@ class ChatListItem extends ConsumerWidget {
     this.selectionMode = false,
     this.selectionSelected = false,
     this.onSecondaryTapUp,
+    this.trailing,
   });
 
   List<List<dynamic>>? get _chatTypeIcon {
@@ -388,6 +390,7 @@ class ChatListItem extends ConsumerWidget {
                   ],
                 ),
               ),
+              ?trailing,
             ],
           ),
         ),

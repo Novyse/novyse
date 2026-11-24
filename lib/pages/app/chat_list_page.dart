@@ -212,6 +212,26 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
     if (mounted) _exitSelection();
   }
 
+  /// Moves a pinned chat where it was dropped, clamping the destination to the
+  /// pinned chats: the others are not reorderable.
+  void _onReorderPinned(int oldIndex, int newIndex) {
+    final chats = ref.read(chatListProvider).chats;
+    if (oldIndex < 0 || oldIndex >= chats.length) return;
+
+    final moved = chats[oldIndex];
+    if (!moved.isPinned) return;
+
+    final pinnedCount = chats.where((chat) => chat.isPinned).length;
+    var target = newIndex;
+    if (target < 0) target = 0;
+    if (target > pinnedCount - 1) target = pinnedCount - 1;
+    if (target == oldIndex) return;
+
+    unawaited(
+      ref.read(chatListProvider.notifier).movePinnedChat(moved.uuid, target),
+    );
+  }
+
   void _onQueryChanged(String value) {
     setState(() => _query = value);
     _debounce?.cancel();
@@ -489,6 +509,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
                   onEnterSelection: _enterSelection,
                   onSecondaryTapItem: (chatUUID, position) =>
                       _showChatContextMenu(chatUUID, position),
+                  onReorderPinned: _onReorderPinned,
                 ),
             ],
           ],
