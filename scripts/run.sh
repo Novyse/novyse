@@ -61,6 +61,8 @@ case "$OS_TARGET" in
         echo "🧪 Wasm dev build: hot reload is not supported, use hot restart (R)."
       fi
     done
+    # Regenerate web/sqflite_sw.js and web/sqlite3.wasm when the package changed
+    (cd "$ROOT_DIR" && dart run sqflite_common_ffi_web:setup)
     echo "🚀 Launching on Web (Chrome, port 8081)..."
     exec flutter run -d chrome --web-port 8081 "$@"
     ;;

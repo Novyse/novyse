@@ -518,6 +518,8 @@ build_ios() {
 
 build_web() {
   echo "🌐 Building Web for $APP_NAME..."
+  # Regenerate web/sqflite_sw.js and web/sqlite3.wasm when the package changed
+  (cd "$ROOT_DIR" && dart run sqflite_common_ffi_web:setup)
   # Wasm build with a JavaScript fallback for browsers without WasmGC support.
   flutter build web --release --wasm
 
