@@ -34,14 +34,32 @@ static void my_application_activate(GApplication *application) {
   gtk_widget_hide(header_bar);
   gtk_window_set_titlebar(window, header_bar);
 
+  gtk_window_set_default_icon_name(APPLICATION_ID);
   g_autofree gchar *exe_path = g_file_read_link("/proc/self/exe", nullptr);
   if (exe_path != nullptr) {
     g_autofree gchar *exe_dir = g_path_get_dirname(exe_path);
-    g_autofree gchar *icon_path =
-        g_build_filename(exe_dir, "data", "flutter_assets", "assets", "images",
-                         "novyse-icon-logo.png", nullptr);
-    if (g_file_test(icon_path, G_FILE_TEST_EXISTS)) {
-      gtk_window_set_icon_from_file(window, icon_path, nullptr);
+    g_autofree gchar *images_dir = g_build_filename(
+        exe_dir, "data", "flutter_assets", "assets", "images", nullptr);
+    const gchar *icon_candidates[] = {
+        "icons/generated/icon_base.png",
+        "novyse-icon-logo.png",
+    };
+    for (gsize i = 0; i < G_N_ELEMENTS(icon_candidates); i++) {
+      g_autofree gchar *icon_path =
+          g_build_filename(images_dir, icon_candidates[i], nullptr);
+      if (!g_file_test(icon_path, G_FILE_TEST_EXISTS)) {
+        continue;
+      }
+      g_autoptr(GError) icon_error = nullptr;
+      g_autoptr(GdkPixbuf) icon =
+          gdk_pixbuf_new_from_file(icon_path, &icon_error);
+      if (icon == nullptr) {
+        g_warning("Failed to load the window icon %s: %s", icon_path,
+                  icon_error->message);
+        continue;
+      }
+      gtk_window_set_default_icon(icon);
+      break;
     }
   }
 
@@ -54,7 +72,6 @@ static void my_application_activate(GApplication *application) {
 #endif
 
   gtk_window_set_title(window, APP_NAME);
-  gtk_window_set_default_icon_name(APPLICATION_ID);
   gtk_window_set_default_size(window, 1280, 720);
   gtk_window_set_decorated(window, FALSE);
 
