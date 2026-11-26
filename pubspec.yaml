@@ -82,8 +82,8 @@ dependencies:
   receive_sharing_intent: ^1.9.0
   livekit_client: ^2.11.0
   flutter_webrtc: ^1.6.0
-  nativeapi: 0.6.1
-  nativeapi_flutter: 0.6.1
+  nativeapi: 0.6.2
+  nativeapi_flutter: 0.6.2
   unicode_emojis: ^0.5.1
   firebase_core: ^4.14.0
   firebase_messaging: ^16.6.0
