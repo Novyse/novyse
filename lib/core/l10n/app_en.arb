@@ -325,6 +325,8 @@
   "screenShareIncludeSystemAudio": "Share system audio as well",
   "screenShareIncludeCursor": "Include the cursor in the frame",
   "screenSharePickSource": "Choose source",
+  "screenShareSimulcast": "Simulcast",
+  "screenShareSimulcastHint": "Sends lower-quality layers for weak connections. Uses more CPU and RAM.",
   "screenShareStart": "Start sharing",
   "screenShareSetupTitle": "Set up sharing",
   "screenSharePreview": "Preview",

@@ -21,6 +21,8 @@ class ScreenShareQualityFields extends StatelessWidget {
   final ValueChanged<String> onQualityChanged;
   final ValueChanged<String> onFpsChanged;
   final ValueChanged<int>? onBitrateChanged;
+  final bool simulcast;
+  final ValueChanged<bool>? onSimulcastChanged;
 
   const ScreenShareQualityFields({
     super.key,
@@ -34,6 +36,8 @@ class ScreenShareQualityFields extends StatelessWidget {
     required this.onQualityChanged,
     required this.onFpsChanged,
     this.onBitrateChanged,
+    this.simulcast = false,
+    this.onSimulcastChanged,
   });
 
   @override
@@ -122,6 +126,40 @@ class ScreenShareQualityFields extends StatelessWidget {
             ],
             onChanged: onFpsChanged,
           ),
+          if (onSimulcastChanged != null) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Checkbox(
+                  value: simulcast,
+                  onChanged: (val) => onSimulcastChanged!(val ?? false),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.screenShareSimulcast,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      Text(
+                        l10n.screenShareSimulcastHint,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
           if (onBitrateChanged != null) ...[
             const SizedBox(height: 12),
             Text(

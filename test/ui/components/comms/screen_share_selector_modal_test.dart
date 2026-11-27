@@ -624,6 +624,42 @@ void main() {
       expect(find.byType(NumberStepper), findsOneWidget);
     });
 
+    testWidgets('offers the simulcast toggle only in custom mode', (
+      tester,
+    ) async {
+      var enabled = false;
+      Widget fields(String mode) => MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: ScreenShareQualityFields(
+              mode: mode,
+              customQuality: '480p',
+              customFps: '15',
+              onModeChanged: (_) {},
+              onQualityChanged: (_) {},
+              onFpsChanged: (_) {},
+              onSimulcastChanged: (v) => enabled = v,
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(fields('smooth'));
+      await tester.pumpAndSettle();
+      expect(find.text(en.screenShareSimulcast), findsNothing);
+
+      await tester.pumpWidget(fields('custom'));
+      await tester.pumpAndSettle();
+      expect(find.text(en.screenShareSimulcast), findsOneWidget);
+      expect(find.text(en.screenShareSimulcastHint), findsOneWidget);
+
+      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+      expect(enabled, isTrue);
+    });
+
     testWidgets(
       'uses SegmentedSwitch for mode, quality, and fps in custom mode',
       (tester) async {

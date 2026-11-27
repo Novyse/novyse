@@ -105,15 +105,29 @@ void main() {
       expect(Helper.screenCaptureShowCursor, isTrue);
     });
 
-    test('publish options carry top encoding and simulcast sub-layers', () {
+    test('publish options default to a single stream', () {
       const config = ScreenShareConfig(
         mode: CommsMediaConstraints.shareCustom,
         customQuality: CommsMediaConstraints.video480p,
         customFps: CommsMediaConstraints.fps30,
       );
       final options = config.publishOptions();
-      expect(options.simulcast, isTrue);
+      expect(options.simulcast, isFalse);
       expect(options.videoCodec, 'vp8');
+      expect(options.screenShareEncoding?.maxFramerate, 30);
+      expect(options.screenShareEncoding?.maxBitrate, 1200 * 1000);
+      expect(options.screenShareSimulcastLayers, isEmpty);
+    });
+
+    test('custom mode can opt into the quality cascade', () {
+      const config = ScreenShareConfig(
+        mode: CommsMediaConstraints.shareCustom,
+        customQuality: CommsMediaConstraints.video480p,
+        customFps: CommsMediaConstraints.fps30,
+        simulcast: true,
+      );
+      final options = config.publishOptions();
+      expect(options.simulcast, isTrue);
       expect(options.screenShareEncoding?.maxFramerate, 30);
       expect(options.screenShareEncoding?.maxBitrate, 1200 * 1000);
       expect(options.screenShareSimulcastLayers.length, 2);
@@ -124,6 +138,13 @@ void main() {
       expect(low.encoding?.maxFramerate, 30);
       expect(med.dimensions.height, 360);
       expect(med.encoding?.maxFramerate, 30);
+    });
+
+    test('preset modes never publish simulcast', () {
+      const config = ScreenShareConfig(mode: 'gaming', simulcast: true);
+      final options = config.publishOptions();
+      expect(options.simulcast, isFalse);
+      expect(options.screenShareSimulcastLayers, isEmpty);
     });
 
     test('bitrate override sets the encoding max bitrate in bps', () {

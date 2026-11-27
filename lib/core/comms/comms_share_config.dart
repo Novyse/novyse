@@ -24,12 +24,18 @@ class ScreenShareConfig {
   /// Whether the captured frame composites the sharer's OS pointer.
   final bool showCursor;
 
+  /// Opt-in multi-layer publish. Off by default everywhere: a single stream
+  /// encodes once instead of one encoder per layer. Honoured in custom mode
+  /// only, where the sub-layers cascade from the selected quality.
+  final bool simulcast;
+
   const ScreenShareConfig({
     this.mode = CommsMediaConstraints.defaultShareMode,
     this.customQuality = CommsMediaConstraints.defaultShareCustomQuality,
     this.customFps = CommsMediaConstraints.defaultShareCustomFps,
     this.maxBitrateKbps,
     this.showCursor = true,
+    this.simulcast = false,
   });
 
   /// Defaults snapshot read from the settings map.
@@ -67,6 +73,7 @@ class ScreenShareConfig {
     String? customFps,
     int? maxBitrateKbps,
     bool? showCursor,
+    bool? simulcast,
   }) {
     return ScreenShareConfig(
       mode: mode ?? this.mode,
@@ -74,6 +81,7 @@ class ScreenShareConfig {
       customFps: customFps ?? this.customFps,
       maxBitrateKbps: maxBitrateKbps ?? this.maxBitrateKbps,
       showCursor: showCursor ?? this.showCursor,
+      simulcast: simulcast ?? this.simulcast,
     );
   }
 
@@ -144,7 +152,8 @@ class ScreenShareConfig {
     );
   }
 
-  /// Publish options: explicit top encoding + 3-tier simulcast sub-layers.
+  /// Publish options: one stream by default, sub-layers only when simulcast is
+  /// explicitly enabled in custom mode (they cascade from [resolveEffectiveQuality]).
   VideoPublishOptions publishOptions({int? sourceWidth, int? sourceHeight}) {
     final params = resolveParams(
       sourceWidth: sourceWidth,
@@ -155,15 +164,17 @@ class ScreenShareConfig {
       sourceHeight: sourceHeight,
     );
     final fps = resolveMaxFrameRate().round();
-    final subLayers = CommsMediaConstraints.shareSimulcastLayersFor(
-      quality,
-      fps,
-    );
+    final useSimulcast =
+        simulcast &&
+        CommsMediaConstraints.resolveShareMode(mode) ==
+            CommsMediaConstraints.shareCustom;
     return VideoPublishOptions(
-      simulcast: true,
+      simulcast: useSimulcast,
       videoCodec: 'vp8',
       screenShareEncoding: params.encoding,
-      screenShareSimulcastLayers: subLayers,
+      screenShareSimulcastLayers: useSimulcast
+          ? CommsMediaConstraints.shareSimulcastLayersFor(quality, fps)
+          : const [],
       degradationPreference: DegradationPreference.maintainResolution,
     );
   }
@@ -175,9 +186,16 @@ class ScreenShareConfig {
       other.customQuality == customQuality &&
       other.customFps == customFps &&
       other.maxBitrateKbps == maxBitrateKbps &&
-      other.showCursor == showCursor;
+      other.showCursor == showCursor &&
+      other.simulcast == simulcast;
 
   @override
-  int get hashCode =>
-      Object.hash(mode, customQuality, customFps, maxBitrateKbps, showCursor);
+  int get hashCode => Object.hash(
+    mode,
+    customQuality,
+    customFps,
+    maxBitrateKbps,
+    showCursor,
+    simulcast,
+  );
 }

@@ -114,6 +114,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
   late bool _userCustomizedBitrate = widget.initial.maxBitrateKbps != null;
   late bool _showCursor = ScreenSharePreset.fromId(widget.initial.mode)
       .showCursor;
+  late bool _simulcast = widget.initial.simulcast;
 
   // Custom-picker flow.
   ScreenShareType _selectedType = ScreenShareType.screen;
@@ -164,6 +165,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
     customFps: _fps,
     maxBitrateKbps: _isCustomMode ? _bitrateKbps : null,
     showCursor: _showCursor,
+    simulcast: _simulcast,
   );
 
   /// Validation result for the current bitrate, checked before starting.
@@ -391,6 +393,8 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
             });
             _syncPreviewOptions();
           },
+          simulcast: _simulcast,
+          onSimulcastChanged: (v) => setState(() => _simulcast = v),
         ),
         const SizedBox(height: 12),
 
