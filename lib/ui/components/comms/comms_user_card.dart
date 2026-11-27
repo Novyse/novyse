@@ -142,6 +142,21 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
 
     final videoTrack = tile.hasActiveVideo ? tile.videoTrack : null;
 
+    final trackSid = tile.trackSid;
+    final shareVideoHidden =
+        tile.isScreenShare &&
+        trackSid != null &&
+        ref.watch(
+          commsProvider.select(
+            (s) => s.hiddenShareVideoSids.contains(trackSid),
+          ),
+        );
+    // A share published without simulcast has a single quality: no picker.
+    final remoteSharePub =
+        !tile.isLocal && tile.isScreenShare && trackSid != null
+        ? ref.read(commsProvider.notifier).findRemoteTrackPublication(trackSid)
+        : null;
+
     final labelText = tile.isScreenShare
         ? l10n.commsUserScreenShare(displayName)
         : tile.isLocal
@@ -232,7 +247,9 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
             fit: StackFit.expand,
             children: [
               // Video or Avatar Content
-              if (videoTrack != null)
+              if (shareVideoHidden)
+                _buildHiddenShareFallback(trackSid)
+              else if (videoTrack != null)
                 VideoTrackRenderer(videoTrack)
               else
                 _buildAvatarFallback(pfpUUID, displayName, tile.userUUID),
@@ -255,9 +272,27 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                         onPin: widget.onPin,
                         onFullScreen: widget.onFullScreen,
                         trailing: [
+                          if (tile.isScreenShare && trackSid != null)
+                            CommsChipIconButton(
+                              icon: shareVideoHidden
+                                  ? HugeIcons.strokeRoundedView
+                                  : HugeIcons.strokeRoundedViewOff,
+                              tooltip: shareVideoHidden
+                                  ? l10n.screenShareEnableVideo
+                                  : l10n.screenShareDisableVideo,
+                              onPressed: () => ref
+                                  .read(commsProvider.notifier)
+                                  .setShareVideoHidden(
+                                    trackSid,
+                                    !shareVideoHidden,
+                                  ),
+                            ),
                           if (tile.isScreenShare &&
                               !tile.isLocal &&
-                              tile.trackSid != null)
+                              tile.trackSid != null &&
+                              RemoteQualityOption.canChooseQuality(
+                                remoteSharePub?.simulcasted,
+                              ))
                             Builder(
                               builder: (btnContext) => CommsChipIconButton(
                                 icon: HugeIcons.strokeRoundedSlidersVertical,
@@ -609,6 +644,72 @@ class _CommsUserCardState extends ConsumerState<CommsUserCard> {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Empty card for a screen share whose video is hidden on purpose.
+  Widget _buildHiddenShareFallback(String trackSid) {
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+            colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppHugeIcon(
+                icon: HugeIcons.strokeRoundedViewOff,
+                size: 32,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                l10n.screenShareVideoHiddenTitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: colorScheme.onSurface,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.screenShareVideoHiddenHint,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: () => ref
+                    .read(commsProvider.notifier)
+                    .setShareVideoHidden(trackSid, false),
+                icon: const AppHugeIcon(
+                  icon: HugeIcons.strokeRoundedView,
+                  size: 16,
+                ),
+                label: Text(l10n.screenShareEnableVideo),
+              ),
+            ],
           ),
         ),
       ),

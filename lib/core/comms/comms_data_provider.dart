@@ -51,6 +51,12 @@ class CommsRoomViewData {
       Object.hash(isConnectedToThisRoom, isLoading, Object.hashAll(tiles));
 }
 
+/// Whether a screen-share publication still gets a tile.
+bool sharePublicationHasTile({
+  required bool videoHidden,
+  required bool muted,
+}) => videoHidden || !muted;
+
 typedef CommsRoomKey = ({String chatUUID, int sub});
 
 /// Family AutoDispose Notifier provider for room participants and tiles.
@@ -84,6 +90,7 @@ class CommsDataNotifier
         remoteVolumes: commsState.remoteVolumes,
         localMuted: commsState.localMuted,
         outputEnabled: commsState.isAudioOutputEnabled,
+        hiddenShareVideoSids: commsState.hiddenShareVideoSids,
       );
     } else {
       _startPolling();
@@ -175,6 +182,7 @@ class CommsDataNotifier
     Map<String, double> remoteVolumes = const {},
     Map<String, bool> localMuted = const {},
     bool outputEnabled = true,
+    Set<String> hiddenShareVideoSids = const {},
   }) {
     final tiles = <CommsTileItem>[
       for (final instance in activities)
@@ -241,7 +249,12 @@ class CommsDataNotifier
       );
 
       for (final screenPub in screenPubs) {
-        if (screenPub.track == null || screenPub.muted) continue;
+        if (!sharePublicationHasTile(
+          videoHidden: hiddenShareVideoSids.contains(screenPub.sid),
+          muted: screenPub.muted,
+        )) {
+          continue;
+        }
 
         final shareVolKey = screenPub.sid;
         tiles.add(

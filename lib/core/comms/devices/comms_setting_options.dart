@@ -52,12 +52,17 @@ Future<void> saveCameraOption(WidgetRef ref, String value) =>
     ref.read(commsProvider.notifier).setVideoInputDevice(value);
 
 Future<void> saveVideoQualityOption(WidgetRef ref, String value) async {
-  final fpsRaw =
-      ref.read(settingsControllerProvider)[CommsMediaConstraints.videoFramerateKey];
-  final fpsStr = fpsRaw is String ? fpsRaw : CommsMediaConstraints.defaultVideoFramerate;
+  final fpsRaw = ref.read(
+    settingsControllerProvider,
+  )[CommsMediaConstraints.videoFramerateKey];
+  final fpsStr = fpsRaw is String
+      ? fpsRaw
+      : CommsMediaConstraints.defaultVideoFramerate;
   final fps = CommsMediaConstraints.resolveVideoFps(value, fpsStr);
-  final adequateBitrate =
-      CommsBitrateOptions.rangeFor(fps, quality: value).defaultKbps;
+  final adequateBitrate = CommsBitrateOptions.rangeFor(
+    fps,
+    quality: value,
+  ).defaultKbps;
 
   await ref
       .read(settingsControllerProvider.notifier)
@@ -69,13 +74,17 @@ Future<void> saveVideoQualityOption(WidgetRef ref, String value) async {
 }
 
 Future<void> saveVideoFpsOption(WidgetRef ref, String value) async {
-  final qualityRaw =
-      ref.read(settingsControllerProvider)[CommsMediaConstraints.videoQualityKey];
-  final qualityStr =
-      qualityRaw is String ? qualityRaw : CommsMediaConstraints.defaultVideoQuality;
+  final qualityRaw = ref.read(
+    settingsControllerProvider,
+  )[CommsMediaConstraints.videoQualityKey];
+  final qualityStr = qualityRaw is String
+      ? qualityRaw
+      : CommsMediaConstraints.defaultVideoQuality;
   final fps = CommsMediaConstraints.resolveVideoFps(qualityStr, value);
-  final adequateBitrate =
-      CommsBitrateOptions.rangeFor(fps, quality: qualityStr).defaultKbps;
+  final adequateBitrate = CommsBitrateOptions.rangeFor(
+    fps,
+    quality: qualityStr,
+  ).defaultKbps;
 
   await ref
       .read(settingsControllerProvider.notifier)
@@ -99,12 +108,17 @@ Future<void> saveShareModeOption(WidgetRef ref, String value) => ref
     .set(CommsMediaConstraints.shareModeKey, value);
 
 Future<void> saveShareCustomQualityOption(WidgetRef ref, String value) async {
-  final fpsRaw =
-      ref.read(settingsControllerProvider)[CommsMediaConstraints.shareCustomFpsKey];
-  final fpsStr = fpsRaw is String ? fpsRaw : CommsMediaConstraints.defaultShareCustomFps;
+  final fpsRaw = ref.read(
+    settingsControllerProvider,
+  )[CommsMediaConstraints.shareCustomFpsKey];
+  final fpsStr = fpsRaw is String
+      ? fpsRaw
+      : CommsMediaConstraints.defaultShareCustomFps;
   final fps = CommsMediaConstraints.resolveVideoFps('', fpsStr);
-  final adequateBitrate =
-      CommsBitrateOptions.rangeFor(fps, quality: value).defaultKbps;
+  final adequateBitrate = CommsBitrateOptions.rangeFor(
+    fps,
+    quality: value,
+  ).defaultKbps;
 
   await ref
       .read(settingsControllerProvider.notifier)
@@ -115,14 +129,17 @@ Future<void> saveShareCustomQualityOption(WidgetRef ref, String value) async {
 }
 
 Future<void> saveShareCustomFpsOption(WidgetRef ref, String value) async {
-  final qualityRaw =
-      ref.read(settingsControllerProvider)[CommsMediaConstraints.shareCustomQualityKey];
+  final qualityRaw = ref.read(
+    settingsControllerProvider,
+  )[CommsMediaConstraints.shareCustomQualityKey];
   final qualityStr = qualityRaw is String
       ? qualityRaw
       : CommsMediaConstraints.defaultShareCustomQuality;
   final fps = CommsMediaConstraints.resolveVideoFps('', value);
-  final adequateBitrate =
-      CommsBitrateOptions.rangeFor(fps, quality: qualityStr).defaultKbps;
+  final adequateBitrate = CommsBitrateOptions.rangeFor(
+    fps,
+    quality: qualityStr,
+  ).defaultKbps;
 
   await ref
       .read(settingsControllerProvider.notifier)

@@ -17,11 +17,26 @@ class _WindowsDefaultAudio {
 
   OsDefaultAudioNames read() {
     final ole32 = DynamicLibrary.open('ole32.dll');
-    final coInitializeEx = ole32.lookupFunction<Int32 Function(Pointer, Uint32), int Function(Pointer, int)>('CoInitializeEx');
-    final coUninitialize = ole32.lookupFunction<Void Function(), void Function()>('CoUninitialize');
-    final coCreateInstance = ole32.lookupFunction<Int32 Function(Pointer, Pointer, Uint32, Pointer, Pointer), int Function(Pointer, Pointer, int, Pointer, Pointer)>('CoCreateInstance');
-    final propVariantClear = ole32.lookupFunction<Int32 Function(Pointer), int Function(Pointer)>('PropVariantClear');
-    final coTaskMemFree = ole32.lookupFunction<Void Function(Pointer), void Function(Pointer)>('CoTaskMemFree');
+    final coInitializeEx = ole32
+        .lookupFunction<
+          Int32 Function(Pointer, Uint32),
+          int Function(Pointer, int)
+        >('CoInitializeEx');
+    final coUninitialize = ole32
+        .lookupFunction<Void Function(), void Function()>('CoUninitialize');
+    final coCreateInstance = ole32
+        .lookupFunction<
+          Int32 Function(Pointer, Pointer, Uint32, Pointer, Pointer),
+          int Function(Pointer, Pointer, int, Pointer, Pointer)
+        >('CoCreateInstance');
+    final propVariantClear = ole32
+        .lookupFunction<Int32 Function(Pointer), int Function(Pointer)>(
+          'PropVariantClear',
+        );
+    final coTaskMemFree = ole32
+        .lookupFunction<Void Function(Pointer), void Function(Pointer)>(
+          'CoTaskMemFree',
+        );
 
     final ownInit = coInitializeEx(nullptr, 2) == 0;
     try {
@@ -32,8 +47,18 @@ class _WindowsDefaultAudio {
       );
       if (enumerator == nullptr) return const OsDefaultAudioNames();
       try {
-        final input = _endpoint(enumerator, _eCapture, propVariantClear, coTaskMemFree);
-        final output = _endpoint(enumerator, _eRender, propVariantClear, coTaskMemFree);
+        final input = _endpoint(
+          enumerator,
+          _eCapture,
+          propVariantClear,
+          coTaskMemFree,
+        );
+        final output = _endpoint(
+          enumerator,
+          _eRender,
+          propVariantClear,
+          coTaskMemFree,
+        );
         return OsDefaultAudioNames(
           inputId: input?.id,
           input: input?.label,
@@ -75,7 +100,11 @@ class _WindowsDefaultAudio {
     void Function(Pointer) coTaskMemFree,
   ) {
     final getDefault = _method(enumerator, 4)
-        .cast<NativeFunction<Int32 Function(Pointer, Int32, Int32, Pointer<Pointer<Void>>)>>()
+        .cast<
+          NativeFunction<
+            Int32 Function(Pointer, Int32, Int32, Pointer<Pointer<Void>>)
+          >
+        >()
         .asFunction<int Function(Pointer, int, int, Pointer<Pointer<Void>>)>();
     final deviceOut = calloc<Pointer<Void>>();
     final hr = getDefault(enumerator, dataFlow, _eConsole, deviceOut);
@@ -85,7 +114,11 @@ class _WindowsDefaultAudio {
     try {
       final id = _endpointId(device, coTaskMemFree);
       final openStore = _method(device, 4)
-          .cast<NativeFunction<Int32 Function(Pointer, Uint32, Pointer<Pointer<Void>>)>>()
+          .cast<
+            NativeFunction<
+              Int32 Function(Pointer, Uint32, Pointer<Pointer<Void>>)
+            >
+          >()
           .asFunction<int Function(Pointer, int, Pointer<Pointer<Void>>)>();
       final storeOut = calloc<Pointer<Void>>();
       final storeHr = openStore(device, 0, storeOut);
@@ -102,9 +135,14 @@ class _WindowsDefaultAudio {
     }
   }
 
-  String? _endpointId(Pointer<Void> device, void Function(Pointer) coTaskMemFree) {
+  String? _endpointId(
+    Pointer<Void> device,
+    void Function(Pointer) coTaskMemFree,
+  ) {
     final getId = _method(device, 5)
-        .cast<NativeFunction<Int32 Function(Pointer, Pointer<Pointer<Utf16>>)>>()
+        .cast<
+          NativeFunction<Int32 Function(Pointer, Pointer<Pointer<Utf16>>)>
+        >()
         .asFunction<int Function(Pointer, Pointer<Pointer<Utf16>>)>();
     final out = calloc<Pointer<Utf16>>();
     try {
@@ -117,10 +155,23 @@ class _WindowsDefaultAudio {
     }
   }
 
-  String? _friendlyName(Pointer<Void> store, int Function(Pointer) propVariantClear) {
+  String? _friendlyName(
+    Pointer<Void> store,
+    int Function(Pointer) propVariantClear,
+  ) {
     final getValue = _method(store, 5)
-        .cast<NativeFunction<Int32 Function(Pointer, Pointer<_PropertyKey>, Pointer<_PropVariant>)>>()
-        .asFunction<int Function(Pointer, Pointer<_PropertyKey>, Pointer<_PropVariant>)>();
+        .cast<
+          NativeFunction<
+            Int32 Function(
+              Pointer,
+              Pointer<_PropertyKey>,
+              Pointer<_PropVariant>,
+            )
+          >
+        >()
+        .asFunction<
+          int Function(Pointer, Pointer<_PropertyKey>, Pointer<_PropVariant>)
+        >();
     final key = calloc<_PropertyKey>();
     final value = calloc<_PropVariant>();
     try {
@@ -129,7 +180,9 @@ class _WindowsDefaultAudio {
         key.ref.fmtid[i] = guid[i];
       }
       key.ref.pid = 14;
-      if (getValue(store, key, value) != 0 || value.ref.vt != _vtLpWstr || value.ref.ptr == nullptr) {
+      if (getValue(store, key, value) != 0 ||
+          value.ref.vt != _vtLpWstr ||
+          value.ref.ptr == nullptr) {
         return null;
       }
       return value.ref.ptr.cast<Utf16>().toDartString().trim();
@@ -140,7 +193,10 @@ class _WindowsDefaultAudio {
     }
   }
 
-  Pointer<NativeFunction<Int32 Function()>> _method(Pointer<Void> object, int index) {
+  Pointer<NativeFunction<Int32 Function()>> _method(
+    Pointer<Void> object,
+    int index,
+  ) {
     final vtable = object.cast<Pointer<Pointer<Void>>>().value;
     return vtable.cast<Pointer<NativeFunction<Int32 Function()>>>()[index];
   }
@@ -163,13 +219,27 @@ class _WindowsDefaultAudio {
 
   List<int> _guidData(String value) {
     final hex = value.replaceAll(RegExp(r'[{}-]'), '');
-    final bytes = [for (var i = 0; i < 32; i += 2) int.parse(hex.substring(i, i + 2), radix: 16)];
+    final bytes = [
+      for (var i = 0; i < 32; i += 2)
+        int.parse(hex.substring(i, i + 2), radix: 16),
+    ];
     return [
-      bytes[3], bytes[2], bytes[1], bytes[0],
-      bytes[5], bytes[4],
-      bytes[7], bytes[6],
-      bytes[8], bytes[9], bytes[10], bytes[11],
-      bytes[12], bytes[13], bytes[14], bytes[15],
+      bytes[3],
+      bytes[2],
+      bytes[1],
+      bytes[0],
+      bytes[5],
+      bytes[4],
+      bytes[7],
+      bytes[6],
+      bytes[8],
+      bytes[9],
+      bytes[10],
+      bytes[11],
+      bytes[12],
+      bytes[13],
+      bytes[14],
+      bytes[15],
     ];
   }
 }

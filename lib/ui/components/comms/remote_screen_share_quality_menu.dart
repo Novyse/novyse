@@ -24,6 +24,9 @@ class RemoteQualityOption {
     this.width,
   });
 
+  /// Whether there is anything to choose for [simulcasted] publications.
+  static bool canChooseQuality(bool? simulcasted) => simulcasted ?? true;
+
   /// Resolves the actual published qualities for a remote screen-share publication.
   /// Always includes 'auto' first, followed by the real published layers (e.g. 1080p, 720p, 480p).
   static List<RemoteQualityOption> resolveOptions({
@@ -33,6 +36,9 @@ class RemoteQualityOption {
     final options = <RemoteQualityOption>[
       RemoteQualityOption(id: 'auto', label: l10n.screenShareQualityAuto),
     ];
+
+    // Single-layer publication: nothing to cascade, no invented resolutions.
+    if (pub != null && !pub.simulcasted) return options;
 
     int? highH;
     int? medH;

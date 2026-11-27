@@ -18,10 +18,9 @@ mixin CommsLocalMediaMixin
       );
       state = state.copyWith(
         isAudioEnabled: next,
-        wasMicEnabledBeforeSpeakerMute:
-            (!state.isAudioOutputEnabled && !next)
-                ? () => false
-                : null,
+        wasMicEnabledBeforeSpeakerMute: (!state.isAudioOutputEnabled && !next)
+            ? () => false
+            : null,
       );
       (this as CommsNotifier).syncCommsNotification();
     } catch (e) {

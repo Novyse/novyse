@@ -27,13 +27,13 @@ void main() {
   void mockCapturer(List<Map<String, dynamic>>? sources) {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
-      if (call.method != 'getDesktopSources') return null;
-      requestedTypes.add((call.arguments as Map)['types'] as List<dynamic>);
-      if (sources == null) {
-        throw PlatformException(code: 'UNSUPPORTED');
-      }
-      return {'sources': sources};
-    });
+          if (call.method != 'getDesktopSources') return null;
+          requestedTypes.add((call.arguments as Map)['types'] as List<dynamic>);
+          if (sources == null) {
+            throw PlatformException(code: 'UNSUPPORTED');
+          }
+          return {'sources': sources};
+        });
   }
 
   final validThumbnail = base64Decode(
@@ -48,8 +48,11 @@ void main() {
     'thumbnail': validThumbnail,
   };
 
-  Future<void> pump(WidgetTester tester,
-      {ScreenShareConfig? current, String? currentSourceId}) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    ScreenShareConfig? current,
+    String? currentSourceId,
+  }) async {
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -88,7 +91,10 @@ void main() {
       await pump(tester);
 
       expect(find.widgetWithText(AppButton, en.cancel), findsOneWidget);
-      expect(find.widgetWithText(AppButton, en.screenShareApply), findsOneWidget);
+      expect(
+        find.widgetWithText(AppButton, en.screenShareApply),
+        findsOneWidget,
+      );
     });
   });
 

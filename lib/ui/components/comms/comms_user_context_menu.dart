@@ -38,6 +38,7 @@ Future<void> showCommsUserContextMenu({
   var estimatedHeight = 140.0;
   if (hasAudioControls) estimatedHeight += 56.0 + 128.0;
   if (!isFullScreen) estimatedHeight += 52.0;
+  if (tile.isScreenShare && tile.trackSid != null) estimatedHeight += 44.0;
   if (!tile.isLocal && tile.isScreenShare) estimatedHeight += 44.0;
 
   return showAppMenu(
@@ -102,6 +103,19 @@ class _CommsUserMenuContent extends ConsumerWidget {
     final isMuted = ref.watch(
       commsProvider.select((s) => s.localMuted[volKey] ?? false),
     );
+    final trackSid = tile.trackSid;
+    final isShare = tile.isScreenShare && trackSid != null;
+    final isShareVideoHidden =
+        isShare &&
+        ref.watch(
+          commsProvider.select(
+            (s) => s.hiddenShareVideoSids.contains(trackSid),
+          ),
+        );
+    // Only a simulcasted share has multiple layers to pick from.
+    final remotePub = !tile.isLocal && isShare
+        ? ref.read(commsProvider.notifier).findRemoteTrackPublication(trackSid)
+        : null;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -110,7 +124,25 @@ class _CommsUserMenuContent extends ConsumerWidget {
         // Header: member name (optional profile hook, no navigation by default).
         AppMenuHeader(label: displayName, onTap: onProfileTap),
         const AppMenuDivider(),
-        if (!tile.isLocal && tile.isScreenShare && tile.trackSid != null) ...[
+        if (isShare) ...[
+          AppMenuItem(
+            icon: isShareVideoHidden
+                ? HugeIcons.strokeRoundedView
+                : HugeIcons.strokeRoundedViewOff,
+            label: isShareVideoHidden
+                ? l10n.screenShareEnableVideo
+                : l10n.screenShareDisableVideo,
+            onTap: () {
+              onClose();
+              ref
+                  .read(commsProvider.notifier)
+                  .setShareVideoHidden(trackSid, !isShareVideoHidden);
+            },
+          ),
+          const AppMenuDivider(),
+        ],
+        if (remotePub != null &&
+            RemoteQualityOption.canChooseQuality(remotePub.simulcasted)) ...[
           AppMenuItem(
             icon: HugeIcons.strokeRoundedSlidersVertical,
             label: l10n.screenShareQualityTitle,
@@ -119,7 +151,7 @@ class _CommsUserMenuContent extends ConsumerWidget {
               showRemoteScreenShareQualityMenu(
                 context: context,
                 ref: ref,
-                trackSid: tile.trackSid!,
+                trackSid: trackSid!,
                 anchor: anchor,
               );
             },

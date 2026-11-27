@@ -230,14 +230,16 @@ mixin CommsConnectionMixin
       })
       ..on<TrackSubscribedEvent>((event) {
         if (event.track.source == TrackSource.screenShareVideo &&
-            !_preJoinScreenShareSids.contains(event.publication.sid)) {
+            !_preJoinScreenShareSids.contains(event.publication.sid) &&
+            !state.isShareVideoHidden(event.publication.sid)) {
           SoundPlayer.instance.playSound('comms.screen_share.start');
         }
         unawaited(_applyAudioOutputTrack(event.track));
         _notifyStateChange();
       })
       ..on<TrackUnsubscribedEvent>((event) {
-        if (event.track.source == TrackSource.screenShareVideo) {
+        final hiddenByUs = state.isShareVideoHidden(event.publication.sid);
+        if (event.track.source == TrackSource.screenShareVideo && !hiddenByUs) {
           SoundPlayer.instance.playSound('comms.screen_share.stop');
           if (state.pinnedStreamId ==
               screenShareTileId(event.publication.sid)) {

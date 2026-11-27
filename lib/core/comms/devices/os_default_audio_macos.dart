@@ -12,7 +12,8 @@ class _MacOsDefaultAudio {
   // CoreAudio constants
   static const _kAudioObjectSystemObject = 1;
   static const _kAudioHardwarePropertyDefaultInputDevice = 0x6466696e; // 'dfin'
-  static const _kAudioHardwarePropertyDefaultOutputDevice = 0x64666f75; // 'dfou'
+  static const _kAudioHardwarePropertyDefaultOutputDevice =
+      0x64666f75; // 'dfou'
   static const _kAudioDevicePropertyDeviceNameCFString = 0x6c6e616d; // 'lnam'
   static const _kAudioObjectPropertyScopeGlobal = 0x676c6f62; // 'glob'
   static const _kAudioObjectPropertyElementMain = 0;
@@ -26,23 +27,37 @@ class _MacOsDefaultAudio {
       '/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation',
     );
 
-    final audioObjectGetPropertyData = coreAudio.lookupFunction<
-        Int32 Function(Uint32, Pointer<_AudioObjectPropertyAddress>, Uint32,
-            Pointer<Void>, Pointer<Uint32>, Pointer<Void>),
-        int Function(int, Pointer<_AudioObjectPropertyAddress>, int,
-            Pointer<Void>, Pointer<Uint32>, Pointer<Void>)>(
-      'AudioObjectGetPropertyData',
-    );
+    final audioObjectGetPropertyData = coreAudio
+        .lookupFunction<
+          Int32 Function(
+            Uint32,
+            Pointer<_AudioObjectPropertyAddress>,
+            Uint32,
+            Pointer<Void>,
+            Pointer<Uint32>,
+            Pointer<Void>,
+          ),
+          int Function(
+            int,
+            Pointer<_AudioObjectPropertyAddress>,
+            int,
+            Pointer<Void>,
+            Pointer<Uint32>,
+            Pointer<Void>,
+          )
+        >('AudioObjectGetPropertyData');
 
-    final cfStringGetCString = coreFoundation.lookupFunction<
-        Bool Function(Pointer<Void>, Pointer<Utf8>, Int64, Uint32),
-        bool Function(Pointer<Void>, Pointer<Utf8>, int, int)>(
-      'CFStringGetCString',
-    );
+    final cfStringGetCString = coreFoundation
+        .lookupFunction<
+          Bool Function(Pointer<Void>, Pointer<Utf8>, Int64, Uint32),
+          bool Function(Pointer<Void>, Pointer<Utf8>, int, int)
+        >('CFStringGetCString');
 
-    final cfRelease = coreFoundation.lookupFunction<
-        Void Function(Pointer<Void>),
-        void Function(Pointer<Void>)>('CFRelease');
+    final cfRelease = coreFoundation
+        .lookupFunction<
+          Void Function(Pointer<Void>),
+          void Function(Pointer<Void>)
+        >('CFRelease');
 
     final input = _readDevice(
       audioObjectGetPropertyData,
@@ -66,9 +81,15 @@ class _MacOsDefaultAudio {
   }
 
   ({String? id, String? label})? _readDevice(
-    int Function(int, Pointer<_AudioObjectPropertyAddress>, int,
-            Pointer<Void>, Pointer<Uint32>, Pointer<Void>)
-        getProperty,
+    int Function(
+      int,
+      Pointer<_AudioObjectPropertyAddress>,
+      int,
+      Pointer<Void>,
+      Pointer<Uint32>,
+      Pointer<Void>,
+    )
+    getProperty,
     bool Function(Pointer<Void>, Pointer<Utf8>, int, int) cfStringGetCString,
     void Function(Pointer<Void>) cfRelease, {
     required bool isInput,
@@ -123,7 +144,11 @@ class _MacOsDefaultAudio {
           final buffer = calloc<Uint8>(256);
           try {
             if (cfStringGetCString(
-                cfString, buffer.cast<Utf8>(), 256, _kCFStringEncodingUTF8)) {
+              cfString,
+              buffer.cast<Utf8>(),
+              256,
+              _kCFStringEncodingUTF8,
+            )) {
               final name = buffer.cast<Utf8>().toDartString().trim();
               return (
                 id: deviceId.toString(),

@@ -56,8 +56,7 @@ abstract final class CommsScreenshareAndroid {
           androidConfig: _androidConfig(),
         );
       }
-      if (hasPermissions &&
-          !FlutterBackground.isBackgroundExecutionEnabled) {
+      if (hasPermissions && !FlutterBackground.isBackgroundExecutionEnabled) {
         await FlutterBackground.enableBackgroundExecution();
       }
       debugPrint(

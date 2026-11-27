@@ -97,7 +97,9 @@ abstract final class CommsDevicesDefaults {
       ],
       systemDefault: SystemDefaultDevice(
         id: match?.id,
-        label: label != null && label.isNotEmpty ? label : _trimmedOrNull(osDefaultLabel),
+        label: label != null && label.isNotEmpty
+            ? label
+            : _trimmedOrNull(osDefaultLabel),
       ),
     );
   }
@@ -123,7 +125,8 @@ abstract final class CommsDevicesDefaults {
     if (name != null && name.isNotEmpty) {
       for (final device in devices) {
         final label = device.label.trim().toLowerCase();
-        if (label == name || _nameAfterSeparator(device.label)?.toLowerCase() == name) {
+        if (label == name ||
+            _nameAfterSeparator(device.label)?.toLowerCase() == name) {
           return _physicalDevice(device, devices);
         }
       }
@@ -179,7 +182,9 @@ abstract final class CommsDevicesDefaults {
     final left = deviceId.trim().toLowerCase();
     final right = endpointId.trim().toLowerCase();
     if (left.isEmpty || right.isEmpty) return false;
-    if (left == right || left.contains(right) || right.contains(left)) return true;
+    if (left == right || left.contains(right) || right.contains(left)) {
+      return true;
+    }
 
     final guid = _endpointGuid(endpointId);
     if (guid != null && (left == guid || left.contains(guid))) return true;

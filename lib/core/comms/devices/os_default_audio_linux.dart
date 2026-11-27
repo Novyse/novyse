@@ -22,9 +22,7 @@ class _LinuxDefaultAudio {
   }
 
   /// Returns the default sink or source name + description.
-  Future<({String? id, String? label})?> _defaultDevice(
-    String type,
-  ) async {
+  Future<({String? id, String? label})?> _defaultDevice(String type) async {
     try {
       // `pactl get-default-sink` / `pactl get-default-source`
       final nameResult = await Process.run('pactl', ['get-default-$type']);

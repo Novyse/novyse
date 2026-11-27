@@ -53,13 +53,11 @@ class CommsDevicesState {
   String displayLabelFor(CommsDeviceKind kind) {
     final id = selectedIdFor(kind);
     if (id == CommsDevicesDefaults.kDefaultId) {
-      return CommsDevicesDefaults.defaultOptionLabel(
-        switch (kind) {
-          CommsDeviceKind.audioInput => systemDefaultAudioInput.label,
-          CommsDeviceKind.audioOutput => systemDefaultAudioOutput.label,
-          CommsDeviceKind.videoInput => null,
-        },
-      );
+      return CommsDevicesDefaults.defaultOptionLabel(switch (kind) {
+        CommsDeviceKind.audioInput => systemDefaultAudioInput.label,
+        CommsDeviceKind.audioOutput => systemDefaultAudioOutput.label,
+        CommsDeviceKind.videoInput => null,
+      });
     }
     final match = devicesFor(kind).where((d) => d.id == id).firstOrNull;
     return match?.label ?? 'Default';
@@ -92,9 +90,7 @@ class CommsDevicesState {
           systemDefaultAudioOutput ?? this.systemDefaultAudioOutput,
       loading: loading ?? this.loading,
       permissionRequested: permissionRequested ?? this.permissionRequested,
-      errorMessage: errorMessage != null
-          ? errorMessage()
-          : this.errorMessage,
+      errorMessage: errorMessage != null ? errorMessage() : this.errorMessage,
     );
   }
 }

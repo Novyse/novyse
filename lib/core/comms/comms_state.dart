@@ -16,7 +16,8 @@ class CommsState {
   final bool isAudioEnabled; // Local microphone
   final bool isVideoEnabled; // Local camera
   final bool isAudioOutputEnabled; // Remote audio output (deafen toggle)
-  final bool? wasMicEnabledBeforeSpeakerMute; // Prior mic state when speaker was muted
+  final bool?
+  wasMicEnabledBeforeSpeakerMute; // Prior mic state when speaker was muted
 
   /// View states
   final String? pinnedStreamId;
@@ -41,6 +42,9 @@ class CommsState {
   /// Subscribed video quality per remote screen-share video track SID.
   /// Values: 'auto', 'high', 'medium', 'low' (defaults to 'auto').
   final Map<String, String> remoteScreenShareQualities;
+
+  /// Screen-share video track SIDs whose video is hidden locally.
+  final Set<String> hiddenShareVideoSids;
 
   /// Identities/UUIDs of currently speaking participants
   final Set<String> speakingParticipants;
@@ -73,6 +77,7 @@ class CommsState {
     this.screenShareSourceIds = const {},
     this.screenShareConfigs = const {},
     this.remoteScreenShareQualities = const {},
+    this.hiddenShareVideoSids = const {},
     this.speakingParticipants = const {},
     this.remoteVolumes = const {},
     this.localMuted = const {},
@@ -85,6 +90,10 @@ class CommsState {
   }
 
   bool get isScreenSharing => activeScreenShareTrackSids.isNotEmpty;
+
+  /// Whether the video of the share identified by [trackSid] is hidden.
+  bool isShareVideoHidden(String trackSid) =>
+      hiddenShareVideoSids.contains(trackSid);
 
   /// Number of participants currently in the room.
   /// Counts remote participants plus the local user.
@@ -111,6 +120,7 @@ class CommsState {
     Map<String, String>? screenShareSourceIds,
     Map<String, ScreenShareConfig>? screenShareConfigs,
     Map<String, String>? remoteScreenShareQualities,
+    Set<String>? hiddenShareVideoSids,
     Set<String>? speakingParticipants,
     Map<String, double>? remoteVolumes,
     Map<String, bool>? localMuted,
@@ -140,11 +150,11 @@ class CommsState {
       activeScreenShareTrackSids:
           activeScreenShareTrackSids ?? this.activeScreenShareTrackSids,
       screenShareAudioSids: screenShareAudioSids ?? this.screenShareAudioSids,
-      screenShareSourceIds:
-          screenShareSourceIds ?? this.screenShareSourceIds,
+      screenShareSourceIds: screenShareSourceIds ?? this.screenShareSourceIds,
       screenShareConfigs: screenShareConfigs ?? this.screenShareConfigs,
       remoteScreenShareQualities:
           remoteScreenShareQualities ?? this.remoteScreenShareQualities,
+      hiddenShareVideoSids: hiddenShareVideoSids ?? this.hiddenShareVideoSids,
       speakingParticipants: speakingParticipants ?? this.speakingParticipants,
       remoteVolumes: remoteVolumes ?? this.remoteVolumes,
       localMuted: localMuted ?? this.localMuted,

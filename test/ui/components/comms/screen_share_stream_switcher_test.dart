@@ -44,7 +44,9 @@ Widget _wrap(Widget child, ProviderContainer container) {
 
 void main() {
   group('ScreenShareStreamSwitcher', () {
-    testWidgets('hidden when no stream is pinned or fullscreen', (tester) async {
+    testWidgets('hidden when no stream is pinned or fullscreen', (
+      tester,
+    ) async {
       final container = ProviderContainer(
         overrides: [
           commsProvider.overrideWith(
@@ -70,9 +72,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           commsProvider.overrideWith(
-            () => _StubCommsNotifier(
-              const CommsState(pinnedStreamId: 'sid-a'),
-            ),
+            () => _StubCommsNotifier(const CommsState(pinnedStreamId: 'sid-a')),
           ),
         ],
       );
@@ -94,9 +94,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           commsProvider.overrideWith(
-            () => _StubCommsNotifier(
-              const CommsState(pinnedStreamId: 'sid-a'),
-            ),
+            () => _StubCommsNotifier(const CommsState(pinnedStreamId: 'sid-a')),
           ),
         ],
       );

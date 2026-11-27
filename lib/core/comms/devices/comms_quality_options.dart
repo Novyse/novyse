@@ -10,7 +10,6 @@ import 'package:novyse/core/settings/settings_models.dart';
 ///   custom quality + fps.
 ///
 abstract final class CommsQualityOptions {
-
   /// Camera quality ids, low to high. `4k` is visible but disabled.
   static const List<String> videoQualities = [
     CommsMediaConstraints.video480p,

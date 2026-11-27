@@ -260,4 +260,22 @@ void main() {
       expect(state.room, isNull);
     });
   });
+
+  group('sharePublicationHasTile', () {
+    test('keeps the tile while its video is hidden locally', () {
+      // Hiding drops the subscription, so the track is gone but the tile stays.
+      expect(sharePublicationHasTile(videoHidden: true, muted: false), isTrue);
+      expect(sharePublicationHasTile(videoHidden: true, muted: true), isTrue);
+    });
+
+    test('keeps the tile while a re-subscription is in flight', () {
+      // The track is still missing right after subscribe(), yet the card
+      // must not disappear while waiting for it.
+      expect(sharePublicationHasTile(videoHidden: false, muted: false), isTrue);
+    });
+
+    test('drops shares paused by the sender', () {
+      expect(sharePublicationHasTile(videoHidden: false, muted: true), isFalse);
+    });
+  });
 }

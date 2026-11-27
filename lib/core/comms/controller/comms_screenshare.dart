@@ -176,6 +176,7 @@ mixin CommsScreenshareMixin
           ? state.screenShareSourceIds
           : {...state.screenShareSourceIds, videoSid: sourceId},
       screenShareConfigs: {...state.screenShareConfigs, videoSid: config},
+      hiddenShareVideoSids: {...state.hiddenShareVideoSids, videoSid},
     );
     return videoSid;
   }
@@ -302,11 +303,14 @@ mixin CommsScreenshareMixin
       final updatedConfigs = Map<String, ScreenShareConfig>.from(
         state.screenShareConfigs,
       )..remove(targetSid);
+      final updatedHidden = Set<String>.from(state.hiddenShareVideoSids)
+        ..remove(targetSid);
       state = state.copyWith(
         activeScreenShareTrackSids: updatedSids,
         screenShareAudioSids: updatedAudioSids,
         screenShareSourceIds: updatedSourceIds,
         screenShareConfigs: updatedConfigs,
+        hiddenShareVideoSids: updatedHidden,
       );
 
       if (state.pinnedStreamId == screenShareTileId(targetSid)) {
@@ -337,6 +341,42 @@ mixin CommsScreenshareMixin
       }
     }
     return null;
+  }
+
+  /// Shows or hides the video of the screen share [trackSid] on this client.
+  Future<void> setShareVideoHidden(String trackSid, bool hidden) async {
+    if (state.isShareVideoHidden(trackSid) == hidden) return;
+
+    void updateHidden(bool value) {
+      state = state.copyWith(
+        hiddenShareVideoSids: value
+            ? {...state.hiddenShareVideoSids, trackSid}
+            : (Set<String>.from(state.hiddenShareVideoSids)..remove(trackSid)),
+      );
+    }
+
+    if (hidden) updateHidden(true);
+
+    final pub = findRemoteTrackPublication(trackSid);
+    if (pub != null) {
+      try {
+        if (hidden) {
+          await pub.unsubscribe();
+        } else {
+          await pub.subscribe();
+        }
+      } catch (e) {
+        debugPrint('[CommsController] Failed to toggle share video: $e');
+      }
+    }
+
+    if (!hidden) {
+      for (var attempt = 0; attempt < 40; attempt++) {
+        if (pub == null || pub.track != null) break;
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
+      updateHidden(false);
+    }
   }
 
   /// Adjusts subscribed quality for remote screen share track [trackSid].
