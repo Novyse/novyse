@@ -113,7 +113,7 @@ void main() {
       );
       final options = config.publishOptions();
       expect(options.simulcast, isFalse);
-      expect(options.videoCodec, 'vp8');
+      expect(options.videoCodec, 'h264');
       expect(options.screenShareEncoding?.maxFramerate, 30);
       expect(options.screenShareEncoding?.maxBitrate, 1200 * 1000);
       expect(options.screenShareSimulcastLayers, isEmpty);

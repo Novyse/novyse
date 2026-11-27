@@ -170,7 +170,7 @@ class ScreenShareConfig {
             CommsMediaConstraints.shareCustom;
     return VideoPublishOptions(
       simulcast: useSimulcast,
-      videoCodec: 'vp8',
+      videoCodec: 'h264',
       screenShareEncoding: params.encoding,
       screenShareSimulcastLayers: useSimulcast
           ? CommsMediaConstraints.shareSimulcastLayersFor(quality, fps)

@@ -442,6 +442,7 @@ abstract final class CommsMediaConstraints {
     );
     return VideoPublishOptions(
       simulcast: false,
+      videoCodec: 'h264',
       screenShareEncoding: params.encoding,
       degradationPreference: DegradationPreference.maintainResolution,
     );
