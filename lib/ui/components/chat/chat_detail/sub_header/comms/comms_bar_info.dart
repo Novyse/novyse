@@ -31,7 +31,7 @@ class CommsBarInfo extends StatelessWidget {
           height: FloatingConsts.barContentSize,
           child: Center(
             child: AppHugeIcon(
-              icon: HugeIcons.strokeRoundedCall02,
+              icon: HugeIcons.strokeRoundedAudioWave01,
               size: FloatingConsts.barIconSize,
               color: scheme.primary,
             ),

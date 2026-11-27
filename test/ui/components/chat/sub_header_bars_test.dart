@@ -114,7 +114,9 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       container.read(chatListProvider.notifier).state = const ChatListState(
-        chats: [ChatModel(uuid: chatUUID, name: 'Vocal Room')],
+        chats: [
+          ChatModel(uuid: chatUUID, name: 'Vocal Room', type: 'GROUP'),
+        ],
       );
       container.read(commsProvider.notifier).state = const CommsState(
         connected: true,
@@ -128,6 +130,47 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Vocal Room'), findsOneWidget);
+      expect(find.text('1 participant'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      container.read(commsProvider.notifier).state = const CommsState();
+    });
+
+    testWidgets('ChatCommsBar shows the other person name for a DM',
+        (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(userStoreProvider.notifier).state = const UserStoreState(
+        localUserUUID: 'me',
+        users: {
+          'me': UserModel(uuid: 'me', name: 'Me'),
+          'other': UserModel(uuid: 'other', name: 'Marco'),
+        },
+      );
+      container.read(chatListProvider.notifier).state = const ChatListState(
+        chats: [
+          ChatModel(
+            uuid: chatUUID,
+            name: '',
+            members: [
+              {'uuid': 'me'},
+              {'uuid': 'other'},
+            ],
+          ),
+        ],
+      );
+      container.read(commsProvider.notifier).state = const CommsState(
+        connected: true,
+        currentChatUUID: chatUUID,
+        currentSub: 0,
+      );
+
+      await tester.pumpWidget(
+        _wrap(const ChatCommsBar(), container),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Marco'), findsOneWidget);
       expect(find.text('1 participant'), findsOneWidget);
       expect(tester.takeException(), isNull);
 

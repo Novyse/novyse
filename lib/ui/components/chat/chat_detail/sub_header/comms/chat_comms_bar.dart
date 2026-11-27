@@ -6,7 +6,9 @@ import 'package:novyse/core/l10n/l10n.dart';
 import 'package:novyse/core/router/chat_routes.dart';
 import 'package:novyse/core/stores/active_chat_store.dart';
 import 'package:novyse/core/stores/chat_list_store.dart';
+import 'package:novyse/core/stores/user_store.dart';
 
+import 'package:novyse/ui/components/chat/chat_list_item.dart';
 import 'package:novyse/ui/components/floating/floating_style.dart';
 
 import 'comms_bar_actions.dart';
@@ -31,15 +33,24 @@ class ChatCommsBar extends ConsumerWidget {
     final targetSub = commsState.currentSub;
     final remoteCount = (commsState.room?.remoteParticipants.length ?? 0) + 1;
 
-    final chats = ref.watch(chatListProvider.select((s) => s.chats));
-    final chat = chats.where((c) => c.uuid == targetChatUUID).firstOrNull;
-    final chatName = chat?.name ?? targetChatUUID;
+    final chat = ref.watch(chatProvider(targetChatUUID));
+    final userState = ref.watch(userStoreProvider);
+    final l10n = context.l10n;
+
+    // Resolve the display name the same way as the chat header/list: DMs show
+    // the other person's name, groups/channels their own name.
+    final chatName = chat == null
+        ? targetChatUUID
+        : resolveChatMetadata(
+            chat: chat,
+            localUserUUID: userState.localUserUUID,
+            users: userState.users,
+            l10n: l10n,
+          ).name;
     final subName = chat?.subs
         .where((s) => (s['id'] as num?)?.toInt() == targetSub)
         .firstOrNull?['name']
         ?.toString();
-
-    final l10n = context.l10n;
 
     return SizedBox(
       height: FloatingConsts.barOuterSize,
@@ -60,8 +71,6 @@ class ChatCommsBar extends ConsumerWidget {
               subOverride: targetSub,
             );
             notifier.setContentView('vocal');
-            // Replace invece di go: non distrugge lo stack sotto (il back
-            // torna comunque alla lista chat).
             context.pushReplacement(chatSubPath(targetChatUUID, targetSub));
           },
           child: Padding(
