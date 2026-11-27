@@ -13,6 +13,7 @@ enum ScreenSharePreset {
     defaultBitrateKbps: 4000,
     maxBitrateKbps: 10000,
     dimensions: VideoDimensionsPresets.h1080_169,
+    showCursor: true,
   ),
   text(
     id: 'text',
@@ -21,6 +22,7 @@ enum ScreenSharePreset {
     defaultBitrateKbps: 1500,
     maxBitrateKbps: 4000,
     dimensions: VideoDimensionsPresets.h1080_169,
+    showCursor: true,
   ),
   gaming(
     id: 'gaming',
@@ -29,6 +31,7 @@ enum ScreenSharePreset {
     defaultBitrateKbps: 6000,
     maxBitrateKbps: 10000,
     dimensions: VideoDimensionsPresets.h720_169,
+    showCursor: false,
   ),
   custom(
     id: 'custom',
@@ -38,6 +41,7 @@ enum ScreenSharePreset {
     maxBitrateKbps: 10000,
     dimensions: VideoDimensionsPresets.h1080_169,
     isCustom: true,
+    showCursor: true,
   );
 
   final String id;
@@ -47,6 +51,7 @@ enum ScreenSharePreset {
   final int maxBitrateKbps;
   final VideoDimensions dimensions;
   final bool isCustom;
+  final bool showCursor;
 
   const ScreenSharePreset({
     required this.id,
@@ -56,6 +61,7 @@ enum ScreenSharePreset {
     required this.maxBitrateKbps,
     required this.dimensions,
     this.isCustom = false,
+    this.showCursor = true,
   });
 
   /// Factory resolving any raw or legacy mode string to a [ScreenSharePreset].

@@ -323,6 +323,8 @@
   "screenShareNoWindowsDetected": "No windows detected",
   "screenShareNoSourcesDetected": "No screens or windows detected",
   "screenShareIncludeSystemAudio": "Share system audio as well",
+  "screenShareIncludeCursor": "Include the cursor in the frame",
+  "screenSharePickSource": "Choose source",
   "screenShareStart": "Start sharing",
   "screenShareSetupTitle": "Set up sharing",
   "screenSharePreview": "Preview",

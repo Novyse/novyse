@@ -46,9 +46,9 @@ class ScreenShareSetupResult {
 /// - Desktop with enumerator (X11 Linux, macOS, Windows): custom section
 ///   listing every screen/window, then per-share video settings (prefilled
 ///   from the settings defaults) and the audio toggle.
-/// - Native-picker platforms (Wayland Linux, web, mobile): the OS picker is
-///   requested automatically on open, then a preview of the chosen source is
-///   shown with the same video settings + audio toggle below.
+/// - Native-picker platforms (Wayland Linux, web, mobile): the preview area
+///   offers the button that opens the OS picker, then shows the chosen source
+///   with the same video settings + audio/cursor toggles below.
 ///
 /// Nothing here writes to settings: the choices become the per-share
 /// [ScreenShareConfig] used for that share only.
@@ -112,6 +112,8 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
     fps: widget.initial.customFps,
   );
   late bool _userCustomizedBitrate = widget.initial.maxBitrateKbps != null;
+  late bool _showCursor = ScreenSharePreset.fromId(widget.initial.mode)
+      .showCursor;
 
   // Custom-picker flow.
   ScreenShareType _selectedType = ScreenShareType.screen;
@@ -143,7 +145,6 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
       _loadSources();
     } else {
       _loading = false;
-      _requestCapture();
     }
   }
 
@@ -162,6 +163,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
     customQuality: _quality,
     customFps: _fps,
     maxBitrateKbps: _isCustomMode ? _bitrateKbps : null,
+    showCursor: _showCursor,
   );
 
   /// Validation result for the current bitrate, checked before starting.
@@ -363,6 +365,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
           onModeChanged: (v) {
             setState(() {
               _mode = v;
+              _showCursor = ScreenSharePreset.fromId(v).showCursor;
               _updateBitrateForSelection(forceDefault: true);
             });
             _syncPreviewOptions();
@@ -404,6 +407,26 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
               Text(
                 l10n.screenShareIncludeSystemAudio,
                 style: TextStyle(fontSize: 14, color: colorScheme.onSurface),
+              ),
+            ],
+          ),
+
+        // Native-picker captures (Wayland portal, web, mobile) always carry the
+        // compositor's cursor, so the choice is offered only where the desktop
+        // capturer honours it.
+        if (_custom)
+          Row(
+            children: [
+              Checkbox(
+                value: _showCursor,
+                onChanged: (val) => setState(() => _showCursor = val ?? false),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  l10n.screenShareIncludeCursor,
+                  style: TextStyle(fontSize: 14, color: colorScheme.onSurface),
+                ),
               ),
             ],
           ),
@@ -573,7 +596,7 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
           clipBehavior: Clip.antiAlias,
           child: _captureLoading
               ? const Center(child: CircularProgressIndicator())
-              : _captureFailed || _previewVideo == null
+              : _previewVideo == null
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
@@ -586,17 +609,21 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
                           color: Colors.white24,
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          l10n.screenShareCaptureFailed,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.white70,
+                        if (_captureFailed) ...[
+                          Text(
+                            l10n.screenShareCaptureFailed,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.white70,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
+                          const SizedBox(height: 12),
+                        ],
                         AppButton(
-                          label: l10n.screenShareRetry,
+                          label: _captureFailed
+                              ? l10n.screenShareRetry
+                              : l10n.screenSharePickSource,
                           onPressed: _requestCapture,
                         ),
                       ],
@@ -605,15 +632,17 @@ class _ScreenShareSelectorModalState extends State<ScreenShareSelectorModal> {
                 )
               : VideoTrackRenderer(_previewVideo!, fit: VideoViewFit.cover),
         ),
-        const SizedBox(height: 8),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            onPressed: _captureLoading ? null : _requestCapture,
-            icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: Text(l10n.screenShareChangeSource),
+        if (_previewVideo != null) ...[
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: _captureLoading ? null : _requestCapture,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: Text(l10n.screenShareChangeSource),
+            ),
           ),
-        ),
+        ],
       ],
     );
   }

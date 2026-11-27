@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' show Helper;
 import 'package:novyse/core/comms/comms_share_config.dart';
 import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
 
@@ -81,6 +82,29 @@ void main() {
       expect(params.encoding?.maxBitrate, 200 * 1000);
     });
 
+    test('presets decide the cursor default', () {
+      expect(ScreenSharePreset.smooth.showCursor, isTrue);
+      expect(ScreenSharePreset.text.showCursor, isTrue);
+      expect(ScreenSharePreset.custom.showCursor, isTrue);
+      expect(ScreenSharePreset.gaming.showCursor, isFalse);
+    });
+
+    test('config shows the OS cursor by default', () {
+      expect(const ScreenShareConfig().showCursor, isTrue);
+    });
+
+    test('capture options forward the cursor choice', () {
+      Helper.screenCaptureShowCursor = true;
+      const ScreenShareConfig(showCursor: false)
+          .captureOptions(captureScreenAudio: false);
+      expect(Helper.screenCaptureShowCursor, isFalse);
+
+      Helper.screenCaptureShowCursor = false;
+      const ScreenShareConfig(showCursor: true)
+          .captureOptions(captureScreenAudio: false);
+      expect(Helper.screenCaptureShowCursor, isTrue);
+    });
+
     test('publish options carry top encoding and simulcast sub-layers', () {
       const config = ScreenShareConfig(
         mode: CommsMediaConstraints.shareCustom,
@@ -118,6 +142,19 @@ void main() {
           CommsMediaConstraints.video1080p,
           60,
         ).encoding?.maxBitrate,
+      );
+    });
+
+    test('equality includes the cursor choice', () {
+      expect(
+        const ScreenShareConfig(showCursor: false) ==
+            const ScreenShareConfig(showCursor: false),
+        isTrue,
+      );
+      expect(
+        const ScreenShareConfig(showCursor: false) ==
+            const ScreenShareConfig(showCursor: true),
+        isFalse,
       );
     });
 

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' show Helper;
 import 'package:livekit_client/livekit_client.dart';
 import 'package:novyse/core/comms/devices/comms_media_constraints.dart';
 
@@ -20,11 +21,15 @@ class ScreenShareConfig {
   /// Per-share max video bitrate in kbps. Null keeps the preset bitrate.
   final int? maxBitrateKbps;
 
+  /// Whether the captured frame composites the sharer's OS pointer.
+  final bool showCursor;
+
   const ScreenShareConfig({
     this.mode = CommsMediaConstraints.defaultShareMode,
     this.customQuality = CommsMediaConstraints.defaultShareCustomQuality,
     this.customFps = CommsMediaConstraints.defaultShareCustomFps,
     this.maxBitrateKbps,
+    this.showCursor = true,
   });
 
   /// Defaults snapshot read from the settings map.
@@ -61,12 +66,14 @@ class ScreenShareConfig {
     String? customQuality,
     String? customFps,
     int? maxBitrateKbps,
+    bool? showCursor,
   }) {
     return ScreenShareConfig(
       mode: mode ?? this.mode,
       customQuality: customQuality ?? this.customQuality,
       customFps: customFps ?? this.customFps,
       maxBitrateKbps: maxBitrateKbps ?? this.maxBitrateKbps,
+      showCursor: showCursor ?? this.showCursor,
     );
   }
 
@@ -74,8 +81,9 @@ class ScreenShareConfig {
   String resolveEffectiveQuality({int? sourceWidth, int? sourceHeight}) {
     final preset = ScreenSharePreset.fromId(mode);
     final rawQuality = switch (preset) {
-      ScreenSharePreset.custom =>
-        CommsMediaConstraints.resolveVideoQuality(customQuality),
+      ScreenSharePreset.custom => CommsMediaConstraints.resolveVideoQuality(
+        customQuality,
+      ),
       _ => preset.quality,
     };
     if (preset != ScreenSharePreset.custom &&
@@ -109,8 +117,10 @@ class ScreenShareConfig {
   double resolveMaxFrameRate() {
     final preset = ScreenSharePreset.fromId(mode);
     return switch (preset) {
-      ScreenSharePreset.custom =>
-        CommsMediaConstraints.resolveVideoFps('', customFps).toDouble(),
+      ScreenSharePreset.custom => CommsMediaConstraints.resolveVideoFps(
+        '',
+        customFps,
+      ).toDouble(),
       _ => preset.fps.toDouble(),
     };
   }
@@ -121,6 +131,8 @@ class ScreenShareConfig {
     int? sourceWidth,
     int? sourceHeight,
   }) {
+    Helper.screenCaptureShowCursor = showCursor;
+
     return ScreenShareCaptureOptions(
       sourceId: sourceId,
       captureScreenAudio: captureScreenAudio,
@@ -162,9 +174,10 @@ class ScreenShareConfig {
       other.mode == mode &&
       other.customQuality == customQuality &&
       other.customFps == customFps &&
-      other.maxBitrateKbps == maxBitrateKbps;
+      other.maxBitrateKbps == maxBitrateKbps &&
+      other.showCursor == showCursor;
 
   @override
   int get hashCode =>
-      Object.hash(mode, customQuality, customFps, maxBitrateKbps);
+      Object.hash(mode, customQuality, customFps, maxBitrateKbps, showCursor);
 }

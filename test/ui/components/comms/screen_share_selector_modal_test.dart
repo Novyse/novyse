@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -76,6 +77,12 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Checkbox inside the row labelled [label] (the menu has more than one).
+  Finder checkboxFor(String label) => find.descendant(
+    of: find.ancestor(of: find.text(label), matching: find.byType(Row)).first,
+    matching: find.byType(Checkbox),
+  );
+
   setUp(() => requestedTypes.clear());
 
   tearDown(() {
@@ -113,7 +120,7 @@ void main() {
 
       // Offered for a full-screen share, and unconditionally when the OS
       // picker is used.
-      expect(find.byType(Checkbox), findsOneWidget);
+      expect(checkboxFor(en.screenShareIncludeSystemAudio), findsOneWidget);
       expect(find.text(en.screenShareIncludeSystemAudio), findsOneWidget);
     });
 
@@ -121,20 +128,29 @@ void main() {
       mockCapturer(const []);
       await pump(tester);
 
-      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
+      expect(
+        tester
+            .widget<Checkbox>(checkboxFor(en.screenShareIncludeSystemAudio))
+            .value,
+        isFalse,
+      );
 
-      await tester.tap(find.byType(Checkbox));
+      await tester.tap(checkboxFor(en.screenShareIncludeSystemAudio));
       await tester.pump();
 
-      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
+      expect(
+        tester
+            .widget<Checkbox>(checkboxFor(en.screenShareIncludeSystemAudio))
+            .value,
+        isTrue,
+      );
     });
   });
 
   group('native picker session', () {
-    // The Wayland path requests the OS picker on open and shows a preview.
-    // In tests there is no display media, so capture fails and the modal
-    // offers a retry while keeping start disabled.
-    testWidgets('shows the preview area with retry on capture failure', (
+    // The Wayland path keeps the preview empty until the user opens the OS
+    // picker from the menu button.
+    testWidgets('offers a picker button until a source is chosen', (
       tester,
     ) async {
       if (!nativePicker) return;
@@ -142,15 +158,42 @@ void main() {
       await pump(tester);
 
       expect(find.text(en.screenSharePreview), findsOneWidget);
-      expect(find.text(en.screenShareCaptureFailed), findsOneWidget);
       expect(
-        find.widgetWithText(AppButton, en.screenShareRetry),
+        find.widgetWithText(AppButton, en.screenSharePickSource),
         findsOneWidget,
       );
+      expect(find.text(en.screenShareCaptureFailed), findsNothing);
       final start = tester.widget<AppButton>(
         find.widgetWithText(AppButton, en.screenShareStart),
       );
       expect(start.onPressed, isNull);
+    });
+
+    testWidgets('the picker button requests the OS capture', (tester) async {
+      if (!nativePicker) return;
+      var captures = 0;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method == 'getDisplayMedia') captures++;
+            return null;
+          });
+      await pump(tester);
+
+      expect(captures, 0);
+      await tester.tap(
+        find.widgetWithText(AppButton, en.screenSharePickSource),
+      );
+      await tester.pumpAndSettle();
+
+      expect(captures, 1);
+    });
+
+    testWidgets('does not offer the cursor option', (tester) async {
+      if (!nativePicker) return;
+      mockCapturer(const []);
+      await pump(tester);
+
+      expect(find.text(en.screenShareIncludeCursor), findsNothing);
     });
 
     testWidgets('offers the audio toggle below the preview', (tester) async {
@@ -158,7 +201,7 @@ void main() {
       mockCapturer(const []);
       await pump(tester);
 
-      expect(find.byType(Checkbox), findsOneWidget);
+      expect(checkboxFor(en.screenShareIncludeSystemAudio), findsOneWidget);
       expect(find.text(en.screenShareIncludeSystemAudio), findsOneWidget);
     });
   });
@@ -255,12 +298,12 @@ void main() {
       mockCapturer([source('s1', 'Screen 1')]);
       await pump(tester);
       if (nativePicker) return;
-      expect(find.byType(Checkbox), findsOneWidget);
+      expect(checkboxFor(en.screenShareIncludeSystemAudio), findsOneWidget);
 
       await tester.tap(find.text(en.screenShareWindow));
       await tester.pumpAndSettle();
 
-      expect(find.byType(Checkbox), findsNothing);
+      expect(checkboxFor(en.screenShareIncludeSystemAudio), findsNothing);
     });
 
     testWidgets('switching back to screen restores the audio toggle', (
@@ -275,7 +318,7 @@ void main() {
       await tester.tap(find.text(en.screenShareEntireScreen));
       await tester.pumpAndSettle();
 
-      expect(find.byType(Checkbox), findsOneWidget);
+      expect(checkboxFor(en.screenShareIncludeSystemAudio), findsOneWidget);
     });
 
     testWidgets('switching to window resets a checked audio box', (
@@ -284,16 +327,26 @@ void main() {
       mockCapturer([source('s1', 'Screen 1')]);
       await pump(tester);
       if (nativePicker) return;
-      await tester.tap(find.byType(Checkbox));
+      await tester.tap(checkboxFor(en.screenShareIncludeSystemAudio));
       await tester.pump();
-      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
+      expect(
+        tester
+            .widget<Checkbox>(checkboxFor(en.screenShareIncludeSystemAudio))
+            .value,
+        isTrue,
+      );
 
       await tester.tap(find.text(en.screenShareWindow));
       await tester.pumpAndSettle();
       await tester.tap(find.text(en.screenShareEntireScreen));
       await tester.pumpAndSettle();
 
-      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
+      expect(
+        tester
+            .widget<Checkbox>(checkboxFor(en.screenShareIncludeSystemAudio))
+            .value,
+        isFalse,
+      );
     });
 
     testWidgets('start is enabled once a source is selected', (tester) async {
@@ -434,6 +487,64 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('3500'), findsOneWidget);
+    });
+  });
+
+  group('cursor option', () {
+    Future<void> pumpMode(WidgetTester tester, ScreenShareConfig config) async {
+      mockCapturer(const []);
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: ScreenShareSelectorModal(initial: config),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('custom mode offers the cursor toggle, on by default', (
+      tester,
+    ) async {
+      if (nativePicker) return;
+      await pumpMode(tester, const ScreenShareConfig(mode: 'custom'));
+
+      final cursorLabel = find.text(en.screenShareIncludeCursor);
+      expect(cursorLabel, findsOneWidget);
+      final cursorRow = find
+          .ancestor(of: cursorLabel, matching: find.byType(Row))
+          .first;
+      final checkbox = find.descendant(
+        of: cursorRow,
+        matching: find.byType(Checkbox),
+      );
+      expect(tester.widget<Checkbox>(checkbox).value, isTrue);
+
+      await tester.tap(checkbox);
+      await tester.pumpAndSettle();
+      expect(tester.widget<Checkbox>(checkbox).value, isFalse);
+    });
+
+    testWidgets('gaming offers the same toggle, off by default', (
+      tester,
+    ) async {
+      if (nativePicker) return;
+      await pumpMode(tester, const ScreenShareConfig(mode: 'gaming'));
+
+      final cursorLabel = find.text(en.screenShareIncludeCursor);
+      expect(cursorLabel, findsOneWidget);
+      final cursorRow = find
+          .ancestor(of: cursorLabel, matching: find.byType(Row))
+          .first;
+      final checkbox = find.descendant(
+        of: cursorRow,
+        matching: find.byType(Checkbox),
+      );
+      expect(tester.widget<Checkbox>(checkbox).value, isFalse);
     });
   });
 

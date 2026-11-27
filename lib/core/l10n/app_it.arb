@@ -323,6 +323,8 @@
   "screenShareNoWindowsDetected": "Nessuna finestra rilevata",
   "screenShareNoSourcesDetected": "Nessuno schermo o finestra rilevato",
   "screenShareIncludeSystemAudio": "Condividi anche l'audio del sistema",
+  "screenShareIncludeCursor": "Includi il cursore nel frame",
+  "screenSharePickSource": "Scegli sorgente",
   "screenShareStart": "Avvia condivisione",
   "screenShareSetupTitle": "Configura condivisione",
   "screenSharePreview": "Anteprima",
